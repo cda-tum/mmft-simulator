@@ -39,3 +39,4 @@ build/
 external/*/
 .cache/
 .vscode
+images/*
