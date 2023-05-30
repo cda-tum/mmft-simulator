@@ -6,8 +6,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/mmft-black.ai" width="60%">
-    <img src="images/mmft-black.ai" width="60%">
+    <source media="(prefers-color-scheme: dark)" srcset="images/mmft_dark.png" width="60%">
+    <img src="images/mmft_dark.png" width="60%">
   </picture>
 </p>
 
