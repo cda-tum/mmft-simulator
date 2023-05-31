@@ -59,13 +59,13 @@ class CMakeBuild(build_ext):
         )
 
 setup(
-    name="hybridSim",
-    version="0.1.4",
+    name="pyHybridSim",
+    version="0.1.5",
     author="Michel Takken",
     author_email="michel.takken@tum.de",
     description="Microfluidics Design Automation and Simulation",
     long_description="This is just a tribute.",
-    ext_modules=[CMakeExtension("hybridSim")],
+    ext_modules=[CMakeExtension("pyHybridSim.pySim")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     python_requires=">=3.7",

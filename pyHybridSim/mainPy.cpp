@@ -9,7 +9,7 @@ namespace py = pybind11;
 
 namespace pySim {
 
-    PYBIND11_MODULE(hybridSim, m) {
+    PYBIND11_MODULE(pySim, m) {
 
         using T = double;
 
