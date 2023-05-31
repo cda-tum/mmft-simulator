@@ -45,7 +45,11 @@ and include the library API header in your project file:
 
 Install the python package
 ```python
-pip install mmft.hybridSim
+pip install mmft
+```
+and import the hybrid simulator in your code
+```python
+import mmft.hybridSim
 ```
 
 ## Example

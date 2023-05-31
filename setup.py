@@ -60,7 +60,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="pyHybridSim",
-    version="0.1.5",
+    version="0.1.0",
     author="Michel Takken",
     author_email="michel.takken@tum.de",
     description="Microfluidics Design Automation and Simulation",

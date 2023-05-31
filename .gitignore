@@ -26,6 +26,11 @@
 *.a
 *.lib
 
+# Python wheels
+*.whl
+*.egg*
+*.pyc
+
 # Executables
 *.exe
 *.out

@@ -71,7 +71,7 @@ target_sources(hybridSim PUBLIC src/main.cpp)
 target_link_libraries(hybridSim PUBLIC ${TARGET_NAME})
 
 # Create python library
-set(PY_TARGET_NAME pyHybridSim)
+set(PY_TARGET_NAME pySim)
 
 add_subdirectory(external/pybind11)
 pybind11_add_module(
