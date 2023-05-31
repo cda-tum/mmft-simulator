@@ -59,7 +59,7 @@ class CMakeBuild(build_ext):
         )
 
 setup(
-    name="mmft.hybridSim",
+    name="hybridSim",
     version="0.1.0",
     author="Michel Takken",
     author_email="michel.takken@tum.de",
