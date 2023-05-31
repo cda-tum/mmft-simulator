@@ -7,8 +7,8 @@ env:
   TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
 jobs:
-  build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+  build_wheels:
+    name: Build Python 🐍 wheels
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -29,18 +29,52 @@ jobs:
       with:
         python-versions: 'cp310-cp310'
         build-requirements: 'cython numpy'   
+
+    - uses: actions/upload-artifact@v3
+      with:
+        path: dist/*-manylinux*.whl
+
+  build_sdist:
+    name: Build Python 🐍 source distribution
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+    - name: Install pypa/build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
     - name: Build a source distribution
       run: >-
         python3 -m
         build
         --sdist
         --outdir dist/
-    - name: Publish wheels to PyPi
-      run: |
-        twine upload dist/*-manylinux*.whl
-    - name: Publish distribution 📦 to Test PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+    - uses: actions/upload-artifact@v3
       with:
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository-url: https://test.pypi.org/legacy/
+        path: dist/*.tar.gz
+
+  Upload-PyPi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+      - name: Publish wheels and source distribution to PyPi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
+      
+
+
     
