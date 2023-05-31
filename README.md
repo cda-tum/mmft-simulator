@@ -1,8 +1,8 @@
 # MMFT Hybrid Simulator
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Ubuntu-build](https://github.com/micheltakken/Base-Simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/micheltakken/Base-Simulator/actions/workflows/cmake_ubuntu.yml) 
-[![MacOS-build](https://github.com/micheltakken/Base-Simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/micheltakken/Base-Simulator/actions/workflows/cmake_macos.yml)
+[![Ubuntu-build](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml)
+[![MacOS-build](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_macos.yml)
 
 <p align="center">
   <picture>

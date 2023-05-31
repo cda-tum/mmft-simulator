@@ -79,5 +79,5 @@ pybind11_add_module(
     python/mainPy.cpp
 )
 
-target_link_libraries(${PY_TARGET_NAME} PUBLIC baseLib)
+target_link_libraries(${PY_TARGET_NAME} PUBLIC hybridLib)
 
