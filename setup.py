@@ -64,7 +64,7 @@ setup(
     author="Michel Takken",
     author_email="michel.takken@tum.de",
     description="Microfluidics Design Automation and Simulation",
-    long_description="",
+    long_description="This is just a tribute.",
     ext_modules=[CMakeExtension("hybrid-simulator")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
