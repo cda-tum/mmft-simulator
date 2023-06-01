@@ -35,6 +35,9 @@ classifiers=[
 requires-python = ">=3.8"
 dynamic = ["version"]
 
+[tool.setuptools.packages.find]
+include = ["mmft.*"]
+
 [tool.setuptools_scm]
 
 [tool.mypy]
