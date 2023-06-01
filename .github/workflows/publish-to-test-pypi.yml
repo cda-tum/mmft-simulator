@@ -2,10 +2,6 @@ name: Publish Python 🐍 distributions 📦 to PyPI and TestPyPI
 
 on: push
 
-env:
-  TWINE_USERNAME: mikados
-  TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-
 jobs:
   build_wheels:
     name: Build Python 🐍 wheels
