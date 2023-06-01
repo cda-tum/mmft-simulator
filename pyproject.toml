@@ -6,9 +6,37 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "mmft.hybridsim"
+description = "A hybrid simulator for closed channel-based microfluidic devices"
+readme = "README.md"
+authors = [
+    { name = "Michel Takken", email = "michel.takken@tum.de"}
+]
+keywords = ["MMFT", "microfluidics", "design automation", "hybrid simulation"]
+license = { file = "LICENSE.md" }
+
+classifiers=[
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+]
+requires-python = ">=3.8"
+version = "0.1.0"
+
 [tool.mypy]
 files = "setup.py"
-python_version = "3.7"
+python_version = "3.8"
 strict = true
 show_error_codes = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
