@@ -70,14 +70,8 @@ add_executable(hybridSim)
 target_sources(hybridSim PUBLIC src/main.cpp)
 target_link_libraries(hybridSim PUBLIC ${TARGET_NAME})
 
-# Create python library
-set(PY_TARGET_NAME pySim)
-
-add_subdirectory(external/pybind11)
-pybind11_add_module(
-    ${PY_TARGET_NAME}
-    pyHybridSim/mainPy.cpp
-)
-
-target_link_libraries(${PY_TARGET_NAME} PUBLIC hybridLib)
-
+# add Python binding code
+option(BINDINGS "Configure for building Python bindings")
+if(BINDINGS)
+	add_subdirectory(mmft/hybridsim)
+endif()
