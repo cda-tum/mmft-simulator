@@ -1,6 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=61",
+    "setuptools_scm[toml]>=7",
     "ninja>=1.10; sys_platform != 'win32'",
     "cmake>=3.21"
 ]
@@ -32,7 +33,7 @@ classifiers=[
     "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
 ]
 requires-python = ">=3.8"
-version = "0.1.0"
+dynamic = ["version"]
 
 [tool.mypy]
 files = "setup.py"

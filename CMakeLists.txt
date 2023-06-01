@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.21.0)
 
 project(hybrid-simulator
-    VERSION 0.1.0
     DESCRIPTION "Hybrid simulator for closed channel-based microfluidic devices."
     HOMEPAGE_URL "https://github.com/cda-tum/mmft-hybrid-simulator.git"
     LANGUAGES CXX
