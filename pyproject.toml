@@ -15,7 +15,7 @@ authors = [
     { name = "Michel Takken", email = "michel.takken@tum.de"}
 ]
 keywords = ["MMFT", "microfluidics", "design automation", "hybrid simulation"]
-license = { file = "LICENSE.md" }
+license = { file = "LICENSE" }
 
 classifiers=[
     "Development Status :: 3 - Alpha",
