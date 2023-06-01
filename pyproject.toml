@@ -35,6 +35,8 @@ classifiers=[
 requires-python = ">=3.8"
 dynamic = ["version"]
 
+[tool.setuptools_scm]
+
 [tool.mypy]
 files = "setup.py"
 python_version = "3.8"
