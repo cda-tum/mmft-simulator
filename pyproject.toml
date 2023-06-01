@@ -36,7 +36,8 @@ requires-python = ">=3.8"
 dynamic = ["version"]
 
 [tool.setuptools.packages.find]
-include = ["mmft.*"]
+where = ["python"]
+exclude = ["src*"]
 
 [tool.setuptools_scm]
 

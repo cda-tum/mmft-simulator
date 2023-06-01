@@ -72,5 +72,5 @@ target_link_libraries(hybridSim PUBLIC ${TARGET_NAME})
 # add Python binding code
 option(BINDINGS "Configure for building Python bindings")
 if(BINDINGS)
-	add_subdirectory(mmft/hybridsim)
+	add_subdirectory(python/mmft/hybridsim)
 endif()
