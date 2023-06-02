@@ -1,16 +1,52 @@
 [build-system]
 requires = [
-    "setuptools>=42",
-    "wheel",
-    "ninja",
+    "setuptools>=61",
+    "setuptools_scm[toml]>=7",
+    "ninja>=1.10; sys_platform != 'win32'",
     "cmake>=3.21"
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.mypy]
-files = "setup.py"
-python_version = "3.7"
-strict = true
-show_error_codes = true
-enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-warn_unreachable = true
+[project]
+name = "mmft.hybridsim"
+description = "A hybrid simulator for closed channel-based microfluidic devices"
+readme = "README.md"
+authors = [
+    { name = "Michel Takken", email = "michel.takken@tum.de"}
+]
+keywords = ["MMFT", "microfluidics", "design automation", "hybrid simulation"]
+license = { file = "LICENSE" }
+
+classifiers=[
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+]
+requires-python = ">=3.8"
+dynamic = ["version"]
+
+[tool.setuptools.packages.find]
+where = ["python"]
+exclude = ["src*"]
+
+[tool.setuptools_scm]
+
+[tool.cibuildwheel]
+build = "cp3*"
+skip = "*-musllinux_*"
+archs = "auto64"
+test-command = "python -c \"from mmft import hybridsim\""
+build-frontend = "build"
+
+[tool.cibuildwheel.macos]
+environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
