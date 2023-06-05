@@ -27,13 +27,13 @@ To use this library, include the following code in your cmake file:
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
-    hybridSim
+    hybridsim
     GIT_REPOSITORY https://github.com/cda-tum/mmft-hybrid-simulator.git
     GIT_TAG master
 )
-FetchContent_MakeAvailable(hybridSim)
+FetchContent_MakeAvailable(hybridsim)
 
-target_link_libraries(${TARGET} PRIVATE hybridSim)
+target_link_libraries(${TARGET} PRIVATE hybridsim)
 ```
 and include the library API header in your project file:
 ```cpp
@@ -49,7 +49,7 @@ pip install mmft.hybridsim
 ```
 and import the hybrid simulator in your code
 ```python
-from mmft import hybridSim
+from mmft import hybridsim
 ```
 
 ## Example
