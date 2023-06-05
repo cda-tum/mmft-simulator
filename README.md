@@ -6,7 +6,7 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/mmft_dark.png" width="60%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://www.cda.cit.tum.de/research/microfluidics/logo-microfluidics-toolkit.png" width="60%">
     <img src="images/mmft_dark.png" width="60%">
   </picture>
 </p>
@@ -19,10 +19,10 @@ If you have any questions, feel free to contact us via microfluidics.cda@xcit.tu
 
 ## System Requirements
 
-The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.7 or newer.
+The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.7 or newer. The package is currently tested for Linux distributions.
 
 ## Usage
-#### C++
+### C++
 To use this library, include the following code in your cmake file: 
 ```cmake
 include(FetchContent)
@@ -41,20 +41,93 @@ and include the library API header in your project file:
 #include <baseSimulator.hh>
 ```
 
-#### Python
+### Python
 
 Install the python package
 ```python
-pip install mmft
+pip install mmft.hybridsim
 ```
 and import the hybrid simulator in your code
 ```python
-import mmft.hybridSim
+from mmft import hybridSim
 ```
 
 ## Example
 
-#### C++
+To use the hybrid simulator, the network must be defined in a Network.JSON file. 
+A network is defined as a set of `Nodes`, `Channels` and CFD `Modules`. 
+
+A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device:
+```JSON
+{
+    "iD": 1,
+    "x": 2e-3,
+    "y": 1e-3
+}
+```
+A `Channel` connects two nodes (nA and nB) and has a width and a height:
+```JSON
+{
+    "iD": 1,
+    "nA": 1,
+    "nB": 2,
+    "width": 1e-4,
+    "height": 1e-4
+}
+```
+
+A CFD `Module` is defined with type `"LBM"` and contains paramaters for the LBM solver instance and information on the geometry of the CFD instance:
+```JSON
+{
+    "iD": 0,
+    "Type":"LBM",
+    "name": "Test1-cross-0",
+    "stlFile": "../examples/STL/cross.stl",
+    "charPhysLength": 1e-4,
+    "charPhysVelocity": 1e-2,
+    "alpha": 0.1,
+    "resolution": 20,
+    "epsilon": 0.5,
+    "posX": 3.75e-3,
+    "posY": 0.75e-3,
+    "sizeX": 5e-4,
+    "sizeY": 5e-4,
+    "Openings":
+    [
+        {
+            "nodeId": 4,
+            "normalX": 1.0,
+            "normalY": 0.0,
+            "width": 1e-4
+        },
+        {
+            "nodeId": 8,
+            "normalX": 0.0,
+            "normalY": -1.0,
+            "width": 1e-4
+        },
+        {
+            "nodeId": 9,
+            "normalX": 0.0,
+            "normalY": 1.0,
+            "width": 1e-4
+        },
+        {
+            "nodeId": 10,
+            "normalX": -1.0,
+            "normalY": 0.0,
+            "width": 1e-4
+        }
+    ]
+}
+```
+Most importantly, the geometry of the CFD `Module` is described by a .STL file. The in-/outflow boundaries of the CFD `Module` are described by the `Openings`. Each opening is coupled to a single `Node` (located in the middle of the opening), has a normal direction and a width.
+
+Examples of networks can be found in the `examples` folder.
+
+### C++
+
+The simulation case is defined in `main.cpp`. An example of a simulation case in c++ is given here:
 
 ```cpp
 #include <iostream>
@@ -103,27 +176,29 @@ int main(int argc, char const* argv []) {
 }
 ```
 
-#### Python
+### Python
+
+The simulation case can be defined once the `mmft.hybridsim` package is installed. An example for a simulation case in python is given here:
 
 ```python
-import mmft.hybridSim as hybridSim
+from mmft import hybridsim
 
 # New simulation object
-simulation = hybridSim.Simulation()
+simulation = hybridsim.Simulation()
 
 # Load and set the network from a JSON file
-network = hybridSim.Network("/path/to/Network.JSON")
+network = hybridsim.Network("/path/to/Network.JSON")
 simulation.setNetwork(network)
 
 # Add Pressure and/or Flow Rate Pumps
 network.setPressurePump(0, 1e3)
 
 # Define and set the continuous phase fluid
-fluid = hybridSim.Fluid(0, 1000, 1e-3)
+fluid = hybridsim.Fluid(0, 1000, 1e-3)
 simulation.setContinuousPhase(fluid)
 
 # Define and set the resistance model
-resistanceModel = hybridSim.ResistanceModel(fluid.getViscosity())
+resistanceModel = hybridsim.ResistanceModel(fluid.getViscosity())
 simulation.setResistanceModel(resistanceModel)
 
 # Perform simulation and store results
