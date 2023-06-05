@@ -1,0 +1,444 @@
+{
+    "Network":
+    {
+        "Nodes":
+        [
+            {
+                "iD": 28,
+                "x": 0.0,
+                "y": 2e-3
+            },
+            {
+                "iD": 1,
+                "x": 2e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 2,
+                "x": 2e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 3,
+                "x": 2e-3,
+                "y": 4e-3
+            },
+            {
+                "iD": 4,
+                "x": 2e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 5,
+                "x": 3e-3,
+                "y": 4e-3
+            },
+            {
+                "iD": 6,
+                "x": 3e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 7,
+                "x": 3e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 8,
+                "x": 3e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 9,
+                "x": 4e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 10,
+                "x": 4e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 11,
+                "x": 5e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 12,
+                "x": 4.75e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 13,
+                "x": 5e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 14,
+                "x": 6e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 15,
+                "x": 6e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 16,
+                "x": 7e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 17,
+                "x": 6.75e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 18,
+                "x": 7e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 19,
+                "x": 8e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 20,
+                "x": 8e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 21,
+                "x": 8e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 22,
+                "x": 5e-3,
+                "y": 1.25e-3
+            },
+            {
+                "iD": 23,
+                "x": 5e-3,
+                "y": 0.75e-3
+            },
+            {
+                "iD": 24,
+                "x": 5.25e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 25,
+                "x": 7e-3,
+                "y": 3.25e-3
+            },
+            {
+                "iD": 26,
+                "x": 7e-3,
+                "y": 2.75e-3
+            },
+            {
+                "iD": 27,
+                "x": 7.25e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 29,
+                "x": 0e-3,
+                "y": 0e-3
+            },
+            {
+                "iD": -1,
+                "x": 10e-3,
+                "y": 3.0e-3
+            }
+        ],
+        "Channels":
+        [
+            {
+                "iD": 27,
+                "nA": 28,
+                "nB": 1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 1,
+                "nA": 3,
+                "nB": 2,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 2,
+                "nA": 1,
+                "nB": 3,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 3,
+                "nA": 1,
+                "nB": 4,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 4,
+                "nA": 2,
+                "nB": 11,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 5,
+                "nA": 3,
+                "nB": 5,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 6,
+                "nA": 4,
+                "nB": 7,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 7,
+                "nA": 5,
+                "nB": 6,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 8,
+                "nA": 7,
+                "nB": 8,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 9,
+                "nA": 6,
+                "nB": 9,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 10,
+                "nA": 8,
+                "nB": 13,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 11,
+                "nA": 9,
+                "nB": 10,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 12,
+                "nA": 10,
+                "nB": 12,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 13,
+                "nA": 11,
+                "nB": 22,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 14,
+                "nA": 23,
+                "nB": 13,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 15,
+                "nA": 11,
+                "nB": 14,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 16,
+                "nA": 24,
+                "nB": 20,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 17,
+                "nA": 13,
+                "nB": 21,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 18,
+                "nA": 14,
+                "nB": 15,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 19,
+                "nA": 14,
+                "nB": 16,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 20,
+                "nA": 15,
+                "nB": 17,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 21,
+                "nA": 16,
+                "nB": 25,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 22,
+                "nA": 26,
+                "nB": 18,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 23,
+                "nA": 27,
+                "nB": -1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 24,
+                "nA": 18,
+                "nB": 19,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 25,
+                "nA": 19,
+                "nB": 20,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 26,
+                "nA": 20,
+                "nB": 21,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 0,
+                "nA": 29,
+                "nB": 28,
+                "width": 1e-4,
+                "height": 1e-4
+            }
+        ],
+        "Modules":
+        [
+            {
+                "iD": 0,
+                "Type":"LBM",
+                "name": "Test4-cross-0",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-2,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 0.5,
+                "posX": 4.75e-3,
+                "posY": 0.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 12,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 22,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 23,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 24,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 1,
+                "Type":"LBM",
+                "name": "Test4-cross-1",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-2,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 0.5,
+                "posX": 6.75e-3,
+                "posY": 2.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 17,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 25,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 26,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 27,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,198 @@
+{
+    "Network":
+    {
+        "Nodes":
+        [
+            {
+                "iD": 11,
+                "x": 0.0,
+                "y": 1e-3
+            },
+            {
+                "iD": 1,
+                "x": 2e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 2,
+                "x": 2e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 3,
+                "x": 4e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 4,
+                "x": 3.75e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 5,
+                "x": 4e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 6,
+                "x": 5e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 7,
+                "x": 5e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 8,
+                "x": 4e-3,
+                "y": 1.25e-3
+            },
+            {
+                "iD": 9,
+                "x": 4e-3,
+                "y": 0.75e-3
+            },
+            {
+                "iD": 10,
+                "x": 4.25e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 12,
+                "x": 0e-3,
+                "y": 0e-3
+            },
+            {
+                "iD": -1,
+                "x": 6e-3,
+                "y": 0.0e-3
+            }
+        ],
+        "Channels":
+        [
+            {
+                "iD": 10,
+                "nA": 11,
+                "nB": 1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 1,
+                "nA": 1,
+                "nB": 2,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 2,
+                "nA": 2,
+                "nB": 3,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 3,
+                "nA": 1,
+                "nB": 4,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 4,
+                "nA": 3,
+                "nB": 8,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 5,
+                "nA": 9,
+                "nB": 5,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 6,
+                "nA": 10,
+                "nB": 6,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 7,
+                "nA": 5,
+                "nB": 7,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 8,
+                "nA": 6,
+                "nB": 7,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 9,
+                "nA": 7,
+                "nB": -1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 0,
+                "nA": 12,
+                "nB": 11,
+                "width": 1e-4,
+                "height": 1e-4
+            }
+        ],
+        "Modules":
+        [
+            {
+                "iD": 0,
+                "Type":"LBM",
+                "name": "Test1-cross-0",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-2,
+                "alpha": 0.1,
+                "resolution": 20,
+                "epsilon": 0.5,
+                "posX": 3.75e-3,
+                "posY": 0.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 4,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 8,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 9,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 10,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}

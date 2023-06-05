@@ -1,0 +1,891 @@
+{
+    "Network":
+    {
+        "Nodes":
+        [
+            {
+                "iD": 53,
+                "x": 0.0,
+                "y": 1e-3
+            },
+            {
+                "iD": 1,
+                "x": 1e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 2,
+                "x": 1e-3,
+                "y": 6e-3
+            },
+            {
+                "iD": 3,
+                "x": 2e-3,
+                "y": 7e-3
+            },
+            {
+                "iD": 4,
+                "x": 2e-3,
+                "y": 6e-3
+            },
+            {
+                "iD": 5,
+                "x": 2e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 6,
+                "x": 2e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 7,
+                "x": 2e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 8,
+                "x": 2e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 9,
+                "x": 2e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 10,
+                "x": 3e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 11,
+                "x": 2.75e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 12,
+                "x": 3e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 13,
+                "x": 2.75e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 14,
+                "x": 3e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 15,
+                "x": 4e-3,
+                "y": 7e-3
+            },
+            {
+                "iD": 16,
+                "x": 3.75e-3,
+                "y": 6e-3
+            },
+            {
+                "iD": 17,
+                "x": 4e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 18,
+                "x": 4e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 19,
+                "x": 5e-3,
+                "y": 7e-3
+            },
+            {
+                "iD": 20,
+                "x": 5e-3,
+                "y": 6e-3
+            },
+            {
+                "iD": 21,
+                "x": 5e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 22,
+                "x": 5e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 23,
+                "x": 5e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 24,
+                "x": 5e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 25,
+                "x": 6e-3,
+                "y": 7e-3
+            },
+            {
+                "iD": 26,
+                "x": 5.75e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 27,
+                "x": 6e-3,
+                "y": 4e-3
+            },
+            {
+                "iD": 28,
+                "x": 7e-3,
+                "y": 7e-3
+            },
+            {
+                "iD": 29,
+                "x": 7e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": 30,
+                "x": 7e-3,
+                "y": 4e-3
+            },
+            {
+                "iD": 31,
+                "x": 7e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 32,
+                "x": 7e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 33,
+                "x": 7e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 34,
+                "x": 7e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 35,
+                "x": 8e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 36,
+                "x": 8e-3,
+                "y": 2e-3
+            },
+            {
+                "iD": 37,
+                "x": 8e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 38,
+                "x": 9e-3,
+                "y": 7e-3
+            },
+            {
+                "iD": 39,
+                "x": 9e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 40,
+                "x": 9e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 41,
+                "x": 3e-3,
+                "y": 3.25e-3
+            },
+            {
+                "iD": 42,
+                "x": 3e-3,
+                "y": 2.75e-3
+            },
+            {
+                "iD": 43,
+                "x": 3.25e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 44,
+                "x": 3e-3,
+                "y": 1.25e-3
+            },
+            {
+                "iD": 45,
+                "x": 3e-3,
+                "y": 0.75e-3
+            },
+            {
+                "iD": 46,
+                "x": 3.25e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 47,
+                "x": 4e-3,
+                "y": 6.25e-3
+            },
+            {
+                "iD": 48,
+                "x": 4e-3,
+                "y": 5.75e-3
+            },
+            {
+                "iD": 49,
+                "x": 4.25e-3,
+                "y": 6e-3
+            },
+            {
+                "iD": 50,
+                "x": 6e-3,
+                "y": 5.25e-3
+            },
+            {
+                "iD": 51,
+                "x": 6e-3,
+                "y": 4.75e-3
+            },
+            {
+                "iD": 52,
+                "x": 6.25e-3,
+                "y": 5e-3
+            },
+            {
+                "iD": -1,
+                "x": 10e-3,
+                "y": 3e-3
+            },
+            {
+                "iD": 54,
+                "x": 0e-3,
+                "y": 0e-3
+            }
+        ],
+        "Channels":
+        [
+            {
+                "iD": 61,
+                "nA": 53,
+                "nB": 1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 1,
+                "nA": 1,
+                "nB": 2,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 2,
+                "nA": 2,
+                "nB": 4,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 3,
+                "nA": 1,
+                "nB": 8,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 4,
+                "nA": 4,
+                "nB": 3,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 5,
+                "nA": 4,
+                "nB": 5,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 6,
+                "nA": 7,
+                "nB": 6,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 7,
+                "nA": 8,
+                "nB": 7,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 8,
+                "nA": 8,
+                "nB": 9,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 9,
+                "nA": 3,
+                "nB": 15,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 10,
+                "nA": 4,
+                "nB": 16,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 11,
+                "nA": 5,
+                "nB": 10,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 12,
+                "nA": 6,
+                "nB": 11,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 13,
+                "nA": 7,
+                "nB": 12,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 14,
+                "nA": 8,
+                "nB": 13,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 15,
+                "nA": 9,
+                "nB": 14,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 16,
+                "nA": 10,
+                "nB": 41,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 17,
+                "nA": 42,
+                "nB": 12,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 18,
+                "nA": 12,
+                "nB": 44,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 19,
+                "nA": 45,
+                "nB": 14,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 20,
+                "nA": 10,
+                "nB": 17,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 21,
+                "nA": 43,
+                "nB": 18,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 22,
+                "nA": 12,
+                "nB": 23,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 23,
+                "nA": 46,
+                "nB": 24,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 24,
+                "nA": 14,
+                "nB": 34,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 25,
+                "nA": 15,
+                "nB": 47,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 26,
+                "nA": 48,
+                "nB": 17,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 27,
+                "nA": 17,
+                "nB": 18,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 28,
+                "nA": 15,
+                "nB": 19,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 29,
+                "nA": 49,
+                "nB": 20,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 30,
+                "nA": 17,
+                "nB": 21,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 31,
+                "nA": 22,
+                "nB": 31,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 32,
+                "nA": 19,
+                "nB": 20,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 33,
+                "nA": 20,
+                "nB": 21,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 34,
+                "nA": 22,
+                "nB": 23,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 35,
+                "nA": 23,
+                "nB": 24,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 36,
+                "nA": 19,
+                "nB": 25,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 37,
+                "nA": 21,
+                "nB": 26,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 38,
+                "nA": 24,
+                "nB": 33,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 39,
+                "nA": 25,
+                "nB": 50,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 40,
+                "nA": 51,
+                "nB": 27,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 41,
+                "nA": 25,
+                "nB": 28,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 42,
+                "nA": 52,
+                "nB": 29,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 43,
+                "nA": 27,
+                "nB": 30,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 44,
+                "nA": 28,
+                "nB": 29,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 45,
+                "nA": 29,
+                "nB": 30,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 46,
+                "nA": 30,
+                "nB": 31,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 47,
+                "nA": 32,
+                "nB": 33,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 48,
+                "nA": 33,
+                "nB": 34,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 49,
+                "nA": 28,
+                "nB": 38,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 50,
+                "nA": 31,
+                "nB": 35,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 51,
+                "nA": 32,
+                "nB": 36,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 52,
+                "nA": 34,
+                "nB": 37,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 53,
+                "nA": 35,
+                "nB": 36,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 54,
+                "nA": 36,
+                "nB": 37,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 55,
+                "nA": 35,
+                "nB": 39,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 56,
+                "nA": 37,
+                "nB": 40,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 57,
+                "nA": 38,
+                "nB": 39,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 58,
+                "nA": 40,
+                "nB": 39,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 59,
+                "nA": 18,
+                "nB": 22,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 60,
+                "nA": 39,
+                "nB": -1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 0,
+                "nA": 54,
+                "nB": 53,
+                "width": 1e-4,
+                "height": 1e-4
+            }
+        ],
+        "Modules":
+        [
+            {
+                "iD": 0,
+                "Type":"LBM",
+                "name": "Test6-cross-0",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-2,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 0.5,
+                "posX": 2.75e-3,
+                "posY": 2.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 11,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 41,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 42,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 43,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 1,
+                "Type":"LBM",
+                "name": "Test6-cross-1",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-2,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 0.5,
+                "posX": 2.75e-3,
+                "posY": 0.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 13,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 44,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 45,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 46,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 2,
+                "Type":"LBM",
+                "name": "Test6-cross-2",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-2,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 0.5,
+                "posX": 3.75e-3,
+                "posY": 5.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 16,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 47,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 48,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 49,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 3,
+                "Type":"LBM",
+                "name": "Test6-cross-3",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-2,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 0.5,
+                "posX": 5.75e-3,
+                "posY": 4.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 26,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 50,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 51,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 52,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}

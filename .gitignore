@@ -45,3 +45,4 @@ external/*/
 .cache/
 .vscode
 images/*
+examples/*
