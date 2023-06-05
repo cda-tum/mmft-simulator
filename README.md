@@ -82,7 +82,7 @@ A CFD `Module` is defined with type `"LBM"` and contains paramaters for the LBM 
     "iD": 0,
     "Type":"LBM",
     "name": "Test1-cross-0",
-    "stlFile": "../examples/STL/cross.stl",
+    "stlFile": "/path/to/cross.stl",
     "charPhysLength": 1e-4,
     "charPhysVelocity": 1e-2,
     "alpha": 0.1,
