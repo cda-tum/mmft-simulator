@@ -20,7 +20,7 @@ namespace sim {
         private:
             // TODO: Add static member variable that keeps track of total memory allocated for lbm sim
             arch::Network<T>* network;                                     ///< Network for which the simulation should be conducted.
-            ResistanceModel1D<T>* resistanceModel;                          ///< The resistance model used for te simulation.
+            ResistanceModel2DPoiseuille<T>* resistanceModel;               ///< The resistance model used for te simulation.
             Fluid<T>* continuousPhase = nullptr;                           ///< Fluid of the continuous phase.
 
             /**
@@ -59,7 +59,7 @@ namespace sim {
              * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
              * @param[in] modelName Name of the resistance model to be used.
              */
-            void setResistanceModel(ResistanceModel1D<T>* model);
+            void setResistanceModel(ResistanceModel2DPoiseuille<T>* model);
 
             /**
              * @brief Conduct the simulation.

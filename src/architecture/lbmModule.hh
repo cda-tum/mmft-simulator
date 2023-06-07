@@ -12,9 +12,10 @@ namespace arch{
     template<typename T>
     lbmModule<T>::lbmModule (
         int id_, std::string name_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, 
-        std::unordered_map<int, Opening<T>> openings_, std::string stlFile_) : 
+        std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_) : 
             Module<T>(id_, pos_, size_, nodes_), 
-            moduleOpenings(openings_), stlFile(stlFile_), name(name_)
+            moduleOpenings(openings_), stlFile(stlFile_), name(name_), charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_),
+             alpha(alpha_), resolution(resolution_), epsilon(epsilon_)
         { 
             this->moduleType = ModuleType::LBM;
         } 
@@ -154,26 +155,24 @@ namespace arch{
             flowRates.at(key) = output[0];
             resistances.at(key) = output[0]/pressures.at(key);
 
-            std::cout << "[getResults] at node " << key << " the flowRate is " << flowRates.at(key) <<
-                " and the resistance is " << resistances.at(key) << std::endl;
+            //std::cout << "[getResults] at node " << key << " the flowRate is " << flowRates.at(key) <<
+            //    " and the resistance is " << resistances.at(key) << std::endl;
+            
+            // This print statement has to be here to prevent a **** stack smash detected*** error
             fluxes.at(key)->print();
+            
         }
     }
 
     template<typename T>
-    void lbmModule<T>::lbmInit (int resolution, 
-                                T dynViscosity, 
+    void lbmModule<T>::lbmInit (T dynViscosity, 
                                 T density, 
-                                T charPhysLength,
-                                T charPhysVelocity, 
-                                T epsilon,
                                 T relaxationTime) {
         // Create network with fully connected graph and set initial resistances
 
         olb::singleton::directories().setOutputDir( "./tmp/" );  // set output directory     
 
-        //TODO: REMOVE!!
-        T kinViscosity = dynViscosity;///density;
+        T kinViscosity = dynViscosity/density;
 
         this->moduleNetwork = std::make_shared<Network<T>> (this->boundaryNodes);
 
@@ -188,7 +187,7 @@ namespace arch{
             charPhysLength,
             charPhysVelocity,
             kinViscosity,
-            (T) 1.0
+            density
         );
 
         this->converter->print();
@@ -234,8 +233,8 @@ namespace arch{
             }
         }
         if (iT %1000 == 0) {
-            std::cout << "[writeVTK] writing vtk file at timestep " << iT << std::endl;
-            getResults();
+            std::cout << "[writeVTK] currently at timestep " << iT << std::endl;
+            //getResults();
         }
 
     }

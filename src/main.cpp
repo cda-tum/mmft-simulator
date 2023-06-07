@@ -19,6 +19,7 @@ int main(int argc, char const* argv []) {
     std::cout << "[Main] Load the JSON network..." << std::endl;
 
     // Load and set the network from a JSON file
+    //std::string file("../examples/Hybrid/Network1.JSON");
     std::string file = argv[1];
     arch::Network<T>* network = new arch::Network<T>(file);
 
@@ -35,7 +36,7 @@ int main(int argc, char const* argv []) {
 
     std::cout << "[Main] Set the resistance model..." << std::endl;
     // Define and set the resistance model
-    sim::ResistanceModel1D<T>* resistanceModel = new sim::ResistanceModel1D<T>(fluid0->getViscosity());
+    sim::ResistanceModel2DPoiseuille<T>* resistanceModel = new sim::ResistanceModel2DPoiseuille<T>(fluid0->getViscosity());
     testSimulation.setResistanceModel(resistanceModel);
 
 

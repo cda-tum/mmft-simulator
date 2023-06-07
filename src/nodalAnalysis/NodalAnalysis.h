@@ -14,6 +14,6 @@ namespace nodal {
      * @param[in] flowRatePumps List of flowrate pumps.
      */
     template<typename T>
-    void conductNodalAnalysis( const arch::Network<T>* network);
+    bool conductNodalAnalysis( const arch::Network<T>* network);
 
 }   // namespace nodal

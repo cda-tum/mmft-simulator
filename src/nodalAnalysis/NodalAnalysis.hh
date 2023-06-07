@@ -17,7 +17,7 @@ using Eigen::VectorXd;
 namespace nodal {
 
     template<typename T>
-    void conductNodalAnalysis( const arch::Network<T>* network)
+    bool conductNodalAnalysis( const arch::Network<T>* network)
         {
         const int nNodes = network->getNodes().size() - 1;    // -1 due to ground node
         const int nPressurePumps = network->getPressurePumps().size();
@@ -57,13 +57,13 @@ namespace nodal {
             assert(module->getModuleType() == arch::ModuleType::LBM);
 
             if ( ! module->getInitialized() ) {
-                std::cout << "[NodalAnalysis] we are now initializing the module based on its network" << std::endl;
+                //std::cout << "[NodalAnalysis] initializing the module based on its network" << std::endl;
                 for (const auto& [key, channel] : module->getNetwork()->getChannels()) {
                     auto nodeAMatrixId = channel->getNodeA();
                     auto nodeBMatrixId = channel->getNodeB();
                     const T conductance = 1. / channel->getResistance();
-                    std::cout << "[NodalAnalysis] channel " << key << " with nodes " << nodeAMatrixId <<
-                    " and " << nodeBMatrixId << " has resistance of " << channel->getResistance() << std::endl;
+                    //std::cout << "[NodalAnalysis] channel " << key << " with nodes " << nodeAMatrixId <<
+                    //" and " << nodeBMatrixId << " has resistance of " << channel->getResistance() << std::endl;
 
                     // main diagonal elements of G
                     if (nodeAMatrixId > groundNodeValue) {
@@ -87,7 +87,7 @@ namespace nodal {
                 // Write the module's resistances into matrix G
                 for (const auto& [key, node] : module->getNodes()) {
                     T flowRate = module->getFlowRates().at(key) * module->getOpenings().at(key).height;
-                    std::cout << "[NodalAnalysis] at node " << key << " we set flowrate " << flowRate << std::endl;
+                    std::cout << "[NodalAnalysis] at node " << key << " the flowrate is set at " << flowRate << " [m^3/s] " << std::endl;
                     z(key) = -flowRate;
                 }
             }
@@ -147,6 +147,8 @@ namespace nodal {
             channel.second->setPressure(nodeA->getPressure() - nodeB->getPressure());
         }
 
+        bool pressureConvergence = true;
+
         // Set the pressures on the boundary nodes of the modules
         for (auto& module : network->getModules()) {
             std::unordered_map<int, T> old_pressures = module.second->getPressures();
@@ -161,8 +163,15 @@ namespace nodal {
                     set_pressure = new_pressure;
                 }
                 pressures_.try_emplace(key, set_pressure);
+                /*
                 std::cout << "[NodalAnalysis] at node " << key << " we set pressure " << set_pressure << 
                     " from: \n old pressure: " << old_pressure << " and new pressure: " << new_pressure << std::endl;
+                */
+                std::cout << "[NodalAnalysis] at node " << key << " the pressure is set at " << set_pressure << " [Pa] " << std::endl;
+
+                if (abs(old_pressure - new_pressure) > module.second->getEpsilon()) {
+                    pressureConvergence = false;
+                }
             }
             module.second->setPressures(pressures_);
         }
@@ -173,6 +182,8 @@ namespace nodal {
             pressurePump.second->setFlowRate(x(iPump));
             iPump++;
         }
+
+        return pressureConvergence;
     }
 
 }   // namespace nodal

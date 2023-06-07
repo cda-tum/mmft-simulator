@@ -35,8 +35,8 @@ namespace arch {
                 int nB = nodeIds[j];
                 RectangularChannel<T>* addChannel = new RectangularChannel<T>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
                 channels.try_emplace(channel_counter, addChannel);
-                std::cout << "[Generate fully connected graph] I've added channel " << channel_counter <<
-                    " between nodes " << nA << " and " << nB << std::endl;
+                //std::cout << "[Generate fully connected graph] I've added channel " << channel_counter <<
+                //    " between nodes " << nA << " and " << nB << std::endl;
                 ++channel_counter;
             }
         }
@@ -72,7 +72,9 @@ namespace arch {
             std::vector<T> position = { module["posX"], module["posY"] };
             std::vector<T> size = { module["sizeX"], module["sizeY"] };
             lbmModule<T>* addModule = new lbmModule<T>( module["iD"], module["name"], position,
-                                                        size, Nodes, Openings, module["stlFile"]);
+                                                        size, Nodes, Openings, module["stlFile"], 
+                                                        module["charPhysLength"], module["charPhysVelocity"],
+                                                        module["alpha"], module["resolution"], module["epsilon"]);
             modules.try_emplace(module["iD"], addModule);
         }
     }

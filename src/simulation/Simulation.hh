@@ -42,7 +42,7 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setResistanceModel(ResistanceModel1D<T>* model_) {
+    void Simulation<T>::setResistanceModel(ResistanceModel2DPoiseuille<T>* model_) {
         this->resistanceModel = model_;
     }
 
@@ -55,12 +55,13 @@ namespace sim {
         // compute nodal analysis
         std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
         nodal::conductNodalAnalysis(this->network);
-        printResults();
+        //printResults();
 
         if (network->getModules().size() > 0 ) {
             bool allConverged = false;
+            bool pressureConverged = false;
 
-            for (int iter = 0; iter < 100; ++iter) {
+            for (int iter = 0; iter < 1000; ++iter) {
                 std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
 
                 // conduct CFD simulations
@@ -68,16 +69,15 @@ namespace sim {
                 allConverged = conductCFDSimulation(this->network, iter);
                 // compute nodal analysis again
                 std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                nodal::conductNodalAnalysis(this->network);
-                printResults();
+                pressureConverged = nodal::conductNodalAnalysis(this->network);
 
-                if (allConverged) {
-                    std::cout << "[Simulation] All simulations have converged" << std::endl;
+                if (pressureConverged) {
+                    std::cout << "[Simulation] The pressures have converged." << std::endl;
                     break;
                 }
             }
             
-            printResults();
+            //printResults();
         }
     }
 
@@ -93,18 +93,19 @@ namespace sim {
         for (auto& [key, channel] : network->getChannels()) {
             std::cout << "[Result] Channel " << channel->getId() << " has a flow rate of " << channel->getFlowRate() << " m^3/s.\n";
         }
+        /*
         std::cout << "\n";
         // print the resistances in all channels
         for (auto& [key, channel] : network->getChannels()) {
             std::cout << "[Result] Channel " << channel->getId() << " has a resistance of " << channel->getResistance() << " Pas/L.\n";
-        }
+        }*/
         std::cout << std::endl;
     }
 
     template<typename T>
     void Simulation<T>::initialize() {
         // set resistance model
-        this->resistanceModel = new ResistanceModel1D(continuousPhase->getViscosity());
+        this->resistanceModel = new ResistanceModel2DPoiseuille(continuousPhase->getViscosity());
 
         // compute and set channel lengths
         std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
@@ -125,17 +126,11 @@ namespace sim {
 
         // Prepare CFD geometry and lattice
         std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
-        T resolution = 20;
-        T charPhysLength = 1e-4;
-        T charPhysVelocity = 1e-2;
+
         for (auto& [key, module] : network->getModules()) {
-            module->lbmInit(resolution,
-                            continuousPhase->getViscosity(),
+            module->lbmInit(continuousPhase->getViscosity(),
                             continuousPhase->getDensity(),
-                            charPhysLength,
-                            charPhysVelocity,
-                            (T) 1e-1,
-                            (T) 0.55);
+                            (T) 0.932);
             module->prepareGeometry();
             module->prepareLattice();
         }
@@ -143,14 +138,14 @@ namespace sim {
         // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
         for (auto& [modulekey, module] : network->getModules()) {
             for (auto& [key, channel] : module->getNetwork()->getChannels()) {
-                std::cout << "[Simulation] Channel " << channel->getId();
+                //std::cout << "[Simulation] Channel " << channel->getId();
                 auto& nodeA = network->getNodes().at(channel->getNodeA());
                 auto& nodeB = network->getNodes().at(channel->getNodeB());
-                std::cout << " has nodes " << nodeA->getId() << " and " << nodeB->getId();
+                //std::cout << " has nodes " << nodeA->getId() << " and " << nodeB->getId();
                 T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
                 T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
                 channel->setLength(sqrt(dx*dx + dy*dy));
-                std::cout << " and a length of " << sqrt(dx*dx + dy*dy) <<std::endl;
+                //std::cout << " and a length of " << sqrt(dx*dx + dy*dy) <<std::endl;
             }
         }
         // TODO: Also boilerplate code that can be done more efficiently
