@@ -129,8 +129,7 @@ namespace sim {
 
         for (auto& [key, module] : network->getModules()) {
             module->lbmInit(continuousPhase->getViscosity(),
-                            continuousPhase->getDensity(),
-                            (T) 0.932);
+                            continuousPhase->getDensity());
             module->prepareGeometry();
             module->prepareLattice();
         }

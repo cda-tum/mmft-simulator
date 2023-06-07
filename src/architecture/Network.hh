@@ -74,7 +74,7 @@ namespace arch {
             lbmModule<T>* addModule = new lbmModule<T>( module["iD"], module["name"], position,
                                                         size, Nodes, Openings, module["stlFile"], 
                                                         module["charPhysLength"], module["charPhysVelocity"],
-                                                        module["alpha"], module["resolution"], module["epsilon"]);
+                                                        module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
             modules.try_emplace(module["iD"], addModule);
         }
     }

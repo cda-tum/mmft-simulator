@@ -12,10 +12,10 @@ namespace arch{
     template<typename T>
     lbmModule<T>::lbmModule (
         int id_, std::string name_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, 
-        std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_) : 
+        std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
             Module<T>(id_, pos_, size_, nodes_), 
             moduleOpenings(openings_), stlFile(stlFile_), name(name_), charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_),
-             alpha(alpha_), resolution(resolution_), epsilon(epsilon_)
+             alpha(alpha_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_)
         { 
             this->moduleType = ModuleType::LBM;
         } 
@@ -166,8 +166,7 @@ namespace arch{
 
     template<typename T>
     void lbmModule<T>::lbmInit (T dynViscosity, 
-                                T density, 
-                                T relaxationTime) {
+                                T density) {
         // Create network with fully connected graph and set initial resistances
 
         olb::singleton::directories().setOutputDir( "./tmp/" );  // set output directory     

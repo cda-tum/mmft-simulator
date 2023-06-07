@@ -68,6 +68,7 @@ namespace arch {
             T alpha;
             T resolution;
             T epsilon;
+            T relaxationTime;
 
             std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;   ///< Object that stores conversion factors from phyical to lattice parameters
             std::shared_ptr<olb::LoadBalancer<T>> loadBalancer;             ///< Loadbalancer for geometries in multiple cuboids
@@ -98,12 +99,12 @@ namespace arch {
              * @brief Constructor of an lbm module.
             */
             lbmModule(int id, std::string name, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-                std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon);
+                std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
             /**
              * @brief Initialize an instance of the LBM solver for this module.
             */
-            void lbmInit(T dynViscosity, T density, T relaxationTime = 0.932);
+            void lbmInit(T dynViscosity, T density);
 
             /**
              * @brief prepare the LBM geometry of this instance.
