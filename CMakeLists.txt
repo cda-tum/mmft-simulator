@@ -40,6 +40,17 @@ set(EXTERNAL_DIR ${lbm_SOURCE_DIR}/external)
 set(EXTERNAL_HEADER_LIST
     ${EXTERNAL_DIR}/tinyxml/tinyxml.h
     ${EXTERNAL_DIR}/tinyxml/tinystr.h
+    ${EXTERNAL_DIR}/zlib/crc32.h
+    ${EXTERNAL_DIR}/zlib/deflate.h
+    ${EXTERNAL_DIR}/zlib/gzguts.h
+    ${EXTERNAL_DIR}/zlib/inffast.h
+    ${EXTERNAL_DIR}/zlib/inffixed.h
+    ${EXTERNAL_DIR}/zlib/inflate.h
+    ${EXTERNAL_DIR}/zlib/inftrees.h
+    ${EXTERNAL_DIR}/zlib/trees.h
+    ${EXTERNAL_DIR}/zlib/zconf.h
+    ${EXTERNAL_DIR}/zlib/zlib.h
+    ${EXTERNAL_DIR}/zlib/zutil.h
 )
 
 set(EXTERNAL_SOURCE_LIST
@@ -47,7 +58,23 @@ set(EXTERNAL_SOURCE_LIST
     ${EXTERNAL_DIR}/tinyxml/tinystr.cpp
     ${EXTERNAL_DIR}/tinyxml/tinyxmlerror.cpp
     ${EXTERNAL_DIR}/tinyxml/tinyxmlparser.cpp
+    ${EXTERNAL_DIR}/zlib/adler32.c
+    ${EXTERNAL_DIR}/zlib/compress.c
+    ${EXTERNAL_DIR}/zlib/crc32.c
+    ${EXTERNAL_DIR}/zlib/deflate.c
+    ${EXTERNAL_DIR}/zlib/gzclose.c
+    ${EXTERNAL_DIR}/zlib/gzlib.c
+    ${EXTERNAL_DIR}/zlib/gzread.c
+    ${EXTERNAL_DIR}/zlib/gzwrite.c
+    ${EXTERNAL_DIR}/zlib/infback.c
+    ${EXTERNAL_DIR}/zlib/inffast.c
+    ${EXTERNAL_DIR}/zlib/inflate.c
+    ${EXTERNAL_DIR}/zlib/inftrees.c
+    ${EXTERNAL_DIR}/zlib/trees.c
+    ${EXTERNAL_DIR}/zlib/uncompr.c
+    ${EXTERNAL_DIR}/zlib/zutil.c
 )
+
 
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
 
