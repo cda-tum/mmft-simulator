@@ -2,7 +2,9 @@
 
 #include <memory>
 #include <set>
+#include <unordered_set>
 #include <unordered_map>
+#include <queue>
 #include <fstream>
 
 #include <lbmModule.h>
@@ -18,6 +20,36 @@
 using json = nlohmann::json;
 
 namespace arch {
+
+// A group is a detached 1D network, neighbouring the ground node(s) and/or CFD domains.
+template<typename T>
+struct Group {
+
+    int groupId;
+    bool grounded;      // Is this group connected to ground node(s)?
+    std::unordered_set<int> groundNodeIds;   // The nodes with pressure = pMin
+    std::unordered_set<int> nodeIds;    // Ids of nodes in this group
+    std::unordered_set<int> channelIds; // Ids of channels in this group
+    std::unordered_set<int> flowRatePumpIds;    // Ids of flow rate pumps in this group
+    std::unordered_set<int> pressurePumpIds;    // Ids of pressure pumps in this group
+
+    // In-/Outlets nodes of the group that are not ground nodes
+    std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> Openings; 
+
+    // delta p within the complete group
+    T pMax = 0.;
+    T pMin = 0.;
+
+    Group(int groupId_, std::unordered_set<int> nodeIds_, std::unordered_set<int> channelIds_) :
+        groupId(groupId_), nodeIds(nodeIds_), channelIds(channelIds_) {
+        for (auto& nodeId : nodeIds) {
+            if (nodeId <= 0) {
+                grounded = true;
+            }
+        }
+    }
+};
+
 /**
  * @brief Class to specify a Network of Nodes, Channels, and Models for a Platform on a Chip.
 */
@@ -29,6 +61,7 @@ class Network {
         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;  ///< Map of ids and channel pointers to flow rate pumps in the network.
         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;  ///< Map of ids and channel pointers to pressure pumps in the network.
         std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;    ///< Map of ids and module pointers to modules in the network.
+        std::unordered_map<int, std::unique_ptr<Group<T>>> groups;         ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
         //Platform* platform;                                             ///< The microfluidic platform that operates on this network.
 
     public:
@@ -101,6 +134,11 @@ class Network {
      * @brief Store the network object in a JSON file.
     */
     void toJson(std::string jsonString) const;
+
+    /**
+     * @brief Sorts the nodes and channels into detached 1D domain groups
+    */
+    void sortGroups();
 };
 
 }   // namespace arch

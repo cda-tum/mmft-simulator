@@ -77,6 +77,7 @@ namespace arch {
                                                         module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
             modules.try_emplace(module["iD"], addModule);
         }
+        this->sortGroups();
     }
 
     template<typename T>
@@ -153,6 +154,75 @@ namespace arch {
     void Network<T>::toJson(std::string jsonString) const {
         // TODO
         std::cerr << "The function roJson(std::string jsonString) is not implemented." << std::endl;
+    }
+
+    template<typename T>
+    void Network<T>::sortGroups() {
+        std::vector<int> nodeVector;
+        int groupId = 0;
+        auto it = nodeVector.begin();
+        for (auto& [key, node] : nodes) {
+            nodeVector.emplace_back(key);
+        }
+        while(!nodeVector.empty()){
+            std::queue<int> connectedNodes;
+            std::unordered_set<int> nodeIds;
+            std::unordered_set<int> channelIds;
+            auto p = nodeIds.insert(nodeVector.front());
+            if (p.second) {
+                for (auto& [key, channel] : channels) {
+                    if (channel->getNodeA() == nodeVector.front()) {
+                        auto t = channelIds.insert(channel->getId());
+                        if (t.second) {
+                            connectedNodes.push(channel->getNodeB());
+                        }
+                    }
+                    if (channel->getNodeB() == nodeVector.front()) {
+                        auto t = channelIds.insert(channel->getId());
+                        if (t.second) {
+                            connectedNodes.push(channel->getNodeA());
+                        }
+                    }
+                }
+                for (int i=0; i < nodeVector.size(); i++) {
+                    if (nodeVector[i] == nodeVector.front()) {
+                        nodeVector.erase(nodeVector.begin() + i);
+                    }
+                }
+            }
+
+            while(!connectedNodes.empty()) {
+                 
+                auto q = nodeIds.insert(connectedNodes.front());
+                if (q.second) {
+                    for (auto& [key, channel] : channels) {
+                        if (channel->getNodeA() == connectedNodes.front()) {
+                            auto t = channelIds.insert(channel->getId());
+                            if (t.second) {
+                                connectedNodes.push(channel->getNodeB());
+                            }
+                        }
+                        if (channel->getNodeB() == connectedNodes.front()) {
+                            auto t = channelIds.insert(channel->getId());
+                            if (t.second) {
+                                connectedNodes.push(channel->getNodeA());
+                            }
+                        }
+                    }
+                    for (int i=0; i < nodeVector.size(); i++) {
+                        if (nodeVector[i] == connectedNodes.front()) {
+                            nodeVector.erase(nodeVector.begin() + i);
+                        }
+                    }
+                    connectedNodes.pop();
+                }
+            }
+
+            Group<T>* addGroup = new Group<T>(groupId, nodeIds, channelIds);
+            groups.try_emplace(groupId, addGroup);
+            
+            groupId++;
+        }
     }
 
 }   // namespace arch
