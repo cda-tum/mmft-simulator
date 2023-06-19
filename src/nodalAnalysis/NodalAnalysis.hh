@@ -25,6 +25,16 @@ namespace nodal {
         const int nNodesAndPressurePumps = nNodes + nPressurePumps;
         const int groundNodeValue = 0;
 
+        std::unordered_set<int> conductingNodeIds;
+
+        for (const auto& group : network->getGroups()) {
+            for (const auto& nodeId : group->getNodeIds()) {
+                if(nodeId > groundNodeValue && nodeId != group->getGroundedNodeId()) {
+                    conductingNodeIds.emplace(nodeId);
+                }
+            }
+        }
+
         Eigen::MatrixXd A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);  // matrix A = [G, B; C, D]
         Eigen::VectorXd z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);                          // vector z = [i; e]
 
@@ -35,16 +45,16 @@ namespace nodal {
             const T conductance = 1. / channel.second->getResistance();
 
             // main diagonal elements of G
-            if (nodeAMatrixId > groundNodeValue) {
+            if (conductingNodeIds.contains(nodeAMatrixId)) {
                 A(nodeAMatrixId, nodeAMatrixId) += conductance;
             }
 
-            if (nodeBMatrixId > groundNodeValue) {
+            if (conductingNodeIds.contains(nodeBMatrixId)) {
                 A(nodeBMatrixId, nodeBMatrixId) += conductance;
             }
 
             // minor diagonal elements of G (if no ground node was present)
-            if (nodeAMatrixId > groundNodeValue && nodeBMatrixId > groundNodeValue) {
+            if (conductingNodeIds.contains(nodeAMatrixId) && conductingNodeIds.contains(nodeBMatrixId)) {
                 A(nodeAMatrixId, nodeBMatrixId) -= conductance;
                 A(nodeBMatrixId, nodeAMatrixId) -= conductance;
             }
@@ -66,16 +76,16 @@ namespace nodal {
                     //" and " << nodeBMatrixId << " has resistance of " << channel->getResistance() << std::endl;
 
                     // main diagonal elements of G
-                    if (nodeAMatrixId > groundNodeValue) {
+                    if (conductingNodeIds.contains(nodeAMatrixId)) {
                         A(nodeAMatrixId, nodeAMatrixId) += conductance;
                     }
 
-                    if (nodeBMatrixId > groundNodeValue) {
+                    if (conductingNodeIds.contains(nodeBMatrixId)) {
                         A(nodeBMatrixId, nodeBMatrixId) += conductance;
                     }
 
                     // minor diagonal elements of G (if no ground node was present)
-                    if (nodeAMatrixId > groundNodeValue && nodeBMatrixId > groundNodeValue) {
+                    if (conductingNodeIds.contains(nodeAMatrixId) && conductingNodeIds.contains(nodeBMatrixId)) {
                         A(nodeAMatrixId, nodeBMatrixId) -= conductance;
                         A(nodeBMatrixId, nodeAMatrixId) -= conductance;
                     }
@@ -99,12 +109,12 @@ namespace nodal {
             auto nodeAMatrixId = pressurePump.second->getNodeA();
             auto nodeBMatrixId = pressurePump.second->getNodeB();
 
-            if (nodeAMatrixId > groundNodeValue) {
+            if (conductingNodeIds.contains(nodeAMatrixId)) {
                 A(nodeAMatrixId, iPump) = -1;   // matrix B
                 A(iPump, nodeAMatrixId) = -1;   // matrix C
             }
 
-            if (nodeBMatrixId > groundNodeValue) {
+            if (conductingNodeIds.contains(nodeBMatrixId)) {
                 A(nodeBMatrixId, iPump) = 1;   // matrix B
                 A(iPump, nodeBMatrixId) = 1;   // matrix C
             }
@@ -120,10 +130,10 @@ namespace nodal {
             auto nodeBMatrixId = flowRatePump.second->getNodeB();
             const T flowRate = flowRatePump.second->getFlowRate();
 
-            if (nodeAMatrixId > groundNodeValue){
+            if (conductingNodeIds.contains(nodeAMatrixId)){
                 z(nodeAMatrixId) = -flowRate;
             }
-            if (nodeBMatrixId > groundNodeValue){
+            if (conductingNodeIds.contains(nodeBMatrixId)){
                 z(nodeBMatrixId) = flowRate;
             }
         }
@@ -134,10 +144,29 @@ namespace nodal {
         // set pressure of nodes to result value
         for (const auto& [key,node] : network->getNodes()) {
             auto nodeMatrixId = node->getId();
-            if (nodeMatrixId > groundNodeValue) {
+            if (conductingNodeIds.contains(nodeMatrixId)) {
                 node->setPressure(x(nodeMatrixId));
-            } else {
+            } else (nodeMatrixId <= groundNodeValue) {
                 node->setPressure(0.0);
+            }
+        }
+
+        for (const auto& group : network->getGroups()) {
+            for (auto nodeId : group.getNodeIds()) {
+                T pTemp = network->getNode(nodeId)->getPressure();
+                if (pTemp > group.getMaxP()) {
+                    group.setMaxP(pTemp);
+                }
+            }
+            if (group.getMinP() < 0.0) {
+                group.setMinP(group.getMaxP());
+            }
+            for (auto nodeId : group.getNodeIds()) {
+                T pTemp = network->getNode(nodeId)->getPressure();
+                if (pTemp < group.getMinP()) {
+                    group.setminP(pTemp);
+                    group.setGroundNode(nodeId);
+                }
             }
         }
 

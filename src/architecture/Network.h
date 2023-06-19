@@ -27,7 +27,7 @@ struct Group {
 
     int groupId;
     bool grounded;      // Is this group connected to ground node(s)?
-    std::unordered_set<int> groundNodeIds;   // The nodes with pressure = pMin
+    int groundNodeId;   // The nodes with pressure = pMin
     std::unordered_set<int> nodeIds;    // Ids of nodes in this group
     std::unordered_set<int> channelIds; // Ids of channels in this group
     std::unordered_set<int> flowRatePumpIds;    // Ids of flow rate pumps in this group
