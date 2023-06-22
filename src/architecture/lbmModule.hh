@@ -102,7 +102,11 @@ namespace arch{
 
         // Set lattice dynamics and initial condition for in- and outlets
         for (auto& [key, Opening] : moduleOpenings) {
-            setInterpolatedPressureBoundary(getLattice(), omega, getGeometry(), key+3);
+            if (Condition that finds initial group ground node) {
+                setInterpolatedVelocityBoundary(getLattice(), omega, getGeometry(), key+3);
+            } else {
+                setInterpolatedPressureBoundary(getLattice(), omega, getGeometry(), key+3);
+            }
         }
 
         // Initialize the integral fluxes for the in- and outlets
@@ -138,9 +142,16 @@ namespace arch{
         }
 
         for (auto& [key, Opening] : moduleOpenings) {
-            T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]-pressureLow));
-            olb::AnalyticalConst2D<T,T> rho(rhoV);
-            getLattice().defineRho(getGeometry(), key+3, rho);
+            if (Condition that finds initial group ground node) {
+                T maxVelocity = 3.*getConverter().getLatticeVelocity(flowRate[key])/Opening.width;
+                T distance2Wall = converter.getConversionFactorLength()/2.;
+                olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, maxVelocity, distance2Wall);
+                getLattice().defineU(getGeometry(), key+3, poiseuilleU);
+            } else {
+                T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]-pressureLow));
+                olb::AnalyticalConst2D<T,T> rho(rhoV);
+                getLattice().defineRho(getGeometry(), key+3, rho);
+            }
         }
 
     }

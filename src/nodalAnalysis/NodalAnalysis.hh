@@ -26,12 +26,14 @@ namespace nodal {
         const int groundNodeValue = 0;
 
         std::unordered_set<int> conductingNodeIds;
+        std::unordered_set<int> groundNodeIds;
 
         for (const auto& group : network->getGroups()) {
             for (const auto& nodeId : group->getNodeIds()) {
                 if(nodeId > groundNodeValue && nodeId != group->getGroundedNodeId()) {
                     conductingNodeIds.emplace(nodeId);
                 }
+                groundNodeIds.emplace(group->getGroundNodeId());
             }
         }
 
@@ -72,8 +74,6 @@ namespace nodal {
                     auto nodeAMatrixId = channel->getNodeA();
                     auto nodeBMatrixId = channel->getNodeB();
                     const T conductance = 1. / channel->getResistance();
-                    //std::cout << "[NodalAnalysis] channel " << key << " with nodes " << nodeAMatrixId <<
-                    //" and " << nodeBMatrixId << " has resistance of " << channel->getResistance() << std::endl;
 
                     // main diagonal elements of G
                     if (conductingNodeIds.contains(nodeAMatrixId)) {
@@ -94,11 +94,13 @@ namespace nodal {
             }
 
             else if ( module->getInitialized() ) {
-                // Write the module's resistances into matrix G
                 for (const auto& [key, node] : module->getNodes()) {
-                    T flowRate = module->getFlowRates().at(key) * module->getOpenings().at(key).height;
-                    std::cout << "[NodalAnalysis] at node " << key << " the flowrate is set at " << flowRate << " [m^3/s] " << std::endl;
-                    z(key) = -flowRate;
+                // Write the module's flowrates into vector i if the node is not a group's ground node
+                    if (conductingNodeIds.contains(key)) {
+                        T flowRate = module->getFlowRates().at(key) * module->getOpenings().at(key).height;
+                        std::cout << "[NodalAnalysis] at node " << key << " the flowrate is set at " << flowRate << " [m^3/s] " << std::endl;
+                        z(key) = -flowRate;
+                    }
                 }
             }
         }
@@ -142,30 +144,12 @@ namespace nodal {
         VectorXd x = A.colPivHouseholderQr().solve(z);
 
         // set pressure of nodes to result value
-        for (const auto& [key,node] : network->getNodes()) {
-            auto nodeMatrixId = node->getId();
-            if (conductingNodeIds.contains(nodeMatrixId)) {
-                node->setPressure(x(nodeMatrixId));
-            } else (nodeMatrixId <= groundNodeValue) {
-                node->setPressure(0.0);
-            }
-        }
-
         for (const auto& group : network->getGroups()) {
-            for (auto nodeId : group.getNodeIds()) {
-                T pTemp = network->getNode(nodeId)->getPressure();
-                if (pTemp > group.getMaxP()) {
-                    group.setMaxP(pTemp);
-                }
-            }
-            if (group.getMinP() < 0.0) {
-                group.setMinP(group.getMaxP());
-            }
-            for (auto nodeId : group.getNodeIds()) {
-                T pTemp = network->getNode(nodeId)->getPressure();
-                if (pTemp < group.getMinP()) {
-                    group.setminP(pTemp);
-                    group.setGroundNode(nodeId);
+            for (auto nodeMatrixId : group->getNodeIds()) {
+                if (conductingNodeIds.contains(nodeMatrixId)) {
+                    node->setPressure(x(nodeMatrixId) + group->getRefP());
+                } else if (nodeMatrixId <= groundNodeValue) {
+                    node->setPressure(0.0);
                 }
             }
         }
@@ -178,29 +162,34 @@ namespace nodal {
 
         bool pressureConvergence = true;
 
-        // Set the pressures on the boundary nodes of the modules
+        // Set the pressures and flow rates on the boundary nodes of the modules
         for (auto& module : network->getModules()) {
             std::unordered_map<int, T> old_pressures = module.second->getPressures();
             std::unordered_map<int, T> pressures_;
             for (auto& [key, node] : module.second->getNodes()){
-                T old_pressure = old_pressures.at(key);
-                T new_pressure = node->getPressure();
-                T set_pressure = 0.0;
-                if (old_pressure > 0 ) {
-                    set_pressure = old_pressure + module.second->getAlpha() * ( new_pressure - old_pressure );
-                } else {
-                    set_pressure = new_pressure;
-                }
-                pressures_.try_emplace(key, set_pressure);
-                /*
-                std::cout << "[NodalAnalysis] at node " << key << " we set pressure " << set_pressure << 
-                    " from: \n old pressure: " << old_pressure << " and new pressure: " << new_pressure << std::endl;
-                */
-                std::cout << "[NodalAnalysis] at node " << key << " the pressure is set at " << set_pressure << " [Pa] " << std::endl;
+                // Communicate pressure to the module
+                if (conductingNodeIds.contains(key) {
+                    T old_pressure = old_pressures.at(key);
+                    T new_pressure = node->getPressure();
+                    T set_pressure = 0.0;
+                    if (old_pressure > 0 ) {
+                        set_pressure = old_pressure + module.second->getAlpha() * ( new_pressure - old_pressure );
+                    } else {
+                        set_pressure = new_pressure;
+                    }
+                    pressures_.try_emplace(key, set_pressure);
 
-                if (abs(old_pressure - new_pressure) > module.second->getEpsilon()) {
-                    pressureConvergence = false;
+                    std::cout << "[NodalAnalysis] at node " << key << " the pressure is set at " << set_pressure << " [Pa] " << std::endl;
+
+                    if (abs(old_pressure - new_pressure) > module.second->getEpsilon()) {
+                        pressureConvergence = false;
+                    }
+                })
+                // Communicate the flow rate to the module 
+                else if (groundNodeIds.contains(key)) {
+                    T old_flowRate = 
                 }
+
             }
             module.second->setPressures(pressures_);
         }

@@ -26,8 +26,9 @@ template<typename T>
 struct Group {
 
     int groupId;
-    bool grounded;      // Is this group connected to ground node(s)?
-    int groundNodeId;   // The nodes with pressure = pMin
+    bool grounded;          // Is this group connected to ground node(s)?
+    int groundNodeId = -1;  // The node with pressure = pMin at the initial timestep
+    int groundChannelId;    // The channel that contains the ground node as node
     std::unordered_set<int> nodeIds;    // Ids of nodes in this group
     std::unordered_set<int> channelIds; // Ids of channels in this group
     std::unordered_set<int> flowRatePumpIds;    // Ids of flow rate pumps in this group
@@ -36,9 +37,8 @@ struct Group {
     // In-/Outlets nodes of the group that are not ground nodes
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> Openings; 
 
-    // delta p within the complete group
-    T pMax = 0.;
-    T pMin = 0.;
+    // The reference pressure of the group
+    T pRef = 0.;
 
     Group(int groupId_, std::unordered_set<int> nodeIds_, std::unordered_set<int> channelIds_) :
         groupId(groupId_), nodeIds(nodeIds_), channelIds(channelIds_) {
