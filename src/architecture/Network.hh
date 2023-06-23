@@ -142,6 +142,11 @@ namespace arch {
     }
 
     template<typename T>
+    const std::unordered_map<int, std::unique_ptr<Group<T>>>& Network<T>::getGroups() const {
+        return groups;
+    }
+
+    template<typename T>
     void Network<T>::setPressurePump(int channelId_, T pressure_) {
         int nodeAId = channels.at(channelId_).get()->getNodeA();
         int nodeBId = channels.at(channelId_).get()->getNodeB();

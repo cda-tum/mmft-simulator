@@ -28,12 +28,12 @@ namespace nodal {
         std::unordered_set<int> conductingNodeIds;
         std::unordered_set<int> groundNodeIds;
 
-        for (const auto& group : network->getGroups()) {
-            for (const auto& nodeId : group->getNodeIds()) {
-                if(nodeId > groundNodeValue && nodeId != group->getGroundedNodeId()) {
+        for (const auto& [key, group] : network->getGroups()) {
+            for (const auto& nodeId : group->nodeIds) {
+                if(nodeId > groundNodeValue && nodeId != group->groundNodeId) {
                     conductingNodeIds.emplace(nodeId);
                 }
-                groundNodeIds.emplace(group->getGroundNodeId());
+                groundNodeIds.emplace(group->groundNodeId);
             }
         }
 
@@ -47,16 +47,16 @@ namespace nodal {
             const T conductance = 1. / channel.second->getResistance();
 
             // main diagonal elements of G
-            if (conductingNodeIds.contains(nodeAMatrixId)) {
+            if (contains(conductingNodeIds, nodeAMatrixId)) {
                 A(nodeAMatrixId, nodeAMatrixId) += conductance;
             }
 
-            if (conductingNodeIds.contains(nodeBMatrixId)) {
+            if (contains(conductingNodeIds, nodeBMatrixId)) {
                 A(nodeBMatrixId, nodeBMatrixId) += conductance;
             }
 
             // minor diagonal elements of G (if no ground node was present)
-            if (conductingNodeIds.contains(nodeAMatrixId) && conductingNodeIds.contains(nodeBMatrixId)) {
+            if (contains(conductingNodeIds, nodeAMatrixId) && contains(conductingNodeIds, nodeBMatrixId)) {
                 A(nodeAMatrixId, nodeBMatrixId) -= conductance;
                 A(nodeBMatrixId, nodeAMatrixId) -= conductance;
             }
@@ -76,18 +76,25 @@ namespace nodal {
                     const T conductance = 1. / channel->getResistance();
 
                     // main diagonal elements of G
-                    if (conductingNodeIds.contains(nodeAMatrixId)) {
+                    if (contains(conductingNodeIds, nodeAMatrixId)) {
                         A(nodeAMatrixId, nodeAMatrixId) += conductance;
                     }
 
-                    if (conductingNodeIds.contains(nodeBMatrixId)) {
+                    if (contains(conductingNodeIds, nodeBMatrixId)) {
                         A(nodeBMatrixId, nodeBMatrixId) += conductance;
                     }
 
                     // minor diagonal elements of G (if no ground node was present)
-                    if (conductingNodeIds.contains(nodeAMatrixId) && conductingNodeIds.contains(nodeBMatrixId)) {
+                    if (contains(conductingNodeIds, nodeAMatrixId) && contains(conductingNodeIds, nodeBMatrixId)) {
                         A(nodeAMatrixId, nodeBMatrixId) -= conductance;
                         A(nodeBMatrixId, nodeAMatrixId) -= conductance;
+                    }
+                }
+                for (const auto& [key, node] : module->getNodes()) {
+                    if (contains(groundNodeIds, key)) {
+                        module->getOpenings().at(key).ground = true;
+                    } else {
+                        module->getOpenings().at(key).ground = false;
                     }
                 }
                 module->setInitialized(true);
@@ -96,7 +103,7 @@ namespace nodal {
             else if ( module->getInitialized() ) {
                 for (const auto& [key, node] : module->getNodes()) {
                 // Write the module's flowrates into vector i if the node is not a group's ground node
-                    if (conductingNodeIds.contains(key)) {
+                    if (contains(groundNodeIds, key)) {
                         T flowRate = module->getFlowRates().at(key) * module->getOpenings().at(key).height;
                         std::cout << "[NodalAnalysis] at node " << key << " the flowrate is set at " << flowRate << " [m^3/s] " << std::endl;
                         z(key) = -flowRate;
@@ -111,12 +118,12 @@ namespace nodal {
             auto nodeAMatrixId = pressurePump.second->getNodeA();
             auto nodeBMatrixId = pressurePump.second->getNodeB();
 
-            if (conductingNodeIds.contains(nodeAMatrixId)) {
+            if (contains(conductingNodeIds, nodeAMatrixId)) {
                 A(nodeAMatrixId, iPump) = -1;   // matrix B
                 A(iPump, nodeAMatrixId) = -1;   // matrix C
             }
 
-            if (conductingNodeIds.contains(nodeBMatrixId)) {
+            if (contains(conductingNodeIds, nodeBMatrixId)) {
                 A(nodeBMatrixId, iPump) = 1;   // matrix B
                 A(iPump, nodeBMatrixId) = 1;   // matrix C
             }
@@ -132,10 +139,10 @@ namespace nodal {
             auto nodeBMatrixId = flowRatePump.second->getNodeB();
             const T flowRate = flowRatePump.second->getFlowRate();
 
-            if (conductingNodeIds.contains(nodeAMatrixId)){
+            if (contains(conductingNodeIds, nodeAMatrixId)){
                 z(nodeAMatrixId) = -flowRate;
             }
-            if (conductingNodeIds.contains(nodeBMatrixId)){
+            if (contains(conductingNodeIds, nodeBMatrixId)){
                 z(nodeBMatrixId) = flowRate;
             }
         }
@@ -144,10 +151,11 @@ namespace nodal {
         VectorXd x = A.colPivHouseholderQr().solve(z);
 
         // set pressure of nodes to result value
-        for (const auto& group : network->getGroups()) {
-            for (auto nodeMatrixId : group->getNodeIds()) {
-                if (conductingNodeIds.contains(nodeMatrixId)) {
-                    node->setPressure(x(nodeMatrixId) + group->getRefP());
+        for (const auto& [key, group] : network->getGroups()) {
+            for (auto nodeMatrixId : group->nodeIds) {
+                auto& node = network->getNodes().at(nodeMatrixId);
+                if (contains(conductingNodeIds, nodeMatrixId)) {
+                    node->setPressure(x(nodeMatrixId) + group->pRef);
                 } else if (nodeMatrixId <= groundNodeValue) {
                     node->setPressure(0.0);
                 }
@@ -165,10 +173,12 @@ namespace nodal {
         // Set the pressures and flow rates on the boundary nodes of the modules
         for (auto& module : network->getModules()) {
             std::unordered_map<int, T> old_pressures = module.second->getPressures();
+            std::unordered_map<int, T> old_flowrates = module.second->getFlowRates();
             std::unordered_map<int, T> pressures_;
+            std::unordered_map<int, T> flowRates_;
             for (auto& [key, node] : module.second->getNodes()){
                 // Communicate pressure to the module
-                if (conductingNodeIds.contains(key) {
+                if (contains(conductingNodeIds, key)) {
                     T old_pressure = old_pressures.at(key);
                     T new_pressure = node->getPressure();
                     T set_pressure = 0.0;
@@ -184,14 +194,22 @@ namespace nodal {
                     if (abs(old_pressure - new_pressure) > module.second->getEpsilon()) {
                         pressureConvergence = false;
                     }
-                })
+                }
                 // Communicate the flow rate to the module 
-                else if (groundNodeIds.contains(key)) {
-                    T old_flowRate = 
+                else if (contains(groundNodeIds, key)) {
+                    T old_flowRate = old_flowrates.at(key);
+                    T new_flowRate = x(key);
+                    T set_flowRate = 0.0;
+                    if (old_flowRate > 0 ) {
+                        set_flowRate = old_flowRate + module.second->getAlpha() * ( new_flowRate - old_flowRate );
+                    } else {
+                        set_flowRate = new_flowRate;
+                    }
                 }
 
             }
             module.second->setPressures(pressures_);
+            module.second->setFlowRates(flowRates_);
         }
 
         // set flow rate at pressure pumps
@@ -202,6 +220,16 @@ namespace nodal {
         }
 
         return pressureConvergence;
+    }
+
+    bool contains( const std::unordered_set<int>& set, int key) {
+        bool contain = false;
+        for (auto& nodeId : set) {
+            if (key == nodeId) {
+                contain = true;
+            }
+        }
+        return contain;
     }
 
 }   // namespace nodal

@@ -31,6 +31,7 @@ namespace arch {
         std::vector<T> tangent;
         T width;
         T height;
+        bool ground = false;
 
         Opening(std::shared_ptr<Node<T>> node_, std::vector<T> normal_, T width_, T height_=1e-4) :
             node(node_), normal(normal_), width(width_), height(height_) {
@@ -141,6 +142,12 @@ namespace arch {
              * @param[in] Pressure in Pa.
              */
             void setPressures(std::unordered_map<int, T> pressure);
+
+            /**
+             * @brief Set the flow rate in a channel.
+             * @param[in] flowRate in m^3/s.
+             */
+            void setFlowRates(std::unordered_map<int, T> flowRate);
 
             /**
              * @brief Set resistance of a channel without droplets.

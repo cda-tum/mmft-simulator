@@ -102,7 +102,7 @@ namespace arch{
 
         // Set lattice dynamics and initial condition for in- and outlets
         for (auto& [key, Opening] : moduleOpenings) {
-            if (Condition that finds initial group ground node) {
+            if (Opening.ground) {
                 setInterpolatedVelocityBoundary(getLattice(), omega, getGeometry(), key+3);
             } else {
                 setInterpolatedPressureBoundary(getLattice(), omega, getGeometry(), key+3);
@@ -142,9 +142,9 @@ namespace arch{
         }
 
         for (auto& [key, Opening] : moduleOpenings) {
-            if (Condition that finds initial group ground node) {
-                T maxVelocity = 3.*getConverter().getLatticeVelocity(flowRate[key])/Opening.width;
-                T distance2Wall = converter.getConversionFactorLength()/2.;
+            if (Opening.ground) {
+                T maxVelocity = 3.*getConverter().getLatticeVelocity(flowRates[key])/Opening.width;
+                T distance2Wall = getConverter().getConversionFactorLength()/2.;
                 olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, maxVelocity, distance2Wall);
                 getLattice().defineU(getGeometry(), key+3, poiseuilleU);
             } else {
@@ -252,6 +252,11 @@ namespace arch{
     template<typename T>
     void lbmModule<T>::setPressures(std::unordered_map<int, T> pressure_) {
         this->pressures = pressure_;
+    }
+
+    template<typename T>
+    void lbmModule<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
+        this->flowRates = flowRate_;
     }
 
     template<typename T>

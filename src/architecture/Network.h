@@ -123,6 +123,8 @@ class Network {
 
     const std::unordered_map<int, std::unique_ptr<PressurePump<T>>>& getPressurePumps() const;
 
+    const std::unordered_map<int, std::unique_ptr<Group<T>>>& getGroups() const;
+
     /**
      * @brief Turns a channel with the specific id into a pressurepump with given pressure.
      * @param channelID id of the channel.
