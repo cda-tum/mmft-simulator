@@ -78,6 +78,7 @@ namespace arch {
             std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry
             std::unique_ptr<olb::util::ValueTracer<T>> converge;
             std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;
+            std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;
 
             std::shared_ptr<Network<T>> moduleNetwork;
 

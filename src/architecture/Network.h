@@ -26,6 +26,7 @@ template<typename T>
 struct Group {
 
     int groupId;
+    int pumpId;
     bool initialized = false;
     bool grounded;          // Is this group connected to ground node(s)?
     int groundNodeId = -1;  // The node with pressure = pMin at the initial timestep

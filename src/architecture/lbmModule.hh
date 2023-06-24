@@ -111,14 +111,24 @@ namespace arch{
 
         // Initialize the integral fluxes for the in- and outlets
         for (auto& [key, Opening] : moduleOpenings) {
-            std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;
+
             T posX =  Opening.node->getPosition()[0] - this->getPosition()[0];
-            T posY =  Opening.node->getPosition()[1] - this->getPosition()[1];
+            T posY =  Opening.node->getPosition()[1] - this->getPosition()[1];          
+
             std::vector<T> position = {posX, posY};
             std::vector<int> materials = {1, key+3};
-            flux = std::make_shared< olb::SuperPlaneIntegralFluxVelocity2D<T> > (getLattice(), getConverter(), getGeometry(),
+
+            if (Opening.ground) {
+                std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> meanPressure;
+                meanPressure = std::make_shared< olb::SuperPlaneIntegralFluxPressure2D<T>> (getLattice(), getConverter(), getGeometry(),
                 position, Opening.tangent, materials);
-            this->fluxes.try_emplace(key, flux);
+                this->meanPressures.try_emplace(key, meanPressure);
+            } else {
+                std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;
+                flux = std::make_shared< olb::SuperPlaneIntegralFluxVelocity2D<T> > (getLattice(), getConverter(), getGeometry(),
+                position, Opening.tangent, materials);
+                this->fluxes.try_emplace(key, flux);
+            }
         }
 
         // Initialize lattice with relaxation frequency omega
@@ -144,11 +154,17 @@ namespace arch{
         for (auto& [key, Opening] : moduleOpenings) {
             if (Opening.ground) {
                 T maxVelocity = 3.*getConverter().getLatticeVelocity(flowRates[key])/Opening.width;
+                if (iT == 1) {
+                    std::cout << "[lbmModule] We set flow velocity BC at node " << key << " with value " << maxVelocity << std::endl;
+                }
                 T distance2Wall = getConverter().getConversionFactorLength()/2.;
                 olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, maxVelocity, distance2Wall);
                 getLattice().defineU(getGeometry(), key+3, poiseuilleU);
             } else {
                 T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]-pressureLow));
+                if (iT == 1) {
+                    std::cout << "[lbmModule] We set flow pressure BC at node " << key << " with value " << (pressures[key]-pressureLow) << std::endl;
+                }
                 olb::AnalyticalConst2D<T,T> rho(rhoV);
                 getLattice().defineRho(getGeometry(), key+3, rho);
             }
@@ -159,34 +175,20 @@ namespace arch{
     template<typename T>
     void lbmModule<T>::getResults () {
 
-        std::cout << "We are in the getResults() function" << std::endl;
+        std::cout << "[getResults] We're getting in here..." << std::endl;
 
         int input[1] = { };
         T output[3];
-        for (auto& [key, flux] : fluxes) {
-            std::cout << "We have flux " << flux << " at key " << key  << std::endl; 
-        }
-        for (auto& [key, flowRate] : flowRates) {
-            std::cout << "We have flowrate " << flowRate << " at key " << key  << std::endl; 
-        }
-        for (auto& [key, pressure] : pressures) {
-            std::cout << "We have pressure " << pressure << " at key " << key  << std::endl; 
-        }
+        
         for (auto& [key, Opening] : moduleOpenings) {
             if (Opening.ground) {
-                std::cout << "Here we would update the pressure" << std::endl;
+                meanPressures.at(key)->operator()(output, input);
+                pressures.at(key) = output[0];
+                meanPressures.at(key)->print();
             } else {
-                std::cout << "Update fluxes for " << key << std::endl;
+                std::cout << "[getResults] We're processing key " << key << std::endl;
                 fluxes.at(key)->operator()(output,input);
-                std::cout << "Update flowRate for " << key << std::endl;
                 flowRates.at(key) = output[0];
-                std::cout << "Update resistances for " << key << std::endl;
-                //resistances.at(key) = output[0]/pressures.at(key);
-
-                //std::cout << "[getResults] at node " << key << " the flowRate is " << flowRates.at(key) <<
-                //    " and the resistance is " << resistances.at(key) << std::endl;
-                
-                // This print statement has to be here to prevent a **** stack smash detected*** error
                 fluxes.at(key)->print();
             }
         }
