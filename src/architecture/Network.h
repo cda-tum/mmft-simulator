@@ -26,6 +26,7 @@ template<typename T>
 struct Group {
 
     int groupId;
+    bool initialized = false;
     bool grounded;          // Is this group connected to ground node(s)?
     int groundNodeId = -1;  // The node with pressure = pMin at the initial timestep
     int groundChannelId;    // The channel that contains the ground node as node

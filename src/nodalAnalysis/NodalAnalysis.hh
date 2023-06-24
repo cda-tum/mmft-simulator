@@ -90,14 +90,6 @@ namespace nodal {
                         A(nodeBMatrixId, nodeAMatrixId) -= conductance;
                     }
                 }
-                for (const auto& [key, node] : module->getNodes()) {
-                    if (contains(groundNodeIds, key)) {
-                        module->getOpenings().at(key).ground = true;
-                    } else {
-                        module->getOpenings().at(key).ground = false;
-                    }
-                }
-                module->setInitialized(true);
             }
 
             else if ( module->getInitialized() ) {
@@ -149,6 +141,36 @@ namespace nodal {
 
         // solve equation x = A^(-1) * z
         VectorXd x = A.colPivHouseholderQr().solve(z);
+
+        for (const auto& [key, group] : network->getGroups()) {
+            if (!group->initialized) {
+                T pMin = -1.0;
+                int ground;
+                for (auto nodeId : group->nodeIds) {
+                    if (pMin > 0.0 && x(nodeId) < pMin) {
+                        pMin = x(nodeId);
+                        ground = nodeId;
+                    } else if (pMin <= 0.0) {
+                        pMin = x(nodeId);
+                        ground = nodeId;
+                    }
+                }
+                groundNodeIds.emplace(ground);
+                conductingNodeIds.erase(ground);
+                group->initialized = true;
+            }
+        }
+        
+        for (const auto& [key, module] : network->getModules()) {
+            for (const auto& [key, node] : module->getNodes()) {
+                if (contains(groundNodeIds, key)) {
+                    module->getOpenings().at(key).ground = true;
+                } else {
+                    module->getOpenings().at(key).ground = false;
+                }
+            }
+            module->setInitialized(true);
+        }
 
         // set pressure of nodes to result value
         for (const auto& [key, group] : network->getGroups()) {
@@ -209,7 +231,7 @@ namespace nodal {
 
             }
             module.second->setPressures(pressures_);
-            module.second->setFlowRates(flowRates_);
+            //module.second->setFlowRates(flowRates_);
         }
 
         // set flow rate at pressure pumps

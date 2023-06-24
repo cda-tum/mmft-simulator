@@ -159,19 +159,36 @@ namespace arch{
     template<typename T>
     void lbmModule<T>::getResults () {
 
+        std::cout << "We are in the getResults() function" << std::endl;
+
         int input[1] = { };
         T output[3];
+        for (auto& [key, flux] : fluxes) {
+            std::cout << "We have flux " << flux << " at key " << key  << std::endl; 
+        }
+        for (auto& [key, flowRate] : flowRates) {
+            std::cout << "We have flowrate " << flowRate << " at key " << key  << std::endl; 
+        }
+        for (auto& [key, pressure] : pressures) {
+            std::cout << "We have pressure " << pressure << " at key " << key  << std::endl; 
+        }
         for (auto& [key, Opening] : moduleOpenings) {
-            fluxes.at(key)->operator()(output,input);
-            flowRates.at(key) = output[0];
-            resistances.at(key) = output[0]/pressures.at(key);
+            if (Opening.ground) {
+                std::cout << "Here we would update the pressure" << std::endl;
+            } else {
+                std::cout << "Update fluxes for " << key << std::endl;
+                fluxes.at(key)->operator()(output,input);
+                std::cout << "Update flowRate for " << key << std::endl;
+                flowRates.at(key) = output[0];
+                std::cout << "Update resistances for " << key << std::endl;
+                //resistances.at(key) = output[0]/pressures.at(key);
 
-            //std::cout << "[getResults] at node " << key << " the flowRate is " << flowRates.at(key) <<
-            //    " and the resistance is " << resistances.at(key) << std::endl;
-            
-            // This print statement has to be here to prevent a **** stack smash detected*** error
-            fluxes.at(key)->print();
-            
+                //std::cout << "[getResults] at node " << key << " the flowRate is " << flowRates.at(key) <<
+                //    " and the resistance is " << resistances.at(key) << std::endl;
+                
+                // This print statement has to be here to prevent a **** stack smash detected*** error
+                fluxes.at(key)->print();
+            }
         }
     }
 
