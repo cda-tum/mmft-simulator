@@ -52,16 +52,13 @@ namespace sim {
         // initialize the simulation
         initialize();
 
-        // compute nodal analysis
-        std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
-        nodal::conductNodalAnalysis(this->network);
         //printResults();
 
         if (network->getModules().size() > 0 ) {
             bool allConverged = false;
             bool pressureConverged = false;
 
-            for (int iter = 0; iter < 1000; ++iter) {
+            for (int iter = 0; iter < 1e7; ++iter) {
                 std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
 
                 // conduct CFD simulations
@@ -124,14 +121,9 @@ namespace sim {
             channel->setResistance(resistance);
         }
 
-        // Prepare CFD geometry and lattice
-        std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
-
         for (auto& [key, module] : network->getModules()) {
             module->lbmInit(continuousPhase->getViscosity(),
                             continuousPhase->getDensity());
-            module->prepareGeometry();
-            module->prepareLattice();
         }
 
         // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
@@ -153,6 +145,18 @@ namespace sim {
                 T resistance = resistanceModel->getChannelResistance(channel.get());
                 channel->setResistance(resistance);
             }
+        }
+
+        // compute nodal analysis
+        std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+        nodal::conductNodalAnalysis(this->network);
+
+        // Prepare CFD geometry and lattice
+        std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+
+        for (auto& [key, module] : network->getModules()) {
+            module->prepareGeometry();
+            module->prepareLattice();
         }
     }
 }

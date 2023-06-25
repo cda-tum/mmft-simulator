@@ -100,9 +100,15 @@ namespace arch{
         lattice->defineRhoU(getGeometry(), 1, rhoF, uF);
         lattice->iniEquilibrium(getGeometry(), 1, rhoF, uF);
 
+        std::cout << "We are getting here" << std::endl;
+
+        for (auto& [key, ground] : groundNodes) {
+            std::cout << "For node " << key << " we have ground set to " << ground << std::endl;
+        }
+
         // Set lattice dynamics and initial condition for in- and outlets
         for (auto& [key, Opening] : moduleOpenings) {
-            if (Opening.ground) {
+            if (groundNodes.at(key)) {
                 setInterpolatedVelocityBoundary(getLattice(), omega, getGeometry(), key+3);
             } else {
                 setInterpolatedPressureBoundary(getLattice(), omega, getGeometry(), key+3);
@@ -118,7 +124,7 @@ namespace arch{
             std::vector<T> position = {posX, posY};
             std::vector<int> materials = {1, key+3};
 
-            if (Opening.ground) {
+            if (groundNodes.at(key)) {
                 std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> meanPressure;
                 meanPressure = std::make_shared< olb::SuperPlaneIntegralFluxPressure2D<T>> (getLattice(), getConverter(), getGeometry(),
                 position, Opening.tangent, materials);
@@ -152,13 +158,13 @@ namespace arch{
         }
 
         for (auto& [key, Opening] : moduleOpenings) {
-            if (Opening.ground) {
-                T maxVelocity = 3.*getConverter().getLatticeVelocity(flowRates[key])/Opening.width;
+            if (groundNodes.at(key)) {
+                T maxVelocity = (3./2.)*(flowRates[key]/Opening.width);
                 if (iT == 1) {
-                    std::cout << "[lbmModule] We set flow velocity BC at node " << key << " with value " << maxVelocity << std::endl;
+                    std::cout << "[lbmModule] We set flow velocity BC at node " << key << " with value " << flowRates[key] << std::endl;
                 }
                 T distance2Wall = getConverter().getConversionFactorLength()/2.;
-                olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, maxVelocity, distance2Wall);
+                olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
                 getLattice().defineU(getGeometry(), key+3, poiseuilleU);
             } else {
                 T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]-pressureLow));
@@ -181,9 +187,12 @@ namespace arch{
         T output[3];
         
         for (auto& [key, Opening] : moduleOpenings) {
-            if (Opening.ground) {
+            std::cout << "[getResults] Node with key " << key << " has ground = " << groundNodes.at(key) << std::endl;
+            if (groundNodes.at(key)) {
+                std::cout << "[getResults] Are we even doing this? " << key << std::endl;
                 meanPressures.at(key)->operator()(output, input);
-                pressures.at(key) = output[0];
+                T newPressure =  output[0]/output[1];
+                pressures.at(key) = newPressure; //pressures.at(key) + alpha*(newPressure - pressures.at(key));
                 meanPressures.at(key)->print();
             } else {
                 std::cout << "[getResults] We're processing key " << key << std::endl;
@@ -279,6 +288,11 @@ namespace arch{
     }
 
     template<typename T>
+    void lbmModule<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_) {
+        this->groundNodes = groundNodes_;
+    }
+
+    template<typename T>
     std::unordered_map<int, T> lbmModule<T>::getPressures() const {
         return pressures;
     }
@@ -302,7 +316,7 @@ namespace arch{
     void lbmModule<T>::solve(int iteration) {
         std::cout << "[lbmModule] Conduct collide and stream operations. " << std::endl;
 
-        for (int iT = 0; iT <= 100000; ++iT){      
+        for (int iT = 0; iT <= 1000; ++iT){      
             this->setBoundaryValues(step);
             writeVTK(step);          
             lattice->collideAndStream();
@@ -313,6 +327,7 @@ namespace arch{
                 break;
             }
         }
+        getResults();
     }
 
 }   // namespace arch

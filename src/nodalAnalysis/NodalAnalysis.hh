@@ -217,7 +217,8 @@ namespace nodal {
                     }
                     pressures_.at(key) = set_pressure;
 
-                    std::cout << "[NodalAnalysis] at node " << key << " the pressure 2 is set at " << set_pressure << " [Pa] " << std::endl;
+                    std::cout << "[NodalAnalysis] at node " << key << " the pressure 2 is set at " << set_pressure << " [Pa] " <<
+                        " from old " << old_pressure << " and new " << new_pressure << std::endl;
 
                     if (abs(old_pressure - new_pressure) > module.second->getEpsilon()) {
                         pressureConvergence = false;
@@ -225,7 +226,7 @@ namespace nodal {
                 }
                 // Communicate the flow rate to the module
                 else if (contains(groundNodeIds, key)) {
-                    T old_flowRate = old_flowrates.at(key);
+                    T old_flowRate = old_flowrates.at(key) ;
                     T new_flowRate = x(groundNodeIds.at(key)) / module.second->getOpenings().at(key).width;
                     T set_flowRate = 0.0;
                     if (old_flowRate > 0 ) {
@@ -242,7 +243,6 @@ namespace nodal {
                         pressureConvergence = false;
                     }
                 }
-
             }
             module.second->setPressures(pressures_);
             module.second->setFlowRates(flowRates_);
@@ -269,6 +269,14 @@ namespace nodal {
                         group->groundNodeId = nodeId;
                     }
                 }
+                for (auto channelId : group->channelIds) {
+                    if (network->getChannels().at(channelId)->getNodeA() == group->groundNodeId) {
+                        group->groundChannelId = channelId;
+                    } 
+                    else if (network->getChannels().at(channelId)->getNodeB() == group->groundNodeId) {
+                        group->groundChannelId = channelId;
+                    }
+                }
                 groundNodeIds.emplace(group->groundNodeId, 0);
                 conductingNodeIds.erase(group->groundNodeId);
                 group->initialized = true;
@@ -276,15 +284,32 @@ namespace nodal {
         }
         
         // Loop over modules to set the ground nodes
-        for (const auto& [key, module] : network->getModules()) {
-            for (const auto& [key, node] : module->getNodes()) {
-                if (contains(groundNodeIds, key)) {
-                    module->getOpenings().at(key).ground = true;
-                } else {
-                    module->getOpenings().at(key).ground = false;
+        for (const auto& [moduleId, module] : network->getModules()) {
+            if ( ! module->getInitialized() ) {
+                std::unordered_map<int, T> flowRates_ = module->getFlowRates();
+                std::unordered_map<int, bool> groundNodes;
+                for (const auto& [nodeId, node] : module->getNodes()) {
+                    T flowRate = 0.0;
+                    if (contains(groundNodeIds, nodeId)) {
+                        groundNodes.try_emplace(nodeId, true);
+                        for (auto& [key, group] : network->getGroups()) {
+                            if (nodeId == group->groundNodeId) {
+                                std::cout << "Ground channel id is " << group->groundChannelId << std::endl;
+                                T height = network->getChannels().at(group->groundChannelId)->getHeight();
+                                flowRate = network->getChannels().at(group->groundChannelId)->getFlowRate()/height;
+                            }
+                        }
+                        std::cout << "[NodalAnalysis] Set " << nodeId << " to ground opening true." << std::endl;
+                    } else {
+                        groundNodes.try_emplace(nodeId, false);
+                        std::cout << "[NodalAnalysis] Set " << nodeId << " to ground opening false." << std::endl;
+                    }
+                    flowRates_.at(nodeId) = flowRate;
                 }
+                module->setGroundNodes(groundNodes);
+                module->setFlowRates(flowRates_);
+                module->setInitialized(true);
             }
-            module->setInitialized(true);
         }
 
         return pressureConvergence;

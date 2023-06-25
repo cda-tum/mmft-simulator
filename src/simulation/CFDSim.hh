@@ -11,7 +11,7 @@ namespace sim {
             assert(module.second->getModuleType() == arch::ModuleType::LBM);
             
             module.second->solve(iteration);
-            module.second->getResults();
+            //module.second->getResults();
             
         }
         

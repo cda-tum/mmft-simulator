@@ -31,7 +31,6 @@ namespace arch {
         std::vector<T> tangent;
         T width;
         T height;
-        bool ground = false;
 
         Opening(std::shared_ptr<Node<T>> node_, std::vector<T> normal_, T width_, T height_=1e-4) :
             node(node_), normal(normal_), width(width_), height(height_) {
@@ -54,8 +53,8 @@ namespace arch {
         using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
         private:
-            int stepIter = 100;                     ///< Number of iterations per communication step
-            int maxIter = 1e5;                      
+            int stepIter = 1;                     ///< Number of iterations per communication step
+            int maxIter = 1e7;                      
             int step = 0;
             std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes
             std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes
@@ -83,6 +82,8 @@ namespace arch {
             std::shared_ptr<Network<T>> moduleNetwork;
 
             std::unordered_map<int, Opening<T>> moduleOpenings;
+
+            std::unordered_map<int, bool> groundNodes;
 
             auto& getConverter() {
                 return *converter;
@@ -150,6 +151,8 @@ namespace arch {
              */
             void setFlowRates(std::unordered_map<int, T> flowRate);
 
+            void setGroundNodes(std::unordered_map<int, bool> groundNodes);
+
             /**
              * @brief Set resistance of a channel without droplets.
              * @param[in] channelResistance Resistance of a channel without droplets in Pas/L.
@@ -186,6 +189,10 @@ namespace arch {
             std::unordered_map<int, Opening<T>> getOpenings() const {
                 return moduleOpenings;
              };
+
+            std::unordered_map<int, bool> getGroundNodes() {
+                return groundNodes;
+            }
 
             /**
              * @brief Returns the iterations per CFD step to solve.
