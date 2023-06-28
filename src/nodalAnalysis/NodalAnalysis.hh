@@ -217,8 +217,8 @@ namespace nodal {
                     }
                     pressures_.at(key) = set_pressure;
 
-                    //std::cout << "[NodalAnalysis] at node " << key << " the pressure 2 is set at " << set_pressure << " [Pa] " <<
-                    //    " from old " << old_pressure << " and new " << new_pressure << std::endl;
+                    std::cout << "[NodalAnalysis] at node " << key << " the pressure 2 is set at " << set_pressure << " [Pa] " <<
+                        " from old " << old_pressure << " and new " << new_pressure << std::endl;
 
                     if (abs(old_pressure - new_pressure) > module.second->getEpsilon()) {
                         pressureConvergence = false;
@@ -236,8 +236,8 @@ namespace nodal {
                     }
                     flowRates_.at(key) = set_flowRate;
 
-                    //std::cout << "[NodalAnalysis] at node " << key << " we set flow rate 2 is at " << set_flowRate << " [m^2/s] " <<
-                    //    " from old " << old_flowRate << " and new " << new_flowRate << std::endl;
+                    std::cout << "[NodalAnalysis] at node " << key << " we set flow rate 2 is at " << set_flowRate << " [m^2/s] " <<
+                        " from old " << old_flowRate << " and new " << new_flowRate << std::endl;
 
                     if (abs(old_flowRate - new_flowRate) > module.second->getEpsilon()) {
                         pressureConvergence = false;
