@@ -145,7 +145,7 @@ namespace arch{
     }
 
     template<typename T>
-    void lbmModule<T>::setBoundaryValues (T iT) {
+    void lbmModule<T>::setBoundaryValues (int iT) {
 
         T pressureLow = -1.0;       
         for (auto& [key, pressure] : pressures) {
@@ -161,15 +161,18 @@ namespace arch{
             if (groundNodes.at(key)) {
                 T maxVelocity = (3./2.)*(flowRates[key]/Opening.width);
                 if (iT == 1) {
-                    std::cout << "[lbmModule] We set flow velocity BC at node " << key << " with value " << flowRates[key] << std::endl;
+                    //std::cout << "[lbmModule] The maxVelocity is " << maxVelocity << std::endl;
+                    //std::cout << "[lbmModule] We set flow velocity BC at node " << key << " with value " << flowRates[key] << std::endl;
                 }
                 T distance2Wall = getConverter().getConversionFactorLength()/2.;
                 olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
                 getLattice().defineU(getGeometry(), key+3, poiseuilleU);
             } else {
-                T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]-pressureLow));
+                T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]));
+                //T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]-pressureLow));
                 if (iT == 1) {
-                    std::cout << "[lbmModule] We set flow pressure BC at node " << key << " with value " << (pressures[key]-pressureLow) << std::endl;
+                    //std::cout << "[lbmModule] We set flow pressure BC at node " << key << " with value " << (pressures[key]) << std::endl;
+                    //std::cout << "[lbmModule] We set flow pressure BC at node " << key << " with value " << (pressures[key]-pressureLow) << std::endl;
                 }
                 olb::AnalyticalConst2D<T,T> rho(rhoV);
                 getLattice().defineRho(getGeometry(), key+3, rho);
@@ -179,26 +182,34 @@ namespace arch{
     }
 
     template<typename T>
-    void lbmModule<T>::getResults () {
+    void lbmModule<T>::getResults (int iT) {
 
-        std::cout << "[getResults] We're getting in here..." << std::endl;
+        //std::cout << "[getResults] We're getting in here..." << std::endl;
 
         int input[1] = { };
         T output[3];
         
         for (auto& [key, Opening] : moduleOpenings) {
-            std::cout << "[getResults] Node with key " << key << " has ground = " << groundNodes.at(key) << std::endl;
+            //std::cout << "[getResults] Node with key " << key << " has ground = " << groundNodes.at(key) << std::endl;
             if (groundNodes.at(key)) {
-                std::cout << "[getResults] Are we even doing this? " << key << std::endl;
-                meanPressures.at(key)->operator()(output, input);
-                T newPressure =  output[0]/output[1];
-                pressures.at(key) = newPressure; //pressures.at(key) + alpha*(newPressure - pressures.at(key));
-                meanPressures.at(key)->print();
+                if ((iT-1) % 1 == 0) {
+                    //std::cout << "[getResults] Are we even doing this? " << key << " AT iT = " << iT <<std::endl;
+                    meanPressures.at(key)->operator()(output, input);
+                    T newPressure =  output[0]/output[1];
+                    pressures.at(key) = newPressure; //pressures.at(key) + alpha*(newPressure - pressures.at(key));
+                    if (iT % 100 == 0) {
+                        meanPressures.at(key)->print();
+                    }
+                }
             } else {
-                std::cout << "[getResults] We're processing key " << key << std::endl;
-                fluxes.at(key)->operator()(output,input);
-                flowRates.at(key) = output[0];
-                fluxes.at(key)->print();
+                if (iT % 1 == 0) {
+                    //std::cout << "[getResults] We're processing key " << key << std::endl;
+                    fluxes.at(key)->operator()(output,input);
+                    flowRates.at(key) = output[0];
+                    if (iT % 100 == 0) {
+                        fluxes.at(key)->print();
+                    }
+                }
             }
         }
     }
@@ -266,13 +277,17 @@ namespace arch{
             // write vtk to file system
             vtmWriter.write(iT);
             converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
-            if (converge->hasConverged()) {
-                isConverged = true;
-            }
         }
         if (iT %1000 == 0) {
             std::cout << "[writeVTK] currently at timestep " << iT << std::endl;
             //getResults();
+        }
+
+        if (iT %10 == 0) {
+            
+            if (converge->hasConverged()) {
+                    isConverged = true;
+            }
         }
 
     }
@@ -316,18 +331,18 @@ namespace arch{
     void lbmModule<T>::solve(int iteration) {
         std::cout << "[lbmModule] Conduct collide and stream operations. " << std::endl;
 
-        for (int iT = 0; iT <= 1000; ++iT){      
-            this->setBoundaryValues(step);
+        for (int iT = 0; iT <= 100000; ++iT){      
+            this->setBoundaryValues(iT);
             writeVTK(step);          
             lattice->collideAndStream();
             step += 1;
             if (isConverged) {
-                std::cout << "[lbmModule] " << name << " has converged at step " << step << std::endl;
+                //std::cout << "[lbmModule] " << name << " has converged at step " << step << std::endl;
                 isConverged = false;
                 break;
             }
         }
-        getResults();
+        getResults(step);
     }
 
 }   // namespace arch

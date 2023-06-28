@@ -122,7 +122,7 @@ namespace arch {
             /**
              * @brief set the boundary values on the lattice at the module nodes.
             */
-            void setBoundaryValues(T iT);
+            void setBoundaryValues(int iT);
 
             /**
              * @brief Conducts the collide and stream operations of the lattice.
@@ -132,7 +132,7 @@ namespace arch {
             /**
              * @brief update the values at the module nodes based on the simulation result after stepIter iterations.
             */
-            void getResults();
+            void getResults(int iT);
 
             /**
              * @brief Write the vtk file with results of the CFD simulation to file system.

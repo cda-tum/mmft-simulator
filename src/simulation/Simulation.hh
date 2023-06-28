@@ -59,13 +59,13 @@ namespace sim {
             bool pressureConverged = false;
 
             for (int iter = 0; iter < 1e7; ++iter) {
-                std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
+                //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
 
                 // conduct CFD simulations
-                std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
+                //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
                 allConverged = conductCFDSimulation(this->network, iter);
                 // compute nodal analysis again
-                std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
+                //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
                 pressureConverged = nodal::conductNodalAnalysis(this->network);
 
                 if (pressureConverged) {
@@ -74,7 +74,7 @@ namespace sim {
                 }
             }
             
-            //printResults();
+            printResults();
         }
     }
 
