@@ -10,12 +10,14 @@ namespace sim {
             // Assertion that the current module is of lbm type, and can conduct CFD simulations.
             assert(module.second->getModuleType() == arch::ModuleType::LBM);
             
-            module.second->solve(iteration);
+            module.second->solve();
             //module.second->getResults();
+
+            if (!module.second->hasConverged()) {
+                allConverge = false;
+            }
             
         }
-        
-        allConverge = false;
 
         return allConverge;
     }

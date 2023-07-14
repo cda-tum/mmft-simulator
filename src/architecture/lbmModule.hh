@@ -159,7 +159,7 @@ namespace arch{
 
         for (auto& [key, Opening] : moduleOpenings) {
             if (groundNodes.at(key)) {
-                T maxVelocity = (3./2.)*(flowRates[key]/Opening.width);
+                T maxVelocity = (3./2.)*(flowRates[key]/(Opening.width));
                 if (iT == 1) {
                     //std::cout << "[lbmModule] The maxVelocity is " << maxVelocity << std::endl;
                     //std::cout << "[lbmModule] We set flow velocity BC at node " << key << " with value " << flowRates[key] << std::endl;
@@ -197,7 +197,7 @@ namespace arch{
                     meanPressures.at(key)->operator()(output, input);
                     T newPressure =  output[0]/output[1];
                     pressures.at(key) = newPressure; //pressures.at(key) + alpha*(newPressure - pressures.at(key));
-                    if (iT % 100 == 0) {
+                    if (iT % 1000 == 0) {
                         meanPressures.at(key)->print();
                     }
                 }
@@ -206,7 +206,7 @@ namespace arch{
                     //std::cout << "[getResults] We're processing key " << key << std::endl;
                     fluxes.at(key)->operator()(output,input);
                     flowRates.at(key) = output[0];
-                    if (iT % 100 == 0) {
+                    if (iT % 1000 == 0) {
                         fluxes.at(key)->print();
                     }
                 }
@@ -249,7 +249,7 @@ namespace arch{
         }
 
         // Initialize a convergence tracker for pressure
-        this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, epsilon);
+        this->converge = std::make_unique<olb::util::ValueTracer<T>> (1000, epsilon);
 
         std::cout << "[lbmModule] lbmInit... OK" << std::endl;
     }
@@ -265,7 +265,7 @@ namespace arch{
             vtmWriter.createMasterFile();
         }
 
-        if (iT % 100 == 0) {
+        if (iT % 1000 == 0) {
             
             olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLattice(), getConverter());
             olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(getLattice(), getConverter());
@@ -283,9 +283,13 @@ namespace arch{
             //getResults();
         }
 
-        if (iT %10 == 0) {
-            
+        converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
+
+        if ((iT-1) %100 == 0) {
+            //converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
+            //std::cout << getLattice().getStatistics().getAverageEnergy() << std::endl;
             if (converge->hasConverged()) {
+                    std::cout << converge->hasConverged() << std::endl;
                     isConverged = true;
             }
         }
@@ -328,19 +332,15 @@ namespace arch{
     }
 
     template<typename T>
-    void lbmModule<T>::solve(int iteration) {
-        std::cout << "[lbmModule] Conduct collide and stream operations. " << std::endl;
+    void lbmModule<T>::solve() {
+        //std::cout << "[lbmModule] Conduct collide and stream operations. " << std::endl;
 
-        for (int iT = 0; iT <= 100000; ++iT){      
-            this->setBoundaryValues(iT);
+        // TODO: theta = 10
+        for (int iT = 0; iT < 10; ++iT){      
+            this->setBoundaryValues(step);
             writeVTK(step);          
             lattice->collideAndStream();
             step += 1;
-            if (isConverged) {
-                //std::cout << "[lbmModule] " << name << " has converged at step " << step << std::endl;
-                isConverged = false;
-                break;
-            }
         }
         getResults(step);
     }

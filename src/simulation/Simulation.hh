@@ -58,22 +58,28 @@ namespace sim {
             bool allConverged = false;
             bool pressureConverged = false;
 
-            for (int iter = 0; iter < 1e7; ++iter) {
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(this->network, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
                 //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
 
                 // conduct CFD simulations
                 //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                allConverged = conductCFDSimulation(this->network, iter);
+                allConverged = conductCFDSimulation(this->network, 10);
+            
                 // compute nodal analysis again
                 //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
                 pressureConverged = nodal::conductNodalAnalysis(this->network);
 
-                if (pressureConverged) {
-                    std::cout << "[Simulation] The pressures have converged." << std::endl;
-                    break;
-                }
             }
             
+            if (pressureConverged && allConverged) {
+                std::cout << "[Simulation] All pressures have converged." << std::endl;
+            }
+
             printResults();
         }
     }

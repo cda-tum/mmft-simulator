@@ -53,7 +53,7 @@ namespace arch {
         using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
         private:
-            int stepIter = 1;                     ///< Number of iterations per communication step
+            int stepIter = 1000;                     ///< Number of iterations per communication step
             int maxIter = 1e7;                      
             int step = 0;
             std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes
@@ -127,7 +127,7 @@ namespace arch {
             /**
              * @brief Conducts the collide and stream operations of the lattice.
             */
-            void solve(int iteration);
+            void solve();
 
             /**
              * @brief update the values at the module nodes based on the simulation result after stepIter iterations.
