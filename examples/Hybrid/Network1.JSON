@@ -161,6 +161,7 @@
                 "alpha": 0.1,
                 "resolution": 20,
                 "epsilon": 0.5,
+                "tau": 0.55,
                 "posX": 3.75e-3,
                 "posY": 0.75e-3,
                 "sizeX": 5e-4,
