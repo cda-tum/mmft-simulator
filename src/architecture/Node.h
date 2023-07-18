@@ -17,11 +17,15 @@ namespace arch {
         public:
         /**
          * @brief Constructor of the node.
+         * @param[in] id Id of the node.
+         * @param[in] x Absolute x position of the node.
+         * @param[in] y Absolute y position of the node.
         */
         Node(int id, T x, T y);
 
         /**
          * @brief Get position of the node.
+         * @param[in] pos Vector of the absolute position of the node.
         */
         void setPosition(std::vector<T> pos);
 
@@ -33,11 +37,13 @@ namespace arch {
 
         /**
          * @brief Get id of the node.
+         * @returns id.
         */
         int getId() const;
 
         /**
          * @brief Get position of the node.
+         * @returns Absolute position of the node
         */
         std::vector<T> getPosition() const;
 

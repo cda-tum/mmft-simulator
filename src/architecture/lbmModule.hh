@@ -5,7 +5,7 @@
 #include <olb2D.h>
 #include <olb2D.hh>
 
-#include <Module.h>
+#include "Module.h"
 
 namespace arch{
 
@@ -24,9 +24,9 @@ namespace arch{
     void lbmModule<T>::prepareGeometry () {
 
         olb::STLreader<T> stlReader(stlFile, converter->getConversionFactorLength());
-        std::cout << "[lbmModule] reading STL file... OK" << std::endl;
+        std::cout << "[lbmModule] reading STL file " << name << "... OK" << std::endl;
         olb::IndicatorF2DfromIndicatorF3D<T> stl2Dindicator(stlReader);
-        std::cout << "[lbmModule] create 2D indicator... OK" << std::endl;
+        std::cout << "[lbmModule] create 2D indicator " << name << "... OK" << std::endl;
 
         olb::Vector<T,2> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
         olb::Vector<T,2> extend(this->size[0] + converter->getConversionFactorLength(), this->size[1] + converter->getConversionFactorLength());
@@ -37,28 +37,25 @@ namespace arch{
             *cuboidGeometry, 
             *loadBalancer);
 
-        std::cout << "[lbmModule] generate geometry... OK" << std::endl;    
+        std::cout << "[lbmModule] generate geometry " << name << "... OK" << std::endl;    
 
         this->geometry->rename(0, 2);
         this->geometry->rename(2, 1, stl2Dindicator);
 
-        std::cout << "[lbmModule] generate 2D geometry from STL... OK" << std::endl;
+        std::cout << "[lbmModule] generate 2D geometry from STL  " << name << "... OK" << std::endl;
 
         for (auto& [key, Opening] : moduleOpenings ) {
             // The unit vector pointing to the extend (opposite origin) of the opening
-            std::cout << "[lbmModule] Opening " << Opening.node->getId() << " has origin ";
             T x_origin =    Opening.node->getPosition()[0] - this->getPosition()[0]
                             - 0.5*Opening.width*Opening.tangent[0];
             T y_origin =   Opening.node->getPosition()[1] - this->getPosition()[1]
                             - 0.5*Opening.width*Opening.tangent[1];
-            std::cout << x_origin << ", " << y_origin;
+            
             // The unit vector pointing to the extend
             T x_extend = Opening.width*Opening.tangent[0] - converter->getConversionFactorLength()*Opening.normal[0];
             T y_extend = Opening.width*Opening.tangent[1] - converter->getConversionFactorLength()*Opening.normal[1];
-            
-            std::cout << " and extend " << x_extend << ", " << y_extend  << std::endl;
 
-            // For some reason, extend can only have positive values, hence the following transformation
+            // Extend can only have positive values, hence the following transformation
             if (x_extend < 0 ){
                 x_extend *= -1;
                 x_origin -= x_extend;
@@ -77,7 +74,7 @@ namespace arch{
         this->geometry->clean();
         this->geometry->checkForErrors();
 
-        std::cout << "[lbmModule] prepare geometry... OK" << std::endl;
+        std::cout << "[lbmModule] prepare geometry " << name << "... OK" << std::endl;
     }
 
     template<typename T>
@@ -99,12 +96,6 @@ namespace arch{
         // Set initial conditions
         lattice->defineRhoU(getGeometry(), 1, rhoF, uF);
         lattice->iniEquilibrium(getGeometry(), 1, rhoF, uF);
-
-        std::cout << "We are getting here" << std::endl;
-
-        for (auto& [key, ground] : groundNodes) {
-            std::cout << "For node " << key << " we have ground set to " << ground << std::endl;
-        }
 
         // Set lattice dynamics and initial condition for in- and outlets
         for (auto& [key, Opening] : moduleOpenings) {
@@ -141,7 +132,7 @@ namespace arch{
         lattice->template setParameter<olb::descriptors::OMEGA>(omega);
         lattice->initialize();
 
-        std::cout << "[lbmModule] prepare lattice... OK" << std::endl;
+        std::cout << "[lbmModule] prepare lattice " << name << "... OK" << std::endl;
     }
 
     template<typename T>
@@ -160,20 +151,11 @@ namespace arch{
         for (auto& [key, Opening] : moduleOpenings) {
             if (groundNodes.at(key)) {
                 T maxVelocity = (3./2.)*(flowRates[key]/(Opening.width));
-                if (iT == 1) {
-                    //std::cout << "[lbmModule] The maxVelocity is " << maxVelocity << std::endl;
-                    //std::cout << "[lbmModule] We set flow velocity BC at node " << key << " with value " << flowRates[key] << std::endl;
-                }
                 T distance2Wall = getConverter().getConversionFactorLength()/2.;
                 olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
                 getLattice().defineU(getGeometry(), key+3, poiseuilleU);
             } else {
                 T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]));
-                //T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]-pressureLow));
-                if (iT == 1) {
-                    //std::cout << "[lbmModule] We set flow pressure BC at node " << key << " with value " << (pressures[key]) << std::endl;
-                    //std::cout << "[lbmModule] We set flow pressure BC at node " << key << " with value " << (pressures[key]-pressureLow) << std::endl;
-                }
                 olb::AnalyticalConst2D<T,T> rho(rhoV);
                 getLattice().defineRho(getGeometry(), key+3, rho);
             }
@@ -183,32 +165,22 @@ namespace arch{
 
     template<typename T>
     void lbmModule<T>::getResults (int iT) {
-
-        //std::cout << "[getResults] We're getting in here..." << std::endl;
-
         int input[1] = { };
         T output[3];
         
         for (auto& [key, Opening] : moduleOpenings) {
-            //std::cout << "[getResults] Node with key " << key << " has ground = " << groundNodes.at(key) << std::endl;
             if (groundNodes.at(key)) {
-                if ((iT-1) % 1 == 0) {
-                    //std::cout << "[getResults] Are we even doing this? " << key << " AT iT = " << iT <<std::endl;
-                    meanPressures.at(key)->operator()(output, input);
-                    T newPressure =  output[0]/output[1];
-                    pressures.at(key) = newPressure; //pressures.at(key) + alpha*(newPressure - pressures.at(key));
-                    if (iT % 1000 == 0) {
-                        meanPressures.at(key)->print();
-                    }
+                meanPressures.at(key)->operator()(output, input);
+                T newPressure =  output[0]/output[1];
+                pressures.at(key) = newPressure;
+                if (iT % 1000 == 0) {
+                    meanPressures.at(key)->print();
                 }
             } else {
-                if (iT % 1 == 0) {
-                    //std::cout << "[getResults] We're processing key " << key << std::endl;
-                    fluxes.at(key)->operator()(output,input);
-                    flowRates.at(key) = output[0];
-                    if (iT % 1000 == 0) {
-                        fluxes.at(key)->print();
-                    }
+                fluxes.at(key)->operator()(output,input);
+                flowRates.at(key) = output[0];
+                if (iT % 1000 == 0) {
+                    fluxes.at(key)->print();
                 }
             }
         }
@@ -245,13 +217,12 @@ namespace arch{
         for (auto& [key, node] : this->boundaryNodes) {
             pressures.try_emplace(key, (T) 0.0);
             flowRates.try_emplace(key, (T) 0.0);
-            resistances.try_emplace(key, (T) 0.0);
         }
 
         // Initialize a convergence tracker for pressure
-        this->converge = std::make_unique<olb::util::ValueTracer<T>> (1000, epsilon);
+        this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, epsilon);
 
-        std::cout << "[lbmModule] lbmInit... OK" << std::endl;
+        std::cout << "[lbmModule] lbmInit " << name << "... OK" << std::endl;
     }
 
     template<typename T>
@@ -279,22 +250,31 @@ namespace arch{
             converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
         }
         if (iT %1000 == 0) {
-            std::cout << "[writeVTK] currently at timestep " << iT << std::endl;
-            //getResults();
+            std::cout << "[writeVTK] " << name << " currently at timestep " << iT << std::endl;
         }
 
         converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
 
-        if ((iT-1) %100 == 0) {
-            //converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
-            //std::cout << getLattice().getStatistics().getAverageEnergy() << std::endl;
+        if (iT%100 == 0) {
             if (converge->hasConverged()) {
-                    std::cout << converge->hasConverged() << std::endl;
                     isConverged = true;
             }
         }
 
     }
+
+    template<typename T>
+    void lbmModule<T>::solve() {
+        // TODO: theta = 10
+        for (int iT = 0; iT < 10; ++iT){      
+            this->setBoundaryValues(step);
+            writeVTK(step);          
+            lattice->collideAndStream();
+            step += 1;
+        }
+        getResults(step);
+    }
+
 
     template<typename T>
     void lbmModule<T>::setPressures(std::unordered_map<int, T> pressure_) {
@@ -307,42 +287,13 @@ namespace arch{
     }
 
     template<typename T>
-    void lbmModule<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_) {
+    void lbmModule<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_){
         this->groundNodes = groundNodes_;
     }
 
     template<typename T>
-    std::unordered_map<int, T> lbmModule<T>::getPressures() const {
-        return pressures;
-    }
-
-    template<typename T>
-    std::unordered_map<int, T> lbmModule<T>::getFlowRates() const {
-        return flowRates;
-    }
-
-    template<typename T>
-    std::unordered_map<int, T> lbmModule<T>::getResistances() const {
-        return resistances;
-    }
-
-    template<typename T>
-    int lbmModule<T>::getStepIter() const {
-        return stepIter;
-    }
-
-    template<typename T>
-    void lbmModule<T>::solve() {
-        //std::cout << "[lbmModule] Conduct collide and stream operations. " << std::endl;
-
-        // TODO: theta = 10
-        for (int iT = 0; iT < 10; ++iT){      
-            this->setBoundaryValues(step);
-            writeVTK(step);          
-            lattice->collideAndStream();
-            step += 1;
-        }
-        getResults(step);
+    void lbmModule<T>::setInitialized(bool initialization_) {
+        this->initialized = initialization_;
     }
 
 }   // namespace arch

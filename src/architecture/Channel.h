@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Edge.h>
-#include <Node.h>
+#include "Edge.h"
+#include "Node.h"
 
 namespace arch{
 
@@ -17,14 +17,17 @@ namespace arch{
     template<typename T>
     class Channel : public Edge<T>{
         protected:
-            T length = 0;               ///< Length of the channel in m.
-            T pressure = 0;             ///< Pressure of a channel in Pa.
-            T channelResistance = 0;    ///< Resistance of a channel in Pas/L.
-            ChannelShape shape = ChannelShape::NONE; ///< The cross-section shape of this channel is rectangular
+            T length = 0;                               ///< Length of the channel in m.
+            T pressure = 0;                             ///< Pressure of a channel in Pa.
+            T channelResistance = 0;                    ///< Resistance of a channel in Pas/L.
+            ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular
         
         public:
             /**
              * @brief Constructor of a channel connecting two-nodes.
+             * @param[in] id Id of the channel.
+             * @param[in] nodeA Node at one end of the channel.
+             * @param[in] nodeB Node at the other end of the channel.
             */
             Channel(int id, int nodeA, int nodeB);
 
@@ -99,11 +102,17 @@ namespace arch{
         public:
             /**
              * @brief Constructor of a channel with rectangular cross-section
+             * @param[in] id Id of the channel.
+             * @param[in] nodeA One node of the channel.
+             * @param[in] nodeB The other node of the channel.
+             * @param[in] width The width of the channel.
+             * @param[in] height The height of the channel.
             */
             RectangularChannel(int id, int nodeA, int nodeB, T width, T height);
 
             /**
              * @brief Set width of rectangular channel.
+             * @param[in] width The width of the channel.
             */
             void setWidth(T width);
 
@@ -115,6 +124,7 @@ namespace arch{
 
             /**
              * @brief Set height of rectangular channel.
+             * @param[in] height The height of the channel.
             */
             void setHeight(T height);
 
@@ -138,12 +148,17 @@ namespace arch{
 
         public:
             /**
-             * @brief Constructor of a channel with circular cross-section
+             * @brief Constructor of a channel with circular cross-section             
+             * @param[in] id Id of the channel.
+             * @param[in] nodeA One node of the channel.
+             * @param[in] nodeB The other node of the channel.
+             * @param[in] radius The radius of the channel.
             */
             CylindricalChannel(int id, int nodeA, int nodeB, T radius);
             
             /**
              * @brief Set radius of cilyndrical channel.
+             * @param[in] radius The radius of the channel.
             */
             void setRadius(T radius);
 

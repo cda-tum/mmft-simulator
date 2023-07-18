@@ -4,11 +4,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include <Network.h>
-#include <Fluid.h>
-#include <ResistanceModels.h>
-#include <NodalAnalysis.h>
-#include <CFDSim.h>
+#include "CFDSim.h"
+#include "Fluid.h"
+#include "ResistanceModels.h"
+
+#include "../architecture/Network.h"
+#include "../nodalAnalysis/NodalAnalysis.h"
 
 namespace sim {
 
@@ -45,7 +46,7 @@ namespace sim {
 
             /**
              * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-             * @param[in] fluidId Unique identifier of the fluid the continuous phase consists of.
+             * @param[in] fluid The fluid the continuous phase consists of.
              */
             void setContinuousPhase(Fluid<T>* fluid);
 
@@ -57,7 +58,7 @@ namespace sim {
 
             /**
              * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
-             * @param[in] modelName Name of the resistance model to be used.
+             * @param[in] model The resistance model to be used.
              */
             void setResistanceModel(ResistanceModel2DPoiseuille<T>* model);
 

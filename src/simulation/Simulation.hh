@@ -11,14 +11,13 @@
 #include <olb2D.h>
 #include <olb2D.hh>
 
-#include <Channel.h>
-#include <FlowRatePump.h>
-#include <lbmModule.h>
-#include <Network.h>
-#include <NodalAnalysis.h>
-#include <Node.h>
-#include <PressurePump.h>
-#include <ResistanceModels.h>
+#include "ResistanceModels.h"
+
+#include "../architecture/Channel.h"
+#include "../architecture/FlowRatePump.h"
+#include "../architecture/lbmModule.h"
+#include "../architecture/Network.h"
+#include "../architecture/PressurePump.h"
 
 
 namespace sim {

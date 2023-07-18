@@ -5,11 +5,13 @@
 #include <vector>
 
 #include "Eigen/Dense"
-#include <Node.h>
-#include <Channel.h>
-#include <PressurePump.h>
-#include <FlowRatePump.h>
-#include <Module.h>
+
+
+#include "architecture/Channel.h"
+#include "architecture/FlowRatePump.h"
+#include "architecture/Module.h"
+#include "architecture/Node.h"
+#include "architecture/PressurePump.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -31,11 +33,9 @@ namespace nodal {
             for (const auto& nodeId : group->nodeIds) {
                 if(nodeId > groundNodeValue && nodeId != group->groundNodeId) {
                     conductingNodeIds.emplace(nodeId);
-                    //std::cout << "Placed node " << nodeId << " in conducting nodes" << std::endl;
                 } else if (nodeId > groundNodeValue && nodeId == group->groundNodeId) {
                     groundNodeIds.emplace(nodeId, iPump);
                     iPump++;
-                    //std::cout << "Placed node " << group->groundNodeId << " in ground nodes" << std::endl;
                 }
             }
         }
@@ -78,7 +78,6 @@ namespace nodal {
 
             // If module is not initialized (1st loop), loop over channels of fully connected graph
             if ( ! module->getInitialized() ) {
-                //std::cout << "[NodalAnalysis] initializing the module based on its network" << std::endl;
                 for (const auto& [key, channel] : module->getNetwork()->getChannels()) {
                     auto nodeAMatrixId = channel->getNodeA();
                     auto nodeBMatrixId = channel->getNodeB();
@@ -109,13 +108,11 @@ namespace nodal {
                     // Write the module's flowrates into vector i if the node is not a group's ground node
                     if (contains(conductingNodeIds, key)) {
                         T flowRate = module->getFlowRates().at(key) * module->getOpenings().at(key).height;
-                        //std::cout << "[NodalAnalysis] at node " << key << " the flowrate 1 is set at " << flowRate << " [m^3/s] " << std::endl;
                         z(key) = -flowRate;
                     } 
                     // Write module's pressure into matrix B, C and vector e
                     else if (contains(groundNodeIds, key)) {
                         T pressure = module->getPressures().at(key);
-                        //std::cout << "[NodalAnalysis] at node " << key << " the pressure 1 is set at " << pressure << " [Pa] " << std::endl;
                         node->setPressure(pressure);
                     }
                 }
@@ -170,13 +167,8 @@ namespace nodal {
             }
         }
 
-        //std::cout << A << "\n \n" << std::endl;
-        //std::cout << z << "\n \n" << std::endl;
-
         // solve equation x = A^(-1) * z
         VectorXd x = A.colPivHouseholderQr().solve(z);
-
-        //std::cout << x << "\n \n" << std::endl;
 
         // set pressure of nodes to result value
         for (const auto& [key, group] : network->getGroups()) {
@@ -217,9 +209,10 @@ namespace nodal {
                     }
                     pressures_.at(key) = set_pressure;
 
+                    /* Debug mode
                     std::cout << "[NodalAnalysis] at node " << key << " the pressure 2 is set at " << set_pressure << " [Pa] " <<
                         " from old " << old_pressure << " and new " << new_pressure << std::endl;
-
+                    */
                     if (abs(old_pressure - new_pressure) > 1e-2) {
                         pressureConvergence = false;
                     }
@@ -236,8 +229,10 @@ namespace nodal {
                     }
                     flowRates_.at(key) = set_flowRate;
 
+                    /* Debug mode
                     std::cout << "[NodalAnalysis] at node " << key << " we set flow rate 2 is at " << set_flowRate << " [m^2/s] " <<
                         " from old " << old_flowRate << " and new " << new_flowRate << std::endl;
+                    */
 
                     if (abs(old_flowRate - new_flowRate) > 1e-2) {
                         pressureConvergence = false;
@@ -294,15 +289,12 @@ namespace nodal {
                         groundNodes.try_emplace(nodeId, true);
                         for (auto& [key, group] : network->getGroups()) {
                             if (nodeId == group->groundNodeId) {
-                                //std::cout << "Ground channel id is " << group->groundChannelId << std::endl;
                                 T height = network->getChannels().at(group->groundChannelId)->getHeight();
                                 flowRate = network->getChannels().at(group->groundChannelId)->getFlowRate()/height;
                             }
                         }
-                        //std::cout << "[NodalAnalysis] Set " << nodeId << " to ground opening true." << std::endl;
                     } else {
                         groundNodes.try_emplace(nodeId, false);
-                        //std::cout << "[NodalAnalysis] Set " << nodeId << " to ground opening false." << std::endl;
                     }
                     flowRates_.at(nodeId) = flowRate;
                 }

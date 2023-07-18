@@ -1,16 +1,16 @@
-#include <CFDSim.h>
-#include <Fluid.h>
-#include <ResistanceModels.h>
-#include <Simulation.h>
+#include "simulation/CFDSim.h"
+#include "simulation/Fluid.h"
+#include "simulation/ResistanceModels.h"
+#include "simulation/Simulation.h"
 
-#include <NodalAnalysis.h>
+#include "nodalAnalysis/NodalAnalysis.h"
 
-#include <Channel.h>
-#include <Edge.h>
-#include <FlowRatePump.h>
-#include <lbmModule.h>
-#include <Module.h>
-#include <Network.h>
-#include <Node.h>
-#include <Platform.h>
-#include <PressurePump.h>
+#include "architecture/Channel.h"
+#include "architecture/Edge.h"
+#include "architecture/FlowRatePump.h"
+#include "architecture/lbmModule.h"
+#include "architecture/Module.h"
+#include "architecture/Network.h"
+#include "architecture/Node.h"
+#include "architecture/Platform.h"
+#include "architecture/PressurePump.h"

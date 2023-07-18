@@ -13,7 +13,6 @@ class Fluid {
   private:
     int const id;                       ///< Unique identifier of the fluid.
     std::string name = "";              ///< Name of the fluid.
-    //std::vector<Specie*> species;       ///< List of species dissolved in the fluid.
     T density;                          ///< Density of the continuous phase in kg/m^3.
     T viscosity;                        ///< Dynamic viscosity of the continuous phase in Pas.
 

@@ -1,15 +1,15 @@
-#include <CFDSim.hh>
-#include <Fluid.hh>
-#include <ResistanceModels.hh>
-#include <Simulation.hh>
+#include "simulation/CFDSim.hh"
+#include "simulation/Fluid.hh"
+#include "simulation/ResistanceModels.hh"
+#include "simulation/Simulation.hh"
 
-#include <NodalAnalysis.hh>
+#include "nodalAnalysis/NodalAnalysis.hh"
 
-#include <Channel.hh>
-#include <Edge.hh>
-#include <FlowRatePump.hh>
-#include <lbmModule.hh>
-#include <Module.hh>
-#include <Network.hh>
-#include <Node.hh>
-#include <PressurePump.hh>
+#include "architecture/Channel.hh"
+#include "architecture/Edge.hh"
+#include "architecture/FlowRatePump.hh"
+#include "architecture/lbmModule.hh"
+#include "architecture/Module.hh"
+#include "architecture/Network.hh"
+#include "architecture/Node.hh"
+#include "architecture/PressurePump.hh"

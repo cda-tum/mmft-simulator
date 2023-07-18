@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Fluid.h>
-#include <Channel.h>
-#include <lbmModule.h>
+#include "Fluid.h"
+
+#include "architecture/Channel.h"
+#include "architecture/lbmModule.h"
 
 namespace sim {
 

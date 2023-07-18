@@ -2,10 +2,10 @@
 
 #include "Network.h"
 
-#include <Node.h>
-#include <Channel.h>
-#include <Module.h>
-#include <lbmModule.h>
+#include "Channel.h"
+#include "lbmModule.h"
+#include "Module.h"
+#include "Node.h"
 
 namespace arch {
 
@@ -35,8 +35,6 @@ namespace arch {
                 int nB = nodeIds[j];
                 RectangularChannel<T>* addChannel = new RectangularChannel<T>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
                 channels.try_emplace(channel_counter, addChannel);
-                //std::cout << "[Generate fully connected graph] I've added channel " << channel_counter <<
-                //    " between nodes " << nA << " and " << nB << std::endl;
                 ++channel_counter;
             }
         }

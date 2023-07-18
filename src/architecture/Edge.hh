@@ -1,6 +1,6 @@
 #include "Edge.h"
 
-#include <Node.h>
+#include "Node.h"
 
 namespace arch {
 
