@@ -11,14 +11,13 @@
 #include <olb2D.h>
 #include <olb2D.hh>
 
-#include <Channel.h>
-#include <FlowRatePump.h>
-#include <lbmModule.h>
-#include <Network.h>
-#include <NodalAnalysis.h>
-#include <Node.h>
-#include <PressurePump.h>
-#include <ResistanceModels.h>
+#include "ResistanceModels.h"
+
+#include "../architecture/Channel.h"
+#include "../architecture/FlowRatePump.h"
+#include "../architecture/lbmModule.h"
+#include "../architecture/Network.h"
+#include "../architecture/PressurePump.h"
 
 
 namespace sim {
@@ -52,32 +51,35 @@ namespace sim {
         // initialize the simulation
         initialize();
 
-        // compute nodal analysis
-        std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
-        nodal::conductNodalAnalysis(this->network);
         //printResults();
 
         if (network->getModules().size() > 0 ) {
             bool allConverged = false;
             bool pressureConverged = false;
 
-            for (int iter = 0; iter < 1000; ++iter) {
-                std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(this->network, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
+                //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
 
                 // conduct CFD simulations
-                std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                allConverged = conductCFDSimulation(this->network, iter);
+                //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
+                allConverged = conductCFDSimulation(this->network, 10);
+            
                 // compute nodal analysis again
-                std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
+                //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
                 pressureConverged = nodal::conductNodalAnalysis(this->network);
 
-                if (pressureConverged) {
-                    std::cout << "[Simulation] The pressures have converged." << std::endl;
-                    break;
-                }
             }
             
-            //printResults();
+            if (pressureConverged && allConverged) {
+                std::cout << "[Simulation] All pressures have converged." << std::endl;
+            }
+
+            printResults();
         }
     }
 
@@ -124,14 +126,9 @@ namespace sim {
             channel->setResistance(resistance);
         }
 
-        // Prepare CFD geometry and lattice
-        std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
-
         for (auto& [key, module] : network->getModules()) {
             module->lbmInit(continuousPhase->getViscosity(),
                             continuousPhase->getDensity());
-            module->prepareGeometry();
-            module->prepareLattice();
         }
 
         // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
@@ -153,6 +150,18 @@ namespace sim {
                 T resistance = resistanceModel->getChannelResistance(channel.get());
                 channel->setResistance(resistance);
             }
+        }
+
+        // compute nodal analysis
+        std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+        nodal::conductNodalAnalysis(this->network);
+
+        // Prepare CFD geometry and lattice
+        std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+
+        for (auto& [key, module] : network->getModules()) {
+            module->prepareGeometry();
+            module->prepareLattice();
         }
     }
 }

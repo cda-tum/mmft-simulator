@@ -2,10 +2,10 @@
 
 #include "Network.h"
 
-#include <Node.h>
-#include <Channel.h>
-#include <Module.h>
-#include <lbmModule.h>
+#include "Channel.h"
+#include "lbmModule.h"
+#include "Module.h"
+#include "Node.h"
 
 namespace arch {
 
@@ -35,8 +35,6 @@ namespace arch {
                 int nB = nodeIds[j];
                 RectangularChannel<T>* addChannel = new RectangularChannel<T>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
                 channels.try_emplace(channel_counter, addChannel);
-                //std::cout << "[Generate fully connected graph] I've added channel " << channel_counter <<
-                //    " between nodes " << nA << " and " << nB << std::endl;
                 ++channel_counter;
             }
         }
@@ -77,6 +75,7 @@ namespace arch {
                                                         module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
             modules.try_emplace(module["iD"], addModule);
         }
+        this->sortGroups();
     }
 
     template<typename T>
@@ -141,6 +140,11 @@ namespace arch {
     }
 
     template<typename T>
+    const std::unordered_map<int, std::unique_ptr<Group<T>>>& Network<T>::getGroups() const {
+        return groups;
+    }
+
+    template<typename T>
     void Network<T>::setPressurePump(int channelId_, T pressure_) {
         int nodeAId = channels.at(channelId_).get()->getNodeA();
         int nodeBId = channels.at(channelId_).get()->getNodeB();
@@ -153,6 +157,75 @@ namespace arch {
     void Network<T>::toJson(std::string jsonString) const {
         // TODO
         std::cerr << "The function roJson(std::string jsonString) is not implemented." << std::endl;
+    }
+
+    template<typename T>
+    void Network<T>::sortGroups() {
+        std::vector<int> nodeVector;
+        int groupId = 0;
+        auto it = nodeVector.begin();
+        for (auto& [key, node] : nodes) {
+            nodeVector.emplace_back(key);
+        }
+        while(!nodeVector.empty()){
+            std::queue<int> connectedNodes;
+            std::unordered_set<int> nodeIds;
+            std::unordered_set<int> channelIds;
+            auto p = nodeIds.insert(nodeVector.front());
+            if (p.second) {
+                for (auto& [key, channel] : channels) {
+                    if (channel->getNodeA() == nodeVector.front()) {
+                        auto t = channelIds.insert(channel->getId());
+                        if (t.second) {
+                            connectedNodes.push(channel->getNodeB());
+                        }
+                    }
+                    if (channel->getNodeB() == nodeVector.front()) {
+                        auto t = channelIds.insert(channel->getId());
+                        if (t.second) {
+                            connectedNodes.push(channel->getNodeA());
+                        }
+                    }
+                }
+                for (int i=0; i < nodeVector.size(); i++) {
+                    if (nodeVector[i] == nodeVector.front()) {
+                        nodeVector.erase(nodeVector.begin() + i);
+                    }
+                }
+            }
+
+            while(!connectedNodes.empty()) {
+                 
+                auto q = nodeIds.insert(connectedNodes.front());
+                if (q.second) {
+                    for (auto& [key, channel] : channels) {
+                        if (channel->getNodeA() == connectedNodes.front()) {
+                            auto t = channelIds.insert(channel->getId());
+                            if (t.second) {
+                                connectedNodes.push(channel->getNodeB());
+                            }
+                        }
+                        if (channel->getNodeB() == connectedNodes.front()) {
+                            auto t = channelIds.insert(channel->getId());
+                            if (t.second) {
+                                connectedNodes.push(channel->getNodeA());
+                            }
+                        }
+                    }
+                    for (int i=0; i < nodeVector.size(); i++) {
+                        if (nodeVector[i] == connectedNodes.front()) {
+                            nodeVector.erase(nodeVector.begin() + i);
+                        }
+                    }
+                    connectedNodes.pop();
+                }
+            }
+
+            Group<T>* addGroup = new Group<T>(groupId, nodeIds, channelIds);
+            groups.try_emplace(groupId, addGroup);
+            
+            groupId++;
+        }
     }
 
 }   // namespace arch

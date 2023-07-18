@@ -16,4 +16,7 @@ namespace nodal {
     template<typename T>
     bool conductNodalAnalysis( const arch::Network<T>* network);
 
+    bool contains( const std::unordered_set<int>& set, int key);
+    bool contains( const std::unordered_map<int,int>& map, int key);
+
 }   // namespace nodal
