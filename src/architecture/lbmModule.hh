@@ -28,8 +28,8 @@ namespace arch{
         olb::IndicatorF2DfromIndicatorF3D<T> stl2Dindicator(stlReader);
         std::cout << "[lbmModule] create 2D indicator " << name << "... OK" << std::endl;
 
-        olb::Vector<T,2> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
-        olb::Vector<T,2> extend(this->size[0] + converter->getConversionFactorLength(), this->size[1] + converter->getConversionFactorLength());
+        olb::Vector<T,2> origin(-1.0*converter->getConversionFactorLength(), -1.0*converter->getConversionFactorLength());
+        olb::Vector<T,2> extend(this->size[0] + 2.0*converter->getConversionFactorLength(), this->size[1] + 2.0*converter->getConversionFactorLength());
         olb::IndicatorCuboid2D<T> cuboid(extend, origin);
         cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, converter->getConversionFactorLength(), 1);
         loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*cuboidGeometry);
@@ -47,13 +47,17 @@ namespace arch{
         for (auto& [key, Opening] : moduleOpenings ) {
             // The unit vector pointing to the extend (opposite origin) of the opening
             T x_origin =    Opening.node->getPosition()[0] - this->getPosition()[0]
-                            - 0.5*Opening.width*Opening.tangent[0];
+                            - 0.5*Opening.width*Opening.tangent[0] + 0.5*converter->getConversionFactorLength()*Opening.normal[0] - 0.5*converter->getConversionFactorLength()*abs(Opening.normal[1]);
             T y_origin =   Opening.node->getPosition()[1] - this->getPosition()[1]
-                            - 0.5*Opening.width*Opening.tangent[1];
+                            - 0.5*Opening.width*Opening.tangent[1] + 0.5*converter->getConversionFactorLength()*Opening.normal[1] - 0.5*converter->getConversionFactorLength()*abs(Opening.normal[0]);
+
+            std::cout << "The origin is: " << x_origin << ", " << y_origin << std::endl;
             
             // The unit vector pointing to the extend
-            T x_extend = Opening.width*Opening.tangent[0] - converter->getConversionFactorLength()*Opening.normal[0];
-            T y_extend = Opening.width*Opening.tangent[1] - converter->getConversionFactorLength()*Opening.normal[1];
+            T x_extend = Opening.width*Opening.tangent[0] - converter->getConversionFactorLength()*Opening.normal[0];// + 0.5*converter->getConversionFactorLength()*Opening.normal[1];
+            T y_extend = Opening.width*Opening.tangent[1] - converter->getConversionFactorLength()*Opening.normal[1];// - 0.5*converter->getConversionFactorLength()*Opening.normal[0];
+            
+            std::cout << "The extend is: " << x_extend << ", " << y_extend << std::endl;
 
             // Extend can only have positive values, hence the following transformation
             if (x_extend < 0 ){
@@ -68,7 +72,8 @@ namespace arch{
             olb::Vector<T,2> originO (x_origin, y_origin);
             olb::Vector<T,2> extendO (x_extend, y_extend);
             olb::IndicatorCuboid2D<T> opening(extendO, originO);
-            this->geometry->rename(2, key+3, 1, opening);
+            this->geometry->rename(1, key+3, opening);
+            this->geometry->rename(2, key+3, opening);
         }
 
         this->geometry->clean();
@@ -109,8 +114,8 @@ namespace arch{
         // Initialize the integral fluxes for the in- and outlets
         for (auto& [key, Opening] : moduleOpenings) {
 
-            T posX =  Opening.node->getPosition()[0] - this->getPosition()[0];
-            T posY =  Opening.node->getPosition()[1] - this->getPosition()[1];          
+            T posX =  Opening.node->getPosition()[0] - this->getPosition()[0] + 0.5*converter->getConversionFactorLength()*Opening.normal[0];
+            T posY =  Opening.node->getPosition()[1] - this->getPosition()[1] + 0.5*converter->getConversionFactorLength()*Opening.normal[1];
 
             std::vector<T> position = {posX, posY};
             std::vector<int> materials = {1, key+3};
@@ -151,7 +156,7 @@ namespace arch{
         for (auto& [key, Opening] : moduleOpenings) {
             if (groundNodes.at(key)) {
                 T maxVelocity = (3./2.)*(flowRates[key]/(Opening.width));
-                T distance2Wall = getConverter().getConversionFactorLength()/2.;
+                T distance2Wall = 0.0*getConverter().getConversionFactorLength()/2.;
                 olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
                 getLattice().defineU(getGeometry(), key+3, poiseuilleU);
             } else {
@@ -236,7 +241,7 @@ namespace arch{
             vtmWriter.createMasterFile();
         }
 
-        if (iT % 1000 == 0) {
+        if (iT % 100 == 0) {
             
             olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLattice(), getConverter());
             olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(getLattice(), getConverter());

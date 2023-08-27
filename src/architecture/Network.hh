@@ -14,13 +14,26 @@ namespace arch {
                         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
                         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
                         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
-                        std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_) :
+                        std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_,
+                        Platform platform_) :
                         nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_), 
-                        pressurePumps(pressurePumps_), modules(modules_) { }
+                        pressurePumps(pressurePumps_), modules(modules_), platform(platform_) { 
+                            this->sortGroups();
+                        }
 
     template<typename T>
-    Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
-                        nodes(nodes_) {
+    Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
+                        std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
+                        std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_,
+                        Platform platform_) :
+                        nodes(nodes_), channels(channels_), modules(modules_), platform(platform_) { 
+                            this->sortGroups();
+                        }
+
+    template<typename T>
+    Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
+                        Platform platform_) :
+                        nodes(nodes_), platform(platform_) {
 
         // Generate all possible channels between the nodes for the fully connected graph
         std::vector<int> nodeIds;
@@ -45,6 +58,12 @@ namespace arch {
 
         std::ifstream f(jsonFile);
         json jsonString = json::parse(f);
+
+        if (jsonString["Platform"] == "Droplet") {
+            platform = Platform::DROPLET;
+        } else {
+            platform = Platform::CONTINUOUS;
+        }
 
         for (auto& node : jsonString["Network"]["Nodes"]) {
             Node<T>* addNode = new Node<T>(node["iD"], T(node["x"]), T(node["y"]));
