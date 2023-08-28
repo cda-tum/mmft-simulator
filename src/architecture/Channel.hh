@@ -219,12 +219,12 @@ T Channel<T,DIM>::getResistance() const {
 }
 
 template<typename T, int DIM>
-ChannelShape Channel<T,DIM>::getChannelShape() const {
+Channel<T,DIM>::ChannelShape Channel<T,DIM>::getChannelShape() const {
     return shape;
 }
 
 template<typename T, int DIM>
-PumpType Channel<T,DIM>::getChannelPumpType() const {
+Channel<T,DIM>::PumpType Channel<T,DIM>::getChannelPumpType() const {
     return pump;
 }
 
