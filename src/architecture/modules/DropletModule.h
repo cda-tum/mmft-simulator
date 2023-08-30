@@ -76,11 +76,13 @@ class DropletModule : public CFDModule<T,olb::descriptors::D2Q9<CHEM_POTENTIAL, 
 
         void setBoundaryValues(int iT) override;
 
-        void addDroplet();
+        void addDroplet(T pos[2], T vol);
+
+        void addDroplet(T x[2], T y[2], T theta=0);
 
         void scanDroplets();
 
-        void delDroplet();
+        void delDroplet(int Id);
 
         void solve() override;
 

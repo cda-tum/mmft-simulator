@@ -114,34 +114,82 @@ void DropletModule<T>::prepareLattice() {
     communicator.exchangeRequests();
     }
 
-    std::cout << "[lbmModule] prepare lattice " << name << "... OK" << std::endl;
+    std::cout << "[DropletModule] prepare lattice " << name << " ... OK" << std::endl;
 }
 
 template<typename T>
 void DropletModule<T>::prepareCoupling() {
     
+    // Bulk couplings
+    olb::FreeEnergyChemicalPotentialGenerator2D<T,DESCRIPTOR> coupling1( alpha, kappa1, kappa2 );
+    olb::FreeEnergyForceGenerator2D<T,DESCRIPTOR> coupling2;
+
+    lattice1->addLatticeCoupling<DESCRIPTOR>(getGeometry(), 1, coupling1, lattice2);
+    lattice2->addLatticeCoupling<DESCRIPTOR>(getGeometry(), 1, coupling2, lattice1);
+
+    {
+        auto& communicator = lattice1->getCommunicator(PostCoupling());
+        communicator.requestField<olb::CHEM_POTENTIAL>();
+        communicator.requestOverlap(lattice1->getOverlap());
+        communicator.exchangeRequests();
+    }
+    {
+        auto& communicator = sLattice2.getCommunicator(PreCoupling());
+        communicator.requestField<olb::CHEM_POTENTIAL>();
+        communicator.requestOverlap(lattice2->getOverlap());
+        communicator.exchangeRequests();
+    }
+
+    std::cout << "[DropletModule] prepare lattice coupling " << name << " ... OK" << std::endl;
 }
 
 template<typename T>
 void DropletModule<T>::setInletBoundaries(int material) {
+
     setFreeEnergyInletBoundary<T,DESCRIPTOR>(getLattice1(), omega, material, "velocity", 1);
     setFreeEnergyInletBoundary<T,DESCRIPTOR>(getLattice2(), omega, material, "velocity", 2);
+
+    // Inlet coupling
+    olb::FreeEnergyInletOutletGenerator2D<T,DESCRIPTOR> coupling;
+    lattice2->addLatticeCoupling<DESCRIPTOR>(getGeometry(), material, coupling, lattice1);
 }
 
 template<typename T>
 void DropletModule<T>::setOutletBoundaries(int material) {
+
     setFreeEnergyOutletBoundary<T,DESCRIPTOR>(getLattice1(), omega, material, "density", 1);
     setFreeEnergyOutletBoundary<T,DESCRIPTOR>(getLattice2(), omega, material, "density", 2);
+
+    // Outlet coupling
+    olb::FreeEnergyDensityOutletGenerator2D<T,DESCRIPTOR> coupling( outletDensity );
+    lattice1->addLatticeCoupling<DESCRIPTOR>(getGeometry(), material, coupling, lattice2);
+
 }
 
 template<typename T>
-void DropletModule<T>::setBoundaryValues(int iT) {
+void DropletModule<T>::setBoundaryValues(int iT_) {
 
 }
 
 template<typename T>
-void DropletModule<T>::addDroplet() {
+void DropletModule<T>::addDroplet(T pos_[2], T radius_) { 
 
+    olb::IndicatorCircle2D<T> indCircle ( pos_, radius_ );
+    olb::SmoothIndicatorCircle2D<T,T> droplet (indCircle, converter.getPhysLength(alpha));
+
+    lattice2->defineRho(droplet, T(-1.0));
+}
+
+template<typename T>
+void DropletModule<T>::addDroplet(T origin_[2], T extend_[2], T theta) { 
+
+    olb::Vector<T,2> origin = {origin_[0], origin_[1]};
+    olb::Vector<T,2> extend = {extend_[0], extend_[1]};
+
+    olb::IndicatorCuboid2D<T> indCuboid(origin, extend, theta);
+    olb::SmoothIndicatorCuboid2D<T,T> droplet( indCuboid, converter.getPhysLength(alpha));
+
+    lattice2->defineRho(droplet, T(-1.0));
 }
 
 template<typename T>
@@ -150,22 +198,80 @@ void DropletModule<T>::scanDroplets() {
 }
 
 template<typename T>
-void DropletModule<T>::delDroplet() {
+void DropletModule<T>::delDroplet(int Id_) {
 
 }
 
 template<typename T>
 void DropletModule<T>::solve() {
 
+    this->setBoundaryValues(step);
+
+    for (int iT = 0; iT < theta; ++iT){
+
+        writeVTK(step);
+
+        // Collide and stream execution
+        lattice1->collideAndStream();
+        lattice2->collideAndStream();
+
+        // Execute coupling between the two lattices
+        lattice1->executeCoupling();
+        lattice2->executeCoupling();
+
+        step += 1;
+    }
+
+    getResults(step);
 }
 
 template<typename T>
-void DropletModule<T>::getResults(int iT) {
+void DropletModule<T>::getResults(int iT_) {
 
 }
 
 template<typename T>
-void DropletModule<T>::writeVTK(int iT) {
+void DropletModule<T>::writeVTK(int iT_) {
+
+    if ( iT == 0 ) {
+        // Writes the geometry, cuboid no. and rank no. as vti file for visualization
+        olb::SuperLatticeGeometry2D<T, DESCRIPTOR> geometry( getLattice1(), getGeometry() );
+        vtmWriter.write( geometry );
+        vtmWriter.createMasterFile();
+    }
+
+    if (iT % statIter == 0) {
+        std::cout << "[writeVTK] " << name << " currently at timestep " << iT << std::endl;
+        lattice1->getStatistics().print(iT, converter->getPhysTime(iT));
+        lattice2->getStatistics().print(iT, converter->getPhysTime(iT));
+    }
+
+    if (iT % vtkIter == 0) {
+
+        olb::SuperLatticePhysVelocity2D<T, DESCRIPTOR> velocity(getLattice1());
+        olb::SuperLatticePhysPressure2D<T, DESCRIPTOR> pressure(getLattice1());
+        olb::SuperLatticeDensity2D<T, DESCRIPTOR> density1(getLattice1());
+        density1.getName() = "rho";
+        olb::SuperLatticeDensity2D<T, DESCRIPTOR> density2(getLattice2());
+        density2.getName() = "phi";
+
+        olb::AnalyticalConst2D<T,T> half_( 0.5 );
+        olb::SuperLatticeFfromAnalyticalF2D<T, DESCRIPTOR> half(half_, getLattice1());
+
+        olb::SuperIdentity2D<T,T> c1 (half*(density1+density2));
+        c1.getName() = "density-fluid-1";
+        olb::SuperIdentity2D<T,T> c2 (half*(density1-density2));
+        c2.getName() = "density-fluid-2";
+
+        vtmWriter.addFunctor(velocity);
+        vtmWriter.addFunctor(pressure);
+        vtmWriter.addFunctor(density1);
+        vtmWriter.addFunctor(density2);
+        vtmWriter.addFunctor(c1);
+        vtmWriter.addFunctor(c2);
+        vtmWriter.write(iT);
+
+    }
 
 }
 
