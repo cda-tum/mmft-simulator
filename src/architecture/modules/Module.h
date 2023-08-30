@@ -10,11 +10,11 @@ namespace arch {
      * @brief An enum to specify the type of module.
     */
     enum class ModuleType {
-        NORMAL,     ///< A placeholder module with no special functionality.
-        MIXER,      ///< A mixer module that mixes the incoming fluids to a certain degree.
-        HEATER,     ///< A heater module that heats the passing fluid to a certain degree.
-        ORGAN,      ///< An organ module that models the functionality of an organ in the network.
-        LBM         ///< A CFD module that maps the LBM simulation result on the 1D level.
+        CONTINUOUS,     ///< A placeholder module with no special functionality.
+        MIXER,          ///< A mixer module that mixes the incoming fluids to a certain degree.
+        HEATER,         ///< A heater module that heats the passing fluid to a certain degree.
+        ORGAN,          ///< An organ module that models the functionality of an organ in the network.
+        LBM             ///< A CFD module that maps the LBM simulation result on the 1D level.
     };
 
     /**
@@ -27,7 +27,7 @@ namespace arch {
             std::vector<T> pos;             ///< Position (x, y) of the lower left corner of the module.
             std::vector<T> size;            ///< Size (x, y) of the rectangular module.
             std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes;    ///< List of nodes that are placed on the boundary of the module.
-            ModuleType moduleType = ModuleType::NORMAL;     ///< Type of module.
+            ModuleType moduleType = ModuleType::CONTINUOUS;     ///< Type of module.
 
         public:
         /**
