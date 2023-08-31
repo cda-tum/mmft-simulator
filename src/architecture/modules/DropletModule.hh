@@ -172,7 +172,10 @@ void DropletModule<T>::setBoundaryValues(int iT_) {
 }
 
 template<typename T>
-void DropletModule<T>::addDroplet(T pos_[2], T radius_) { 
+void DropletModule<T>::addDroplet(int Id_, T pos_[2], T radius_) { 
+
+    LBMDroplet<T> addDroplet = new LBMDroplet<T> (Id_, pos_, {2*radius_, 2*radius_});
+    droplets.try_emplace(Id_, addDroplet);
 
     olb::IndicatorCircle2D<T> indCircle ( pos_, radius_ );
     olb::SmoothIndicatorCircle2D<T,T> droplet (indCircle, converter.getPhysLength(alpha));
@@ -181,7 +184,13 @@ void DropletModule<T>::addDroplet(T pos_[2], T radius_) {
 }
 
 template<typename T>
-void DropletModule<T>::addDroplet(T origin_[2], T extend_[2], T theta) { 
+void DropletModule<T>::addDroplet(int Id_, T origin_[2], T extend_[2], T theta) { 
+
+    T pos[2] = {origin_[0] + 0.5*extend_[0], origin_[1] + 0.5*extend_[1]};
+    T size[2] = {etxend[0], extend[1]};     //TODO: add theta effect
+
+    LBMDroplet<T> addDroplet = new LBMDroplet<T> (Id_, pos, size);
+    droplets.try_emplace(Id_, addDroplet);
 
     olb::Vector<T,2> origin = {origin_[0], origin_[1]};
     olb::Vector<T,2> extend = {extend_[0], extend_[1]};
@@ -195,11 +204,27 @@ void DropletModule<T>::addDroplet(T origin_[2], T extend_[2], T theta) {
 template<typename T>
 void DropletModule<T>::scanDroplets() {
 
+    // TODO: Write a Postprocessor for this
+
 }
 
 template<typename T>
 void DropletModule<T>::delDroplet(int Id_) {
 
+    scanDroplets();
+
+    T center[2] = droplets.at(Id_).get()->pos;
+    T size[2] = droplets.at(Id_).get()->size;
+
+    olb::Vector<T,2> origin = {center[0] - 0.5*size[0], center[1] - 0.5*size[1]};
+    olb::Vector<T,2> extend = {size[0], size[1]};
+
+    olb::IndicatorCuboid2D<T> indCuboid(origin, extend, theta);
+    olb::SmoothIndicatorCuboid2D<T,T> deleteDrop( indCuboid, converter.getPhysLength(alpha));
+
+    lattice2->defineRho(deleteDrop, T(1.0));
+
+    droplets.erase(Id_);
 }
 
 template<typename T>

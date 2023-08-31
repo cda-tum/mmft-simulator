@@ -19,6 +19,15 @@
 
 namespace arch {
 
+template<typename T>
+struct LBMDroplet {
+    int Id;
+    T center[2];
+    T size[2];
+
+    LBMDroplet(int Id_, T center_[2], T size_[2]) : Id(Id_), center(center_), size(size_) { }
+};
+
 /**
  * @brief Class that handles the OLB solver for a droplet-based module.
 */
@@ -38,6 +47,8 @@ class DropletModule : public CFDModule<T,olb::descriptors::D2Q9<CHEM_POTENTIAL, 
         T h2;
         T gama;
         T omega;
+
+        std::unordered_map<int, LBMDroplet<T>> droplets;
 
         std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice1;
         std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice2;
@@ -76,9 +87,9 @@ class DropletModule : public CFDModule<T,olb::descriptors::D2Q9<CHEM_POTENTIAL, 
 
         void setBoundaryValues(int iT) override;
 
-        void addDroplet(T pos[2], T vol);
+        void addDroplet(int Id, T pos[2], T radius);
 
-        void addDroplet(T x[2], T y[2], T theta=0);
+        void addDroplet(int Id, T x[2], T y[2], T theta=0);
 
         void scanDroplets();
 
