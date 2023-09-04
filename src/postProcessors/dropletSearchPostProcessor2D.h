@@ -34,10 +34,15 @@ public:
     void processSubDomain(BlockLattice<T,DESCRIPTOR>& blockLattice,
         int x0, int x1, int y0, int y1) override;
 
+    Vector<T,4> getSize() {
+        return Vector<T,4> {Left, Right, Top, Bottom};
+    }
+
 private:
     int x0, x1, y0, y1;
     Vector<T,2> center;
     Vector<T,2> extend;
+    int Left, Right, Bottom, Top
     
 };
 

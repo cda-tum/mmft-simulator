@@ -204,7 +204,61 @@ void DropletModule<T>::addDroplet(int Id_, T origin_[2], T extend_[2], T theta) 
 template<typename T>
 void DropletModule<T>::scanDroplets() {
 
-    // TODO: Write a Postprocessor for this
+    T Left, Right = center[0];
+    T Top, Bottom = center[1];
+    
+    // Horizontal search
+    for (int iX=center[0]; iX<=geometry->getNx(); ++iX){
+        auto cell = blockLattice.get(iX, center[1]);
+        T rho = cell.computeRho();
+        if (rho < 0.0) {
+            if (iX > Right) {
+                Right = iX;
+            }
+        } else {
+            break;
+        }
+    }
+    for (int iX=center[0]; iX>=0; --iX){
+        auto cell = blockLattice.get(iX, center[1]);
+        T rho = cell.computeRho();
+        if (rho < 0.0) {
+            if (iX < Left) {
+                Left = iX;
+            }
+        } else {
+            break;
+        }
+    }
+
+    // Vertical search
+    for (int iY=center[1]; iY<=geometry->getNY(); ++iY){
+        auto cell = blockLattice.get(center[0], iY);
+        T rho = cell.computeRho();
+        if (rho < 0.0) {
+            if (iY > Top) {
+                Top = iY;
+            }
+        } else {
+            break;
+        }
+    }
+    for (int iY=center[1]; iY>=0; --iY){
+        auto cell = blockLattice.get(center[0], iY);
+        T rho = cell.computeRho();
+        if (rho < 0.0) {
+            if (iY < Bottom) {
+                Bottom = iY;
+            }
+        } else {
+            break;
+        }
+    }
+
+    center[0] = (Right+Left)/2;
+    center[1] = (Top+Bottom)/2;
+    size[0] = Right-Left;
+    size[1] = Top-Bottom;
 
 }
 
