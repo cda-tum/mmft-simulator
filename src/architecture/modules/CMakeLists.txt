@@ -1,24 +1,16 @@
 set(SOURCE_LIST
-    Channel.hh
-    Edge.hh
-    FlowRatePump.hh
-    Network.hh
-    Node.hh
-    PressurePump.hh
+    CFDModule.hh
+    ContinuousModule.hh
+    Module.hh
+    OrganModule.hh
 )
     
 set(HEADER_LIST
-    Channel.h
-    Edge.h
-    FlowRatePump.h
-    Network.h
-    Node.h
-    Platform.h
-    PressurePump.h
+    CFDModule.h
+    ContinuousModule.h
+    Module.h
+    OrganModule.h
 )
-
-# add subdirectories
-add_subdirectory(modules)
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})
 target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})

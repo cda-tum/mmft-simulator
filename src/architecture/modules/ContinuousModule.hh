@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include <olb2D.h>
-#include <olb2D.hh>
 
 #include "CFDModule.h"
 
@@ -13,7 +12,7 @@ template<typename T>
 ContinuousModule<T>::ContinuousModule (
     int id_, std::string name_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, 
     std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
-        CFDModule<T,olb::descriptors::D2Q9<>>(id_, pos_, size_, nodes_, openings_, stlFile_, charPhysLength_, charPhysVelocity_, resolution_, relaxationTime_), 
+        CFDModule<T,olb::descriptors::D2Q9<>>(id_, name_, pos_, size_, nodes_, openings_, stlFile_, charPhysLength_, charPhysVelocity_, resolution_, relaxationTime_), 
         alpha(alpha_), epsilon(epsilon_)
     { 
         this->moduleType = ModuleType::CONTINUOUS;
@@ -22,7 +21,7 @@ ContinuousModule<T>::ContinuousModule (
 template<typename T>
 void ContinuousModule<T>::initIntegrals() {
     
-    for (auto& [key, Opening] : moduleOpenings) {
+    for (auto& [key, Opening] : this->moduleOpenings) {
 
         T posX =  Opening.node->getPosition()[0] - this->getPosition()[0] + 0.5*converter->getConversionFactorLength()*Opening.normal[0];
         T posY =  Opening.node->getPosition()[1] - this->getPosition()[1] + 0.5*converter->getConversionFactorLength()*Opening.normal[1];
@@ -30,14 +29,14 @@ void ContinuousModule<T>::initIntegrals() {
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
 
-        if (groundNodes.at(key)) {
+        if (this->groundNodes.at(key)) {
             std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> meanPressure;
-            meanPressure = std::make_shared< olb::SuperPlaneIntegralFluxPressure2D<T>> (getLattice(), getConverter(), getGeometry(),
+            meanPressure = std::make_shared< olb::SuperPlaneIntegralFluxPressure2D<T>> (getLattice(), getConverter(), this->getGeometry(),
             position, Opening.tangent, materials);
             this->meanPressures.try_emplace(key, meanPressure);
         } else {
             std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;
-            flux = std::make_shared< olb::SuperPlaneIntegralFluxVelocity2D<T> > (getLattice(), getConverter(), getGeometry(),
+            flux = std::make_shared< olb::SuperPlaneIntegralFluxVelocity2D<T> > (getLattice(), getConverter(), this->getGeometry(),
             position, Opening.tangent, materials);
             this->fluxes.try_emplace(key, flux);
         }
@@ -48,7 +47,7 @@ template<typename T>
 void ContinuousModule<T>::prepareLattice () {
     const T omega = converter->getLatticeRelaxationFrequency();
 
-    lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(getGeometry());
+    lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(this->getGeometry());
 
     // Initial conditions
     std::vector<T> velocity(T(0), T(0));
@@ -56,20 +55,20 @@ void ContinuousModule<T>::prepareLattice () {
     olb::AnalyticalConst2D<T,T> uF(velocity);
 
     // Set lattice dynamics
-    lattice->template defineDynamics<NoDynamics>(getGeometry(), 0);
-    lattice->template defineDynamics<BGKdynamics>(getGeometry(), 1);
-    lattice->template defineDynamics<BounceBack>(getGeometry(), 2);
+    lattice->template defineDynamics<NoDynamics>(this->getGeometry(), 0);
+    lattice->template defineDynamics<BGKdynamics>(this->getGeometry(), 1);
+    lattice->template defineDynamics<BounceBack>(this->getGeometry(), 2);
 
     // Set initial conditions
-    lattice->defineRhoU(getGeometry(), 1, rhoF, uF);
-    lattice->iniEquilibrium(getGeometry(), 1, rhoF, uF);
+    lattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
+    lattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uF);
 
     // Set lattice dynamics and initial condition for in- and outlets
-    for (auto& [key, Opening] : moduleOpenings) {
-        if (groundNodes.at(key)) {
-            setInterpolatedVelocityBoundary(getLattice(), omega, getGeometry(), key+3);
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
+            setInterpolatedVelocityBoundary(getLattice(), omega, this->getGeometry(), key+3);
         } else {
-            setInterpolatedPressureBoundary(getLattice(), omega, getGeometry(), key+3);
+            setInterpolatedPressureBoundary(getLattice(), omega, this->getGeometry(), key+3);
         }
     }
 
@@ -79,14 +78,14 @@ void ContinuousModule<T>::prepareLattice () {
     lattice->template setParameter<olb::descriptors::OMEGA>(omega);
     lattice->initialize();
 
-    std::cout << "[lbmModule] prepare lattice " << name << "... OK" << std::endl;
+    std::cout << "[lbmModule] prepare lattice " << this->name << "... OK" << std::endl;
 }
 
 template<typename T>
 void ContinuousModule<T>::setBoundaryValues (int iT) {
 
     T pressureLow = -1.0;       
-    for (auto& [key, pressure] : pressures) {
+    for (auto& [key, pressure] : this->pressures) {
         if ( pressureLow < 0.0 ) {
             pressureLow = pressure;
         }
@@ -95,16 +94,16 @@ void ContinuousModule<T>::setBoundaryValues (int iT) {
         }
     }
 
-    for (auto& [key, Opening] : moduleOpenings) {
-        if (groundNodes.at(key)) {
-            T maxVelocity = (3./2.)*(flowRates[key]/(Opening.width));
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
+            T maxVelocity = (3./2.)*(this->flowRates[key]/(Opening.width));
             T distance2Wall = 0.0*getConverter().getConversionFactorLength()/2.;
-            olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
-            getLattice().defineU(getGeometry(), key+3, poiseuilleU);
+            olb::Poiseuille2D<T> poiseuilleU(this->getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
+            getLattice().defineU(this->getGeometry(), key+3, poiseuilleU);
         } else {
-            T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]));
+            T rhoV = getConverter().getLatticeDensityFromPhysPressure((this->pressures[key]));
             olb::AnalyticalConst2D<T,T> rho(rhoV);
-            getLattice().defineRho(getGeometry(), key+3, rho);
+            getLattice().defineRho(this->getGeometry(), key+3, rho);
         }
     }
 
@@ -117,33 +116,34 @@ void ContinuousModule<T>::lbmInit (T dynViscosity, T density) {
     T kinViscosity = dynViscosity/density;
     
     this->converter = std::make_shared<const olb::UnitConverterFromResolutionAndRelaxationTime<T,DESCRIPTOR>>(
-        resolution,
-        relaxationTime,
-        charPhysLength,
-        charPhysVelocity,
+        this->resolution,
+        this->relaxationTime,
+        this->charPhysLength,
+        this->charPhysVelocity,
         kinViscosity,
         density
     );
     this->converter->print();
 
+    this->conversionFactorLength = converter->getConversionFactorLength();
     // Initialize a convergence tracker for pressure
     this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, epsilon);
 
-    std::cout << "[lbmModule] lbmInit " << name << "... OK" << std::endl;
+    std::cout << "[lbmModule] lbmInit " << this->name << "... OK" << std::endl;
 }
 
 template<typename T>
 void ContinuousModule<T>::writeVTK (int iT) {
 
-    olb::SuperVTMwriter2D<T> vtmWriter( name );
+    olb::SuperVTMwriter2D<T> vtmWriter( this->name );
     // Writes geometry to file system
     if (iT == 0) {
-        olb::SuperLatticeGeometry2D<T,DESCRIPTOR> writeGeometry (getLattice(), getGeometry());
+        olb::SuperLatticeGeometry2D<T,DESCRIPTOR> writeGeometry (getLattice(), this->getGeometry());
         vtmWriter.write(writeGeometry);
         vtmWriter.createMasterFile();
     }
 
-    if (iT % vtkIter == 0) {
+    if (iT % this->vtkIter == 0) {
         
         olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLattice(), getConverter());
         olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(getLattice(), getConverter());
@@ -156,8 +156,8 @@ void ContinuousModule<T>::writeVTK (int iT) {
         vtmWriter.write(iT);
         converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
     }
-    if (iT % statIter == 0) {
-        std::cout << "[writeVTK] " << name << " currently at timestep " << iT << std::endl;
+    if (iT % this->statIter == 0) {
+        std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
     }
 
     converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
@@ -173,7 +173,7 @@ void ContinuousModule<T>::writeVTK (int iT) {
 template<typename T>
 void ContinuousModule<T>::solve() {
 
-    for (int iT = 0; iT < theta; ++iT){      
+    for (int iT = 0; iT < this->theta; ++iT){      
         this->setBoundaryValues(step);
         writeVTK(step);          
         lattice->collideAndStream();

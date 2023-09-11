@@ -8,11 +8,6 @@
 #include <math.h>
 #include <iostream>
 
-#include <olb2D.h>
-#include <olb2D.hh>
-#include <olb3D.h>
-#include <olb3D.hh>
-
 #include "CFDModule.h"
 #include "../Node.h"
 #include "../Channel.h"
@@ -77,7 +72,7 @@ class ContinuousModule : public CFDModule<T,olb::descriptors::D2Q9<>> {
          * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
          * @param[in] density Density of the simulated fluid in _kg / m^3_.
         */
-        void lbmInit(T dynViscosity, T density) override;
+        void lbmInit(T dynViscosity, T density);
 
         /**
          * @brief Initialize the integral fluxes for the in- and outlets

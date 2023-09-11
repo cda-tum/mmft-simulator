@@ -3,8 +3,10 @@
 #include "Network.h"
 
 #include "Channel.h"
-#include "lbmModule.h"
-#include "Module.h"
+#include "modules/Module.h"
+#include "modules/CFDModule.h"
+#include "modules/ContinuousModule.h"
+#include "modules/OrganModule.h"
 #include "Node.h"
 
 namespace arch {
@@ -14,7 +16,7 @@ namespace arch {
                         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
                         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
                         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
-                        std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_,
+                        std::unordered_map<int, std::unique_ptr<Module<T>>> modules_,
                         Platform platform_) :
                         nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_), 
                         pressurePumps(pressurePumps_), modules(modules_), platform(platform_) { 
@@ -24,7 +26,7 @@ namespace arch {
     template<typename T>
     Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
                         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
-                        std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_,
+                        std::unordered_map<int, std::unique_ptr<Module<T>>> modules_,
                         Platform platform_) :
                         nodes(nodes_), channels(channels_), modules(modules_), platform(platform_) { 
                             this->sortGroups();
@@ -88,11 +90,21 @@ namespace arch {
             }
             std::vector<T> position = { module["posX"], module["posY"] };
             std::vector<T> size = { module["sizeX"], module["sizeY"] };
-            lbmModule<T>* addModule = new lbmModule<T>( module["iD"], module["name"], position,
-                                                        size, Nodes, Openings, module["stlFile"], 
-                                                        module["charPhysLength"], module["charPhysVelocity"],
-                                                        module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
-            modules.try_emplace(module["iD"], addModule);
+
+            Module<T>* newModule = nullptr;
+
+            if (module["moduleType"] == "Continuous") {
+                newModule = new ContinuousModule<T>( module["iD"], module["name"], position,
+                            size, Nodes, Openings, module["stlFile"], 
+                            module["charPhysLength"], module["charPhysVelocity"],
+                            module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
+            } else if (module["moduleType"] == "Organ") {
+                newModule = new OrganModule<T>();
+            } else {
+                std::cerr << "Invalid Module Type.\nPossibilities are:\n\tCONTINUOUS\n\tORGAN" << std::endl;
+            }
+
+            modules.try_emplace(module["iD"], newModule);
         }
         this->sortGroups();
     }
@@ -144,7 +156,7 @@ namespace arch {
     }
 
     template<typename T>
-    const std::unordered_map<int, std::unique_ptr<lbmModule<T>>>& Network<T>::getModules() const {
+    const std::unordered_map<int, std::unique_ptr<Module<T>>>& Network<T>::getModules() const {
         return modules;
     }
 

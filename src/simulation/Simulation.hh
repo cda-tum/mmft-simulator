@@ -15,7 +15,10 @@
 
 #include "../architecture/Channel.h"
 #include "../architecture/FlowRatePump.h"
-#include "../architecture/lbmModule.h"
+#include "../architecture/modules/Module.h"
+#include "../architecture/modules/CFDModule.h"
+#include "../architecture/modules/ContinuousModule.h"
+#include "../architecture/modules/OrganModule.h"
 #include "../architecture/Network.h"
 #include "../architecture/PressurePump.h"
 

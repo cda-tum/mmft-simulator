@@ -4,8 +4,7 @@
 #include <olb2D.hh>
 
 #include "../architecture/Network.h"
-#include "../architecture/Module.h"
-#include "../architecture/lbmModule.h"
+#include "../architecture/modules/Module.h"
 
 namespace sim {
 

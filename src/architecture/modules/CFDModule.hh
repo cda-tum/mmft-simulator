@@ -39,15 +39,15 @@ CFDModule<T,DESCRIPTOR>::CFDModule(
 template<typename T, typename DESCRIPTOR>
 void CFDModule<T,DESCRIPTOR>::prepareGeometry() {
 
-    olb::STLreader<T> stlReader(stlFile, converter->getConversionFactorLength());
+    olb::STLreader<T> stlReader(stlFile, getConversionFactorLength());
     std::cout << "[lbmModule] reading STL file " << name << "... OK" << std::endl;
     olb::IndicatorF2DfromIndicatorF3D<T> stl2Dindicator(stlReader);
     std::cout << "[lbmModule] create 2D indicator " << name << "... OK" << std::endl;
 
-    olb::Vector<T,2> origin(-1.0*converter->getConversionFactorLength(), -1.0*converter->getConversionFactorLength());
-    olb::Vector<T,2> extend(this->size[0] + 2.0*converter->getConversionFactorLength(), this->size[1] + 2.0*converter->getConversionFactorLength());
+    olb::Vector<T,2> origin(-1.0*getConversionFactorLength(), -1.0*getConversionFactorLength());
+    olb::Vector<T,2> extend(this->size[0] + 2.0*getConversionFactorLength(), this->size[1] + 2.0*getConversionFactorLength());
     olb::IndicatorCuboid2D<T> cuboid(extend, origin);
-    cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, converter->getConversionFactorLength(), 1);
+    cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, getConversionFactorLength(), 1);
     loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*cuboidGeometry);
     geometry = std::make_shared<olb::SuperGeometry<T,2>> (
         *cuboidGeometry, 
@@ -63,15 +63,15 @@ void CFDModule<T,DESCRIPTOR>::prepareGeometry() {
     for (auto& [key, Opening] : moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
         T x_origin =    Opening.node->getPosition()[0] - this->getPosition()[0]
-                        - 0.5*Opening.width*Opening.tangent[0] + 0.5*converter->getConversionFactorLength()*Opening.normal[0] - 0.5*converter->getConversionFactorLength()*abs(Opening.normal[1]);
+                        - 0.5*Opening.width*Opening.tangent[0] + 0.5*getConversionFactorLength()*Opening.normal[0] - 0.5*getConversionFactorLength()*abs(Opening.normal[1]);
         T y_origin =   Opening.node->getPosition()[1] - this->getPosition()[1]
-                        - 0.5*Opening.width*Opening.tangent[1] + 0.5*converter->getConversionFactorLength()*Opening.normal[1] - 0.5*converter->getConversionFactorLength()*abs(Opening.normal[0]);
+                        - 0.5*Opening.width*Opening.tangent[1] + 0.5*getConversionFactorLength()*Opening.normal[1] - 0.5*getConversionFactorLength()*abs(Opening.normal[0]);
 
         std::cout << "The origin is: " << x_origin << ", " << y_origin << std::endl;
         
         // The unit vector pointing to the extend
-        T x_extend = Opening.width*Opening.tangent[0] - converter->getConversionFactorLength()*Opening.normal[0];// + 0.5*converter->getConversionFactorLength()*Opening.normal[1];
-        T y_extend = Opening.width*Opening.tangent[1] - converter->getConversionFactorLength()*Opening.normal[1];// - 0.5*converter->getConversionFactorLength()*Opening.normal[0];
+        T x_extend = Opening.width*Opening.tangent[0] - getConversionFactorLength()*Opening.normal[0];// + 0.5*getConversionFactorLength()*Opening.normal[1];
+        T y_extend = Opening.width*Opening.tangent[1] - getConversionFactorLength()*Opening.normal[1];// - 0.5*getConversionFactorLength()*Opening.normal[0];
         
         std::cout << "The extend is: " << x_extend << ", " << y_extend << std::endl;
 
@@ -109,13 +109,13 @@ void CFDModule<T,DESCRIPTOR>::getResults(int iT_) {
             meanPressures.at(key)->operator()(output, input);
             T newPressure =  output[0]/output[1];
             pressures.at(key) = newPressure;
-            if (iT % statIter == 0) {
+            if (iT_ % statIter == 0) {
                 meanPressures.at(key)->print();
             }
         } else {
             fluxes.at(key)->operator()(output,input);
             flowRates.at(key) = output[0];
-            if (iT % statIter == 0) {
+            if (iT_ % statIter == 0) {
                 fluxes.at(key)->print();
             }
         }
@@ -129,12 +129,12 @@ void CFDModule<T,DESCRIPTOR>::setInitialized(bool initialization_) {
 
 template<typename T, typename DESCRIPTOR>
 void CFDModule<T,DESCRIPTOR>::setPressures(std::unordered_map<int, T> pressures_) {
-    this->pressures = pressure_;
+    this->pressures = pressures_;
 }
 
 template<typename T, typename DESCRIPTOR>
 void CFDModule<T,DESCRIPTOR>::setFlowRates(std::unordered_map<int, T> flowRates_) {
-    this->flowRates = flowRate_;
+    this->flowRates = flowRates_;
 }
 
 template<typename T, typename DESCRIPTOR>

@@ -9,9 +9,7 @@
 #include <iostream>
 
 #include <olb2D.h>
-#include <olb2D.hh>
 #include <olb3D.h>
-#include <olb3D.hh>
 
 #include "Module.h"
 #include "Node.h"
@@ -69,6 +67,7 @@ class CFDModule : public Module<T> {
         T charPhysLength;           ///< Characteristic physical length (= width, usually).
         T charPhysVelocity;         ///< Characteristic physical velocity (expected maximal velocity).
         T relaxationTime;           ///< Relaxation time (tau) for the OLB solver.
+        T conversionFactorLength;   ///< Conversion factor length (= dx) of the geometry / lattice.
 
         std::shared_ptr<Network<T>> moduleNetwork;                  ///< Fully connected graph as network for the initial approximation.
         std::unordered_map<int, Opening<T>> moduleOpenings;         ///< Map of openings.
@@ -107,11 +106,6 @@ class CFDModule : public Module<T> {
                     std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
                     std::unordered_map<int, Opening<T>> openings, std::string stlFile, 
                     T charPhysLenth, T charPhysVelocity, T resolution, T relaxationTime=0.932);
-
-        /**
-         * @brief Initialize an instance of the LBM solver for a platform.
-        */
-        virtual void lbmInit() = 0;
 
         /**
          * @brief Initialize the integral fluxes for the in- and outlets
@@ -197,6 +191,14 @@ class CFDModule : public Module<T> {
         */
         T getCharPhysVelocity() const { 
             return charPhysVelocity; 
+        }
+
+        /**
+         * @brief Get the conversion factor for the length = dx.
+         * @returns Conversion factor length = dx.
+        */
+        T getConversionFactorLength() const { 
+            return conversionFactorLength; 
         }
 
         /**

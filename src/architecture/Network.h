@@ -9,8 +9,7 @@
 
 #include "Channel.h"
 #include "FlowRatePump.h"
-#include "lbmModule.h"
-#include "Module.h"
+#include "modules/Module.h"
 #include "Node.h"
 #include "Platform.h"
 #include "PressurePump.h"
@@ -66,10 +65,10 @@ template<typename T>
 class Network {
     private:
         std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
-        std::unordered_map<int, std::unique_ptr<Channel<T>>> channels;              ///< Map of ids and channel pointers to channels in the network.
+        std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
-        std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
+        std::unordered_map<int, std::unique_ptr<Module<T>>> modules;                ///< Map of ids and module pointers to modules in the network.
         std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
         Platform platform;                                                          ///< The microfluidic platform that operates on this network.
 
@@ -86,8 +85,8 @@ class Network {
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
             std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
-            std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules,
-            Platform platform = Platform::CONTINUOUS);
+            std::unordered_map<int, std::unique_ptr<Module<T>>> modules,
+            Platform platform_);
 
     /**
      * @brief Constructor of the Network
@@ -97,16 +96,15 @@ class Network {
     */
     Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
-            std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules,
-            Platform platform = Platform::CONTINUOUS);
+            std::unordered_map<int, std::unique_ptr<Module<T>>> modules,
+            Platform platform_);
 
     public:
     /**
      * @brief Constructor of the Network that generates a fully connected graph between the nodes.
      * @param[in] nodes Nodes of the network.
     */
-    Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
-            Platform platform = Platform::CONTINUOUS);
+    Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, Platform platform_);
 
     /**
      * @brief Constructor of the Network from a JSON string
@@ -161,7 +159,7 @@ class Network {
      * @brief Get the modules of the network.
      * @returns Modules.
     */
-    const std::unordered_map<int, std::unique_ptr<lbmModule<T>>>& getModules() const;
+    const std::unordered_map<int, std::unique_ptr<Module<T>>>& getModules() const;
 
     /**
      * @brief Get the flow rate pumps of the network.

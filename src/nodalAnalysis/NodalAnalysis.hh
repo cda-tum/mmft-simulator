@@ -9,7 +9,7 @@
 
 #include "architecture/Channel.h"
 #include "architecture/FlowRatePump.h"
-#include "architecture/Module.h"
+#include "architecture/modules/Module.h"
 #include "architecture/Node.h"
 #include "architecture/PressurePump.h"
 
