@@ -12,8 +12,7 @@ template<typename T>
 ContinuousModule<T>::ContinuousModule (
     int id_, std::string name_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, 
     std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
-        CFDModule<T,olb::descriptors::D2Q9<>>(id_, name_, pos_, size_, nodes_, openings_, stlFile_, charPhysLength_, charPhysVelocity_, resolution_, relaxationTime_), 
-        alpha(alpha_), epsilon(epsilon_)
+        CFDModule<T>(id_, name_, pos_, size_, nodes_, openings_, stlFile_, charPhysLength_, charPhysVelocity_, alpha_, resolution_, epsilon_, relaxationTime_)
     { 
         this->moduleType = ModuleType::CONTINUOUS;
     } 
@@ -127,7 +126,7 @@ void ContinuousModule<T>::lbmInit (T dynViscosity, T density) {
 
     this->conversionFactorLength = converter->getConversionFactorLength();
     // Initialize a convergence tracker for pressure
-    this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, epsilon);
+    this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, this->epsilon);
 
     std::cout << "[lbmModule] lbmInit " << this->name << "... OK" << std::endl;
 }
@@ -180,6 +179,11 @@ void ContinuousModule<T>::solve() {
         step += 1;
     }
     getResults(step);
+}
+
+template<typename T>
+void ContinuousModule<T>::getResults(int iT) {
+    //TODO
 }
 
 }   // namespace arch

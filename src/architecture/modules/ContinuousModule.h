@@ -18,7 +18,7 @@ namespace arch {
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class ContinuousModule : public CFDModule<T,olb::descriptors::D2Q9<>> {
+class ContinuousModule : public CFDModule<T> {
 
     using DESCRIPTOR = olb::descriptors::D2Q9<>;
     using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
@@ -30,8 +30,6 @@ class ContinuousModule : public CFDModule<T,olb::descriptors::D2Q9<>> {
         int stepIter = 1000;                    ///< Number of iterations for the value tracer.
         int maxIter = 1e7;                      ///< Maximum total iterations.
         bool isConverged = false;               ///< Has the module converged?
-        T alpha;                                ///< Relaxation factor.
-        T epsilon;                              ///< Convergence criterion.
 
         std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
         std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
@@ -121,22 +119,6 @@ class ContinuousModule : public CFDModule<T,olb::descriptors::D2Q9<>> {
         */
         bool hasConverged() const {
             return converge->hasConverged();
-        };
-
-        /**
-         * @brief Get the relaxation factor alpha.
-         * @returns alpha.
-        */
-        T getAlpha() const { 
-            return alpha; 
-        };
-
-        /**
-         * @brief Get the convergence criterion.
-         * @returns epsilon.
-        */
-        T getEpsilon() const { 
-            return epsilon; 
         };
     };
 }

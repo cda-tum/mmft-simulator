@@ -4,19 +4,21 @@
 
 #include <olb2D.h>
 #include <olb2D.hh>
+#include <olb3D.h>
+#include <olb3D.hh>
 
 #include "Module.h"
 
 namespace arch{
 
-template<typename T, typename DESCRIPTOR>
-CFDModule<T,DESCRIPTOR>::CFDModule(
+template<typename T>
+CFDModule<T>::CFDModule(
     int id_, std::string name_, std::vector<T> pos_, std::vector<T> size_, 
     std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, 
     std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, 
-    T charPhysLength_, T charPhysVelocity_, T resolution_, T relaxationTime_) : Module<T>(id_, pos_, size_, nodes_), 
+    T charPhysLength_, T charPhysVelocity_,  T alpha_, T resolution_, T epsilon_, T relaxationTime_) : Module<T>(id_, pos_, size_, nodes_), 
     moduleOpenings(openings_), stlFile(stlFile_), name(name_), charPhysLength(charPhysLength_), 
-    charPhysVelocity(charPhysVelocity_), resolution(resolution_), relaxationTime(relaxationTime_) 
+    charPhysVelocity(charPhysVelocity_), alpha(alpha_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_) 
     { 
         olb::singleton::directories().setOutputDir( "./tmp/" );  // set output directory
 
@@ -36,8 +38,8 @@ CFDModule<T,DESCRIPTOR>::CFDModule(
         }
     } 
 
-template<typename T, typename DESCRIPTOR>
-void CFDModule<T,DESCRIPTOR>::prepareGeometry() {
+template<typename T>
+void CFDModule<T>::prepareGeometry() {
 
     olb::STLreader<T> stlReader(stlFile, getConversionFactorLength());
     std::cout << "[lbmModule] reading STL file " << name << "... OK" << std::endl;
@@ -98,8 +100,8 @@ void CFDModule<T,DESCRIPTOR>::prepareGeometry() {
     std::cout << "[lbmModule] prepare geometry " << name << "... OK" << std::endl;
 }
 
-template<typename T, typename DESCRIPTOR>
-void CFDModule<T,DESCRIPTOR>::getResults(int iT_) {
+template<typename T>
+void CFDModule<T>::getResults(int iT_) {
     
     int input[1] = { };
     T output[3];
@@ -122,23 +124,23 @@ void CFDModule<T,DESCRIPTOR>::getResults(int iT_) {
     }
 }
 
-template<typename T, typename DESCRIPTOR>
-void CFDModule<T,DESCRIPTOR>::setInitialized(bool initialization_) {
+template<typename T>
+void CFDModule<T>::setInitialized(bool initialization_) {
     this->initialized = initialization_;
 }
 
-template<typename T, typename DESCRIPTOR>
-void CFDModule<T,DESCRIPTOR>::setPressures(std::unordered_map<int, T> pressures_) {
+template<typename T>
+void CFDModule<T>::setPressures(std::unordered_map<int, T> pressures_) {
     this->pressures = pressures_;
 }
 
-template<typename T, typename DESCRIPTOR>
-void CFDModule<T,DESCRIPTOR>::setFlowRates(std::unordered_map<int, T> flowRates_) {
+template<typename T>
+void CFDModule<T>::setFlowRates(std::unordered_map<int, T> flowRates_) {
     this->flowRates = flowRates_;
 }
 
-template<typename T, typename DESCRIPTOR>
-void CFDModule<T,DESCRIPTOR>::setGroundNodes(std::unordered_map<int, bool> groundNodes_) {
+template<typename T>
+void CFDModule<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_) {
     this->groundNodes = groundNodes_;
 }
 

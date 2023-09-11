@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include <olb2D.h>
-#include <olb3D.h>
 
 #include "Module.h"
 #include "Node.h"
@@ -53,10 +52,10 @@ struct Opening {
 /**
  * @brief Class that defines the CFD module and handles the OLB solver.
 */
-template<typename T, typename DESCRIPTOR>
+template<typename T>
 class CFDModule : public Module<T> {
 
-    private:
+    protected:
         std::string name;           ///< Name of the module.
         std::string stlFile;        ///< The STL file of the CFD domain.
         bool initialized = false;   ///< Is the module initialized?
@@ -68,6 +67,8 @@ class CFDModule : public Module<T> {
         T charPhysVelocity;         ///< Characteristic physical velocity (expected maximal velocity).
         T relaxationTime;           ///< Relaxation time (tau) for the OLB solver.
         T conversionFactorLength;   ///< Conversion factor length (= dx) of the geometry / lattice.
+        T alpha;                    ///< Relaxation factor.
+        T epsilon;                  ///< Convergence criterion.
 
         std::shared_ptr<Network<T>> moduleNetwork;                  ///< Fully connected graph as network for the initial approximation.
         std::unordered_map<int, Opening<T>> moduleOpenings;         ///< Map of openings.
@@ -105,7 +106,7 @@ class CFDModule : public Module<T> {
         CFDModule(  int id, std::string name, std::vector<T> pos, std::vector<T> size, 
                     std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
                     std::unordered_map<int, Opening<T>> openings, std::string stlFile, 
-                    T charPhysLenth, T charPhysVelocity, T resolution, T relaxationTime=0.932);
+                    T charPhysLenth, T charPhysVelocity,  T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
         /**
          * @brief Initialize the integral fluxes for the in- and outlets
@@ -170,6 +171,14 @@ class CFDModule : public Module<T> {
         void setGroundNodes(std::unordered_map<int, bool> groundNodes);
                 
         /**
+         * @brief Get the relaxation factor alpha.
+         * @returns alpha.
+        */
+        T getAlpha() const { 
+            return alpha; 
+        };
+        
+        /**
          * @brief Returns whether the module is initialized or not.
          * @returns Boolean for initialization.
         */
@@ -200,6 +209,14 @@ class CFDModule : public Module<T> {
         T getConversionFactorLength() const { 
             return conversionFactorLength; 
         }
+
+        /**
+         * @brief Get the convergence criterion.
+         * @returns epsilon.
+        */
+        T getEpsilon() const { 
+            return epsilon; 
+        };
 
         /**
          * @brief Get the resolution.

@@ -74,5 +74,7 @@ namespace arch {
          * @returns What type the channel has.
          */
         ModuleType getModuleType() const;
+
+        virtual ~Module() {}
     };
 }   // namespace arch

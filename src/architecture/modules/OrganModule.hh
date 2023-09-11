@@ -12,8 +12,9 @@ namespace arch {
 template<typename T>
 OrganModule<T>::OrganModule (
     int id_, std::string name_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, 
-    std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, T charPhysLength_, T charPhysVelocity_, T resolution_, T relaxationTime_) : 
-        CFDModule<T,olb::descriptors::D2Q9<>>(id_, name_, pos_, size_, nodes_, openings_, stlFile_, charPhysLength_, charPhysVelocity_, resolution_, relaxationTime_)
+    std::unordered_map<int, Opening<T>> openings_, std::string stlFile_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, 
+        T epsilon_, T relaxationTime_) : 
+        CFDModule<T>(id_, name_, pos_, size_, nodes_, openings_, stlFile_, charPhysLength_, charPhysVelocity_, alpha_, resolution_, epsilon_, relaxationTime_)
     { 
         this->moduleType = ModuleType::ORGAN;
     } 
@@ -39,6 +40,11 @@ void OrganModule<T>::prepareLattice() {
 
 template<typename T>
 void OrganModule<T>::prepareCoupling() {
+
+}
+
+template<typename T>
+void OrganModule<T>::setBoundaryValues(int iT) {
 
 }
 

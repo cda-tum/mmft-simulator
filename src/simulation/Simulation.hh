@@ -129,14 +129,23 @@ namespace sim {
             channel->setResistance(resistance);
         }
 
+        // Initialize the modules
+        // TODO: This can definitely be done in a cleaner fashion...
         for (auto& [key, module] : network->getModules()) {
-            module->lbmInit(continuousPhase->getViscosity(),
-                            continuousPhase->getDensity());
+            if (module->getModuleType() == arch::ModuleType::CONTINUOUS) {
+                std::shared_ptr<arch::ContinuousModule<T>> continuousPtr = std::dynamic_pointer_cast<arch::ContinuousModule<T>> (module);
+                continuousPtr->lbmInit(continuousPhase->getViscosity(), continuousPhase->getDensity());
+            } else if (module->getModuleType() == arch::ModuleType::ORGAN) {
+                std::shared_ptr<arch::OrganModule<T>> organPtr = std::dynamic_pointer_cast<arch::OrganModule<T>> (module);
+                organPtr->lbmInit();
+            }
+
         }
 
         // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
         for (auto& [modulekey, module] : network->getModules()) {
-            for (auto& [key, channel] : module->getNetwork()->getChannels()) {
+            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
+            for (auto& [key, channel] : cfdPtr->getNetwork()->getChannels()) {
                 //std::cout << "[Simulation] Channel " << channel->getId();
                 auto& nodeA = network->getNodes().at(channel->getNodeA());
                 auto& nodeB = network->getNodes().at(channel->getNodeB());
@@ -149,7 +158,8 @@ namespace sim {
         }
         // TODO: Also boilerplate code that can be done more efficiently
         for (auto& [modulekey, module] : network->getModules()) {
-            for (auto& [key, channel] : module->getNetwork()->getChannels()) {
+            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
+            for (auto& [key, channel] : cfdPtr->getNetwork()->getChannels()) {
                 T resistance = resistanceModel->getChannelResistance(channel.get());
                 channel->setResistance(resistance);
             }
@@ -163,8 +173,9 @@ namespace sim {
         std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
 
         for (auto& [key, module] : network->getModules()) {
-            module->prepareGeometry();
-            module->prepareLattice();
+            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
+            cfdPtr->prepareGeometry();
+            cfdPtr->prepareLattice();
         }
     }
 }

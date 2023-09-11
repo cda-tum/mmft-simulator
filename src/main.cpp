@@ -26,6 +26,13 @@ int main(int argc, char const* argv []) {
     std::cout << "[Main] Add pressure and Flow rate pumps..." << std::endl;
     // Add Pressure and Flow Rate Pumps
     network->setPressurePump(0, T(1e3));
+    if (file == "../examples/Hybrid/PaperNetwork1a.JSON" ||
+        file == "../examples/Hybrid/PaperNetwork1b.JSON" ||
+        file == "../examples/Hybrid/PaperNetwork1c.JSON" ||
+        file == "../examples/Hybrid/PaperNetwork1d.JSON") {
+        network->setPressurePump(1, T(1e3));
+        network->setPressurePump(2, T(1e3));
+    }
     testSimulation.setNetwork(network);
 
     std::cout << "[Main] Set the continuous phase fluid..." << std::endl;

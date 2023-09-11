@@ -5,6 +5,7 @@
 
 #include "../architecture/Network.h"
 #include "../architecture/modules/Module.h"
+#include "../architecture/modules/CFDModule.h"
 
 namespace sim {
 

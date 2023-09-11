@@ -10,7 +10,7 @@ namespace arch {
  * @brief Class that handles the OLB solver for a organ module.
 */
 template<typename T>
-class OrganModule : public CFDModule<T,olb::descriptors::D2Q9<>> {
+class OrganModule : public CFDModule<T> {
 
     using NSDESCRIPTOR = olb::descriptors::D2Q9<>;
     using ADDESCRIPTOR = olb::descriptors::D2Q5<olb::descriptors::VELOCITY>;
@@ -54,7 +54,8 @@ class OrganModule : public CFDModule<T,olb::descriptors::D2Q9<>> {
     public: 
 
         OrganModule(int id, std::string name, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-            std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLenth, T charPhysVelocity, T resolution, T relaxationTime=0.932);
+            std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, 
+            T epsilon, T relaxationTime=0.932);
 
         void lbmInit();
 

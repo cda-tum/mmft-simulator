@@ -16,7 +16,7 @@ namespace arch {
                         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
                         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
                         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
-                        std::unordered_map<int, std::unique_ptr<Module<T>>> modules_,
+                        std::unordered_map<int, std::shared_ptr<Module<T>>> modules_,
                         Platform platform_) :
                         nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_), 
                         pressurePumps(pressurePumps_), modules(modules_), platform(platform_) { 
@@ -26,16 +26,15 @@ namespace arch {
     template<typename T>
     Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
                         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
-                        std::unordered_map<int, std::unique_ptr<Module<T>>> modules_,
+                        std::unordered_map<int, std::shared_ptr<Module<T>>> modules_,
                         Platform platform_) :
                         nodes(nodes_), channels(channels_), modules(modules_), platform(platform_) { 
                             this->sortGroups();
                         }
 
     template<typename T>
-    Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                        Platform platform_) :
-                        nodes(nodes_), platform(platform_) {
+    Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
+                        nodes(nodes_) {
 
         // Generate all possible channels between the nodes for the fully connected graph
         std::vector<int> nodeIds;
@@ -99,7 +98,10 @@ namespace arch {
                             module["charPhysLength"], module["charPhysVelocity"],
                             module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
             } else if (module["moduleType"] == "Organ") {
-                newModule = new OrganModule<T>();
+                newModule = new OrganModule<T>( module["iD"], module["name"], position,
+                            size, Nodes, Openings, module["stlFile"], 
+                            module["charPhysLength"], module["charPhysVelocity"],
+                            module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
             } else {
                 std::cerr << "Invalid Module Type.\nPossibilities are:\n\tCONTINUOUS\n\tORGAN" << std::endl;
             }
@@ -156,7 +158,7 @@ namespace arch {
     }
 
     template<typename T>
-    const std::unordered_map<int, std::unique_ptr<Module<T>>>& Network<T>::getModules() const {
+    const std::unordered_map<int, std::shared_ptr<Module<T>>>& Network<T>::getModules() const {
         return modules;
     }
 
@@ -194,7 +196,6 @@ namespace arch {
     void Network<T>::sortGroups() {
         std::vector<int> nodeVector;
         int groupId = 0;
-        auto it = nodeVector.begin();
         for (auto& [key, node] : nodes) {
             nodeVector.emplace_back(key);
         }
@@ -218,7 +219,7 @@ namespace arch {
                         }
                     }
                 }
-                for (int i=0; i < nodeVector.size(); i++) {
+                for (unsigned long int i=0; i < nodeVector.size(); i++) {
                     if (nodeVector[i] == nodeVector.front()) {
                         nodeVector.erase(nodeVector.begin() + i);
                     }
@@ -243,7 +244,7 @@ namespace arch {
                             }
                         }
                     }
-                    for (int i=0; i < nodeVector.size(); i++) {
+                    for (long unsigned int i=0; i < nodeVector.size(); i++) {
                         if (nodeVector[i] == connectedNodes.front()) {
                             nodeVector.erase(nodeVector.begin() + i);
                         }

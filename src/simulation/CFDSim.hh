@@ -9,15 +9,17 @@ namespace sim {
 
         // loop through modules and perform the collide and stream operations
         for (const auto& module : network->getModules()) {
+            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module.second);
             
-            // Assertion that the current module is of lbm type, and can conduct CFD simulations.
-            assert(module.second->getModuleType() == arch::ModuleType::LBM);
-            module.second->solve();
+            cfdPtr->solve();
 
-            if (!module.second->hasConverged()) {
-                allConverge = false;
+            // TODO: Convergence of continuous flow should have a more elaborate role in transient sim
+            if (module.second->getModuleType() == arch::ModuleType::CONTINUOUS) {
+                std::shared_ptr<arch::ContinuousModule<T>> continuousPtr = std::dynamic_pointer_cast<arch::ContinuousModule<T>> (module.second);
+                if (!continuousPtr->hasConverged()) {
+                    allConverge = false;
+                }
             }
-            
         }
 
         return allConverge;
