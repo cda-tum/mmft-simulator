@@ -23,7 +23,7 @@ PYBIND11_MODULE(pyhybridsim, m) {
       .def("setName", &sim::Fluid<T>::setName, "name"_a)
       .def("getViscosity", &sim::Fluid<T>::getViscosity);
 
-  py::class_<sim::ResistanceModel1D<T>>(m, "ResistanceModel")
+  py::class_<sim::ResistanceModel2DPoiseuille<T>>(m, "ResistanceModel")
       .def(py::init<T &>());
 
   py::class_<sim::Simulation<T>>(m, "Simulation")
