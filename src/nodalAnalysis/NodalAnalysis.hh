@@ -41,7 +41,6 @@ namespace nodal {
         }
 
         const int nPressurePumps = network->getPressurePumps().size() + groundNodeIds.size();
-        const int nFlowRatePumps = network->getFlowRatePumps().size();
         const int nNodesAndPressurePumps = nNodes + nPressurePumps;
 
         // Generate empty matrix A and vector z

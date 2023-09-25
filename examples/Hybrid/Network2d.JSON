@@ -1,0 +1,192 @@
+{
+    "Network":
+    {
+        "Nodes":
+        [
+            {
+                "iD": 0,
+                "x": 0.0,
+                "y": 0.0
+            },
+            {
+                "iD": 1,
+                "x": 1e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 2,
+                "x": 5e-3,
+                "y": 4e-3
+            },
+            {
+                "iD": 3,
+                "x": 4.75e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 4,
+                "x": 9e-3,
+                "y": 4e-3
+            },
+            {
+                "iD": 5,
+                "x": 8.75e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 6,
+                "x": 5e-3,
+                "y": 0.25e-3
+            },
+            {
+                "iD": 7,
+                "x": 5.25e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 8,
+                "x": 9e-3,
+                "y": 0.25e-3
+            },
+            {
+                "iD": 9,
+                "x": 9.25e-3,
+                "y": 0.0
+            },
+            {
+                "iD": -1,
+                "x": 13e-3,
+                "y": 0.0
+            }
+        ],
+        "Channels":
+        [
+            {
+                "iD": 0,
+                "nA": 0,
+                "nB": 1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 1,
+                "nA": 1,
+                "nB": 3,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 2,
+                "nA": 2,
+                "nB": 6,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 3,
+                "nA": 2,
+                "nB": 4,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 4,
+                "nA": 7,
+                "nB": 5,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 5,
+                "nA": 4,
+                "nB": 8,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 6,
+                "nA": 9,
+                "nB": -1,
+                "width": 1e-4,
+                "height": 1e-4
+            }
+        ],
+        "Modules":
+        [
+            {
+                "iD": 0,
+                "Type":"LBM",
+                "name": "Paper2d-T-0",
+                "stlFile": "../examples/STL/T-shape.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 4.75e-3,
+                "posY": -0.05e-3,
+                "sizeX": 5e-4,
+                "sizeY": 3e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 3,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 6,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 7,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 1,
+                "Type":"LBM",
+                "name": "Paper2d-T-1",
+                "stlFile": "../examples/STL/T-shape.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.01,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 8.75e-3,
+                "posY": -0.05e-3,
+                "sizeX": 5e-4,
+                "sizeY": 3e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 5,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 8,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 9,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}

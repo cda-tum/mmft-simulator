@@ -1,0 +1,317 @@
+{
+    "Network":
+    {
+        "Nodes":
+        [
+            {
+                "iD": 0,
+                "x": 0.0,
+                "y": 0.0
+            },
+            {
+                "iD": 1,
+                "x": 1e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 2,
+                "x": 1.75e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 3,
+                "x": 2e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 4,
+                "x": 2.75e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 5,
+                "x": 2.75e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 6,
+                "x": 4e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 7,
+                "x": 3.75e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 8,
+                "x": 2e-3,
+                "y": 0.75e-3
+            },
+            {
+                "iD": 9,
+                "x": 2.25e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 10,
+                "x": 3e-3,
+                "y": 0.75e-3
+            },
+            {
+                "iD": 11,
+                "x": 3.25e-3,
+                "y": 1e-3
+            },
+            {
+                "iD": 12,
+                "x": 3e-3,
+                "y": 0.25e-3
+            },
+            {
+                "iD": 13,
+                "x": 3.25e-3,
+                "y": 0.0
+            },
+            {
+                "iD": 14,
+                "x": 4e-3,
+                "y": 0.25e-3
+            },
+            {
+                "iD": 15,
+                "x": 4.25e-3,
+                "y": 0.0
+            },
+            {
+                "iD": -1,
+                "x": 5e-3,
+                "y": 0.0
+            }
+        ],
+        "Channels":
+        [
+            {
+                "iD": 0,
+                "nA": 0,
+                "nB": 1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 1,
+                "nA": 1,
+                "nB": 2,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 2,
+                "nA": 8,
+                "nB": 3,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 3,
+                "nA": 9,
+                "nB": 4,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 4,
+                "nA": 3,
+                "nB": 5,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 5,
+                "nA": 10,
+                "nB": 12,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 6,
+                "nA": 11,
+                "nB": 6,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 7,
+                "nA": 13,
+                "nB": 7,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 8,
+                "nA": 6,
+                "nB": 14,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 9,
+                "nA": 15,
+                "nB": -1,
+                "width": 1e-4,
+                "height": 1e-4
+            }
+        ],
+        "Modules":
+        [
+            {
+                "iD": 0,
+                "Type":"LBM",
+                "name": "Paper4a-invT-0",
+                "stlFile": "../examples/STL/invT-shape.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.003,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 1.75e-3,
+                "posY": 0.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 3e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 2,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 8,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 9,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 1,
+                "Type":"LBM",
+                "name": "Paper4a-invT-1",
+                "stlFile": "../examples/STL/invT-shape.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.003,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 2.75e-3,
+                "posY": 0.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 3e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 4,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 10,
+                        "normalX": 0.0,
+                        "normalY": 1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 11,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 2,
+                "Type":"LBM",
+                "name": "Paper4a-T-2",
+                "stlFile": "../examples/STL/T-shape.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.003,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 2.75e-3,
+                "posY": -0.05e-3,
+                "sizeX": 5e-4,
+                "sizeY": 3e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 5,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 12,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 13,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 3,
+                "Type":"LBM",
+                "name": "Paper4a-T-3",
+                "stlFile": "../examples/STL/T-shape.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.003,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 3.75e-3,
+                "posY": -0.05e-3,
+                "sizeX": 5e-4,
+                "sizeY": 3e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 7,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 14,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 15,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}
