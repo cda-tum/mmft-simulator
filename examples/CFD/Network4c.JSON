@@ -1,0 +1,79 @@
+{
+    "Network":
+    {
+        "Nodes":
+        [
+            {
+                "iD": 0,
+                "x": 0.0e-3,
+                "y": 1.05e-3
+            },
+            {
+                "iD": 1,
+                "x": 1.0e-3,
+                "y": 3.05e-3
+            },
+            {
+                "iD": 2,
+                "x": 13.0e-3,
+                "y": 0.05e-3
+            },
+            {
+                "iD": -1,
+                "x": 13.00000001e-3,
+                "y": 0.05e-3
+            }
+        ],
+        "Channels":
+        [
+            {
+                "iD": 0,
+                "nA": 0,
+                "nB": 1,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
+                "iD": 1,
+                "nA": 2,
+                "nB": -1,
+                "width": 1e-4,
+                "height": 1e-4
+            }
+        ],
+        "Modules":
+        [
+            {
+                "iD": 0,
+                "Type":"LBM",
+                "name": "Paper4c-CFD-20",
+                "stlFile": "../examples/STL/Network4c.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.0,
+                "resolution": 20,
+                "epsilon": 1e-9,
+                "tau": 0.55,
+                "posX": 1.0e-3,
+                "posY": 0.0e-3,
+                "sizeX": 12e-3,
+                "sizeY": 3.1e-3,
+                "Openings":
+                [
+                    {
+                        "nodeId": 1,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 2,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -74,6 +74,11 @@ namespace arch {
             std::string stlFile;                    ///< The STL file of the CFD domain.
             bool initialized = false;               ///< Is the module initialized?
             bool isConverged = false;               ///< Has the module converged?
+            
+            std::shared_ptr<Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
+            std::unordered_map<int, Opening<T>> moduleOpenings;             ///< Map of openings.
+            std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
+
             T charPhysLength;                       ///< Characteristic physical length (= width, usually).
             T charPhysVelocity;                     ///< Characteristic physical velocity (expected maximal velocity).
             T alpha;                                ///< Relaxation factor.
@@ -90,10 +95,6 @@ namespace arch {
             std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
             std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
             std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
-
-            std::shared_ptr<Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
-            std::unordered_map<int, Opening<T>> moduleOpenings;             ///< Map of openings.
-            std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
             auto& getConverter() {
                 return *converter;
@@ -124,8 +125,8 @@ namespace arch {
              * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
              * @param[in] relaxationTime Relaxation time tau for the LBM solver.
             */
-            lbmModule(int id, std::string name, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-                std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
+            lbmModule(int id, std::string name, std::string stlFile, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
+                std::unordered_map<int, Opening<T>> openings, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
             /**
              * @brief Initialize an instance of the LBM solver for this module.

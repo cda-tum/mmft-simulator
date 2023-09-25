@@ -4,116 +4,96 @@
         "Nodes":
         [
             {
-                "iD": 19,
+                "iD": 0,
                 "x": 0.0,
-                "y": 2e-3
+                "y": 0.0
             },
             {
                 "iD": 1,
-                "x": 2e-3,
-                "y": 2e-3
+                "x": 1e-3,
+                "y": 3e-3
             },
             {
                 "iD": 2,
-                "x": 2e-3,
-                "y": 3e-3
+                "x": 4e-3,
+                "y": 6e-3
             },
             {
                 "iD": 3,
-                "x": 2e-3,
-                "y": 1e-3
-            },
-            {
-                "iD": 4,
-                "x": 3e-3,
+                "x": 3.75e-3,
                 "y": 3e-3
             },
             {
+                "iD": 4,
+                "x": 7e-3,
+                "y": 6e-3
+            },
+            {
                 "iD": 5,
-                "x": 2.75e-3,
-                "y": 2e-3
+                "x": 6.75e-3,
+                "y": 3e-3
             },
             {
                 "iD": 6,
-                "x": 3e-3,
-                "y": 1e-3
+                "x": 7e-3,
+                "y": 0.0
             },
             {
                 "iD": 7,
-                "x": 4e-3,
-                "y": 2e-3
+                "x": 10e-3,
+                "y": 3e-3
             },
             {
                 "iD": 8,
-                "x": 4e-3,
-                "y": 1e-3
+                "x": 9.75e-3,
+                "y": 0.0
             },
             {
                 "iD": 9,
                 "x": 4e-3,
-                "y": 0.0
+                "y": 3.25e-3
             },
             {
                 "iD": 10,
-                "x": 5e-3,
-                "y": 2e-3
+                "x": 4.25e-3,
+                "y": 3e-3
             },
             {
                 "iD": 11,
-                "x": 4.75e-3,
-                "y": 1e-3
+                "x": 7e-3,
+                "y": 3.25e-3
             },
             {
                 "iD": 12,
-                "x": 5e-3,
-                "y": 0.0
+                "x": 7e-3,
+                "y": 2.75e-3
             },
             {
                 "iD": 13,
-                "x": 3e-3,
-                "y": 2.25e-3
+                "x": 7.25e-3,
+                "y": 3e-3
             },
             {
                 "iD": 14,
-                "x": 3e-3,
-                "y": 1.75e-3
+                "x": 10e-3,
+                "y": 0.25e-3
             },
             {
                 "iD": 15,
-                "x": 3.25e-3,
-                "y": 2e-3
-            },
-            {
-                "iD": 16,
-                "x": 5e-3,
-                "y": 1.25e-3
-            },
-            {
-                "iD": 17,
-                "x": 5e-3,
-                "y": 0.75e-3
-            },
-            {
-                "iD": 18,
-                "x": 5.25e-3,
-                "y": 1e-3
-            },
-            {
-                "iD": 20,
-                "x": 0e-3,
-                "y": 0e-3
+                "x": 10.25e-3,
+                "y": 0.0
             },
             {
                 "iD": -1,
-                "x": 7e-3,
-                "y": 1e-3
+                "x": 13e-3,
+                "y": 0.0
             }
         ],
         "Channels":
         [
             {
-                "iD": 18,
-                "nA": 19,
+                "iD": 0,
+                "nA": 0,
                 "nB": 1,
                 "width": 1e-4,
                 "height": 1e-4
@@ -121,14 +101,14 @@
             {
                 "iD": 1,
                 "nA": 1,
-                "nB": 2,
+                "nB": 3,
                 "width": 1e-4,
                 "height": 1e-4
             },
             {
                 "iD": 2,
-                "nA": 1,
-                "nB": 3,
+                "nA": 2,
+                "nB": 9,
                 "width": 1e-4,
                 "height": 1e-4
             },
@@ -141,106 +121,50 @@
             },
             {
                 "iD": 4,
-                "nA": 1,
+                "nA": 10,
                 "nB": 5,
                 "width": 1e-4,
                 "height": 1e-4
             },
             {
                 "iD": 5,
-                "nA": 3,
-                "nB": 6,
+                "nA": 4,
+                "nB": 11,
                 "width": 1e-4,
                 "height": 1e-4
             },
             {
                 "iD": 6,
-                "nA": 4,
-                "nB": 13,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 7,
-                "nA": 14,
+                "nA": 12,
                 "nB": 6,
                 "width": 1e-4,
                 "height": 1e-4
             },
             {
-                "iD": 8,
-                "nA": 15,
+                "iD": 7,
+                "nA": 13,
                 "nB": 7,
                 "width": 1e-4,
                 "height": 1e-4
             },
             {
-                "iD": 9,
+                "iD": 8,
                 "nA": 6,
                 "nB": 8,
                 "width": 1e-4,
                 "height": 1e-4
             },
             {
+                "iD": 9,
+                "nA": 7,
+                "nB": 14,
+                "width": 1e-4,
+                "height": 1e-4
+            },
+            {
                 "iD": 10,
-                "nA": 7,
-                "nB": 8,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 11,
-                "nA": 8,
-                "nB": 9,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 12,
-                "nA": 7,
-                "nB": 10,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 13,
-                "nA": 8,
-                "nB": 11,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 14,
-                "nA": 9,
-                "nB": 12,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 15,
-                "nA": 10,
-                "nB": 16,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 16,
-                "nA": 17,
-                "nB": 12,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 17,
-                "nA": 18,
+                "nA": 15,
                 "nB": -1,
-                "width": 1e-4,
-                "height": 1e-4
-            },
-            {
-                "iD": 0,
-                "nA": 20,
-                "nB": 19,
                 "width": 1e-4,
                 "height": 1e-4
             }
@@ -250,16 +174,53 @@
             {
                 "iD": 0,
                 "Type":"LBM",
-                "name": "Test3-cross-0",
-                "stlFile": "/path/to/cross.stl",
+                "name": "Paper3c-T-0",
+                "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
-                "charPhysVelocity": 1e-2,
-                "alpha": 0.05,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.005,
                 "resolution": 20,
-                "epsilon": 0.5,
+                "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 2.75e-3,
-                "posY": 1.75e-3,
+                "posX": 3.75e-3,
+                "posY": 2.95e-3,
+                "sizeX": 5e-4,
+                "sizeY": 3e-4,
+                "Openings":
+                [
+                    {
+                        "nodeId": 3,
+                        "normalX": 1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 9,
+                        "normalX": 0.0,
+                        "normalY": -1.0,
+                        "width": 1e-4
+                    },
+                    {
+                        "nodeId": 10,
+                        "normalX": -1.0,
+                        "normalY": 0.0,
+                        "width": 1e-4
+                    }
+                ]
+            },
+            {
+                "iD": 1,
+                "Type":"LBM",
+                "name": "Paper3c-cross-1",
+                "stlFile": "../examples/STL/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.005,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 6.75e-3,
+                "posY": 2.75e-3,
                 "sizeX": 5e-4,
                 "sizeY": 5e-4,
                 "Openings":
@@ -271,19 +232,19 @@
                         "width": 1e-4
                     },
                     {
-                        "nodeId": 13,
+                        "nodeId": 11,
                         "normalX": 0.0,
                         "normalY": -1.0,
                         "width": 1e-4
                     },
                     {
-                        "nodeId": 14,
+                        "nodeId": 12,
                         "normalX": 0.0,
                         "normalY": 1.0,
                         "width": 1e-4
                     },
                     {
-                        "nodeId": 15,
+                        "nodeId": 13,
                         "normalX": -1.0,
                         "normalY": 0.0,
                         "width": 1e-4
@@ -291,42 +252,36 @@
                 ]
             },
             {
-                "iD": 1,
+                "iD": 2,
                 "Type":"LBM",
-                "name": "Test3-cross-1",
-                "stlFile": "/path/to/cross.stl",
+                "name": "Paper3c-T-2",
+                "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
-                "charPhysVelocity": 1e-2,
-                "alpha": 0.05,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.005,
                 "resolution": 20,
-                "epsilon": 0.5,
+                "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 4.75e-3,
-                "posY": 0.75e-3,
+                "posX": 9.75e-3,
+                "posY": -0.05e-3,
                 "sizeX": 5e-4,
-                "sizeY": 5e-4,
+                "sizeY": 3e-4,
                 "Openings":
                 [
                     {
-                        "nodeId": 11,
+                        "nodeId": 8,
                         "normalX": 1.0,
                         "normalY": 0.0,
                         "width": 1e-4
                     },
                     {
-                        "nodeId": 16,
+                        "nodeId": 14,
                         "normalX": 0.0,
                         "normalY": -1.0,
                         "width": 1e-4
                     },
                     {
-                        "nodeId": 17,
-                        "normalX": 0.0,
-                        "normalY": 1.0,
-                        "width": 1e-4
-                    },
-                    {
-                        "nodeId": 18,
+                        "nodeId": 15,
                         "normalX": -1.0,
                         "normalY": 0.0,
                         "width": 1e-4
