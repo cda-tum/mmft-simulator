@@ -9,7 +9,7 @@
 
 #include "Channel.h"
 #include "FlowRatePump.h"
-#include "modules/Module.h"
+#include "modules/CFDModule.h"
 #include "Node.h"
 #include "Platform.h"
 #include "PressurePump.h"
@@ -68,7 +68,7 @@ class Network {
         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
-        std::unordered_map<int, std::shared_ptr<Module<T>>> modules;                ///< Map of ids and module pointers to modules in the network.
+        std::unordered_map<int, std::shared_ptr<CFDModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
         std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
         Platform platform = Platform::NONE;                                         ///< The microfluidic platform that operates on this network.
 
@@ -85,7 +85,7 @@ class Network {
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
             std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
-            std::unordered_map<int, std::shared_ptr<Module<T>>> modules,
+            std::unordered_map<int, std::shared_ptr<CFDModule<T>>> modules,
             Platform platform_);
 
     /**
@@ -96,7 +96,7 @@ class Network {
     */
     Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
-            std::unordered_map<int, std::shared_ptr<Module<T>>> modules,
+            std::unordered_map<int, std::shared_ptr<CFDModule<T>>> modules,
             Platform platform_);
 
     public:
@@ -141,7 +141,7 @@ class Network {
     /**
      * @brief Get a pointer to the module with the specidic id.
     */
-    Module<T>* getModule(int moduleId) const;
+    CFDModule<T>* getModule(int moduleId) const;
 
     /**
      * @brief Get the nodes of the network.
@@ -159,7 +159,7 @@ class Network {
      * @brief Get the modules of the network.
      * @returns Modules.
     */
-    const std::unordered_map<int, std::shared_ptr<Module<T>>>& getModules() const;
+    const std::unordered_map<int, std::shared_ptr<CFDModule<T>>>& getModules() const;
 
     /**
      * @brief Get the flow rate pumps of the network.

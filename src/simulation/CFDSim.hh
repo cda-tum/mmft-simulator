@@ -9,9 +9,10 @@ namespace sim {
 
         // loop through modules and perform the collide and stream operations
         for (const auto& module : network->getModules()) {
-            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module.second);
             
-            cfdPtr->solve();
+            module.second->solve();
+
+            module.second->getResults();
 
             // TODO: Convergence of continuous flow should have a more elaborate role in transient sim
             if (module.second->getModuleType() == arch::ModuleType::CONTINUOUS) {

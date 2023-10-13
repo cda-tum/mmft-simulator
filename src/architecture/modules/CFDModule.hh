@@ -101,30 +101,6 @@ void CFDModule<T>::prepareGeometry() {
 }
 
 template<typename T>
-void CFDModule<T>::getResults(int iT_) {
-    
-    int input[1] = { };
-    T output[3];
-    
-    for (auto& [key, Opening] : moduleOpenings) {
-        if (groundNodes.at(key)) {
-            meanPressures.at(key)->operator()(output, input);
-            T newPressure =  output[0]/output[1];
-            pressures.at(key) = newPressure;
-            if (iT_ % statIter == 0) {
-                meanPressures.at(key)->print();
-            }
-        } else {
-            fluxes.at(key)->operator()(output,input);
-            flowRates.at(key) = output[0];
-            if (iT_ % statIter == 0) {
-                fluxes.at(key)->print();
-            }
-        }
-    }
-}
-
-template<typename T>
 void CFDModule<T>::setInitialized(bool initialization_) {
     this->initialized = initialization_;
 }

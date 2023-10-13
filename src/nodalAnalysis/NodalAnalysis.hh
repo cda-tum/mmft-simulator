@@ -73,11 +73,9 @@ namespace nodal {
         // loop through modules
         for (const auto& [key, module] : network->getModules()) {
 
-            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
-
             // If module is not initialized (1st loop), loop over channels of fully connected graph
-            if ( ! cfdPtr->getInitialized() ) {
-                for (const auto& [key, channel] : cfdPtr->getNetwork()->getChannels()) {
+            if ( ! module->getInitialized() ) {
+                for (const auto& [key, channel] : module->getNetwork()->getChannels()) {
                     auto nodeAMatrixId = channel->getNodeA();
                     auto nodeBMatrixId = channel->getNodeB();
                     const T conductance = 1. / channel->getResistance();
@@ -102,16 +100,16 @@ namespace nodal {
              *  - read pressure for ground nodes
              *  - read flow rate for conducting nodes
              */
-            else if ( cfdPtr->getInitialized() ) {
-                for (const auto& [key, node] : cfdPtr->getNodes()) {
+            else if ( module->getInitialized() ) {
+                for (const auto& [key, node] : module->getNodes()) {
                     // Write the module's flowrates into vector i if the node is not a group's ground node
                     if (contains(conductingNodeIds, key)) {
-                        T flowRate = cfdPtr->getFlowRates().at(key) * cfdPtr->getOpenings().at(key).height;
+                        T flowRate = module->getFlowRates().at(key) * module->getOpenings().at(key).height;
                         z(key) = -flowRate;
                     } 
                     // Write module's pressure into matrix B, C and vector e
                     else if (contains(groundNodeIds, key)) {
-                        T pressure = cfdPtr->getPressures().at(key);
+                        T pressure = module->getPressures().at(key);
                         node->setPressure(pressure);
                     }
                 }
@@ -191,20 +189,19 @@ namespace nodal {
 
         // Set the pressures and flow rates on the boundary nodes of the modules
         for (auto& module : network->getModules()) {
-            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module.second);
             
-            std::unordered_map<int, T> old_pressures = cfdPtr->getPressures();
-            std::unordered_map<int, T> old_flowrates = cfdPtr->getFlowRates();
-            std::unordered_map<int, T> pressures_ = cfdPtr->getPressures();
-            std::unordered_map<int, T> flowRates_ = cfdPtr->getFlowRates();
-            for (auto& [key, node] : cfdPtr->getNodes()){
+            std::unordered_map<int, T> old_pressures = module.second->getPressures();
+            std::unordered_map<int, T> old_flowrates = module.second->getFlowRates();
+            std::unordered_map<int, T> pressures_ = module.second->getPressures();
+            std::unordered_map<int, T> flowRates_ = module.second->getFlowRates();
+            for (auto& [key, node] : module.second->getNodes()){
                 // Communicate pressure to the module
                 if (contains(conductingNodeIds, key)) {
                     T old_pressure = old_pressures.at(key);
                     T new_pressure = node->getPressure();
                     T set_pressure = 0.0;
                     if (old_pressure > 0 ) {
-                        set_pressure = old_pressure + cfdPtr->getAlpha() * ( new_pressure - old_pressure );
+                        set_pressure = old_pressure + module.second->getAlpha() * ( new_pressure - old_pressure );
                     } else {
                         set_pressure = new_pressure;
                     }
@@ -221,10 +218,10 @@ namespace nodal {
                 // Communicate the flow rate to the module
                 else if (contains(groundNodeIds, key)) {
                     T old_flowRate = old_flowrates.at(key) ;
-                    T new_flowRate = x(groundNodeIds.at(key)) / cfdPtr->getOpenings().at(key).width;
+                    T new_flowRate = x(groundNodeIds.at(key)) / module.second->getOpenings().at(key).width;
                     T set_flowRate = 0.0;
                     if (old_flowRate > 0 ) {
-                        set_flowRate = old_flowRate + 5 * cfdPtr->getAlpha() *  ( new_flowRate - old_flowRate );
+                        set_flowRate = old_flowRate + 5 * module.second->getAlpha() *  ( new_flowRate - old_flowRate );
                     } else {
                         set_flowRate = new_flowRate;
                     }
@@ -240,8 +237,8 @@ namespace nodal {
                     }
                 }
             }
-            cfdPtr->setPressures(pressures_);
-            cfdPtr->setFlowRates(flowRates_);
+            module.second->setPressures(pressures_);
+            module.second->setFlowRates(flowRates_);
         }
 
         // set flow rate at pressure pumps
@@ -281,11 +278,10 @@ namespace nodal {
         
         // Loop over modules to set the ground nodes
         for (const auto& [moduleId, module] : network->getModules()) {
-            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
-            if ( ! cfdPtr->getInitialized() ) {
-                std::unordered_map<int, T> flowRates_ = cfdPtr->getFlowRates();
+            if ( ! module->getInitialized() ) {
+                std::unordered_map<int, T> flowRates_ = module->getFlowRates();
                 std::unordered_map<int, bool> groundNodes;
-                for (const auto& [nodeId, node] : cfdPtr->getNodes()) {
+                for (const auto& [nodeId, node] : module->getNodes()) {
                     T flowRate = 0.0;
                     if (contains(groundNodeIds, nodeId)) {
                         groundNodes.try_emplace(nodeId, true);
@@ -300,9 +296,9 @@ namespace nodal {
                     }
                     flowRates_.at(nodeId) = flowRate;
                 }
-                cfdPtr->setGroundNodes(groundNodes);
-                cfdPtr->setFlowRates(flowRates_);
-                cfdPtr->setInitialized(true);
+                module->setGroundNodes(groundNodes);
+                module->setFlowRates(flowRates_);
+                module->setInitialized(true);
             }
         }
 

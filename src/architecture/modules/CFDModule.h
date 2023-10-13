@@ -61,8 +61,12 @@ class CFDModule : public Module<T> {
         bool initialized = false;   ///< Is the module initialized?
         int resolution;             ///< Resolution of the CFD domain. Gridpoints in charPhysLength.
         int theta;                  ///< Number of OLB iterations per communication iteration.
-        int statIter;
+        int statIter = 100;
         int vtkIter;
+        int stepIter = 1000;        ///< Number of iterations for the value tracer.
+        int maxIter = 1e7;          ///< Maximum total iterations.
+        bool isConverged = false;   ///< Has the module converged?
+        int step = 0;               ///< Iteration step of this module.
         T charPhysLength;           ///< Characteristic physical length (= width, usually).
         T charPhysVelocity;         ///< Characteristic physical velocity (expected maximal velocity).
         T relaxationTime;           ///< Relaxation time (tau) for the OLB solver.
@@ -133,12 +137,6 @@ class CFDModule : public Module<T> {
          * @brief Conducts the collide and stream operations of the lattice for a platform.
         */
         virtual void solve() = 0;
-
-        /**
-         * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-         * @param[in] iT Iteration step.
-        */
-        virtual void getResults(int iT);
 
         /**
          * @brief Write the vtk file with results of the CFD simulation to file system.
@@ -265,6 +263,20 @@ class CFDModule : public Module<T> {
         std::shared_ptr<Network<T>> getNetwork() const {
             return moduleNetwork;
         }
+
+        /**
+         * @brief Get the number of iterations done.
+         * @returns Number of iterations done.
+        */
+        int getStep() const {
+            return step;
+        };
+
+        /**
+         * @brief Get the number of iterations done.
+         * @returns Number of iterations done.
+        */
+        virtual void getResults() = 0;
 
 };
 

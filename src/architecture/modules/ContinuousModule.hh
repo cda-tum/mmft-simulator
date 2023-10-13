@@ -173,17 +173,36 @@ template<typename T>
 void ContinuousModule<T>::solve() {
 
     for (int iT = 0; iT < this->theta; ++iT){      
-        this->setBoundaryValues(step);
-        writeVTK(step);          
+        this->setBoundaryValues(this->step);
+        writeVTK(this->step);          
         lattice->collideAndStream();
-        step += 1;
+        this->step += 1;
     }
-    getResults(step);
+    getResults();
 }
 
 template<typename T>
-void ContinuousModule<T>::getResults(int iT) {
-    //TODO
+void ContinuousModule<T>::getResults() {
+
+    int input[1] = { };
+    T output[3];
+    
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
+            this->meanPressures.at(key)->operator()(output, input);
+            T newPressure =  output[0]/output[1];
+            this->pressures.at(key) = newPressure;
+            if (this->step % this->statIter == 0) {
+                this->meanPressures.at(key)->print();
+            }
+        } else {
+            this->fluxes.at(key)->operator()(output,input);
+            this->flowRates.at(key) = output[0];
+            if (this->step % this->statIter == 0) {
+                this->fluxes.at(key)->print();
+            }
+        }
+    }
 }
 
 }   // namespace arch

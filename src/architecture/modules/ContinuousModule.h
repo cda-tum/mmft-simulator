@@ -26,10 +26,6 @@ class ContinuousModule : public CFDModule<T> {
     using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
     private:
-        int step = 0;                           ///< Iteration step of this module.
-        int stepIter = 1000;                    ///< Number of iterations for the value tracer.
-        int maxIter = 1e7;                      ///< Maximum total iterations.
-        bool isConverged = false;               ///< Has the module converged?
 
         std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
         std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
@@ -97,7 +93,7 @@ class ContinuousModule : public CFDModule<T> {
          * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
          * @param[in] iT Iteration step.
         */
-        void getResults(int iT) override;
+        void getResults() override;
 
         /**
          * @brief Write the vtk file with results of the CFD simulation to file system.

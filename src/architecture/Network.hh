@@ -16,7 +16,7 @@ namespace arch {
                         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
                         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
                         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
-                        std::unordered_map<int, std::shared_ptr<Module<T>>> modules_,
+                        std::unordered_map<int, std::shared_ptr<CFDModule<T>>> modules_,
                         Platform platform_) :
                         nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_), 
                         pressurePumps(pressurePumps_), modules(modules_), platform(platform_) { 
@@ -26,7 +26,7 @@ namespace arch {
     template<typename T>
     Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
                         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
-                        std::unordered_map<int, std::shared_ptr<Module<T>>> modules_,
+                        std::unordered_map<int, std::shared_ptr<CFDModule<T>>> modules_,
                         Platform platform_) :
                         nodes(nodes_), channels(channels_), modules(modules_), platform(platform_) { 
                             this->sortGroups();
@@ -90,20 +90,21 @@ namespace arch {
             std::vector<T> position = { module["posX"], module["posY"] };
             std::vector<T> size = { module["sizeX"], module["sizeY"] };
 
-            Module<T>* newModule = nullptr;
+            CFDModule<T>* newModule = nullptr;
 
-            if (module["moduleType"] == "Continuous") {
+            if (module["Type"] == "Continuous") {
                 newModule = new ContinuousModule<T>( module["iD"], module["name"], position,
                             size, Nodes, Openings, module["stlFile"], 
                             module["charPhysLength"], module["charPhysVelocity"],
                             module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
-            } else if (module["moduleType"] == "Organ") {
+            } else if (module["Type"] == "Organ") {
                 newModule = new OrganModule<T>( module["iD"], module["name"], position,
                             size, Nodes, Openings, module["stlFile"], 
                             module["charPhysLength"], module["charPhysVelocity"],
                             module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
             } else {
-                std::cerr << "Invalid Module Type.\nPossibilities are:\n\tCONTINUOUS\n\tORGAN" << std::endl;
+                std::cerr << "Error: Invalid Module Type.\nPossibilities are:\n\tCONTINUOUS\n\tORGAN" << std::endl;
+                exit(1);
             }
 
             modules.try_emplace(module["iD"], newModule);
@@ -143,7 +144,7 @@ namespace arch {
     }
 
     template<typename T>
-    Module<T>* Network<T>::getModule(int moduleId) const {
+    CFDModule<T>* Network<T>::getModule(int moduleId) const {
         return std::get<0>(modules.at(moduleId));
     }
 
@@ -158,7 +159,7 @@ namespace arch {
     }
 
     template<typename T>
-    const std::unordered_map<int, std::shared_ptr<Module<T>>>& Network<T>::getModules() const {
+    const std::unordered_map<int, std::shared_ptr<CFDModule<T>>>& Network<T>::getModules() const {
         return modules;
     }
 

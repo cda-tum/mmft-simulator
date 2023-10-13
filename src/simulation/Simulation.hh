@@ -54,7 +54,7 @@ namespace sim {
         // initialize the simulation
         initialize();
 
-        //printResults();
+        printResults();
 
         if (network->getModules().size() > 0 ) {
             bool allConverged = false;
@@ -63,17 +63,18 @@ namespace sim {
             // Initialization of CFD domains
             while (! allConverged) {
                 allConverged = conductCFDSimulation(this->network, 1);
+                exit(1);
             }
 
             while (! allConverged || !pressureConverged) {
-                //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
+                std::cout << "######################## Simulation Iteration no. " << 0 << " ####################" << std::endl;
 
                 // conduct CFD simulations
-                //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
+                std::cout << "[Simulation] Conduct CFD simulation " << 0 <<"..." << std::endl;
                 allConverged = conductCFDSimulation(this->network, 10);
             
                 // compute nodal analysis again
-                //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
+                std::cout << "[Simulation] Conduct nodal analysis " << 0 <<"..." << std::endl;
                 pressureConverged = nodal::conductNodalAnalysis(this->network);
 
             }
@@ -144,8 +145,7 @@ namespace sim {
 
         // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
         for (auto& [modulekey, module] : network->getModules()) {
-            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
-            for (auto& [key, channel] : cfdPtr->getNetwork()->getChannels()) {
+            for (auto& [key, channel] : module->getNetwork()->getChannels()) {
                 //std::cout << "[Simulation] Channel " << channel->getId();
                 auto& nodeA = network->getNodes().at(channel->getNodeA());
                 auto& nodeB = network->getNodes().at(channel->getNodeB());
@@ -158,8 +158,7 @@ namespace sim {
         }
         // TODO: Also boilerplate code that can be done more efficiently
         for (auto& [modulekey, module] : network->getModules()) {
-            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
-            for (auto& [key, channel] : cfdPtr->getNetwork()->getChannels()) {
+            for (auto& [key, channel] : module->getNetwork()->getChannels()) {
                 T resistance = resistanceModel->getChannelResistance(channel.get());
                 channel->setResistance(resistance);
             }
@@ -173,9 +172,8 @@ namespace sim {
         std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
 
         for (auto& [key, module] : network->getModules()) {
-            std::shared_ptr<arch::CFDModule<T>> cfdPtr = std::dynamic_pointer_cast<arch::CFDModule<T>> (module);
-            cfdPtr->prepareGeometry();
-            cfdPtr->prepareLattice();
+            module->prepareGeometry();
+            module->prepareLattice();
         }
     }
 }

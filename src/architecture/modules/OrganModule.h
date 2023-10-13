@@ -24,6 +24,10 @@ class OrganModule : public CFDModule<T> {
         T lengthX;
         T lengthY;
 
+        int concentrationCount;
+
+        T relaxationTimeAD;
+
         T physDiffusivity;
 
         std::shared_ptr<olb::SuperLattice<T, NSDESCRIPTOR>> latticeNS;
@@ -34,6 +38,13 @@ class OrganModule : public CFDModule<T> {
 
         std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, NSDESCRIPTOR>> converterNS;
         std::unordered_map<int, std::shared_ptr<const olb::AdeUnitConverter<T, ADDESCRIPTOR>>> converterAD;
+
+        std::unordered_map<int, T> Vmax;
+        std::unordered_map<int, T> Km;
+        std::unordered_map<int, T*> fluxWall;
+
+        // First loop over all openings of module, then loop over all set of concentrations
+        std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;
 
         auto& getConverterNS() {
             return *converterNS;
@@ -57,20 +68,49 @@ class OrganModule : public CFDModule<T> {
             std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, 
             T epsilon, T relaxationTime=0.932);
 
-        void lbmInit();
+        /**
+         * @brief Initialize an instance of the LBM solver for this module.
+         * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
+         * @param[in] density Density of the simulated fluid in _kg / m^3_.
+        */
+        void lbmInit(T dynViscosity, T density);
 
+        /**
+         * @brief Initialize the integral fluxes for the in- and outlets
+        */
         void initIntegrals() override;
 
+        /**
+         * @brief Prepare the LBM lattice on the LBM geometry.
+        */
         void prepareLattice() override;
 
-        void prepareCoupling();
-
+        /**
+         * @brief Set the boundary values on the lattice at the module nodes.
+         * @param[in] iT Iteration step.
+        */
         void setBoundaryValues(int iT) override;
 
+        /**
+         * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
+        */
+        void prepareCoupling();
+
+        /**
+         * @brief Conducts the collide and stream operations of the lattice.
+        */
         void solve() override;
 
-        void getResults(int iT) override;
+        /**
+         * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
+         * @param[in] iT Iteration step.
+        */
+        void getResults() override;
 
+        /**
+         * @brief Write the vtk file with results of the CFD simulation to file system.
+         * @param[in] iT Iteration step.
+        */
         void writeVTK(int iT) override;
 
         void evaluateShearStress();
