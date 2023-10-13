@@ -69,6 +69,13 @@ namespace sim {
             void simulate();
 
             /**
+             * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
+             * 
+             * @param timeStep Time step in s for which the new mixtures state should be calculated.
+             */
+            void calculateNewMixtures(InstantaneousMixingModel<T>* model, double timeStep);
+
+            /**
              * @brief Print the results as pressure at the nodes and flow rates at the channels
             */
            void printResults();

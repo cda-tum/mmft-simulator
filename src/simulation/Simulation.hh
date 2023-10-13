@@ -76,6 +76,10 @@ namespace sim {
                 // compute nodal analysis again
                 std::cout << "[Simulation] Conduct nodal analysis " << 0 <<"..." << std::endl;
                 pressureConverged = nodal::conductNodalAnalysis(this->network);
+                
+                if (PLATFORM == ORGAN) {
+                    calculateNewMixtures();
+                }
 
             }
             
