@@ -126,7 +126,7 @@ void ContinuousModule<T>::lbmInit (T dynViscosity, T density) {
 
     this->conversionFactorLength = converter->getConversionFactorLength();
     // Initialize a convergence tracker for pressure
-    this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, this->epsilon);
+    this->converge = std::make_unique<olb::util::ValueTracer<T>> (this->stepIter, this->epsilon);
 
     std::cout << "[lbmModule] lbmInit " << this->name << "... OK" << std::endl;
 }
@@ -163,7 +163,7 @@ void ContinuousModule<T>::writeVTK (int iT) {
 
     if (iT % 100 == 0) {
         if (converge->hasConverged()) {
-                isConverged = true;
+                this->isConverged = true;
         }
     }
 

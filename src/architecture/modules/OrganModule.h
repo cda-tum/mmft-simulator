@@ -28,8 +28,6 @@ class OrganModule : public CFDModule<T> {
 
         T relaxationTimeAD;
 
-        T physDiffusivity;
-
         std::shared_ptr<olb::SuperLattice<T, NSDESCRIPTOR>> latticeNS;
         std::unordered_map<int, std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>>> latticesAD;
 
@@ -42,8 +40,10 @@ class OrganModule : public CFDModule<T> {
         std::unordered_map<int, T> Vmax;
         std::unordered_map<int, T> Km;
         std::unordered_map<int, T*> fluxWall;
+        T zeroFlux = 0.0;
 
         // First loop over all openings of module, then loop over all set of concentrations
+        std::unordered_map<int, T> concentrations;
         std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;
 
         auto& getConverterNS() {
@@ -65,15 +65,16 @@ class OrganModule : public CFDModule<T> {
     public: 
 
         OrganModule(int id, std::string name, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-            std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, 
+            std::unordered_map<int, Opening<T>> openings, std::string stlFile, T charPhysLength, T charPhysVelocity, T alpha, T resolution, 
             T epsilon, T relaxationTime=0.932);
 
         /**
          * @brief Initialize an instance of the LBM solver for this module.
          * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
          * @param[in] density Density of the simulated fluid in _kg / m^3_.
+         * @param[in] physDiffusivities Vector of diffusivity coefficients of the species dissolved in the fluid.
         */
-        void lbmInit(T dynViscosity, T density);
+        void lbmInit(T dynViscosity, T density, std::unordered_map<int, T> physDiffusivities);
 
         /**
          * @brief Initialize the integral fluxes for the in- and outlets

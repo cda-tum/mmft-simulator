@@ -20,7 +20,7 @@ OrganModule<T>::OrganModule (
     } 
 
 template<typename T>
-void OrganModule<T>::lbmInit(T dynViscosity, T density, T physDiffusivity) {
+void OrganModule<T>::lbmInit(T dynViscosity, T density, std::unordered_map<int, T> physDiffusivities) {
 
     // Initialize the unit converters for the organ module
     T kinViscosity = dynViscosity/density;
@@ -34,24 +34,24 @@ void OrganModule<T>::lbmInit(T dynViscosity, T density, T physDiffusivity) {
         kinViscosity,
         density
     )
+    this->conversionFactorLength = converterNS->getConversionFactorLength();
     this->converter.print();
 
     std::cout << "[OrganModule] Setting Advection Diffusion converter " << this->name << ":" << std::endl;
-    olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR> tempAD = std::make_shared<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> (
-        this->resolution,
-        this->relaxationTime,
-        this->charPhysLength,
-        this->charPhysVelocity,
-        physDiffusivity,
-        density
-    )
-    tempAd.print();
+    for (in c=0; c<concentrationCount; c++) {
+        olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR> tempAD = std::make_shared<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> (
+            this->resolution,
+            this->relaxationTime,
+            this->charPhysLength,
+            this->charPhysVelocity,
+            physDiffusivity.at(adKey),
+            density
+        )
+        tempAd.print();
 
-    this->converterAD.try_emplace(0, tempAD);
-    this->conversionFactorLength = converterNS->getConversionFactorLength();
-    this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, this->epsilon);
-
-    this->defineOrgan();
+        this->converterAD.try_emplace(c, tempAD);
+        this->converge.try_emplace(c, std::make_unique<olb::util::ValueTracer<T>> (stepIter, this->epsilon));
+    }
 
     std::cout << "[OrganModule] lbmInit " << this->name << "... OK" << std::endl;
 }
@@ -130,8 +130,8 @@ void OrganModule<T>::prepareLattice() {
     /**
      * Prepare the AD lattices
     */
-    for (auto& [adKey, lattice] : this->getLatticesAD()) {
-        const T AdOmega = getConverterAD(adKey).getLatticeRelaxationFrequency();
+    for (auto& [adKey, converter] : this->converterAD) {
+        const T AdOmega = converter->getLatticeRelaxationFrequency();
         std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> latticeAD = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
         
         // Set lattice dynamics
@@ -146,13 +146,13 @@ void OrganModule<T>::prepareLattice() {
 
         // Add wall boundary
         setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(lattice, AdOmega, this->getGeometry(), 2, fluxWall.at(adKey), fluxWall.at(adKey));
-        // Add inlet boundary
-        // TODO
-        // Add outlet boundary
-        // TODO
+
+        // In-/ and Outlets boundaries depend on flow direction, and are handled in setBoundaryValues()
 
         // Add Tissue boundary
         setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(lattice, AdOmega, this->getGeometry(), 3, Vmax.at(adKey), Km.at(adKey));
+
+        latticesAD.try_emplace(adKey, latticesAD);
     }
 
     this->initIntegrals();
@@ -175,26 +175,158 @@ void OrganModule<T>::prepareCoupling() {
 template<typename T>
 void OrganModule<T>::setBoundaryValues(int iT) {
 
+    // Set Boundary Continuous Flow
+    T pressureLow = -1.0;       
+    for (auto& [key, pressure] : this->pressures) {
+        if ( pressureLow < 0.0 ) {
+            pressureLow = pressure;
+        }
+        if ( pressure < pressureLow ) {
+            pressureLow = pressure;
+        }
+    }
+
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
+            T maxVelocity = (3./2.)*(this->flowRates[key]/(Opening.width));
+            T distance2Wall = 0.0*getConverterNS().getConversionFactorLength()/2.;
+            olb::Poiseuille2D<T> poiseuilleU(this->getGeometry(), key+3, getConverterNS().getLatticeVelocity(maxVelocity), distance2Wall);
+            getLatticeNS().defineU(this->getGeometry(), key+3, poiseuilleU);
+        } else {
+            T rhoV = getConverter().getLatticeDensityFromPhysPressure((this->pressures[key]));
+            olb::AnalyticalConst2D<T,T> rho(rhoV);
+            getLatticeNS().defineRho(this->getGeometry(), key+3, rho);
+        }
+    }
+
+    std::set<int> inflowNodes;
+    std::set<int> outflowNodes;
+
+    // Check In-/Outflow
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->flowRates.at(key) >= 0.0) {
+            inflowNodes.emplace(key);
+        } else if (this->flowRates.at(key) < 0.0) {
+            outflowNodes.emplace(key);
+        }
+    }
+
+    // Set Boundary Concentrations
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (inflowNodes.contain(key)) {
+            for (auto& [adKey, lattice] : this->getLatticeAD) {
+                setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(lattice, this->getConverterAD(adKey)->getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
+                AnalyticalConst2D<T,T> one( 1. );
+                AnalyticalConst2D<T,T> inConc(concentrations.at(adKey));
+                lattice->defineRho(this->getGeometry(), key+3, one + inConc);
+            }
+        } else if (outflowNodes.contain(key)) {
+            for (auto& [adKey, lattice] : this->getLatticeAD) {
+                setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(lattice, this->getConverterAD(adKey)->getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
+            }
+        } else {
+            std::cerr << "Error: Invalid Flow Type Boundary Node." << std::endl;
+            exit(1);
+        }
+    }
+
 }
 
 template<typename T>
 void OrganModule<T>::solve() {
-    
+    for (int iT = 0; iT < this->theta; ++iT){      
+        this->setBoundaryValues(this->step);
+        writeVTK(this->step);        
+        latticeNS->collideAndStream();
+        for (auto& [adKey, lattice] : this->getLatticeAD) {
+            lattice->collideAndStream();
+        }
+        this->step += 1;
+    }
+    getResults();
 }
 
 template<typename T>
 void OrganModule<T>::getResults() {
+
+    int input[1] = { };
+    T output[3];
     
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
+            this->meanPressures.at(key)->operator()(output, input);
+            T newPressure =  output[0]/output[1];
+            this->pressures.at(key) = newPressure;
+            if (this->step % this->statIter == 0) {
+                this->meanPressures.at(key)->print();
+            }
+        } else {
+            this->fluxes.at(key)->operator()(output,input);
+            this->flowRates.at(key) = output[0];
+            if (this->step % this->statIter == 0) {
+                this->fluxes.at(key)->print();
+            }
+        }
+    }
+
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        // If the node is an outflow, write the concentration value
+        if (this->flowRates.at(key) < 0.0) {
+            this->meanConcentrations.at(key)->operator()(output,input);
+            this->concentrations.at(key) = ouput[0];
+            if (this->step % this->statIter == 0) {
+                this->meanConcentrations.at(key)->print();
+            }
+        }
+    }
 }
 
 template<typename T>
 void OrganModule<T>::writeVTK(int iT_) {
-    
+    olb::SuperVTMwriter2D<T> vtmWriter( this->name );
+    // Writes geometry to file system
+    if (iT == 0) {
+        olb::SuperLatticeGeometry2D<T,DESCRIPTOR> writeGeometry (getLatticeNS(), this->getGeometry());
+        vtmWriter.write(writeGeometry);
+        vtmWriter.createMasterFile();
+    }
+
+    if (iT % this->vtkIter == 0) {
+        
+        olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLatticeNS(), getConverterNS());
+        olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(getLatticeNS(), getConverterNS());
+        olb::SuperLatticeDensity2D<T,DESCRIPTOR> latDensity(getLatticeNS());
+        vtmWriter.addFunctor(velocity);
+        vtmWriter.addFunctor(pressure);
+        vtmWriter.addFunctor(latDensity);
+
+        // write all concentrations
+        for (auto& [adKey, lattice] : this->getLatticeAD()) {
+            olb::SuperLatticeDensity2D<T,ADDESCRIPTOR> concentration( lattice );
+            concentration.getName() = "concentration " + std::to_string(adKey);
+            vtmWriter.addFunctor(concentration);
+        }
+        
+        // write vtk to file system
+        vtmWriter.write(iT);
+        converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
+    }
+    if (iT % this->statIter == 0) {
+        std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
+    }
+
+    convergeNS->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
+
+    if (iT % 100 == 0) {
+        if (converge->hasConverged()) {
+                this->isConverged = true;
+        }
+    }
 }
 
 template<typename T>
 void OrganModule<T>::evaluateShearStress() {
-    
+    // TODO
 }
 
 } // namespace arch

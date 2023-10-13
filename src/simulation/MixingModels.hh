@@ -54,8 +54,8 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep) {
     /**
      * Add the node outflow as inflow to the channels
     */
-    for (auto& [nodeId, node] : chip->getNodes()) {
-        for (auto& channel : chip->getChannelsAtNode(nodeId)) {
+    for (auto& [nodeId, node] : network->getNodes()) {
+        for (auto& channel : network->getChannelsAtNode(nodeId)) {
             // check if edge is an outflow edge to this node
             if ((channel->getFlowRate() > 0.0 && channel->getNodeA()->getId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB()->getId() == nodeId)) {
                 T newPos = std::abs(channel->getFlowRate()) * timeStep / channel->getVolume();
@@ -72,8 +72,8 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep) {
     /**
      * Remove fluids that have 'outflowed' their channel
     */
-    for (auto& [nodeId, node] : chip->getNodes()) {
-        for (auto& channel : chip->getChannelsAtNode(nodeId)) {
+    for (auto& [nodeId, node] : network->getNodes()) {
+        for (auto& channel : network->getChannelsAtNode(nodeId)) {
             auto count = 0;  // to not remove the 1.0 fluid if there is only one
             for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
                 //remove mixtures that completely flow out of channel (only 1 fluid with pos 1.0 left)

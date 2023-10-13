@@ -106,7 +106,7 @@ class ContinuousModule : public CFDModule<T> {
          * @returns Number of iterations for the value tracer.
         */
         int getStepIter() const {
-            return stepIter;
+            return this->stepIter;
         };
 
         /**
