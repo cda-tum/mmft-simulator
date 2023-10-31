@@ -70,6 +70,7 @@ class Network {
         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
         std::unordered_map<int, std::shared_ptr<CFDModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
         std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
+        std::unordered_map<int, std::vector<RectangularChannel<T>*>> channelsAtNode;///< Map of nodes and corresponding channels at these nodes in the network.
         Platform platform = Platform::NONE;                                         ///< The microfluidic platform that operates on this network.
 
     public:
@@ -197,6 +198,13 @@ class Network {
      * @brief Sorts the nodes and channels into detached 1D domain groups
     */
     void sortGroups();
+
+    /**
+     * @brief Get a map of all channels at a specific node.
+     * @param[in] nodeId Id of the node at which the adherent channels should be returned.
+     * @return Vector of pointers to channels adherent to this node.
+     */
+    const std::vector<RectangularChannel<T>*> getChannelsAtNode(int nodeId) const;
 };
 
 }   // namespace arch

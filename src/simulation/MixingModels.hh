@@ -1,6 +1,6 @@
 #include "MixingModels.h"
 
-#include "../architecture/Network.h"
+#include <unordered_map>
 
 namespace sim {
 
@@ -8,7 +8,7 @@ template<typename T>
 InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
 
 template<typename T>
-int InstantaneousMixingModel<T>::addMixture(std::unordered_map<int, T>& fluidConcentrations, int id) {
+int InstantaneousMixingModel<T>::addMixture(std::unordered_map<int, T>& fluidConcentrations, std::unordered_map<int, std::unique_ptr<Fluid<T>>>& fluids, int id) {
     if (id == -1) { // id default id parameter is used
         id = mixtures.size();
     }
@@ -49,7 +49,7 @@ std::unordered_map<int, T> InstantaneousMixingModel<T>::getDiffusivities() {
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network) {
+void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Fluid<T>>>& fluids) {
 
     /**
      * Calculate and store the mixtures flowing into all nodes.
@@ -83,7 +83,7 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         std::unordered_map<int, T> newFluidConcentrations;
         for (auto& mixtureInflow : mixtureInflowList) {
-            for (auto& [fluidId, oldConcentration] : mixtures.at(mixtureInflow.mixtureId)->getFluidConcentrations()) {
+            for (auto& [fluidId, oldConcentration] : mixtures.at(mixtureInflow.mixtureId).getFluidConcentrations()) {
                 T newConcentration = oldConcentration * mixtureInflow.inflowVolume / totalInflowVolumeAtNode.at(nodeId);
                 auto [iterator, inserted] = newFluidConcentrations.try_emplace(fluidId, newConcentration);
                 if (!inserted) {
@@ -92,7 +92,7 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
             }
         }
 
-        int newMixtureId = addMixture(std::move(newFluidConcentrations));
+        int newMixtureId = addMixture(newFluidConcentrations, fluids);
         mixtureOutflowAtNode.try_emplace(nodeId, newMixtureId);
     }
 
@@ -102,7 +102,7 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
             // check if edge is an outflow edge to this node
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeA()->getId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB()->getId() == nodeId)) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
                 T newPos = std::abs(channel->getFlowRate()) * timeStep / channel->getVolume();
                 assert(newPos <= 1.0 && newPos >= 0.0);
                 bool oldEqualsNewConcentration = true;

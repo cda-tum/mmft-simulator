@@ -1,19 +1,23 @@
 set(SOURCE_LIST
+    BolusInjection.hh
     CFDSim.hh
     Fluid.hh
     MixingModels.hh
     Mixture.hh
     ResistanceModels.hh
     Simulation.hh
+    Specie.hh
 )
 
 set(HEADER_LIST
+    BolusInjection.h
     CFDSim.h
     Fluid.h
     MixingModels.h
     Mixture.h
     ResistanceModels.h
     Simulation.h
+    Specie.h
 )
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})

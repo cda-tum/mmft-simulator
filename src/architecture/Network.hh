@@ -184,6 +184,15 @@ namespace arch {
     }
 
     template<typename T>
+    const std::vector<RectangularChannel<T>*> Network<T>::getChannelsAtNode(int nodeId) const {
+        try {
+            return channelsAtNode.at(nodeId);
+        } catch (const std::out_of_range& e) {
+            throw std::invalid_argument("Node with ID " + std::to_string(nodeId) + " does not exist.");
+        }
+    }
+
+    template<typename T>
     void Network<T>::setPressurePump(int channelId_, T pressure_) {
         int nodeAId = channels.at(channelId_).get()->getNodeA();
         int nodeBId = channels.at(channelId_).get()->getNodeB();

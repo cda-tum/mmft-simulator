@@ -1,20 +1,24 @@
 set(SOURCE_LIST
     Channel.hh
+    ChannelPosition.hh
     Edge.hh
     FlowRatePump.hh
     Network.hh
     Node.hh
     PressurePump.hh
+    Pump.hh
 )
     
 set(HEADER_LIST
     Channel.h
+    ChannelPosition.h
     Edge.h
     FlowRatePump.h
     Network.h
     Node.h
     Platform.h
     PressurePump.h
+    Pump.h
 )
 
 # add subdirectories

@@ -57,7 +57,7 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::calculateNewMixtures(double timestep_) {
-        this->mixingModel->updateMixtures(timestep_, this->network);
+        this->mixingModel->updateMixtures(timestep_, this->network, this->fluids);
     }
 
     template<typename T>

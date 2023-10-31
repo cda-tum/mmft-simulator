@@ -15,6 +15,7 @@ class Fluid {
     std::string name = "";              ///< Name of the fluid.
     T density;                          ///< Density of the continuous phase in kg/m^3.
     T viscosity;                        ///< Dynamic viscosity of the continuous phase in Pas.
+    T molecularSize;                    ///< Molecular size in m^3.
 
   public:
     /**
@@ -54,6 +55,13 @@ class Fluid {
      * @return Density of the fluid in kg/m^3.
      */
     T getDensity() const;
+
+    /**
+     * @brief Retrieve the molecular size of the fluid.
+     * 
+     * @return Molecular diameter in m. 
+     */
+    T getMolecularSize() const;
 
 };
 

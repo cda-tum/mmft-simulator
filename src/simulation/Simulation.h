@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "BolusInjection.h"
 #include "CFDSim.h"
 #include "Fluid.h"
 #include "MixingModels.h"
@@ -21,13 +22,16 @@ namespace sim {
     template<typename T>
     class Simulation {
         private:
+            arch::Network<T>* network;                                                      ///< Network for which the simulation should be conducted.
+            std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                     ///< Fluids specified for the simulation.
+            std::vector<Mixture<T>> mixtures;                                              ///< Mixtures present in the simulation.
+            std::unordered_map<int, std::unique_ptr<BolusInjection<T>>> bolusInjections;   ///< Injections of fluids that should take place during the simulation.
             // TODO: Add static member variable that keeps track of total memory allocated for lbm sim
             bool transient = false;
             T globalTime = 0.0;
-            arch::Network<T>* network;                                     ///< Network for which the simulation should be conducted.
-            ResistanceModel2DPoiseuille<T>* resistanceModel;               ///< The resistance model used for te simulation.
-            InstantaneousMixingModel<T>* mixingModel;                      ///< The resistance model used for te simulation.
-            Fluid<T>* continuousPhase = nullptr;                           ///< Fluid of the continuous phase.
+            ResistanceModel2DPoiseuille<T>* resistanceModel;                ///< The resistance model used for te simulation.
+            InstantaneousMixingModel<T>* mixingModel;                       ///< The resistance model used for te simulation.
+            Fluid<T>* continuousPhase = nullptr;                            ///< Fluid of the continuous phase.
 
             /**
              * @brief Initializes the resistance model and the channel resistances of the empty channels.
@@ -48,6 +52,34 @@ namespace sim {
              * @return Network or nullptr if no network is specified.
              */
             arch::Network<T>* getNetwork();
+
+            /**
+             * @brief Add new fluid to the simulation.
+             * 
+             * @param viscosity Dynamic viscosity of the fluid in Pas.
+             * @param density Density of the fluid in kg/m^3.
+             * @param concentration Concentration of the fluid in percent (between 0.0 and 1.0).
+             * @param molecularSize Molecular size in m^3.
+             * @param diffusionCoefficient Diffusion coefficient of the fluid in m^2/s.
+             * @param saturation Saturation value to translate the concentration in an actual concentration value [mol/m^3].
+             * @return Pointer to the fluid.
+             */
+            Fluid<T>* addFluid(T viscosity, T density, T concentration, T molecularSize, T diffusionCoefficient, T saturation);
+
+            /**
+             * @brief Get fluid.
+             * @param[in] fluidId Id of the fluid
+             * @return Pointer to fluid with the corresponding id
+             */
+            Fluid<T>* getFluid(int fluidId);
+
+            /**
+             * @brief Get mixture.
+             * 
+             * @param mixtureId Id of the mixture
+             * @return Pointer to mixture with the correspondig id
+             */
+            Mixture<T>* getMixture(int mixtureId);
 
             /**
              * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.

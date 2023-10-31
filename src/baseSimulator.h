@@ -1,13 +1,16 @@
+#include "simulation/BolusInjection.h"
 #include "simulation/CFDSim.h"
 #include "simulation/Fluid.h"
 #include "simulation/MixingModels.h"
 #include "simulation/Mixture.h"
 #include "simulation/ResistanceModels.h"
 #include "simulation/Simulation.h"
+#include "simulation/Specie.h"
 
 #include "nodalAnalysis/NodalAnalysis.h"
 
 #include "architecture/Channel.h"
+#include "architecture/ChannelPosition.h"
 #include "architecture/Edge.h"
 #include "architecture/FlowRatePump.h"
 #include "architecture/modules/Module.h"
@@ -18,6 +21,7 @@
 #include "architecture/Node.h"
 #include "architecture/Platform.h"
 #include "architecture/PressurePump.h"
+#include "architecture/Pump.h"
 
 #include "postProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
 #include "postProcessors/saturatedFluxPostProcessor2D.h"

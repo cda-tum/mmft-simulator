@@ -25,7 +25,7 @@ class InstantaneousMixingModel {
 
 private:
 
-    std::vector<Mixture<T>*> mixtures;
+    std::vector<Mixture<T>> mixtures;
     std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
     std::unordered_map<int, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;    // <nodeId <mixtureId, inflowVolume>>
     std::unordered_map<int, int> mixtureOutflowAtNode;
@@ -35,7 +35,7 @@ public:
 
     InstantaneousMixingModel();
 
-    int addMixture(std::unordered_map<int, T>& fluidConcentrations, int id);
+    int addMixture(std::unordered_map<int, T>& fluidConcentrations, std::unordered_map<int, std::unique_ptr<Fluid<T>>>& fluids, int id = -1);
 
     Mixture<T>* getMixture();
 
@@ -43,7 +43,7 @@ public:
 
     std::unordered_map<int, T> getDiffusivities();
 
-    void updateMixtures(T timeStep, arch::Network<T>* network);
+    void updateMixtures(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Fluid<T>>>& fluids);
 };
 
 }
