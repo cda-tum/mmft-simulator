@@ -12,11 +12,12 @@ class Mixture {
 private:
 
     int const id;
-    double viscosity;
-    double density;
-    double largestMolecularSize;
+    T viscosity;
+    T density;
+    T diffusivity;
+    T largestMolecularSize;
     int fluidCount;
-    std::unordered_map<int, double> fluidConcentrations;
+    std::unordered_map<int, T> fluidConcentrations;
 
 public:
     /**
@@ -28,7 +29,7 @@ public:
      * @param density Density of the mixture in kg/m^3.
      * @param largestMolecularSize Largest molecular size in that mixture in molecular size in m^3.
      */
-    Mixture(int id, std::unordered_map<int, double>&& fluidConcentrations, double viscosity, double density, double largestMolecularSize);
+    Mixture(int id, std::unordered_map<int, T>&& fluidConcentrations, T viscosity, T density, T largestMolecularSize);
 
     /**
      * @brief Get the id of this mixture
@@ -43,28 +44,35 @@ public:
      * @param fluidId Id of the fluid
      * @return Volume concentration of that fluid within the mixture.
      */
-    double getConcentrationOfFluid(int fluidId) const;
+    T getConcentrationOfFluid(int fluidId) const;
 
     /**
      * @brief Get the viscosity of the mixture.
      * 
      * @return Viscosity of the mixture in Pas.
      */
-    double getViscosity() const;
+    T getViscosity() const;
 
     /**
      * @brief Get the density of this mixture.
      * 
      * @return Density of the mixture in kg/m^3.
      */
-    double getDensity() const;
+    T getDensity() const;
+
+    /**
+     * @brief Get the diffusivity coefficient of this mixture.
+     * 
+     * @return Diffusivity of the mixture in m^2/s.
+     */
+    T getDiffusivity() const;
 
     /**
      * @brief Get the largest molecular size in this mixture.
      * 
      * @return Largest molecular size in the mixture in \\TODO unit.
      */
-    double getLargestMolecularSize() const;
+    T getLargestMolecularSize() const;
 
     /**
      * @brief Get the number of fluids this mixture consists of.
@@ -78,7 +86,7 @@ public:
      * 
      * @return Map of fluid id and volume concentration pairs.
      */
-    const std::unordered_map<int, double>& getFluidConcentrations() const;
+    const std::unordered_map<int, T>& getFluidConcentrations() const;
 
     /**
      * @brief Change the concentration of a fluid within a mixture. As mixtures are not stored for every state, be aware that if you use this function, only the end concentration of this mixture will be returned to the user, which means intermediate steps are not visible. 
@@ -86,7 +94,7 @@ public:
      * @param fluidId Id of the fluid for which the concentration should be changed.
      * @param concentrationChange The change of concentration that will be added to the current concentration of the fluid.
      */
-    void changeFluidConcentration(int fluidId, double concentrationChange);
+    void changeFluidConcentration(int fluidId, T concentrationChange);
 };
 
 }   /// namespace sim

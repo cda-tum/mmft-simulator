@@ -8,6 +8,8 @@
 #include "Fluid.h"
 #include "Mixture.h"
 
+#include "../architecture/Network.h"
+
 namespace sim { 
 
 template<typename T>
@@ -23,9 +25,9 @@ class InstantaneousMixingModel {
 
 private:
 
-    std::vector<Mixture> mixtures;
+    std::vector<Mixture<T>*> mixtures;
     std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
-    std::unordered_map<int, std::vector<MixtureInFlow>> mixtureInflowAtNode;    // <nodeId <mixtureId, inflowVolume>>
+    std::unordered_map<int, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;    // <nodeId <mixtureId, inflowVolume>>
     std::unordered_map<int, int> mixtureOutflowAtNode;
     std::unordered_map<int, T> totalInflowVolumeAtNode;
 
@@ -33,11 +35,15 @@ public:
 
     InstantaneousMixingModel();
 
-    void addMixture();
+    int addMixture(std::unordered_map<int, T>& fluidConcentrations, int id);
 
-    Mixture* getMixture();
+    Mixture<T>* getMixture();
 
-    void updateMixtures(T timeStep);
+    std::vector<Mixture<T>*> getMixtures();
+
+    std::unordered_map<int, T> getDiffusivities();
+
+    void updateMixtures(T timeStep, arch::Network<T>* network);
 };
 
 }

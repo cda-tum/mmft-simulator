@@ -179,6 +179,11 @@ namespace arch {
     }
 
     template<typename T>
+    const Platform Network<T>::getPlatform() const {
+        return platform;
+    }
+
+    template<typename T>
     void Network<T>::setPressurePump(int channelId_, T pressure_) {
         int nodeAId = channels.at(channelId_).get()->getNodeA();
         int nodeBId = channels.at(channelId_).get()->getNodeB();

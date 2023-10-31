@@ -12,6 +12,7 @@
 #include <olb2D.hh>
 
 #include "ResistanceModels.h"
+#include "MixingModels.h"
 
 #include "../architecture/Channel.h"
 #include "../architecture/FlowRatePump.h"
@@ -20,6 +21,7 @@
 #include "../architecture/modules/ContinuousModule.h"
 #include "../architecture/modules/OrganModule.h"
 #include "../architecture/Network.h"
+#include "../architecture/Platform.h"
 #include "../architecture/PressurePump.h"
 
 
@@ -49,6 +51,16 @@ namespace sim {
     }
 
     template<typename T>
+    void Simulation<T>::setMixingModel(InstantaneousMixingModel<T>* model_) {
+        this->mixingModel = model_;
+    }
+
+    template<typename T>
+    void Simulation<T>::calculateNewMixtures(double timestep_) {
+        this->mixingModel->updateMixtures(timestep_, this->network);
+    }
+
+    template<typename T>
     void Simulation<T>::simulate() {
 
         // initialize the simulation
@@ -59,10 +71,11 @@ namespace sim {
         if (network->getModules().size() > 0 ) {
             bool allConverged = false;
             bool pressureConverged = false;
+            T timestep = 0.0;
 
             // Initialization of CFD domains
             while (! allConverged) {
-                allConverged = conductCFDSimulation(this->network, 1);
+                auto [allConverged, timestep] = conductCFDSimulation(this->network, 1);
                 exit(1);
             }
 
@@ -71,14 +84,15 @@ namespace sim {
 
                 // conduct CFD simulations
                 std::cout << "[Simulation] Conduct CFD simulation " << 0 <<"..." << std::endl;
-                allConverged = conductCFDSimulation(this->network, 10);
+                auto [allConverged, timestep] = conductCFDSimulation(this->network, 10);
+                globalTime += timestep;
             
                 // compute nodal analysis again
                 std::cout << "[Simulation] Conduct nodal analysis " << 0 <<"..." << std::endl;
                 pressureConverged = nodal::conductNodalAnalysis(this->network);
                 
-                if (PLATFORM == ORGAN) {
-                    calculateNewMixtures();
+                if (this->network->getPlatform() == arch::Platform::ORGAN) {
+                    calculateNewMixtures(timestep);
                 }
 
             }
@@ -142,7 +156,7 @@ namespace sim {
                 continuousPtr->lbmInit(continuousPhase->getViscosity(), continuousPhase->getDensity());
             } else if (module->getModuleType() == arch::ModuleType::ORGAN) {
                 std::shared_ptr<arch::OrganModule<T>> organPtr = std::dynamic_pointer_cast<arch::OrganModule<T>> (module);
-                organPtr->lbmInit();
+                organPtr->lbmInit(continuousPhase->getViscosity(), continuousPhase->getDensity(), this->mixingModel->getDiffusivities());
             }
 
         }

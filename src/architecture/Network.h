@@ -179,6 +179,8 @@ class Network {
     */
     const std::unordered_map<int, std::unique_ptr<Group<T>>>& getGroups() const;
 
+    const Platform getPlatform() const;
+
     /**
      * @brief Turns a channel with the specific id into a pressurepump with given pressure.
      * @param channelID id of the channel.

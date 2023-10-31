@@ -1,9 +1,11 @@
 #include "CFDSim.h"
 
+#include <tuple>
+
 namespace sim {
 
     template<typename T>
-    bool conductCFDSimulation(const arch::Network<T>* network, int iteration) {
+    std::tuple<bool, T> conductCFDSimulation(const arch::Network<T>* network, int iteration) {
 
         bool allConverge = true;
 
@@ -22,8 +24,9 @@ namespace sim {
                 }
             }
         }
+        T timestep = 0.0;
 
-        return allConverge;
+        return std::make_tuple(allConverge, timestep);
     }
 
 }   // namespace sim

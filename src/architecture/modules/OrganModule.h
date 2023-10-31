@@ -14,8 +14,10 @@ class OrganModule : public CFDModule<T> {
 
     using NSDESCRIPTOR = olb::descriptors::D2Q9<>;
     using ADDESCRIPTOR = olb::descriptors::D2Q5<olb::descriptors::VELOCITY>;
-    using NoDynamics = olb::NoDynamics<T,NSDESCRIPTOR>;
-    using BulkDynamics = olb::BGKdynamics<T,NSDESCRIPTOR>;
+    using NoNSDynamics = olb::NoDynamics<T,NSDESCRIPTOR>;
+    using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
+    using BGKDynamics = olb::BGKdynamics<T,NSDESCRIPTOR>;
+    using BounceBack = olb::BounceBack<T,NSDESCRIPTOR>;
     using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
 
     private: 
@@ -37,13 +39,13 @@ class OrganModule : public CFDModule<T> {
         std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, NSDESCRIPTOR>> converterNS;
         std::unordered_map<int, std::shared_ptr<const olb::AdeUnitConverter<T, ADDESCRIPTOR>>> converterAD;
 
-        std::unordered_map<int, T> Vmax;
-        std::unordered_map<int, T> Km;
+        std::unordered_map<int, T*> Vmax;
+        std::unordered_map<int, T*> Km;
         std::unordered_map<int, T*> fluxWall;
         T zeroFlux = 0.0;
 
         // First loop over all openings of module, then loop over all set of concentrations
-        std::unordered_map<int, T> concentrations;
+        std::unordered_map<int, std::unordered_map<int, T>> concentrations;
         std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;
 
         auto& getConverterNS() {

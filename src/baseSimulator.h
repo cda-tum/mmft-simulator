@@ -1,5 +1,7 @@
 #include "simulation/CFDSim.h"
 #include "simulation/Fluid.h"
+#include "simulation/MixingModels.h"
+#include "simulation/Mixture.h"
 #include "simulation/ResistanceModels.h"
 #include "simulation/Simulation.h"
 
@@ -16,3 +18,7 @@
 #include "architecture/Node.h"
 #include "architecture/Platform.h"
 #include "architecture/PressurePump.h"
+
+#include "postProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
+#include "postProcessors/saturatedFluxPostProcessor2D.h"
+#include "postProcessors/setFunctionalRegularizedHeatFlux.h"

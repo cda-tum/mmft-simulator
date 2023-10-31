@@ -2,43 +2,57 @@
 
 namespace sim {
 
-Mixture::Mixture(int id, std::unordered_map<int, double>&& fluidConcentrations, double viscosity, double density, double largestMolecularSize) : id(id), viscosity(viscosity), density(density), largestMolecularSize(largestMolecularSize) {
+template<typename T>
+Mixture<T>::Mixture(int id, std::unordered_map<int, T>&& fluidConcentrations, T viscosity, T density, T largestMolecularSize) : id(id), viscosity(viscosity), density(density), largestMolecularSize(largestMolecularSize) {
     this->fluidConcentrations = std::move(fluidConcentrations);
     this->fluidCount = fluidConcentrations.size();
 }
 
-int Mixture::getId() const {
+template<typename T>
+int Mixture<T>::getId() const {
     return id;
 }
 
-double Mixture::getDensity() const {
+template<typename T>
+T Mixture<T>::getDensity() const {
     return density;
 }
 
-double Mixture::getViscosity() const {
+template<typename T>
+T Mixture<T>::getViscosity() const {
     return viscosity;
 }
 
-double Mixture::getConcentrationOfFluid(int fluidId) const {
+template<typename T>
+T Mixture<T>::getDiffusivity() const {
+    return diffusivity;
+}
+
+template<typename T>
+T Mixture<T>::getConcentrationOfFluid(int fluidId) const {
     if (fluidConcentrations.count(fluidId) == 1) {
         return fluidConcentrations.at(fluidId);
     }
     return 0.0;
 }
 
-double Mixture::getLargestMolecularSize() const {
+template<typename T>
+T Mixture<T>::getLargestMolecularSize() const {
     return largestMolecularSize;
 }
 
-int Mixture::getFluidCount() const {
+template<typename T>
+int Mixture<T>::getFluidCount() const {
     return fluidCount;
 }
 
-const std::unordered_map<int, double>& Mixture::getFluidConcentrations() const {
+template<typename T>
+const std::unordered_map<int, T>& Mixture<T>::getFluidConcentrations() const {
     return fluidConcentrations;
 }
 
-void Mixture::changeFluidConcentration(int fluidId, double concentrationChange) {
+template<typename T>
+void Mixture<T>::changeFluidConcentration(int fluidId, T concentrationChange) {
     auto fluidIter = fluidConcentrations.find(fluidId);
     if (fluidIter != fluidConcentrations.end()) {
         auto newConcentration = fluidIter->second + concentrationChange;

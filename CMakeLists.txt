@@ -12,7 +12,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions(PLATFORM_CPU_SISD)
-set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
+set(CMAKE_C_FLAGS "-O3 -Wall -march=native -mtune=native")
+set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native -std=c++17")
 
 # download external libraries
 include(FetchContent)

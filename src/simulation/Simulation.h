@@ -6,9 +6,11 @@
 
 #include "CFDSim.h"
 #include "Fluid.h"
+#include "MixingModels.h"
 #include "ResistanceModels.h"
 
 #include "../architecture/Network.h"
+#include "../architecture/Platform.h"
 #include "../nodalAnalysis/NodalAnalysis.h"
 
 namespace sim {
@@ -20,8 +22,11 @@ namespace sim {
     class Simulation {
         private:
             // TODO: Add static member variable that keeps track of total memory allocated for lbm sim
+            bool transient = false;
+            T globalTime = 0.0;
             arch::Network<T>* network;                                     ///< Network for which the simulation should be conducted.
             ResistanceModel2DPoiseuille<T>* resistanceModel;               ///< The resistance model used for te simulation.
+            InstantaneousMixingModel<T>* mixingModel;                      ///< The resistance model used for te simulation.
             Fluid<T>* continuousPhase = nullptr;                           ///< Fluid of the continuous phase.
 
             /**
@@ -63,6 +68,12 @@ namespace sim {
             void setResistanceModel(ResistanceModel2DPoiseuille<T>* model);
 
             /**
+             * @brief Define which mixing model should be used for the concentrations.
+             * @param[in] model The mixing model to be used.
+             */
+            void setMixingModel(InstantaneousMixingModel<T>* model);
+
+            /**
              * @brief Conduct the simulation.
              * @return The result of the simulation containing all intermediate simulation steps and calculated parameters.
              */
@@ -73,7 +84,7 @@ namespace sim {
              * 
              * @param timeStep Time step in s for which the new mixtures state should be calculated.
              */
-            void calculateNewMixtures(InstantaneousMixingModel<T>* model, double timeStep);
+            void calculateNewMixtures(double timeStep);
 
             /**
              * @brief Print the results as pressure at the nodes and flow rates at the channels
