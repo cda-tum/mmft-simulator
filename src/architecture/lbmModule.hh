@@ -23,10 +23,17 @@ namespace arch{
     template<typename T>
     void lbmModule<T>::prepareGeometry () {
 
+        bool print = false;
+
         olb::STLreader<T> stlReader(stlFile, converter->getConversionFactorLength());
-        std::cout << "[lbmModule] reading STL file " << name << "... OK" << std::endl;
+        #ifdef VERBOSE
+            print = true;
+            std::cout << "[lbmModule] reading STL file " << name << "... OK" << std::endl;
+        #endif
         olb::IndicatorF2DfromIndicatorF3D<T> stl2Dindicator(stlReader);
-        std::cout << "[lbmModule] create 2D indicator " << name << "... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[lbmModule] create 2D indicator " << name << "... OK" << std::endl;
+        #endif
 
         olb::Vector<T,2> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
         olb::Vector<T,2> extend(this->size[0] + converter->getConversionFactorLength(), this->size[1] + converter->getConversionFactorLength());
@@ -37,12 +44,16 @@ namespace arch{
             *cuboidGeometry, 
             *loadBalancer);
 
-        std::cout << "[lbmModule] generate geometry " << name << "... OK" << std::endl;    
+        #ifdef VERBOSE
+            std::cout << "[lbmModule] generate geometry " << name << "... OK" << std::endl;   
+        #endif 
 
         this->geometry->rename(0, 2);
         this->geometry->rename(2, 1, stl2Dindicator);
 
-        std::cout << "[lbmModule] generate 2D geometry from STL  " << name << "... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[lbmModule] generate 2D geometry from STL  " << name << "... OK" << std::endl;
+        #endif
 
         for (auto& [key, Opening] : moduleOpenings ) {
             // The unit vector pointing to the extend (opposite origin) of the opening
@@ -71,10 +82,12 @@ namespace arch{
             this->geometry->rename(2, key+3, 1, opening);
         }
 
-        this->geometry->clean();
-        this->geometry->checkForErrors();
+        this->geometry->clean(print);
+        this->geometry->checkForErrors(print);
 
-        std::cout << "[lbmModule] prepare geometry " << name << "... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[lbmModule] prepare geometry " << name << "... OK" << std::endl;
+        #endif
     }
 
     template<typename T>
@@ -132,7 +145,9 @@ namespace arch{
         lattice->template setParameter<olb::descriptors::OMEGA>(omega);
         lattice->initialize();
 
-        std::cout << "[lbmModule] prepare lattice " << name << "... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[lbmModule] prepare lattice " << name << "... OK" << std::endl;
+        #endif
     }
 
     template<typename T>
@@ -174,13 +189,17 @@ namespace arch{
                 T newPressure =  output[0]/output[1];
                 pressures.at(key) = newPressure;
                 if (iT % 1000 == 0) {
-                    meanPressures.at(key)->print();
+                    #ifdef VERBOSE
+                        meanPressures.at(key)->print();
+                    #endif
                 }
             } else {
                 fluxes.at(key)->operator()(output,input);
                 flowRates.at(key) = output[0];
                 if (iT % 1000 == 0) {
-                    fluxes.at(key)->print();
+                    #ifdef VERBOSE
+                        fluxes.at(key)->print();
+                    #endif
                 }
             }
         }
@@ -211,7 +230,9 @@ namespace arch{
             density
         );
 
-        this->converter->print();
+        #ifdef VERBOSE
+            this->converter->print();
+        #endif
 
         // Initialize pressure, flowRate and resistance value-containers
         for (auto& [key, node] : this->boundaryNodes) {
@@ -222,11 +243,18 @@ namespace arch{
         // Initialize a convergence tracker for pressure
         this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, epsilon);
 
-        std::cout << "[lbmModule] lbmInit " << name << "... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[lbmModule] lbmInit " << name << "... OK" << std::endl;
+        #endif
     }
 
     template<typename T>
     void lbmModule<T>::writeVTK (int iT) {
+
+        bool print = false;
+        #ifdef VERBOSE
+            print = true;
+        #endif
 
         olb::SuperVTMwriter2D<T> vtmWriter( name );
         // Writes geometry to file system
@@ -247,13 +275,15 @@ namespace arch{
             
             // write vtk to file system
             vtmWriter.write(iT);
-            converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
+            converge->takeValue(getLattice().getStatistics().getAverageEnergy(), print);
         }
         if (iT %1000 == 0) {
-            std::cout << "[writeVTK] " << name << " currently at timestep " << iT << std::endl;
+            #ifdef VERBOSE
+                std::cout << "[writeVTK] " << name << " currently at timestep " << iT << std::endl;
+            #endif
         }
 
-        converge->takeValue(getLattice().getStatistics().getAverageEnergy(), true);
+        converge->takeValue(getLattice().getStatistics().getAverageEnergy(), print);
 
         if (iT%100 == 0) {
             if (converge->hasConverged()) {

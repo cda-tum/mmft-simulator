@@ -17,6 +17,11 @@ namespace arch {
                         std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_) :
                         nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_), 
                         pressurePumps(pressurePumps_), modules(modules_) { }
+    
+    template<typename T>
+    Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
+                        std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_) :
+                        nodes(nodes_), channels(channels_) { }
 
     template<typename T>
     Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
@@ -46,16 +51,20 @@ namespace arch {
         std::ifstream f(jsonFile);
         json jsonString = json::parse(f);
 
-        std::cout << "Loading Nodes..." << std::endl;
+        #ifdef VERBOSE
+            std::cout << "Loading Nodes..." << std::endl;
+        #endif
 
         for (auto& node : jsonString["Network"]["Nodes"]) {
             Node<T>* addNode = new Node<T>(node["iD"], T(node["x"]), T(node["y"]));
             nodes.try_emplace(node["iD"], addNode);
         }
 
-        std::cout << "Loaded Nodes... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "Loaded Nodes... OK" << std::endl;
 
-        std::cout << "Loading Channels..." << std::endl;
+            std::cout << "Loading Channels..." << std::endl;
+        #endif
 
         for (auto& channel : jsonString["Network"]["Channels"]) {
             RectangularChannel<T>* addChannel = nullptr;
@@ -118,10 +127,11 @@ namespace arch {
             channels.try_emplace(channel["iD"], addChannel);
         }
 
-        std::cout << "Loaded Channels... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "Loaded Channels... OK" << std::endl;
 
-        std::cout << "Loading Modules..." << std::endl;
-
+            std::cout << "Loading Modules..." << std::endl;
+        #endif
         for (auto& module : jsonString["Network"]["Modules"]) {
             std::unordered_map<int, std::shared_ptr<Node<T>>> Nodes;
             std::unordered_map<int, Opening<T>> Openings;
@@ -141,8 +151,9 @@ namespace arch {
             modules.try_emplace(module["iD"], addModule);
         }
         this->sortGroups();
-
-        std::cout << "Loaded Modules... OK" << std::endl;
+        #ifdef VERBOSE
+            std::cout << "Loaded Modules... OK" << std::endl;
+        #endif
     }
 
     template<typename T>
