@@ -75,11 +75,12 @@ namespace sim {
 
             }
             
-            if (pressureConverged && allConverged) {
-                std::cout << "[Simulation] All pressures have converged." << std::endl;
-            }
-
-            printResults();
+            #ifdef VERBOSE     
+                if (pressureConverged && allConverged) {
+                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                } 
+                printResults();
+            #endif
         }
     }
 
@@ -110,7 +111,9 @@ namespace sim {
         this->resistanceModel = new ResistanceModel2DPoiseuille(continuousPhase->getViscosity());
 
         // compute and set channel lengths
-        std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
+        #endif
         for (auto& [key, channel] : network->getChannels()) {
             auto& nodeA = network->getNodes().at(channel->getNodeA());
             auto& nodeB = network->getNodes().at(channel->getNodeB());
@@ -120,7 +123,9 @@ namespace sim {
         }       
 
         // compute channel resistances
-        std::cout << "[Simulation] Compute and set channel resistances..." << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[Simulation] Compute and set channel resistances..." << std::endl;
+        #endif
         for (auto& [key, channel] : network->getChannels()) {
             T resistance = resistanceModel->getChannelResistance(channel.get());
             channel->setResistance(resistance);
@@ -153,11 +158,15 @@ namespace sim {
         }
 
         // compute nodal analysis
-        std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+        #endif
         nodal::conductNodalAnalysis(this->network);
 
         // Prepare CFD geometry and lattice
-        std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+        #ifdef VERBOSE
+            std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+        #endif
 
         for (auto& [key, module] : network->getModules()) {
             module->prepareGeometry();

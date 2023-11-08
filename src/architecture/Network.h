@@ -87,6 +87,15 @@ class Network {
             std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
             std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
+    
+    public:
+    /**
+     * @brief Constructor of the Network
+     * @param[in] nodes Nodes of the network.
+     * @param[in] channels Channels of the network.
+    */
+    Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
+            std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels);
 
     public:
     /**
