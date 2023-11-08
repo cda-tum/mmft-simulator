@@ -1,4 +1,4 @@
-name: Ubuntu-build and 
+name: Ubuntu-test
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,10 +20,6 @@ jobs:
     - name: Build
       run: cmake --build ${{github.workspace}}/build
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Run Tests
+    - name: Test 
       working-directory: ${{github.workspace}}/build
       run: ./simulatorTest
