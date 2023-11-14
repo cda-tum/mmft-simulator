@@ -34,4 +34,14 @@ namespace arch {
         return pressure;
     }
 
+    template<typename T>
+    void Node<T>::setGround(bool ground_) {
+        ground = ground_;
+    }
+
+    template<typename T>
+    bool Node<T>::getGround() {
+        return ground;
+    }
+
 }   // namespace arch

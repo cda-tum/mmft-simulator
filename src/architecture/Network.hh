@@ -19,6 +19,11 @@ namespace arch {
                         pressurePumps(pressurePumps_), modules(modules_) { }
 
     template<typename T>
+    Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
+                        std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_) :
+                        nodes(nodes_), channels(std::move(channels_)) { }
+
+    template<typename T>
     Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
                         nodes(nodes_) {
 
@@ -153,7 +158,7 @@ namespace arch {
     }
 
     template<typename T>
-    std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) const {
+    std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
         return nodes.at(nodeId);
     };
 
@@ -179,6 +184,11 @@ namespace arch {
     template<typename T>
     Module<T>* Network<T>::getModule(int moduleId) const {
         return std::get<0>(modules.at(moduleId));
+    }
+
+    template<typename T>
+    void Network<T>::setModules(std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_) {
+        this->modules = std::move(modules_);
     }
 
     template<typename T>
@@ -287,7 +297,7 @@ namespace arch {
                 }
             }
 
-            Group<T>* addGroup = new Group<T>(groupId, nodeIds, channelIds);
+            Group<T>* addGroup = new Group<T>(groupId, nodeIds, channelIds, this);
             groups.try_emplace(groupId, addGroup);
             
             groupId++;

@@ -13,6 +13,7 @@ namespace arch {
             int const id;
             std::vector<T> pos;
             T pressure = 0;
+            bool ground = false;
 
         public:
         /**
@@ -34,6 +35,18 @@ namespace arch {
          * @param[in] pressure Pressure level at the node in Pa.
          */
         void setPressure(T pressure);
+
+        /**
+         * @brief Set the ground node role to the node.
+         * @param[in] ground Boolean value for ground node role.
+        */
+        void setGround(bool ground);
+
+        /**
+         * @brief Get the ground node role of the node.
+         * @returns Boolean value for ground node role.
+        */
+        bool getGround();
 
         /**
          * @brief Get id of the node.

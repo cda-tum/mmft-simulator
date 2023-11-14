@@ -8,6 +8,10 @@ template<typename T>
 Fluid<T>::Fluid(int id_, T density_, T viscosity_) : id(id_), density(density_), viscosity(viscosity_) { }
 
 template<typename T>
+Fluid<T>::Fluid(int id_, T density_, T viscosity_, std::string name_) : id(id_), density(density_), 
+    viscosity(viscosity_), name(name_) { }
+
+template<typename T>
 void Fluid<T>::setName(std::string name_) {
     this->name = std::move(name_);
 }

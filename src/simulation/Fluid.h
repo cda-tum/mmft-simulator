@@ -26,6 +26,15 @@ class Fluid {
     Fluid(int id, T density, T viscosity);
 
     /**
+     * @brief Constructs a fluid.
+     * @param[in] id Unique identifier of the fluid.
+     * @param[in] density Density of the fluid in kg/m^3.
+     * @param[in] viscosity Viscosity of the fluid in Pas.
+     * @param[in] name Name of the fluid.
+     */
+    Fluid(int id, T density, T viscosity, std::string name);
+
+    /**
      * @brief Set name of fluid.
      * @param[in] name Name of the fluid.
      */

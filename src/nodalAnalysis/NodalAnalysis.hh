@@ -21,19 +21,18 @@ namespace nodal {
     template<typename T>
     bool conductNodalAnalysis( const arch::Network<T>* network)
         {
-        const int groundNodeValue = 0;
         const int nNodes = network->getNodes().size() - 1;    // -1 due to ground node
         std::unordered_set<int> conductingNodeIds;
         std::unordered_map<int, int> groundNodeIds;
 
         // Sort nodes into conducting nodes and ground nodes.
-        // First loop, all nodes with id > 0 are conduting nodes.
+        // First loop, all nodes with id > 0 are conducting nodes.
         int iPump = nNodes;
         for (const auto& [key, group] : network->getGroups()) {
             for (const auto& nodeId : group->nodeIds) {
-                if(nodeId > groundNodeValue && nodeId != group->groundNodeId) {
+                if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
                     conductingNodeIds.emplace(nodeId);
-                } else if (nodeId > groundNodeValue && nodeId == group->groundNodeId) {
+                } else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
                     groundNodeIds.emplace(nodeId, iPump);
                     iPump++;
                 }
@@ -54,16 +53,16 @@ namespace nodal {
             const T conductance = 1. / channel.second->getResistance();
 
             // main diagonal elements of G
-            if (nodeAMatrixId > groundNodeValue) {
+            if (!network->getNodes().at(nodeAMatrixId)->getGround()) {
                 A(nodeAMatrixId, nodeAMatrixId) += conductance;
             }
 
-            if (nodeBMatrixId > groundNodeValue) {
+            if (!network->getNodes().at(nodeBMatrixId)->getGround()) {
                 A(nodeBMatrixId, nodeBMatrixId) += conductance;
             }
 
             // minor diagonal elements of G (if no ground node was present)
-            if (nodeAMatrixId > groundNodeValue && nodeBMatrixId > groundNodeValue) {
+            if (!network->getNodes().at(nodeAMatrixId)->getGround() && !network->getNodes().at(nodeBMatrixId)->getGround()) {
                 A(nodeAMatrixId, nodeBMatrixId) -= conductance;
                 A(nodeBMatrixId, nodeAMatrixId) -= conductance;
             }
@@ -175,7 +174,7 @@ namespace nodal {
                 auto& node = network->getNodes().at(nodeMatrixId);
                 if (contains(conductingNodeIds, nodeMatrixId)) {
                     node->setPressure(x(nodeMatrixId));
-                } else if (nodeMatrixId <= groundNodeValue) {
+                } else if (node->getGround()) {
                     node->setPressure(0.0);
                 }
             }

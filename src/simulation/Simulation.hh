@@ -36,13 +36,33 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setContinuousPhase(Fluid<T>* fluid_) {
-        this->continuousPhase = fluid_;
+    void Simulation<T>::setContinuousPhase(int fluidId_) {
+        this->continuousPhase = fluidId_;
+    }
+
+    template<typename T>
+    void Simulation<T>::setFluids(std::vector<std::unique_ptr<Fluid<T>>>& fluids_) {
+        this->fluids = std::move(fluids_);
     }
 
     template<typename T>
     void Simulation<T>::setResistanceModel(ResistanceModel2DPoiseuille<T>* model_) {
         this->resistanceModel = model_;
+    }
+
+    template<typename T>
+    void Simulation<T>::setPlatform(Platform platform_) {
+        this->platform = platform_;
+    }
+
+    template<typename T>
+    void Simulation<T>::setType(Type type_) {
+        this->simType = type_;
+    }
+
+    template<typename T>
+    Fluid<T>* Simulation<T>::getContinuousPhase() {
+        return fluids[continuousPhase].get();
     }
 
     template<typename T>
@@ -107,7 +127,7 @@ namespace sim {
     template<typename T>
     void Simulation<T>::initialize() {
         // set resistance model
-        this->resistanceModel = new ResistanceModel2DPoiseuille(continuousPhase->getViscosity());
+        this->resistanceModel = new ResistanceModel2DPoiseuille(fluids[continuousPhase]->getViscosity());
 
         // compute and set channel lengths
         std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
@@ -127,8 +147,8 @@ namespace sim {
         }
 
         for (auto& [key, module] : network->getModules()) {
-            module->lbmInit(continuousPhase->getViscosity(),
-                            continuousPhase->getDensity());
+            module->lbmInit(fluids[continuousPhase]->getViscosity(),
+                            fluids[continuousPhase]->getDensity());
         }
 
         // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner

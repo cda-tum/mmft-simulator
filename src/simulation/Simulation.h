@@ -13,6 +13,20 @@
 
 namespace sim {
 
+    enum class Platform {
+        NONE,
+        CONTINUOUS,     ///< A simulation with a single continuous fluid.
+        DROPLET,        ///< A simulation with droplets filling a channel cross-section
+        MIXING          ///< A simulation wit multiple miscible fluids.
+    };
+
+    enum class Type {
+        NONE,
+        _1D,            ///< A simulation in the 1D abstraction level
+        HYBRID,         ///< A simulation combining the 1D and CFD abstraction levels
+        CFD             ///< A simulation in the CFD abstraction level
+    };
+
     /**
      * @brief Class that conducts the simulation and owns all parameters necessary for it.
      */
@@ -20,9 +34,12 @@ namespace sim {
     class Simulation {
         private:
             // TODO: Add static member variable that keeps track of total memory allocated for lbm sim
+            Platform platform = Platform::NONE;
+            Type simType = Type::NONE;
             arch::Network<T>* network;                                     ///< Network for which the simulation should be conducted.
             ResistanceModel2DPoiseuille<T>* resistanceModel;               ///< The resistance model used for te simulation.
-            Fluid<T>* continuousPhase = nullptr;                           ///< Fluid of the continuous phase.
+            std::vector<std::unique_ptr<Fluid<T>>> fluids;
+            int continuousPhase = 0;                                  ///< Fluid of the continuous phase.
 
             /**
              * @brief Initializes the resistance model and the channel resistances of the empty channels.
@@ -48,7 +65,13 @@ namespace sim {
              * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
              * @param[in] fluid The fluid the continuous phase consists of.
              */
-            void setContinuousPhase(Fluid<T>* fluid);
+            void setContinuousPhase(int fluidId);
+
+            /**
+             * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+             * @param[in] fluid The fluid the continuous phase consists of.
+             */
+            void setFluids(std::vector<std::unique_ptr<Fluid<T>>>& fluids);
 
             /**
              * @brief Get the continuous phase.
@@ -72,5 +95,17 @@ namespace sim {
              * @brief Print the results as pressure at the nodes and flow rates at the channels
             */
            void printResults();
+
+           /**
+            * @brief Set the platform of the simulation.
+            * @param[in] platform
+           */
+            void setPlatform(Platform platform);
+
+            /**
+            * @brief Set the type of the simulation.
+            * @param[in] type
+           */
+            void setType(Type type);
     };
 }   // namespace sim

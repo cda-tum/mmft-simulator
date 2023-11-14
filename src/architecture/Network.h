@@ -49,10 +49,10 @@ struct Group {
      * @param[in] nodeIds Ids of the nodes that constitute this group.
      * @param[in] channelIds Ids of the channels that constitute this group.
     */
-    Group(int groupId_, std::unordered_set<int> nodeIds_, std::unordered_set<int> channelIds_) :
+    Group(int groupId_, std::unordered_set<int> nodeIds_, std::unordered_set<int> channelIds_, Network<T>* network_) :
         groupId(groupId_), nodeIds(nodeIds_), channelIds(channelIds_) {
         for (auto& nodeId : nodeIds) {
-            if (nodeId <= 0) {
+            if (network_->getNode(nodeId)->getGround()) {
                 grounded = true;
             }
         }
@@ -96,6 +96,14 @@ class Network {
     Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
 
     /**
+     * @brief Constructor of the Network
+     * @param[in] nodes Nodes of the network.
+     * @param[in] channels Channels of the network.
+    */
+    Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
+            std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels);
+
+    /**
      * @brief Constructor of the Network from a JSON string
      * @param json json string
      * @return SimulationResult struct
@@ -110,7 +118,7 @@ class Network {
     /**
      * @brief Get a pointer to the node with the specific id.
     */
-    std::shared_ptr<Node<T>>& getNode(int nodeId) const;
+    std::shared_ptr<Node<T>>& getNode(int nodeId);
 
     /**
      * @brief Adds a new channel to the network.
@@ -184,6 +192,12 @@ class Network {
      * @brief Sorts the nodes and channels into detached 1D domain groups
     */
     void sortGroups();
+
+    /**
+     * @brief Set the modules of the network for a hybrid simulation.
+     * @param[in] modules The modules that handle the CFD simulations.
+    */
+    void setModules(std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
 };
 
 }   // namespace arch
