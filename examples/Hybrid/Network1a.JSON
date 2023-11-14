@@ -5,77 +5,66 @@
             "x": 0.0,
             "y": 0.0,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": true
         },
         {   
             "x": 1e-3,
             "y": 2e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 1e-3,
             "y": 1e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 1e-3,
             "y": 0.0,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 2e-3,
             "y": 2e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 1.75e-3,
             "y": 1e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 2e-3,
             "y": 0.0,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 2e-3,
             "y": 1.25e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 2e-3,
             "y": 0.75e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 2.25e-3,
             "y": 1e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": false
         },
         {   
             "x": 3e-3,
             "y": 1e-3,
             "z": 0.0,
-            "diameter": 0.02,
             "ground": true
         }
     ],
@@ -169,7 +158,7 @@
             {	
                 "Type": "LBM",
                 "name": "Paper1a-cross-0",
-                "stlFile": "/home/michel/Git/mmft-hybrid-simulator/examples/STL/cross.stl",
+                "stlFile": "../examples/STL/cross.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.1,
