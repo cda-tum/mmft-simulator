@@ -6,6 +6,7 @@
 #include "nodalAnalysis/NodalAnalysis.hh"
 
 #include "architecture/Channel.hh"
+#include "architecture/ChannelPosition.hh"
 #include "architecture/Edge.hh"
 #include "architecture/FlowRatePump.hh"
 #include "architecture/lbmModule.hh"

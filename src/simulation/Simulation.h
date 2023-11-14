@@ -33,13 +33,13 @@ namespace sim {
     template<typename T>
     class Simulation {
         private:
-            // TODO: Add static member variable that keeps track of total memory allocated for lbm sim
-            Platform platform = Platform::NONE;
-            Type simType = Type::NONE;
-            arch::Network<T>* network;                                     ///< Network for which the simulation should be conducted.
-            ResistanceModel2DPoiseuille<T>* resistanceModel;               ///< The resistance model used for te simulation.
+            // TODO: Add static member variable that keeps track of total memory allocated for lbm sim                                           
+            Platform platform = Platform::NONE;                             ///< The microfluidic platform that is simulated in this simulation.
+            Type simType = Type::NONE;                                      ///< The type of simulation that is being done.
+            arch::Network<T>* network;                                      ///< Network for which the simulation should be conducted.
+            ResistanceModel2DPoiseuille<T>* resistanceModel;                ///< The resistance model used for te simulation.
             std::vector<std::unique_ptr<Fluid<T>>> fluids;
-            int continuousPhase = 0;                                  ///< Fluid of the continuous phase.
+            int continuousPhase = 0;                                        ///< Fluid of the continuous phase.
 
             /**
              * @brief Initializes the resistance model and the channel resistances of the empty channels.

@@ -9,6 +9,15 @@
 namespace arch{
 
     /**
+     * @brief An enum to specify the type of channel.
+    */
+    enum class ChannelType {
+        NORMAL,     ///< A normal channel is te regular channel in which flow flows.
+        BYPASS,     ///< A bypass channel allows droplets to bypass another channel, e.g., if a droplet is trapped in that channel.
+        CLOGGABLE   ///< A cloggable channel will be clogged during the time a droplet passes by one of its ends.
+    };
+
+    /**
     * @brief An enum to specify the shape of channel.
     */
     enum class ChannelShape {
@@ -54,20 +63,13 @@ namespace arch{
             T area = 0;                                 ///< Area of the channel cross-section in m^2.
             T pressure = 0;                             ///< Pressure of a channel in Pa.
             T channelResistance = 0;                    ///< Resistance of a channel in Pas/L.
-            ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular
+            ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular.
+            ChannelType type = ChannelType::NORMAL;     ///< What kind of channel it is.
             
             std::vector<std::unique_ptr<Line_segment<T,2>>> line_segments;      ///< Straight line segments in the channel.
             std::vector<std::unique_ptr<Arc<T,2>>> arcs;                        ///< Arcs in the channel.
 
         public:
-            /**
-             * @brief Constructor of a channel connecting two-nodes.
-             * @param[in] id Id of the channel.
-             * @param[in] nodeA Node at one end of the channel.
-             * @param[in] nodeB Node at the other end of the channel.
-            */
-            Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB);
-
             /**
              * @brief Constructor of a rectangular channel with line segments and arcs connecting two-nodes.
              * @param[in] id Id of the channel.
@@ -79,6 +81,14 @@ namespace arch{
             Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, 
                     std::vector<Line_segment<T,2>*> line_segments,
                     std::vector<Arc<T,2>*> arcs);
+
+            /**
+             * @brief Constructor of a channel connecting two-nodes.
+             * @param[in] id Id of the channel.
+             * @param[in] nodeA Node at one end of the channel.
+             * @param[in] nodeB Node at the other end of the channel.
+            */
+            Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB);
 
             /**
              * @brief Set length of channel.
@@ -99,6 +109,12 @@ namespace arch{
              */
             void setResistance(T channelResistance);
 
+            /**
+             * @brief Set which kind of channel it is.
+             * @param[in] channelType Which kind of channel it is.
+             */
+            void setChannelType(ChannelType channelType);
+            
             /**
              * @brief Returns the length of this channel.
              * @returns Length of channel in m.
@@ -131,7 +147,7 @@ namespace arch{
 
             /**
              * @brief Calculates and returns volume of the channel.
-             * @returns Volumne of a channel in m^3.
+             * @returns Volume of a channel in m^3.
              */
             T getVolume() const;
 
@@ -140,6 +156,12 @@ namespace arch{
              * @returns What shape the channel has.
              */
             ChannelShape getChannelShape() const;
+
+            /**
+             * @brief Returns the type of channel.
+             * @returns What kind of channel it is.
+             */
+            ChannelType getChannelType() const;
     };
 
     template<typename T>

@@ -105,6 +105,11 @@ namespace arch {
     }
 
     template<typename T>
+    void Channel<T>::setChannelType(ChannelType type_) {
+        this->type = type_;
+    }
+
+    template<typename T>
     T Channel<T>::getLength() const {
         return length;
     }
@@ -132,6 +137,11 @@ namespace arch {
     template<typename T>
     ChannelShape Channel<T>::getChannelShape() const {
         return shape;
+    }
+
+    template<typename T>
+    ChannelType Channel<T>::getChannelType() const {
+        return type;
     }
 
     //=====================================================================================

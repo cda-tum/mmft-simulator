@@ -6,13 +6,13 @@
 #include "nodalAnalysis/NodalAnalysis.h"
 
 #include "architecture/Channel.h"
+#include "architecture/ChannelPosition.h"
 #include "architecture/Edge.h"
 #include "architecture/FlowRatePump.h"
 #include "architecture/lbmModule.h"
 #include "architecture/Module.h"
 #include "architecture/Network.h"
 #include "architecture/Node.h"
-#include "architecture/Platform.h"
 #include "architecture/PressurePump.h"
 
 #include "porting/jsonPorter.h"

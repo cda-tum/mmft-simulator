@@ -12,7 +12,6 @@
 #include "lbmModule.h"
 #include "Module.h"
 #include "Node.h"
-#include "Platform.h"
 #include "PressurePump.h"
 
 #include "nlohmann/json.hpp"
@@ -66,13 +65,23 @@ template<typename T>
 class Network {
     private:
         std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
+        std::set<Node<T>*> sinks;                                                   ///< Ids of nodes that are sinks.
+        std::set<Node<T>*> groundNodes;                                             ///< Ids of nodes that are ground nodes.
         std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
         std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
         std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
         std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
-        //Platform* platform;                                                       ///< The microfluidic platform that operates on this network.
+        std::unordered_map<int, std::vector<Channel<T>*>> reach;                    ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
 
+    /**
+     * @brief Goes through network and sets all nodes and channels that are visited to true.
+     * @param[in] id Id of the node that is visited.
+     * @param[in, out] visitedNodes Reference to a map that stores which nodes have already been visited.
+     * @param[in, out] visitedChannels Reference to a map that stores which channels have already been visited.
+     */
+    void visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels);
+    
     public:
     /**
      * @brief Constructor of the Network
@@ -88,13 +97,6 @@ class Network {
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
             std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
 
-    public:
-    /**
-     * @brief Constructor of the Network that generates a fully connected graph between the nodes.
-     * @param[in] nodes Nodes of the network.
-    */
-    Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
-
     /**
      * @brief Constructor of the Network
      * @param[in] nodes Nodes of the network.
@@ -102,6 +104,12 @@ class Network {
     */
     Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels);
+
+    /**
+     * @brief Constructor of the Network that generates a fully connected graph between the nodes.
+     * @param[in] nodes Nodes of the network.
+    */
+    Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
 
     /**
      * @brief Constructor of the Network from a JSON string
@@ -113,22 +121,47 @@ class Network {
     /**
      * @brief Adds a new node to the network.
     */
-    int addNode();
+    Node<T>* addNode(T x, T y, bool ground=false);
 
     /**
-     * @brief Get a pointer to the node with the specific id.
-    */
-    std::shared_ptr<Node<T>>& getNode(int nodeId);
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
+     * @param[in] length Length of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @return Id of the newly created channel.
+     */
+    RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type);
 
     /**
-     * @brief Adds a new channel to the network.
-    */
-    int addChannel();
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] resistance Resistance of the channel in Pas/L.
+     * @param[in] type What kind of channel it is.
+     * @return Id of the newly created channel.
+     */
+    RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T resistance, ChannelType type);
 
     /**
-     * @brief Get a pointer to the channel with the specific id.
-    */
-    Channel<T>* getChannel(int channelId) const;
+     * @brief Adds a new flow rate pump to the chip.
+     * @param[in] node0Id Id of the node at one end of the flow rate pump.
+     * @param[in] node1Id Id of the node at the other end of the flow rate pump.
+     * @param[in] flowRate Volumetric flow rate of the pump in m^3/s.
+     * @return Id of the newly created flow rate pump.
+     */
+    FlowRatePump<T>* addFlowRatePump(int nodeAId, int nodeBId, T flowRate);
+
+    /**
+     * @brief Adds a new pressure pump to the chip.
+     * @param[in] node0Id Id of the node at one end of the pressure pump.
+     * @param[in] node1Id Id of the node at the other end of the pressure pump.
+     * @param[in] pressure Pressure of the pump in Pas/L.
+     * @return Id of the newly created pressure pump.
+     */
+    PressurePump<T>* addPressurePump(int nodeAId, int nodeBId, T pressure);
 
     /**
      * @brief Adds a new module to the network.
@@ -136,9 +169,62 @@ class Network {
     int addModule();
 
     /**
-     * @brief Get a pointer to the module with the specidic id.
+     * @brief Checks if a node with the specified id exists in the network.
+     * @param[in] nodeId Id of the node to check.
+     * @return If such a node exists.
+     */
+    bool hasNode(int nodeId) const;
+
+    /**
+     * @brief Specifies a node as sink.
+     * @param[in] nodeId Id of the node that is a sink.
+     */
+    void setSink(int nodeId);
+
+    /**
+     * @brief Sets a node as the ground node, i.e., this node has a pressure value of 0 and acts as a reference node for all other nodes.
+     * @param[in] nodeId Id of the node that should be the ground node of the network.
+     */
+    void setGround(int nodeId);    
+
+    /**
+     * @brief Turns a channel with the specific id into a pressurepump with given pressure.
+     * @param channelID id of the channel.
+     * @param pressure pressure value of the pressure pump.
     */
-    Module<T>* getModule(int moduleId) const;
+    void setPressurePump(int channelId, T pressure);
+
+    /**
+     * @brief Turns a channel with the specific id into a pressurepump with given pressure.
+     * @param channelID id of the channel.
+     * @param pressure pressure value of the pressure pump.
+    */
+    void setFlowRatePump(int channelId, T pressure);
+
+    /**
+     * @brief Set the modules of the network for a hybrid simulation.
+     * @param[in] modules The modules that handle the CFD simulations.
+    */
+    void setModules(std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
+
+    /**
+     * @brief Checks and returns if a node is a sink.
+     * @param[in] nodeId Id of the node that should be checked.
+     * @return If the node with the specified id is a sink.
+     */
+    bool isSink(int nodeId) const;
+
+    /**
+     * @brief Checks and returns if a node is a ground node.
+     * @param[in] nodeId Id of the node that should be checked.
+     * @return If the node with the specified id is a ground node.
+     */
+    bool isGround(int nodeId) const;
+
+    /**
+     * @brief Get a pointer to the node with the specific id.
+    */
+    std::shared_ptr<Node<T>>& getNode(int nodeId);
 
     /**
      * @brief Get the nodes of the network.
@@ -147,17 +233,35 @@ class Network {
     const std::unordered_map<int, std::shared_ptr<Node<T>>>& getNodes() const;
 
     /**
+     * @brief Returns the id of the ground node.
+     * @return Id of the ground node.
+     */
+    std::set<int> getGroundIds() const;
+
+    /**
+     * @brief Returns a pointer to the ground node.
+     * @return Pointer to the ground node.
+     */
+    std::set<Node<T>*> getGroundNodes() const;
+
+    /**
+     * @brief Get a pointer to the channel with the specific id.
+    */
+    Channel<T>* getChannel(int channelId) const;
+
+    /**
      * @brief Get the channels of the network.
      * @returns Channels.
     */
     const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& getChannels() const;
 
     /**
-     * @brief Get the modules of the network.
-     * @returns Modules.
-    */
-    const std::unordered_map<int, std::unique_ptr<lbmModule<T>>>& getModules() const;
-
+     * @brief Get a map of all channels at a specific node.
+     * @param[in] nodeId Id of the node at which the adherent channels should be returned.
+     * @return Vector of pointers to channels adherent to this node.
+     */
+    const std::vector<RectangularChannel<T>*>& getChannelsAtNode(int nodeId) const;
+        
     /**
      * @brief Get the flow rate pumps of the network.
      * @returns Flow rate pumps.
@@ -171,17 +275,21 @@ class Network {
     const std::unordered_map<int, std::unique_ptr<PressurePump<T>>>& getPressurePumps() const;
 
     /**
+     * @brief Get a pointer to the module with the specidic id.
+    */
+    Module<T>* getModule(int moduleId) const;
+
+    /**
+     * @brief Get the modules of the network.
+     * @returns Modules.
+    */
+    const std::unordered_map<int, std::unique_ptr<lbmModule<T>>>& getModules() const;
+
+    /**
      * @brief Get the groups in the network.
      * @returns Groups
     */
     const std::unordered_map<int, std::unique_ptr<Group<T>>>& getGroups() const;
-
-    /**
-     * @brief Turns a channel with the specific id into a pressurepump with given pressure.
-     * @param channelID id of the channel.
-     * @param pressure pressure value of the pressure pump.
-    */
-    void setPressurePump(int channelId, T pressure);
 
     /**
      * @brief Store the network object in a JSON file.
@@ -194,10 +302,10 @@ class Network {
     void sortGroups();
 
     /**
-     * @brief Set the modules of the network for a hybrid simulation.
-     * @param[in] modules The modules that handle the CFD simulations.
-    */
-    void setModules(std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
+     * @brief Checks if chip network is valid.
+     * @return If the network is valid.
+     */
+    bool isNetworkValid();
 };
 
 }   // namespace arch

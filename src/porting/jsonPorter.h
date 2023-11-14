@@ -10,7 +10,6 @@
 #include "../architecture/lbmModule.h"
 #include "../architecture/Network.h"
 #include "../architecture/Node.h"
-#include "../architecture/Platform.h"
 #include "../architecture/PressurePump.h"
 
 #include "../simulation/Simulation.h"

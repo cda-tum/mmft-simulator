@@ -3,8 +3,8 @@
 namespace arch {
 
     template<typename T>
-    Node<T>::Node(int id_, T x_, T y_) : 
-        id(id_) { 
+    Node<T>::Node(int id_, T x_, T y_, bool ground_) : 
+        id(id_), ground(ground_) { 
             pos.push_back(x_);
             pos.push_back(y_);
         }

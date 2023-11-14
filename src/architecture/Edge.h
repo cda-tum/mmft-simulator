@@ -35,19 +35,19 @@ class Edge {
      * @brief Get pressure over the edge.
      * @return Pressure over the edge in Pa.
      */
-    virtual double getPressure() const = 0;
+    virtual T getPressure() const = 0;
 
     /**
      * @brief Get flow rate in the edge.
      * @return Flow rate of the edge in m^3/s.
      */
-    virtual double getFlowRate() const = 0;
+    virtual T getFlowRate() const = 0;
 
     /**
      * @brief Get overall resistance over an edge.
      * @return Resistance over an edge in Pas/m^3.
      */
-    virtual double getResistance() const = 0;
+    virtual T getResistance() const = 0;
 
     /**
      * @brief Get pointer to node 0 (node at one end of the edge).

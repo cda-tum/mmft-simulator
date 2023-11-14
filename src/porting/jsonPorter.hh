@@ -7,7 +7,6 @@
 #include "../architecture/Module.h"
 #include "../architecture/Network.h"
 #include "../architecture/Node.h"
-#include "../architecture/Platform.h"
 
 #include "../simulation/Fluid.h"
 #include "../simulation/ResistanceModels.h"

@@ -22,7 +22,7 @@ namespace arch {
          * @param[in] x Absolute x position of the node.
          * @param[in] y Absolute y position of the node.
         */
-        Node(int id, T x, T y);
+        Node(int id, T x, T y, bool ground=false);
 
         /**
          * @brief Get position of the node.
