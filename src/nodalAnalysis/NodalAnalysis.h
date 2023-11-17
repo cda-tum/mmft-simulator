@@ -1,3 +1,7 @@
+/**
+ * @file NodalAnalysis.h
+ */
+
 #pragma once
 
 #include <Network.h>

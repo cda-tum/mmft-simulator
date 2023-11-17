@@ -1,3 +1,7 @@
+/**
+ * @file Simulation.h
+ */
+
 #pragma once
 
 #include <memory>
@@ -5,20 +9,17 @@
 #include <vector>
 
 #include "CFDSim.h"
+#include "Droplet.h"
+#include "events/Event.h"
 #include "Fluid.h"
+#include "Injection.h"
 #include "ResistanceModels.h"
 
 #include "../architecture/Network.h"
 #include "../nodalAnalysis/NodalAnalysis.h"
+#include "../result/Results.h"
 
 namespace sim {
-
-    enum class Platform {
-        NONE,
-        CONTINUOUS,     ///< A simulation with a single continuous fluid.
-        DROPLET,        ///< A simulation with droplets filling a channel cross-section
-        MIXING          ///< A simulation wit multiple miscible fluids.
-    };
 
     enum class Type {
         NONE,
@@ -27,27 +28,116 @@ namespace sim {
         CFD             ///< A simulation in the CFD abstraction level
     };
 
+    enum class Platform {
+        NONE,
+        CONTINUOUS,     ///< A simulation with a single continuous fluid.
+        DROPLET,        ///< A simulation with droplets filling a channel cross-section
+        MIXING          ///< A simulation wit multiple miscible fluids.
+    };
+
     /**
      * @brief Class that conducts the simulation and owns all parameters necessary for it.
      */
     template<typename T>
     class Simulation {
         private:
-            // TODO: Add static member variable that keeps track of total memory allocated for lbm sim                                           
-            Platform platform = Platform::NONE;                             ///< The microfluidic platform that is simulated in this simulation.
-            Type simType = Type::NONE;                                      ///< The type of simulation that is being done.
-            arch::Network<T>* network;                                      ///< Network for which the simulation should be conducted.
-            ResistanceModel2DPoiseuille<T>* resistanceModel;                ///< The resistance model used for te simulation.
-            std::vector<std::unique_ptr<Fluid<T>>> fluids;
-            int continuousPhase = 0;                                        ///< Fluid of the continuous phase.
+            Type simType = Type::NONE;                                                          ///< The type of simulation that is being done.                                      
+            Platform platform = Platform::NONE;                                                 ///< The microfluidic platform that is simulated in this simulation.
+            arch::Network<T>* network;                                                          ///< Network for which the simulation should be conducted.
+            std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
+            std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
+            std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
+            ResistanceModelPoiseuille<T>* resistanceModel;                                    ///< The resistance model used for te simulation.
+            int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
+            T time = 0.0;                                                                       ///< Current time of the simulation.
+            T dt = 0.01;
+            T writeInterval = 0.1;
+            T tMax = 100;
+            bool eventBasedWriting = false;
+            result::SimulationResult<T>* result;
 
             /**
              * @brief Initializes the resistance model and the channel resistances of the empty channels.
              */
             void initialize();
 
+            /**
+             * @brief Update the droplet resistances of the channels based on the current positions of the droplets.
+             */
+            void updateDropletResistances();
+
+            /**
+             * @brief Compute all possible next events.
+             */
+            std::vector<std::unique_ptr<Event<T>>> computeEvents();
+
+            /**
+             * @brief Moves all droplets according to the given time step.
+             * @param[in] timeStep to which the droplets should be moved to. TODO
+             */
+            void moveDroplets(T timeStep);
+
+            /**
+             * @brief Store simulation parameters to the result.
+             * @param[in, out] result Reference to the simulation result in which all current parameters of the simulation should be stored.
+             */
+            void storeSimulationParameters(result::SimulationResult<T>& result);
+
+            /**
+             * @brief Store all simulation results to the result.
+             * @param[in, out] result Reference to the simulation result in which all current parameters of the simulation should be stored.
+             */
+            void storeSimulationResults(result::SimulationResult<T>& result);
+
+            /**
+             * TODO
+            */
+            void saveState();
+
         public:
+            /**
+             * @brief Creates simulation.
+             */
             Simulation();
+
+            /**
+             * @brief Create fluid.
+             * @param[in] viscosity Viscosity of the fluid in Pas.
+             * @param[in] density Density of the fluid in kg/m^3.
+             * @param[in] concentration Concentration of the fluid in % (between 0.0 and 1.0).
+             * @return Pointer to created fluid.
+             */
+            Fluid<T>* addFluid(T viscosity, T density, T concentration);
+
+            /**
+             * @brief Create droplet.
+             * @param[in] fluidId Unique identifier of the fluid the droplet consists of.
+             * @param[in] volume Volume of the fluid in m^3.
+             * @return Pointer to created droplet.
+             */
+            Droplet<T>* addDroplet(int fluidId, T volume);
+
+            /**
+             * @brief Create injection.
+             * @param[in] dropletId Id of the droplet that should be injected.
+             * @param[in] injectionTime Time at which the droplet should be injected in s.
+             * @param[in] channelId Id of the channel, where droplet should be injected.
+             * @param[in] injectionPosition Position inside the channel at which the droplet should be injected (relative to the channel length between 0.0 and 1.0).
+             * @return Pointer to created injection.
+             */
+            DropletInjection<T>* addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition);
+
+            /**
+             * @brief Set the platform of the simulation.
+             * @param[in] platform
+             */
+            void setPlatform(Platform platform);
+
+            /**
+             * @brief Set the type of the simulation.
+             * @param[in] type
+             */
+            void setType(Type type);
 
             /**
              * @brief Set the network for which the simulation should be conducted.
@@ -56,10 +146,10 @@ namespace sim {
             void setNetwork(arch::Network<T>* network);
 
             /**
-             * @brief Get the network.
-             * @return Network or nullptr if no network is specified.
+             * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+             * @param[in] fluid The fluid the continuous phase consists of.
              */
-            arch::Network<T>* getNetwork();
+            void setFluids(std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids);
 
             /**
              * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
@@ -68,10 +158,44 @@ namespace sim {
             void setContinuousPhase(int fluidId);
 
             /**
-             * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-             * @param[in] fluid The fluid the continuous phase consists of.
+             * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
+             * @param[in] model The resistance model to be used.
              */
-            void setFluids(std::vector<std::unique_ptr<Fluid<T>>>& fluids);
+            void setResistanceModel(ResistanceModelPoiseuille<T>* model);
+
+            /**
+             * @brief Get the network.
+             * @return Network or nullptr if no network is specified.
+             */
+            arch::Network<T>* getNetwork();
+
+            /**
+             * @brief Get fluid.
+             * @param[in] fluidId Id of the fluid
+             * @return Pointer to fluid with the corresponding id
+             */
+            Fluid<T>* getFluid(int fluidId);
+
+            /**
+             * @brief Get droplet
+             * @param dropletId Id of the droplet
+             * @return Pointer to droplet with the corresponding id
+             */
+            Droplet<T>* getDroplet(int dropletId);
+
+            /**
+             * @brief Gets droplet that is present at the corresponding node (i.e., the droplet spans over this node).
+             * @param nodeId The id of the node
+             * @return Pointer to droplet or nullptr if no droplet was found
+             */
+            Droplet<T>* getDropletAtNode(int nodeId);
+
+            /**
+             * @brief Get injection
+             * @param injectionId The id of the injection
+             * @return Pointer to injection with the corresponding id.
+             */
+            DropletInjection<T>* getDropletInjection(int injectionId);
 
             /**
              * @brief Get the continuous phase.
@@ -80,10 +204,23 @@ namespace sim {
             Fluid<T>* getContinuousPhase();
 
             /**
-             * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
-             * @param[in] model The resistance model to be used.
+             * @brief Creates a new fluid out of two existing fluids.
+             * @param fluid0Id Id of the first fluid.
+             * @param volume0 The volume of the first fluid.
+             * @param fluid1Id Id of the second fluid.
+             * @param volume1 The volume of the second fluid.
+             * @return Pointer to new fluid.
              */
-            void setResistanceModel(ResistanceModel2DPoiseuille<T>* model);
+            Fluid<T>* mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1);
+
+            /**
+             * @brief Creates a new droplet from two existing droplets.
+             Please note that this only creates a new droplet inside the simulation, but the actual boundaries have to be set separately, which is usually done inside the corresponding merge events.
+             * @param droplet0Id Id of the first droplet.
+             * @param droplet1Id Id of the second droplet.
+             * @return Pointer to new droplet.
+             */
+            Droplet<T>* mergeDroplets(int droplet0Id, int droplet1Id);
 
             /**
              * @brief Conduct the simulation.
@@ -93,19 +230,8 @@ namespace sim {
 
             /**
              * @brief Print the results as pressure at the nodes and flow rates at the channels
-            */
-           void printResults();
-
-           /**
-            * @brief Set the platform of the simulation.
-            * @param[in] platform
-           */
-            void setPlatform(Platform platform);
-
-            /**
-            * @brief Set the type of the simulation.
-            * @param[in] type
-           */
-            void setType(Type type);
+             */
+            void printResults();
     };
+
 }   // namespace sim

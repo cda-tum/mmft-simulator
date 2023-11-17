@@ -93,7 +93,7 @@ namespace porting {
         if (!jsonString["simulation"].contains("fluids") || jsonString["simulation"]["fluids"].empty()) {
             throw std::invalid_argument("No fluids are defined. Please define at least 1 fluid.");
         }
-        std::vector<std::unique_ptr<sim::Fluid<T>>> fluids;
+        std::unordered_map<int, std::unique_ptr<sim::Fluid<T>>> fluids;
         counter = 0;
         for (auto& fluid : jsonString["simulation"]["fluids"]) {
             if (fluid.contains("density") && fluid.contains("viscosity") && fluid.contains("concentration") && fluid.contains("name")) {
@@ -101,13 +101,13 @@ namespace porting {
                 T viscosity = fluid["viscosity"];
                 std::string name = fluid["name"];
                 std::unique_ptr<sim::Fluid<T>> newFluid = std::make_unique<sim::Fluid<T>>( counter, density, viscosity, name );
-                fluids.push_back(std::move(newFluid));
+                fluids.try_emplace(counter, std::move(newFluid));
                 counter++;
             } else {
                 throw std::invalid_argument("Wrongly defined fluid. Please provide following information for fluids:\nname\ndensity\nviscosity\nconcentration");
             }
         }
-        simulation.setFluids(fluids);
+        simulation.setFluids(std::move(fluids));
 
         if (platform == sim::Platform::DROPLET) {
             // NOT YET SUPPORTED
@@ -216,7 +216,7 @@ namespace porting {
         }
 
         // Import resistance model
-        sim::ResistanceModel2DPoiseuille<T>* resistanceModel = new sim::ResistanceModel2DPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+        sim::ResistanceModelPoiseuille<T>* resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         simulation.setResistanceModel(resistanceModel);
 
         simulation.setNetwork(network_);

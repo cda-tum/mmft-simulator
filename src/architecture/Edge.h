@@ -1,3 +1,7 @@
+/**
+ * @file Edge.h
+ */
+
 #pragma once
 
 #include <string>

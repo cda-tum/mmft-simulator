@@ -1,7 +1,17 @@
+/**
+ * @file baseSimulator.h
+ */
+
 #include "simulation/CFDSim.h"
+#include "simulation/Droplet.h"
 #include "simulation/Fluid.h"
+#include "simulation/Injection.h"
 #include "simulation/ResistanceModels.h"
 #include "simulation/Simulation.h"
+#include "simulation/events/BoundaryEvent.h"
+#include "simulation/events/Event.h"
+#include "simulation/events/InjectionEvent.h"
+#include "simulation/events/MergingEvent.h"
 
 #include "nodalAnalysis/NodalAnalysis.h"
 

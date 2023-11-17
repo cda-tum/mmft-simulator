@@ -1,7 +1,12 @@
 #include "simulation/CFDSim.hh"
+#include "simulation/Droplet.hh"
 #include "simulation/Fluid.hh"
+#include "simulation/Injection.hh"
 #include "simulation/ResistanceModels.hh"
 #include "simulation/Simulation.hh"
+#include "simulation/events/BoundaryEvent.hh"
+#include "simulation/events/InjectionEvent.hh"
+#include "simulation/events/MergingEvent.hh"
 
 #include "nodalAnalysis/NodalAnalysis.hh"
 

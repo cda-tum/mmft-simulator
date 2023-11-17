@@ -1,3 +1,7 @@
+/**
+ * @file jsonPorter.h
+ */
+
 #pragma once
 
 #include <memory>
@@ -13,6 +17,8 @@
 #include "../architecture/PressurePump.h"
 
 #include "../simulation/Simulation.h"
+
+#include "../result/Results.h"
 
 #include "nlohmann/json.hpp"
 
