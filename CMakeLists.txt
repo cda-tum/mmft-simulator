@@ -22,6 +22,11 @@ FetchContent_Declare(
     GIT_TAG 3.3.9
 )
 FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG release-1.11.0
+)
+FetchContent_Declare(
     json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
     GIT_TAG v3.11.2
@@ -32,7 +37,7 @@ FetchContent_Declare(
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
 )
-FetchContent_MakeAvailable(eigen json lbm)
+FetchContent_MakeAvailable(eigen googletest json lbm)
 
 add_library(lbmLib)
 
@@ -103,3 +108,14 @@ option(BINDINGS "Configure for building Python bindings")
 if(BINDINGS)
 	add_subdirectory(python/mmft/hybridsim)
 endif()
+
+# create tests
+enable_testing()
+include(GoogleTest)
+set(TARGET_NAME simulatorTest)
+add_executable(${TARGET_NAME})
+target_link_libraries(${TARGET_NAME} PUBLIC gtest gtest_main)
+target_link_libraries(${TARGET_NAME} PUBLIC gtest lbmLib)
+target_link_libraries(${TARGET_NAME} PUBLIC gtest hybridLib)
+add_subdirectory(tests)
+gtest_discover_tests(${TARGET_NAME})
