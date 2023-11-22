@@ -53,19 +53,19 @@ struct State {
      * @brief Function to get pressure at a specific node.
      * @return Pressures of this state in Pa.
      */
-    std::unordered_map<int, T>& getPressures() const;
+    const std::unordered_map<int, T>& getPressures() const;
 
     /**
      * @brief Function to get flow rate at a specific channel.
      * @return Flowrates of this state in m^3/s.
      */
-    std::unordered_map<int, T>& getFlowRates() const;
+    const std::unordered_map<int, T>& getFlowRates() const;
 
     /**
      * @brief Function to get flow rate at a specific channel.
      * @return Flowrates of this state in m^3/s.
      */
-    std::unordered_map<int, T>& getDropletPositions() const;
+    const std::unordered_map<int, T>& getDropletPositions() const;
 
     /**
      * @brief Function to get the time of a state.
@@ -110,25 +110,25 @@ struct SimulationResult {
      * @brief Get the simulated pressures at the nodes.
      * @return Vector of pressure values
      */
-    std::unordered_map<int, T>& getFinalPressures() const;
+    const std::unordered_map<int, T>& getFinalPressures() const;
 
     /**
      * @brief Get the simulated flowrates in the channels.
      * @return Vector of flowrate values
      */
-    std::unordered_map<int, T>& getFinalFlowRates() const;
+    const std::unordered_map<int, T>& getFinalFlowRates() const;
 
     /**
      * @brief Get the simulated flowrates in the channels.
      * @return Vector of flowrate values
      */
-    std::unordered_map<int, T>& getFinalDropletPositions() const;
+    const std::unordered_map<int, T>& getFinalDropletPositions() const;
 
     /**
      * @brief Get the simulated states that were stored during simulation.
      * @return Vector of states
      */
-    std::vector<std::unique_ptr<State<T>>>& getStates() const;
+    const std::vector<std::unique_ptr<State<T>>>& getStates() const;
 };
 
 }   // namespace results

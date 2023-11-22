@@ -227,14 +227,19 @@ namespace sim {
     template<typename T>
     void Simulation<T>::simulate() {
 
+        std::cout << "Getting here...1" << std::endl;
+
         // initialize the simulation
         initialize();
 
+        std::cout << "Getting here...2" << std::endl;
         //printResults();
 
         if (network->getModules().size() > 0 ) {
             bool allConverged = false;
             bool pressureConverged = false;
+
+            std::cout << "Getting here...3" << std::endl;
 
             // Initialization of CFD domains
             while (! allConverged) {
@@ -253,7 +258,7 @@ namespace sim {
                 pressureConverged = nodal::conductNodalAnalysis(this->network);
 
             }
-            
+            std::cout << "Getting here...4" << std::endl;
             #ifdef VERBOSE     
                 if (pressureConverged && allConverged) {
                     std::cout << "[Simulation] All pressures have converged." << std::endl;
@@ -261,6 +266,7 @@ namespace sim {
                 printResults();
             #endif
         }
+        std::cout << "Getting here...5" << std::endl;
     }
 
     template<typename T>

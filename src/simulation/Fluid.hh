@@ -37,4 +37,9 @@ T Fluid<T>::getDensity() const {
     return density;
 }
 
+template<typename T>
+T Fluid<T>::getConcentration() const {
+    return concentration;
+}
+
 }  // namespace sim

@@ -50,7 +50,9 @@ TEST(Results, allResultValues) {
     // droplet
     auto dropletVolume = 1.5 * cWidth * cWidth * cHeight;
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
+    std::cout << "Getting here...1.5" << std::endl;
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
+    std::cout << "Getting here...1.6" << std::endl;
 
     // check if chip is valid
     network.isNetworkValid();

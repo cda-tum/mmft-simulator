@@ -14,28 +14,23 @@ template<typename T>
 State<T>::State(int id, T time) : id(id), time(time) { }
 
 template<typename T>
-T State<T>::getPressures() const {
+const std::unordered_map<int, T>& State<T>::getPressures() const {
     return pressures;
 }
 
 template<typename T>
-T State<T>::getFlowRates() const {
-    return flowRates.at();
-}
-
-template<typename T>
-std::unordered_map<int, T> SimulationResult::getPressures() const {
-    return pressures;
-}
-
-template<typename T>
-std::unordered_map<int, T> SimulationResult::getFlowRates() const {
+const std::unordered_map<int, T>& State<T>::getFlowRates() const {
     return flowRates;
 }
 
 template<typename T>
-T SimulationResult::getTime() const {
+T State<T>::getTime() const {
     return time;
+}
+
+template<typename T>
+const std::vector<std::unique_ptr<State<T>>>& SimulationResult<T>::getStates() const {
+    return  states;
 }
 
 }  // namespace droplet

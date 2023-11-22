@@ -160,6 +160,24 @@ namespace arch {
     Network<T>::Network() { }
 
     template<typename T>
+    void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels) {
+        const auto net = reach.at(id);
+        for (auto channel : net) {
+            if (!(channel->getChannelType() == ChannelType::CLOGGABLE)) {
+                visitedNodes.at(id) = true;
+                if (visitedNodes.at(id) == false) {
+                    visitedChannels.at(channel->getId()) = true;
+                    if (channel->getNodeA() != id) {
+                        visitNodes(channel->getNodeA(), visitedNodes, visitedChannels);
+                    } else {
+                        visitNodes(channel->getNodeB(), visitedNodes, visitedChannels);
+                    }
+                }
+            }
+        }
+    }
+
+    template<typename T>
     Node<T>* Network<T>::addNode(T x_, T y_, bool ground_) {
         int nodeId = nodes.size();
         auto result = nodes.insert({nodeId, std::make_unique<Node<T>>(nodeId, x_, y_, ground_)});
