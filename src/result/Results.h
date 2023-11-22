@@ -66,6 +66,12 @@ struct State {
      * @return Flowrates of this state in m^3/s.
      */
     std::unordered_map<int, T>& getDropletPositions() const;
+
+    /**
+     * @brief Function to get the time of a state.
+     * @return Time in s.
+     */
+    T getTime() const;
 };
 
 /**

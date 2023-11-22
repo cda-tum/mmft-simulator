@@ -56,14 +56,14 @@ namespace sim {
         T dropletLength = droplet->getVolume() / channel->getVolume();
         // channel must be able to fully contain the droplet
         if (dropletLength >= 1.0) {
-            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel " + channel->getName() + " is not valid. Channel must be able to fully contain the droplet.");
+            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel " + std::to_string(channel->getId()) + " is not valid. Channel must be able to fully contain the droplet.");
         }
         // compute tail and head position of the droplet
         T tail = (injectionPosition - dropletLength / 2);
         T head = (injectionPosition + dropletLength / 2);
         // tail and head must not be outside the channel (can happen when the droplet is injected at the beginning or end of the channel)
         if (tail < 0 || head > 1.0) {
-            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " is not valid. Tail and head of the droplet must lie inside the channel " + channel->getName() + ". Consider to set the injection position in the middle of the channel.");
+            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " is not valid. Tail and head of the droplet must lie inside the channel " + std::to_string(channel->getId()) + ". Consider to set the injection position in the middle of the channel.");
         }
 
         auto result = dropletInjections.insert_or_assign(id, std::make_unique<DropletInjection<T>>(id, droplet, injectionTime, channel, injectionPosition));
@@ -155,6 +155,11 @@ namespace sim {
     template<typename T>
     Fluid<T>* Simulation<T>::getContinuousPhase() {
         return fluids[continuousPhase].get();
+    }
+
+    template<typename T>
+    result::SimulationResult<T>* Simulation<T>::getSimulationResults() {
+        return simulationResult.get();
     }
 
     template<typename T>

@@ -157,6 +157,9 @@ namespace arch {
     }
 
     template<typename T>
+    Network<T>::Network() { }
+
+    template<typename T>
     Node<T>* Network<T>::addNode(T x_, T y_, bool ground_) {
         int nodeId = nodes.size();
         auto result = nodes.insert({nodeId, std::make_unique<Node<T>>(nodeId, x_, y_, ground_)});
@@ -169,6 +172,10 @@ namespace arch {
                                 ", " + std::to_string(y_) + "). Nodes out of bounds.");
         }
 
+        if (ground_) {
+            groundNodes.emplace(result.first->second.get());
+        }
+
         // return raw pointer to the node
         return result.first->second.get();
     }
@@ -176,65 +183,67 @@ namespace arch {
     template<typename T>
     RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type) {
         // create channel
-        auto nodeA = addNode(nodeAId);
-        auto nodeB = addNode(nodeBId);
+        auto nodeA = nodes.at(nodeAId);
+        auto nodeB = nodes.at(nodeBId);
         auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-        auto channel = std::make_unique<Channel>(id, nodeA, nodeB, height, width, length, type);
+        auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, height, width);
+
+        addChannel->setLength(length);
+        addChannel->setChannelType(type);
 
         // add to network as long as channel is still a valid pointer
-        reach.at(nodeA->getId()).push_back(channel.get());
-        reach.at(nodeB->getId()).push_back(channel.get());
+        reach.at(nodeAId).push_back(addChannel);
+        reach.at(nodeBId).push_back(addChannel);
 
         // add channel
-        channels.insert_or_assign(id, std::move(channel));
+        channels.try_emplace(id, addChannel);
 
-        return id;
+        return addChannel;
     }
 
     template<typename T>
     RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T resistance, ChannelType type) {
         // create channel
-        auto nodeA = addNode(nodeAId);
-        auto nodeB = addNode(nodeBId);
+        auto nodeA = nodes.at(nodeAId);
+        auto nodeB = nodes.at(nodeBId);
         auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-        auto channel = std::make_unique<Channel>(id, nodeA, nodeB, resistance, type);
+        auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, 1.0, 1.0);
+
+        addChannel->setResistance(resistance);
+        addChannel->setChannelType(type);
 
         // add to network as long as channel is still a valid pointer
-        reach.at(nodeA->getId()).push_back(channel.get());
-        reach.at(nodeB->getId()).push_back(channel.get());
+        reach.at(nodeAId).push_back(addChannel);
+        reach.at(nodeBId).push_back(addChannel);
 
         // add channel
-        channels.insert_or_assign(id, std::move(channel));
+        channels.try_emplace(id, addChannel);
 
-        return id;
+        return addChannel;
     }
 
     template<typename T>
     FlowRatePump<T>* Network<T>::addFlowRatePump(int nodeAId, int nodeBId, T flowRate) {
         // create pump
-        auto nodeA = addNode(nodeAId);
-        auto nodeB = addNode(nodeBId);
         auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-        auto pump = std::make_unique<FlowRatePump>(id, nodeA, nodeB, flowRate);
+        auto addPump = new FlowRatePump<T>(id, nodeAId, nodeBId, flowRate);
 
         // add pump
-        flowRatePumps.insert_or_assign(id, std::move(pump));
+        flowRatePumps.try_emplace(id, addPump);
 
-        return id;
+        return addPump;
     }
 
     template<typename T>
     PressurePump<T>* Network<T>::addPressurePump(int nodeAId, int nodeBId, T pressure) {
         // create pump
-        auto nodeA = addNode(nodeAId);
-        auto nodeB = addNode(nodeBId);
         auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-        auto pump = std::make_unique<PressurePump>(id, nodeA, nodeB, pressure);
+        auto addPump = new PressurePump<T>(id, nodeAId, nodeBId, pressure);
 
         // add pump
-        pressurePumps.insert_or_assign(id, std::move(pump));
+        pressurePumps.try_emplace(id, addPump);
 
-        return id;
+        return addPump;
     }
 
     template<typename T>
@@ -252,11 +261,13 @@ namespace arch {
     template<typename T>
     void Network<T>::setSink(int nodeId_) {
         nodes.at(nodeId_)->setSink(true);
+        sinks.emplace(nodes.at(nodeId_).get());
     }
 
     template<typename T>
     void Network<T>::setGround(int nodeId_) {
         nodes.at(nodeId_)->setGround(true);
+        groundNodes.emplace(nodes.at(nodeId_).get());
     }
 
     template<typename T>
@@ -323,7 +334,7 @@ namespace arch {
 
     template<typename T>
     Channel<T>* Network<T>::getChannel(int channelId_) const {
-        return std::get<0>(channels.at(channelId_));
+        return channels.at(channelId_).get();
     }
 
     template<typename T>
@@ -375,27 +386,39 @@ namespace arch {
     template<typename T>
     void Network<T>::sortGroups() {
         std::vector<int> nodeVector;
+        std::vector<Edge<T>*> edges;
         int groupId = 0;
         for (auto& [key, node] : nodes) {
             nodeVector.emplace_back(key);
         }
+        for (auto& [key, channel] : channels) {
+            edges.emplace_back(channel.get());
+        }
+        for (auto& [key, pump] : pressurePumps) {
+            edges.emplace_back(pump.get());
+        }
+        for (auto& [key, pump] : flowRatePumps) {
+            edges.emplace_back(pump.get());
+        }
+        
         while(!nodeVector.empty()){
             std::queue<int> connectedNodes;
             std::unordered_set<int> nodeIds;
-            std::unordered_set<int> channelIds;
+            std::unordered_set<int> edgeIds;
             auto p = nodeIds.insert(nodeVector.front());
+
             if (p.second) {
-                for (auto& [key, channel] : channels) {
-                    if (channel->getNodeA() == nodeVector.front()) {
-                        auto t = channelIds.insert(channel->getId());
+                for (auto& edge : edges) {
+                    if (edge->getNodeA() == nodeVector.front()) {
+                        auto t = edgeIds.insert(edge->getId());
                         if (t.second) {
-                            connectedNodes.push(channel->getNodeB());
+                            connectedNodes.push(edge->getNodeB());
                         }
                     }
-                    if (channel->getNodeB() == nodeVector.front()) {
-                        auto t = channelIds.insert(channel->getId());
+                    if (edge->getNodeB() == nodeVector.front()) {
+                        auto t = edgeIds.insert(edge->getId());
                         if (t.second) {
-                            connectedNodes.push(channel->getNodeA());
+                            connectedNodes.push(edge->getNodeA());
                         }
                     }
                 }
@@ -405,22 +428,21 @@ namespace arch {
                     }
                 }
             }
-
+            
             while(!connectedNodes.empty()) {
-                 
                 auto q = nodeIds.insert(connectedNodes.front());
                 if (q.second) {
-                    for (auto& [key, channel] : channels) {
-                        if (channel->getNodeA() == connectedNodes.front()) {
-                            auto t = channelIds.insert(channel->getId());
+                    for (auto& edge : edges) {
+                        if (edge->getNodeA() == connectedNodes.front()) {
+                            auto t = edgeIds.insert(edge->getId());
                             if (t.second) {
-                                connectedNodes.push(channel->getNodeB());
+                                connectedNodes.push(edge->getNodeB());
                             }
                         }
-                        if (channel->getNodeB() == connectedNodes.front()) {
-                            auto t = channelIds.insert(channel->getId());
+                        if (edge->getNodeB() == connectedNodes.front()) {
+                            auto t = edgeIds.insert(edge->getId());
                             if (t.second) {
-                                connectedNodes.push(channel->getNodeA());
+                                connectedNodes.push(edge->getNodeA());
                             }
                         }
                     }
@@ -429,11 +451,11 @@ namespace arch {
                             nodeVector.erase(nodeVector.begin() + i);
                         }
                     }
-                    connectedNodes.pop();
                 }
+                connectedNodes.pop();
             }
 
-            Group<T>* addGroup = new Group<T>(groupId, nodeIds, channelIds, this);
+            Group<T>* addGroup = new Group<T>(groupId, nodeIds, edgeIds, this);
             groups.try_emplace(groupId, addGroup);
             
             groupId++;
@@ -478,12 +500,12 @@ namespace arch {
             const auto net = reach.at(k);
             int connections = net.size();
             for (auto const& [key, pump] : pressurePumps) {
-                if (pump->getNode0()->getId() == k || pump->getNode1()->getId() == k) {
+                if (pump->getNodeA() == k || pump->getNodeB() == k) {
                     connections +=1 ;
                 }
             }
             for (auto const& [key, pump] : flowRatePumps) {
-                if (pump->getNode0()->getId() == k || pump->getNode1()->getId() == k) {
+                if (pump->getNodeA() == k || pump->getNodeA() == k) {
                     connections +=1 ;
                 }
             }

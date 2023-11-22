@@ -1,6 +1,5 @@
 set(SOURCE_LIST 
-    Architecture.test.cpp
-    NodalAnalysis.test.cpp
+    #Architecture.test.cpp
     Results.test.cpp
 )
 

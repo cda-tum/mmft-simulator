@@ -54,7 +54,7 @@ namespace sim {
             T writeInterval = 0.1;
             T tMax = 100;
             bool eventBasedWriting = false;
-            result::SimulationResult<T>* result;
+            std::unique_ptr<result::SimulationResult<T>> simulationResult;
 
             /**
              * @brief Initializes the resistance model and the channel resistances of the empty channels.
@@ -202,6 +202,12 @@ namespace sim {
              * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
              */
             Fluid<T>* getContinuousPhase();
+
+            /**
+             * @brief Get the results of the simulation.
+             * @return Pointer to the result of the simulation.
+             */
+            result::SimulationResult<T>* getSimulationResults();
 
             /**
              * @brief Creates a new fluid out of two existing fluids.

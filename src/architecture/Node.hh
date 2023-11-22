@@ -35,6 +35,11 @@ namespace arch {
     }
 
     template<typename T>
+    void Node<T>::setSink(bool sink_) {
+        sink = sink_;
+    }
+
+    template<typename T>
     void Node<T>::setGround(bool ground_) {
         ground = ground_;
     }

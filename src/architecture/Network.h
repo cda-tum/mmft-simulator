@@ -76,7 +76,7 @@ class Network {
         std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
         std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
         std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
-        std::unordered_map<int, std::vector<Channel<T>*>> reach;                    ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
+        std::unordered_map<int, std::vector<RectangularChannel<T>*>> reach;         ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
 
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
@@ -121,6 +121,11 @@ class Network {
      * @return SimulationResult struct
     */
     Network(std::string jsonFile);
+
+    /**
+     * @brief Constructor of a Network object.
+    */
+    Network();
 
     /**
      * @brief Adds a new node to the network.

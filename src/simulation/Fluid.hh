@@ -5,11 +5,12 @@
 namespace sim {
 
 template<typename T>
-Fluid<T>::Fluid(int id_, T density_, T viscosity_) : id(id_), density(density_), viscosity(viscosity_) { }
+Fluid<T>::Fluid(int id_, T density_, T viscosity_, T concentration_) : id(id_), density(density_), 
+    viscosity(viscosity_), concentration(concentration_) { }
 
 template<typename T>
-Fluid<T>::Fluid(int id_, T density_, T viscosity_, std::string name_) : id(id_), density(density_), 
-    viscosity(viscosity_), name(name_) { }
+Fluid<T>::Fluid(int id_, T density_, T viscosity_, T concentration_, std::string name_) : id(id_), 
+    density(density_), viscosity(viscosity_), name(name_) { }
 
 template<typename T>
 void Fluid<T>::setName(std::string name_) {

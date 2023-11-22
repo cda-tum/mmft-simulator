@@ -18,6 +18,7 @@ namespace arch {
             std::vector<T> pos;
             T pressure = 0;
             bool ground = false;
+            bool sink = false;
 
         public:
         /**
@@ -39,6 +40,12 @@ namespace arch {
          * @param[in] pressure Pressure level at the node in Pa.
          */
         void setPressure(T pressure);
+
+        /**
+         * @brief Set the sink role to the node.
+         * @param[in] sink Boolean value for sink role.
+        */
+        void setSink(bool sink);
 
         /**
          * @brief Set the ground node role to the node.

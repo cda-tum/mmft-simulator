@@ -100,7 +100,7 @@ namespace porting {
                 T density = fluid["density"];
                 T viscosity = fluid["viscosity"];
                 std::string name = fluid["name"];
-                std::unique_ptr<sim::Fluid<T>> newFluid = std::make_unique<sim::Fluid<T>>( counter, density, viscosity, name );
+                std::unique_ptr<sim::Fluid<T>> newFluid = std::make_unique<sim::Fluid<T>>( counter, density, viscosity, 1.0, name );
                 fluids.try_emplace(counter, std::move(newFluid));
                 counter++;
             } else {
