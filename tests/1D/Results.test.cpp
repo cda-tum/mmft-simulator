@@ -8,17 +8,20 @@ using T = double;
 TEST(Results, allResultValues) {
     // define simulation
     sim::Simulation<T> testSimulation;
+    testSimulation.setType(sim::Type::_1D);
+    testSimulation.setPlatform(sim::Platform::DROPLET);
 
     // define network
     arch::Network<T> network;
+    testSimulation.setNetwork(&network);
 
     // nodes
+    auto node0 = network.addNode(0.0, 0.0, false);
     auto node1 = network.addNode(0.0, 0.0, false);
     auto node2 = network.addNode(0.0, 0.0, false);
     auto node3 = network.addNode(0.0, 0.0, false);
     auto node4 = network.addNode(0.0, 0.0, false);
     auto node5 = network.addNode(0.0, 0.0, false);
-    auto node0 = network.addNode(0.0, 0.0, false);
 
     // flowRate pump
     auto flowRate = 3e-11;
@@ -40,6 +43,7 @@ TEST(Results, allResultValues) {
     network.setSink(node0->getId());
     //--- ground ---
     network.setGround(node0->getId());
+    network.setGround(node1->getId());
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -50,13 +54,10 @@ TEST(Results, allResultValues) {
     // droplet
     auto dropletVolume = 1.5 * cWidth * cWidth * cHeight;
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
-    std::cout << "Getting here...1.5" << std::endl;
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
-    std::cout << "Getting here...1.6" << std::endl;
 
     // check if chip is valid
     network.isNetworkValid();
-    testSimulation.setNetwork(&network);
 
     // simulate
     testSimulation.simulate();

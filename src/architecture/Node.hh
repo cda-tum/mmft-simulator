@@ -49,4 +49,9 @@ namespace arch {
         return ground;
     }
 
+    template<typename T>
+    bool Node<T>::getSink() {
+        return sink;
+    }
+
 }   // namespace arch

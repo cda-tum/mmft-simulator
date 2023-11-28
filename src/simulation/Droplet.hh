@@ -58,7 +58,7 @@ const Fluid<T>* Droplet<T>::getFluid() const {
 }
 
 template<typename T>
-void Droplet<T>::addDropletResistance(const ResistanceModel1D<T>& model) {
+void Droplet<T>::addDropletResistance(const ResistanceModel<T>& model) {
     // check if droplet is in a single channel
     if (isInsideSingleChannel()) {
         auto channel = boundaries[0]->getChannelPosition().getChannel();
@@ -85,7 +85,7 @@ const std::vector<std::unique_ptr<DropletBoundary<T>>>& Droplet<T>::getBoundarie
 }
 
 template<typename T>
-std::vector<arch::Channel<T>*>& Droplet<T>::getFullyOccupiedChannels() {
+std::vector<arch::RectangularChannel<T>*>& Droplet<T>::getFullyOccupiedChannels() {
     return channels;
 }
 
@@ -103,12 +103,12 @@ bool Droplet<T>::isInsideSingleChannel() {
 }
 
 template<typename T>
-void Droplet<T>::addBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNode0, BoundaryState state) {
-    boundaries.push_back(std::make_unique<DropletBoundary>(channel, position, volumeTowardsNode0, state));
+void Droplet<T>::addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNode0, BoundaryState state) {
+    boundaries.push_back(std::make_unique<DropletBoundary<T>>(channel, position, volumeTowardsNode0, state));
 }
 
 template<typename T>
-void Droplet<T>::addFullyOccupiedChannel(arch::Channel<T>* channel) {
+void Droplet<T>::addFullyOccupiedChannel(arch::RectangularChannel<T>* channel) {
     channels.push_back(channel);
 }
 
@@ -143,7 +143,7 @@ std::vector<DropletBoundary<T>*> Droplet<T>::getConnectedBoundaries(int nodeId, 
             continue;
         }
 
-        if (boundary->getReferenceNode()->getId() == nodeId) {
+        if (boundary->getReferenceNode() == nodeId) {
             connectedBoundaries.push_back(boundary.get());
         }
     }
@@ -152,10 +152,10 @@ std::vector<DropletBoundary<T>*> Droplet<T>::getConnectedBoundaries(int nodeId, 
 }
 
 template<typename T>
-std::vector<arch::Channel<T>*> Droplet<T>::getConnectedFullyOccupiedChannels(int nodeId) {
-    std::vector<arch::Channel<T>*> connectedChannels;
+std::vector<arch::RectangularChannel<T>*> Droplet<T>::getConnectedFullyOccupiedChannels(int nodeId) {
+    std::vector<arch::RectangularChannel<T>*> connectedChannels;
     for (auto& channel : channels) {
-        if (nodeId == channel->getNode0()->getId() || nodeId == channel->getNode1()->getId()) {
+        if (nodeId == channel->getNodeA() || nodeId == channel->getNodeB()) {
             connectedChannels.push_back(channel);
         }
     }
@@ -245,6 +245,7 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
         }
     } else {
         // should not happen
+        std::invalid_argument("This error should not occurr.");
     }
 }
 
@@ -261,8 +262,8 @@ const std::vector<Droplet<T>*>& Droplet<T>::getMergedDroplets() const {
 ///--------------------------DropletBoundary------------------------------------///
 
 template<typename T>
-DropletBoundary<T>::DropletBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNode0, BoundaryState state) : 
-    channelPosition(channel, position), volumeTowardsNode0(volumeTowardsNode0), state(state) { }
+DropletBoundary<T>::DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNode0, BoundaryState state) : 
+    channelPosition(channel, position), volumeTowardsNodeA(volumeTowardsNodeA), state(state) { }
 
 template<typename T>
 arch::ChannelPosition<T>& DropletBoundary<T>::getChannelPosition() {
@@ -275,8 +276,8 @@ T DropletBoundary<T>::getFlowRate() const {
 }
 
 template<typename T>
-bool DropletBoundary<T>::isVolumeTowardsNode0() const {
-    return volumeTowardsNode0;
+bool DropletBoundary<T>::isVolumeTowardsNodeA() const {
+    return volumeTowardsNodeA;
 }
 
 template<typename T>
@@ -290,8 +291,8 @@ void DropletBoundary<T>::setFlowRate(T flowRate) {
 }
 
 template<typename T>
-void DropletBoundary<T>::setVolumeTowardsNode0(bool volumeTowardsNode0) {
-    this->volumeTowardsNode0 = volumeTowardsNode0;
+void DropletBoundary<T>::setVolumeTowardsNodeA(bool volumeTowardsNodeA) {
+    this->volumeTowardsNodeA = volumeTowardsNodeA;
 }
 
 template<typename T>
@@ -300,20 +301,38 @@ void DropletBoundary<T>::setState(BoundaryState state) {
 }
 
 template<typename T>
-arch::Node<T>* DropletBoundary<T>::getReferenceNode() {
-    if (volumeTowardsNode0) {
-        return channelPosition.getChannel()->getNode0();
+arch::Node<T>* DropletBoundary<T>::getReferenceNode(arch::Network<T>* network) {
+    if (volumeTowardsNodeA) {
+        return network->getNode(channelPosition.getChannel()->getNodeA()).get();
     } else {
-        return channelPosition.getChannel()->getNode1();
+        return network->getNode(channelPosition.getChannel()->getNodeB()).get();
     }
 }
 
 template<typename T>
-arch::Node<T>* DropletBoundary<T>::getOppositeReferenceNode() {
-    if (volumeTowardsNode0) {
-        return channelPosition.getChannel()->getNode1();
+int DropletBoundary<T>::getReferenceNode() {
+    if (volumeTowardsNodeA) {
+        return channelPosition.getChannel()->getNodeA();
     } else {
-        return channelPosition.getChannel()->getNode0();
+        return channelPosition.getChannel()->getNodeB();
+    }
+}
+
+template<typename T>
+arch::Node<T>* DropletBoundary<T>::getOppositeReferenceNode(arch::Network<T>* network) {
+    if (volumeTowardsNodeA) {
+        return network->getNode(channelPosition.getChannel()->getNodeB()).get();
+    } else {
+        return network->getNode(channelPosition.getChannel()->getNodeA()).get();
+    }
+}
+
+template<typename T>
+int DropletBoundary<T>::getOppositeReferenceNode() {
+    if (volumeTowardsNodeA) {
+        return channelPosition.getChannel()->getNodeB();
+    } else {
+        return channelPosition.getChannel()->getNodeA();
     }
 }
 
@@ -323,17 +342,17 @@ T DropletBoundary<T>::getRemainingVolume() {
 
     if (flowRate < 0) {
         // boundary moves towards the droplet center
-        if (volumeTowardsNode0) {
-            volume = channelPosition.getVolume0();
+        if (volumeTowardsNodeA) {
+            volume = channelPosition.getVolumeA();
         } else {
-            volume = channelPosition.getVolume1();
+            volume = channelPosition.getVolumeB();
         }
     } else if (flowRate > 0) {
         // boundary moves away from the droplet center
-        if (volumeTowardsNode0) {
-            volume = channelPosition.getVolume1();
+        if (volumeTowardsNodeA) {
+            volume = channelPosition.getVolumeB();
         } else {
-            volume = channelPosition.getVolume0();
+            volume = channelPosition.getVolumeA();
         }
     }
 
@@ -342,17 +361,17 @@ T DropletBoundary<T>::getRemainingVolume() {
 
 template<typename T>
 T DropletBoundary<T>::getVolume() {
-    if (volumeTowardsNode0) {
-        return channelPosition.getVolume0();
+    if (volumeTowardsNodeA) {
+        return channelPosition.getVolumeA();
     } else {
-        return channelPosition.getVolume1();
+        return channelPosition.getVolumeB();
     }
 }
 
 template<typename T>
 T DropletBoundary<T>::getChannelFlowRate() {
     T flowRate = channelPosition.getChannel()->getFlowRate();
-    if (volumeTowardsNode0) {
+    if (volumeTowardsNodeA) {
         return flowRate;
     } else {
         return -flowRate;
@@ -375,7 +394,7 @@ T DropletBoundary<T>::getTime() {
 template<typename T>
 void DropletBoundary<T>::moveBoundary(T timeStep) {
     // check in which direction the volume goes
-    if (volumeTowardsNode0) {
+    if (volumeTowardsNodeA) {
         // positive flow rate indicates an outflow (movement towards node1) and, thus, the position inside the channel must increase
         // negative flow rate indicates an inflow (movement towards node0) and, thus, the position inside the channel must decrease
         channelPosition.addToPosition(flowRate * timeStep);
@@ -419,7 +438,7 @@ void DropletBoundary<T>::updateWaitState(arch::Network<T> const& network) {
 
         // if the flow rate did not change, then check for valid channels
         auto boundaryChannel = channelPosition.getChannel();
-        int nodeId = isVolumeTowardsNode0() ? boundaryChannel->getNode1()->getId() : boundaryChannel->getNode0()->getId();
+        int nodeId = isVolumeTowardsNodeA() ? boundaryChannel->getNodeB() : boundaryChannel->getNodeA();
         for (auto& channel : network.getChannelsAtNode(nodeId)) {
             // do not consider boundary channel or channel that is not a Normal one
             if (channel == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {
@@ -427,7 +446,7 @@ void DropletBoundary<T>::updateWaitState(arch::Network<T> const& network) {
             }
 
             // check if a channel exists with an outflow (flow rate goes away from the node)
-            T flowRate = nodeId == channel->getNode0()->getId() ? channel->getFlowRate() : -channel->getFlowRate();
+            T flowRate = nodeId == channel->getNodeA() ? channel->getFlowRate() : -channel->getFlowRate();
             if (flowRate > 0) {
                 state = BoundaryState::NORMAL;
                 return;

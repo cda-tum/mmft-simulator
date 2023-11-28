@@ -42,7 +42,7 @@ template<typename T>
 class DropletBoundary {
   private:
     arch::ChannelPosition<T> channelPosition;   ///< Channel position of the boundary.
-    bool volumeTowardsNode0;                    ///< Direction in which the volume of the boundary is located (true if it is towards node0).
+    bool volumeTowardsNodeA;                    ///< Direction in which the volume of the boundary is located (true if it is towards node0).
     T flowRate;                                 ///< Flow rate of the boundary (if <0 the boundary moves towards the droplet center, >0 otherwise).
     BoundaryState state;                        ///< Current status of the boundary
 
@@ -51,10 +51,10 @@ class DropletBoundary {
      * @brief Construct a new droplet boundary
      * @param channel Channel of the boundary.
      * @param position Position of the boundary within the channel.
-     * @param volumeTowardsNode0 Direction in which the volume of the boundary is located (true if it is towards node0).
+     * @param volumeTowardsNodeA Direction in which the volume of the boundary is located (true if it is towards node0).
      * @param state State in which the boundary is in.
      */
-    DropletBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNode0, BoundaryState state);
+    DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
     /**
      * @brief Get the channel position of the boundary.
@@ -72,7 +72,7 @@ class DropletBoundary {
      * @brief Get the direction in which the volume of the boundary is located.
      * @return true if the volume of the droplet lies between the boundary and node0 and false if it lies in the direction of node1.
      */
-    bool isVolumeTowardsNode0() const;
+    bool isVolumeTowardsNodeA() const;
 
     /**
      * @brief Get the state in which the boundary is currently in.
@@ -88,9 +88,9 @@ class DropletBoundary {
 
     /**
      * @brief Set the direction in which the volume of the boundary is located.
-     * @param volumeTowardsNode0 Set to true if the droplet volume lies between the boundary and node0, otherwise set to false.
+     * @param volumeTowardsNodeA Set to true if the droplet volume lies between the boundary and node0, otherwise set to false.
      */
-    void setVolumeTowardsNode0(bool volumeTowardsNode0);
+    void setVolumeTowardsNodeA(bool volumeTowardsNodeA);
 
     /**
      * @brief Set the state of the boundary.
@@ -102,13 +102,25 @@ class DropletBoundary {
      * @brief Get the reference node of the boundary, which is the node that "touches" the droplet volume (i.e., if volumeTowardsNode0==true, then node0, otherwise node1)
      * @return Reference node of the boundary.
      */
-    arch::Node<T>* getReferenceNode();
+    arch::Node<T>* getReferenceNode(arch::Network<T>* network);
+
+    /**
+     * @brief Get the reference node of the boundary, which is the node that "touches" the droplet volume (i.e., if volumeTowardsNode0==true, then node0, otherwise node1)
+     * @return Reference node of the boundary.
+     */
+    int getReferenceNode();
 
     /**
      * @brief Get the opposite reference node of the boundary, which is the node that does not "touch" the droplet volume (i.e., if volumeTowardsNode0==true, then node1, otherwise node0)
      * @return Opposite reference node of the boundary.
      */
-    arch::Node<T>* getOppositeReferenceNode();
+    arch::Node<T>* getOppositeReferenceNode(arch::Network<T>* network);
+
+    /**
+     * @brief Get the opposite reference node of the boundary, which is the node that does not "touch" the droplet volume (i.e., if volumeTowardsNode0==true, then node1, otherwise node0)
+     * @return Opposite reference node of the boundary.
+     */
+    int getOppositeReferenceNode();
 
     /**
      * @brief Get the remaining volume between the boundary and the destination node, towards which the boundary is currently flowing.
@@ -182,7 +194,7 @@ class Droplet {
     std::vector<Droplet<T>*> mergedDroplets;              ///< List of previous droplets, if this droplet got merged.
     DropletState dropletState = DropletState::INJECTION;  ///< Current state of the droplet
     std::vector<std::unique_ptr<DropletBoundary<T>>> boundaries;
-    std::vector<arch::Channel<T>*> channels;              ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
+    std::vector<arch::RectangularChannel<T>*> channels;              ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
 
   public:
     /**
@@ -245,7 +257,7 @@ class Droplet {
      * @brief Add the resistance the droplet causes to the channels it currently occupies.
      * @param[in] model The resistance model on which basis the resistance caused by the droplet is calculated.
      */
-    void addDropletResistance(const ResistanceModel1D<T>& model);
+    void addDropletResistance(const ResistanceModel<T>& model);
 
     /**
      * @brief Get the Boundaries object
@@ -257,7 +269,7 @@ class Droplet {
      * @brief Get all fully occupied channels
      * @return all fully occupied channels
      */
-    std::vector<arch::Channel<T>*>& getFullyOccupiedChannels();
+    std::vector<arch::RectangularChannel<T>*>& getFullyOccupiedChannels();
 
     /**
      * @brief If the droplet currently is at a bifurcation
@@ -277,16 +289,16 @@ class Droplet {
      * @brief Add a boundary to the boundary list of the droplet
      * @param channel Channel
      * @param position Position within channel
-     * @param volumeTowardsNode0 Direction in which the droplet lies within the channel (in regards to node0)
+     * @param volumeTowardsNodeA Direction in which the droplet lies within the channel (in regards to node0)
      * @param state State the boundary is in
      */
-    void addBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNode0, BoundaryState state);
+    void addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
     /**
      * @brief Add fully occupied channel to the fully occupied channel list.
      * @param channel New fully occupied channel.
      */
-    void addFullyOccupiedChannel(arch::Channel<T>* channel);
+    void addFullyOccupiedChannel(arch::RectangularChannel<T>* channel);
 
     /**
      * @brief Remove boundary from the boundary list.
@@ -313,7 +325,7 @@ class Droplet {
      * @param nodeId Id of the node
      * @return List of connected fully occupied channels
      */
-    std::vector<arch::Channel<T>*> getConnectedFullyOccupiedChannels(int nodeId);
+    std::vector<arch::RectangularChannel<T>*> getConnectedFullyOccupiedChannels(int nodeId);
 
     /**
      * @brief Update the flow-rates of the droplet boundaries according to the flowRates inside the channels

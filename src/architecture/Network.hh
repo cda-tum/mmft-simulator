@@ -96,7 +96,6 @@ namespace arch {
                         line_segments.emplace_back(std::move(addLineSeg));
                     } else if (piece.contains("arc")) {
                         if (piece["arc"]["start"] == 0) {
-                            std::cout << "Getting here...8" << std::endl;
                             start[0] = nodes.at(channel["nA"])->getPosition()[0];
                             start[1] = nodes.at(channel["nA"])->getPosition()[1];
                             end[0] = piece["arc"]["end"][0];
@@ -162,10 +161,10 @@ namespace arch {
     template<typename T>
     void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels) {
         const auto net = reach.at(id);
+        visitedNodes.at(id) = true;
         for (auto channel : net) {
             if (!(channel->getChannelType() == ChannelType::CLOGGABLE)) {
-                visitedNodes.at(id) = true;
-                if (visitedNodes.at(id) == false) {
+                if (visitedChannels.at(channel->getId()) == false) {
                     visitedChannels.at(channel->getId()) = true;
                     if (channel->getNodeA() != id) {
                         visitNodes(channel->getNodeA(), visitedNodes, visitedChannels);
@@ -351,7 +350,7 @@ namespace arch {
     }
 
     template<typename T>
-    Channel<T>* Network<T>::getChannel(int channelId_) const {
+    RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
         return channels.at(channelId_).get();
     }
 
@@ -412,13 +411,14 @@ namespace arch {
         for (auto& [key, channel] : channels) {
             edges.emplace_back(channel.get());
         }
+        /*
         for (auto& [key, pump] : pressurePumps) {
             edges.emplace_back(pump.get());
         }
         for (auto& [key, pump] : flowRatePumps) {
             edges.emplace_back(pump.get());
         }
-        
+        */
         while(!nodeVector.empty()){
             std::queue<int> connectedNodes;
             std::unordered_set<int> nodeIds;
@@ -484,8 +484,21 @@ namespace arch {
     bool Network<T>::isNetworkValid() {
         // checks if all nodes and channels are connected to ground (if channel network is one graph)
         std::unordered_map<int, bool> visitedNodes;
-        std::unordered_map<int, bool> visitedChannels;
+        std::unordered_map<int, bool> visitedEdges;
 
+        std::unordered_map<int, Edge<T>*> edges;
+
+        for (auto& [key, channel] : channels) {
+            edges.try_emplace(key, channel.get());
+        }
+        /*
+        for (auto& [key, pump] : pressurePumps) {
+            edges.try_emplace(key, pump.get());
+        }
+        for (auto& [key, pump] : flowRatePumps) {
+            edges.try_emplace(key, pump.get());
+        }
+        */
         if (nodes.size() == 0) {
             throw std::invalid_argument("No nodes in network.");
         }
@@ -505,12 +518,12 @@ namespace arch {
         for (auto const& [k, v] : nodes) {
             visitedNodes[k] = false;
         }
-        for (auto const& [k, v] : channels) {
-            visitedChannels[k] = false;
+        for (auto const& [k, v] : edges) {
+            visitedEdges[k] = false;
         }
 
         for (auto& node : groundNodes) {
-            visitNodes(node->getId(), visitedNodes, visitedChannels);
+            visitNodes(node->getId(), visitedNodes, visitedEdges);
         }
 
         std::string errorNodes = "";
@@ -527,7 +540,7 @@ namespace arch {
                     connections +=1 ;
                 }
             }
-            if (connections <= 1 && !getGroundIds().count(k)) {
+            if (connections <= 1 && !v->getGround()) {
                 errorNodes.append(" " + std::to_string(k));
             }
         }
@@ -542,15 +555,15 @@ namespace arch {
                 errorNodes.append(" " + std::to_string(k));
             }
         }
-        std::string errorChannels = "";
-        for (auto const& [k, v] : channels) {
-            if (visitedChannels[k] == false) {
-                errorChannels.append(" " + std::to_string(k));
+        std::string errorEdges = "";
+        for (auto const& [k, v] : edges) {
+            if (visitedEdges[k] == false) {
+                errorEdges.append(" " + std::to_string(k));
             }
         }
 
-        if (errorNodes.length() != 0 || errorChannels.length() != 0) {
-            throw std::invalid_argument("Chip is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following channels are not connected to ground: " + errorChannels);
+        if (errorNodes.length() != 0 || errorEdges.length() != 0) {
+            throw std::invalid_argument("Chip is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: " + errorEdges);
             return false;
         }
 

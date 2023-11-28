@@ -216,7 +216,19 @@ namespace porting {
         }
 
         // Import resistance model
-        sim::ResistanceModelPoiseuille<T>* resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+        sim::ResistanceModel<T>* resistanceModel; 
+        if (jsonString["simulation"].contains("resistanceModel")) {
+            if (jsonString["simulation"]["resistanceModel"] == "1D") {
+                resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
+            } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
+                resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+            } else {
+                throw std::invalid_argument("Invalid resistance model.");
+            }
+        } else {
+            throw std::invalid_argument("No resistance model defined.");
+        }
+        
         simulation.setResistanceModel(resistanceModel);
 
         simulation.setNetwork(network_);

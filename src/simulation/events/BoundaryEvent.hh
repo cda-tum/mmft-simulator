@@ -21,20 +21,20 @@ void BoundaryHeadEvent<T>::performEvent() {
     auto boundaryChannel = boundary.getChannelPosition().getChannel();
 
     // get correct node (is the opposite node of the boundary reference node inside the channel)
-    arch::Node<T>* node = boundary.isVolumeTowardsNode0() ? boundaryChannel->getNode1() : boundaryChannel->getNode0();
+    int node = boundary.isVolumeTowardsNodeA() ? boundaryChannel->getNodeB() : boundaryChannel->getNodeA();
 
     // if this node is a sink then remove the whole droplet from the network
-    if ((network.isSink(node->getId()))) {
+    if ((network.isSink(node))) {
         droplet.setDropletState(DropletState::SINK);
         return;
     }
 
     // get next channels
-    std::vector<arch::Channel<T>*> nextChannels = network.getChannelsAtNode(node->getId());
+    std::vector<arch::RectangularChannel<T>*> nextChannels = network.getChannelsAtNode(node);
 
     // choose branch with the highest instantaneous flow rate
     T maxFlowRate;
-    arch::Channel<T>* nextChannel = nullptr;
+    arch::RectangularChannel<T>* nextChannel = nullptr;
     for (auto* channel : nextChannels) {
         // do not consider the boundary channel and only consider Normal channels
         if (channel == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {
@@ -42,7 +42,7 @@ void BoundaryHeadEvent<T>::performEvent() {
         }
 
         // get the correct direction of the flow rate, where a positive flow rate means an outflow (away from the droplet center)
-        T flowRate = channel->getNode0() == node ? channel->getFlowRate() : -(channel->getFlowRate());
+        T flowRate = channel->getNodeA() == node ? channel->getFlowRate() : -(channel->getFlowRate());
 
         // only consider channels with a positive flow rate
         if (flowRate <= 0) {
@@ -68,13 +68,13 @@ void BoundaryHeadEvent<T>::performEvent() {
     }
 
     // get new position (is either 0.0 or 1.0, depending on if node0 or node1 of the nextChannel is the referenceNode)
-    T channelPosition = nextChannel->getNode0() == node ? 0.0 : 1.0;
-    bool volumeTowardsNode0 = nextChannel->getNode0() == node;
+    T channelPosition = nextChannel->getNodeA() == node ? 0.0 : 1.0;
+    bool volumeTowardsNodeA = nextChannel->getNodeA() == node;
 
     // set new channel, position, direction of volume, and state of the boundary
     boundary.getChannelPosition().setChannel(nextChannel);
     boundary.getChannelPosition().setPosition(channelPosition);
-    boundary.setVolumeTowardsNode0(volumeTowardsNode0);
+    boundary.setVolumeTowardsNodeA(volumeTowardsNodeA);
     boundary.setState(BoundaryState::NORMAL);
 }
 
@@ -88,8 +88,8 @@ void BoundaryTailEvent<T>::performEvent() {
     auto referenceNode = boundary.getReferenceNode();
 
     // get the other boundaries and fully occupied channels inside this droplet that have the same reference node
-    auto boundaries = droplet.getConnectedBoundaries(referenceNode->getId(), &boundary);  // do not consider the actual boundary
-    auto fullyOccupiedChannels = droplet.getConnectedFullyOccupiedChannels(referenceNode->getId());
+    auto boundaries = droplet.getConnectedBoundaries(referenceNode, &boundary);  // do not consider the actual boundary
+    auto fullyOccupiedChannels = droplet.getConnectedFullyOccupiedChannels(referenceNode);
 
     // if more than a single entity (boundary or fully occupied channel) is present, then remove the boundary, otherwise switch the channel
     if (boundaries.size() + fullyOccupiedChannels.size() == 1) {
@@ -99,13 +99,13 @@ void BoundaryTailEvent<T>::performEvent() {
         auto nextChannel = boundaries.size() == 1 ? boundaries[0]->getChannelPosition().getChannel() : fullyOccupiedChannels[0];
 
         // get new position (is either 0.0 or 1.0, depending on if node0 or node1 of the nextChannel is the referenceNode)
-        T channelPosition = nextChannel->getNode0() == referenceNode ? 0.0 : 1.0;
-        bool volumeTowardsNode0 = nextChannel->getNode0() != referenceNode;
+        T channelPosition = nextChannel->getNodeA() == referenceNode ? 0.0 : 1.0;
+        bool volumeTowardsNodeA = nextChannel->getNodeA() != referenceNode;
 
         // set new channel, position, direction of volume, and state of the boundary
         boundary.getChannelPosition().setChannel(nextChannel);
         boundary.getChannelPosition().setPosition(channelPosition);
-        boundary.setVolumeTowardsNode0(volumeTowardsNode0);
+        boundary.setVolumeTowardsNodeA(volumeTowardsNodeA);
         boundary.setState(BoundaryState::NORMAL);
 
         // remove fully occupied channel if present

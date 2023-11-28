@@ -256,7 +256,7 @@ class Network {
     /**
      * @brief Get a pointer to the channel with the specific id.
     */
-    Channel<T>* getChannel(int channelId) const;
+    RectangularChannel<T>* getChannel(int channelId) const;
 
     /**
      * @brief Get the channels of the network.

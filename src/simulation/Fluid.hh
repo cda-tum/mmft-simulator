@@ -42,4 +42,14 @@ T Fluid<T>::getConcentration() const {
     return concentration;
 }
 
+template<typename T>
+void Fluid<T>::addMixedFluid(Fluid<T>* fluid) {
+    mixedFluids.push_back(fluid);
+}
+
+template<typename T>
+const std::vector<Fluid<T>*>& Fluid<T>::getMixedFluids() const {
+    return mixedFluids;
+}
+
 }  // namespace sim

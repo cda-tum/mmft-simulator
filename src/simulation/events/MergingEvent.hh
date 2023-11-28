@@ -22,7 +22,7 @@ void MergeBifurcationEvent<T>::performEvent() {
         }
 
         // add boundary
-        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNode0(), boundary->getState());
+        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNodeA(), boundary->getState());
     }
 
     // add fully occupied channels from droplet0
@@ -32,7 +32,7 @@ void MergeBifurcationEvent<T>::performEvent() {
 
     // add boundaries from droplet1
     for (auto& boundary : droplet1.getBoundaries()) {
-        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNode0(), boundary->getState());
+        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNodeA(), boundary->getState());
     }
 
     // add fully occupied channels from droplet1
@@ -67,7 +67,7 @@ void MergeChannelEvent<T>::performEvent() {
         }
 
         // add boundary
-        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNode0(), boundary->getState());
+        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNodeA(), boundary->getState());
     }
 
     // add fully occupied channels from droplet0
@@ -83,7 +83,7 @@ void MergeChannelEvent<T>::performEvent() {
         }
 
         // add boundary
-        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNode0(), boundary->getState());
+        newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNodeA(), boundary->getState());
     }
 
     // add fully occupied channels from droplet1

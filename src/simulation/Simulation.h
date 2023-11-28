@@ -47,13 +47,17 @@ namespace sim {
             std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
             std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
             std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
-            ResistanceModelPoiseuille<T>* resistanceModel;                                    ///< The resistance model used for te simulation.
+            ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for te simulation.
             int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
+            int iteration = 0;
+            int maxIterations = 1e5;
+            T maximalAdaptiveTimeStep = 0;                                                      ///< Maximal adaptive time step that is applied when droplets change the channel.
             T time = 0.0;                                                                       ///< Current time of the simulation.
             T dt = 0.01;
             T writeInterval = 0.1;
             T tMax = 100;
             bool eventBasedWriting = false;
+            bool dropletsAtBifurcation = false;                                  ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
             std::unique_ptr<result::SimulationResult<T>> simulationResult;
 
             /**
@@ -90,7 +94,7 @@ namespace sim {
             void storeSimulationResults(result::SimulationResult<T>& result);
 
             /**
-             * TODO
+             * @brief Store the current simulation state in simulationResult.
             */
             void saveState();
 
@@ -161,7 +165,7 @@ namespace sim {
              * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
              * @param[in] model The resistance model to be used.
              */
-            void setResistanceModel(ResistanceModelPoiseuille<T>* model);
+            void setResistanceModel(ResistanceModel<T>* model);
 
             /**
              * @brief Get the network.

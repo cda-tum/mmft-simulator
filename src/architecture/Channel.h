@@ -67,6 +67,7 @@ namespace arch{
             T area = 0;                                 ///< Area of the channel cross-section in m^2.
             T pressure = 0;                             ///< Pressure of a channel in Pa.
             T channelResistance = 0;                    ///< Resistance of a channel in Pas/L.
+            T dropletResistance = 0;                    ///< Additional resistance of present droplets in the channel in Pas/L.
             ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular.
             ChannelType type = ChannelType::NORMAL;     ///< What kind of channel it is.
             
@@ -112,6 +113,18 @@ namespace arch{
              * @param[in] channelResistance Resistance of a channel without droplets in Pas/L.
              */
             void setResistance(T channelResistance);
+
+            /**
+             * @brief Set resistance caused by droplets within channel.
+             * @param[in] dropletResistance Resistance caused by droplets within channel in Pas/L.
+             */
+            void setDropletResistance(T dropletResistance);
+
+            /**
+             * @brief Add resistance caused by a droplet to droplet resistance of channel that is caused by all droplets currently in the channel.
+             * @param[in] dropletResistance Resistance caused by a droplet in Pas/L.
+             */
+            void addDropletResistance(T dropletResistance);
 
             /**
              * @brief Set which kind of channel it is.

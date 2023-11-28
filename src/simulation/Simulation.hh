@@ -58,6 +58,7 @@ namespace sim {
         if (dropletLength >= 1.0) {
             throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel " + std::to_string(channel->getId()) + " is not valid. Channel must be able to fully contain the droplet.");
         }
+        
         // compute tail and head position of the droplet
         T tail = (injectionPosition - dropletLength / 2);
         T head = (injectionPosition + dropletLength / 2);
@@ -97,7 +98,7 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setResistanceModel(ResistanceModelPoiseuille<T>* model_) {
+    void Simulation<T>::setResistanceModel(ResistanceModel<T>* model_) {
         this->resistanceModel = model_;
     }
 
@@ -235,37 +236,122 @@ namespace sim {
         std::cout << "Getting here...2" << std::endl;
         //printResults();
 
-        if (network->getModules().size() > 0 ) {
-            bool allConverged = false;
-            bool pressureConverged = false;
+        // Continuous Hybrid simulation
+        if (this->simType == Type::HYBRID && this->platform == Platform::CONTINUOUS) {
+            if (network->getModules().size() > 0 ) {
+                bool allConverged = false;
+                bool pressureConverged = false;
 
-            std::cout << "Getting here...3" << std::endl;
+                // Initialization of CFD domains
+                while (! allConverged) {
+                    allConverged = conductCFDSimulation(this->network, 1);
+                }
 
-            // Initialization of CFD domains
-            while (! allConverged) {
-                allConverged = conductCFDSimulation(this->network, 1);
+                while (! allConverged || !pressureConverged) {
+                    //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
+
+                    // conduct CFD simulations
+                    //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
+                    allConverged = conductCFDSimulation(this->network, 10);
+                
+                    // compute nodal analysis again
+                    //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
+                    pressureConverged = nodal::conductNodalAnalysis(this->network);
+
+                }
+
+                #ifdef VERBOSE     
+                    if (pressureConverged && allConverged) {
+                        std::cout << "[Simulation] All pressures have converged." << std::endl;
+                    } 
+                    printResults();
+                #endif
             }
-
-            while (! allConverged || !pressureConverged) {
-                //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
-
-                // conduct CFD simulations
-                //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                allConverged = conductCFDSimulation(this->network, 10);
-            
-                // compute nodal analysis again
-                //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                pressureConverged = nodal::conductNodalAnalysis(this->network);
-
-            }
-            std::cout << "Getting here...4" << std::endl;
-            #ifdef VERBOSE     
-                if (pressureConverged && allConverged) {
-                    std::cout << "[Simulation] All pressures have converged." << std::endl;
-                } 
-                printResults();
-            #endif
         }
+
+        // 1D Droplet simulation
+        // ##########
+        // Simulation Loop
+        // ##########
+        // * update droplet resistances
+        // * conduct nodal analysis
+        // * update droplets (flow rates of boundaries)
+        // * compute events
+        // * search for next event (break if no event is left)
+        // * move droplets
+        // * perform event
+        if (simType == Type::_1D && platform == Platform::DROPLET) {
+
+            while (true) {
+                if (iteration >= maxIterations) {
+                    throw "Max iterations exceeded.";
+                }
+
+                std::cout << "Getting here...3" << std::endl;
+
+                // update droplet resistances (in the first iteration no  droplets are inside the network)
+                updateDropletResistances();
+
+                std::cout << "Getting here...4" << std::endl;
+
+                // compute nodal analysis
+                nodal::conductNodalAnalysis(network);
+
+                std::cout << "Getting here...5" << std::endl;
+
+                // update droplets, i.e., their boundary flow rates
+                // loop over all droplets
+                dropletsAtBifurcation = false;
+                for (auto& [key, droplet] : droplets) {
+                    // only consider droplets inside the network
+                    if (droplet->getDropletState() != DropletState::NETWORK) {
+                        continue;
+                    }
+
+                    // set to true if droplet is at bifurcation
+                    if (droplet->isAtBifurcation()) {
+                        dropletsAtBifurcation = true;
+                    }
+
+                    // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
+                    // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
+                    // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
+                    droplet->updateBoundaries(*network);
+                }
+
+                // store simulation results of current state
+                saveState();
+
+                // compute events
+                auto events = computeEvents();
+
+                // sort events
+                // closest events in time with the highest priority come first
+                std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
+                    if (a->getTime() == b->getTime()) {
+                        return a->getPriority() < b->getPriority();  // ascending order (the lower the priority value, the higher the priority)
+                    }
+                    return a->getTime() < b->getTime();  // ascending order
+                });
+
+                // get next event or break loop, if no events remain
+                Event<T>* nextEvent = nullptr;
+                if (events.size() != 0) {
+                    nextEvent = events[0].get();
+                } else {
+                    break;
+                }
+
+                // move droplets until event is reached
+                time += nextEvent->getTime();
+                moveDroplets(nextEvent->getTime());
+
+                nextEvent->performEvent();
+
+                iteration++;
+            }
+        }
+
         std::cout << "Getting here...5" << std::endl;
     }
 
@@ -293,7 +379,7 @@ namespace sim {
     template<typename T>
     void Simulation<T>::initialize() {
         // set resistance model
-        this->resistanceModel = new ResistanceModelPoiseuille(fluids[continuousPhase]->getViscosity());
+        this->resistanceModel = new ResistanceModel1D(fluids[continuousPhase]->getViscosity());
 
         // compute and set channel lengths
         #ifdef VERBOSE
@@ -314,48 +400,269 @@ namespace sim {
         for (auto& [key, channel] : network->getChannels()) {
             T resistance = resistanceModel->getChannelResistance(channel.get());
             channel->setResistance(resistance);
+            channel->setDropletResistance(0.0);
         }
 
-        for (auto& [key, module] : network->getModules()) {
-            module->lbmInit(fluids[continuousPhase]->getViscosity(),
-                            fluids[continuousPhase]->getDensity());
-        }
-
-        // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
-        for (auto& [modulekey, module] : network->getModules()) {
-            for (auto& [key, channel] : module->getNetwork()->getChannels()) {
-                //std::cout << "[Simulation] Channel " << channel->getId();
-                auto& nodeA = network->getNodes().at(channel->getNodeA());
-                auto& nodeB = network->getNodes().at(channel->getNodeB());
-                //std::cout << " has nodes " << nodeA->getId() << " and " << nodeB->getId();
-                T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
-                T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-                channel->setLength(sqrt(dx*dx + dy*dy));
-                //std::cout << " and a length of " << sqrt(dx*dx + dy*dy) <<std::endl;
+        if (this->simType == Type::HYBRID && this->platform == Platform::CONTINUOUS) {
+            
+            for (auto& [key, module] : network->getModules()) {
+                module->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
             }
-        }
-        // TODO: Also boilerplate code that can be done more efficiently
-        for (auto& [modulekey, module] : network->getModules()) {
-            for (auto& [key, channel] : module->getNetwork()->getChannels()) {
-                T resistance = resistanceModel->getChannelResistance(channel.get());
-                channel->setResistance(resistance);
+
+            // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
+            for (auto& [modulekey, module] : network->getModules()) {
+                for (auto& [key, channel] : module->getNetwork()->getChannels()) {
+                    //std::cout << "[Simulation] Channel " << channel->getId();
+                    auto& nodeA = network->getNodes().at(channel->getNodeA());
+                    auto& nodeB = network->getNodes().at(channel->getNodeB());
+                    //std::cout << " has nodes " << nodeA->getId() << " and " << nodeB->getId();
+                    T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
+                    T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
+                    channel->setLength(sqrt(dx*dx + dy*dy));
+                    //std::cout << " and a length of " << sqrt(dx*dx + dy*dy) <<std::endl;
+                }
             }
-        }
+            // TODO: Also boilerplate code that can be done more efficiently
+            for (auto& [modulekey, module] : network->getModules()) {
+                for (auto& [key, channel] : module->getNetwork()->getChannels()) {
+                    T resistance = resistanceModel->getChannelResistance(channel.get());
+                    channel->setResistance(resistance);
+                }
+            }
 
-        // compute nodal analysis
-        #ifdef VERBOSE
-            std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
-        #endif
-        nodal::conductNodalAnalysis(this->network);
+            // compute nodal analysis
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+            #endif
+            nodal::conductNodalAnalysis(this->network);
 
-        // Prepare CFD geometry and lattice
-        #ifdef VERBOSE
-            std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
-        #endif
+            // Prepare CFD geometry and lattice
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+            #endif
 
-        for (auto& [key, module] : network->getModules()) {
-            module->prepareGeometry();
-            module->prepareLattice();
+            for (auto& [key, module] : network->getModules()) {
+                module->prepareGeometry();
+                module->prepareLattice();
+            }
         }
     }
-}
+
+    template<typename T>
+    void Simulation<T>::updateDropletResistances() {
+        // set all droplet resistances of all channels to 0.0
+        for (auto& [key, channel] : network->getChannels()) {
+            channel->setDropletResistance(0.0);
+        }
+
+        // set correct droplet resistances
+        for (auto& [key, droplet] : droplets) {
+            // only consider droplets that are inside the network (i.e., also trapped droplets)
+            if (droplet->getDropletState() == DropletState::INJECTION || droplet->getDropletState() == DropletState::SINK) {
+                continue;
+            }
+
+            droplet->addDropletResistance(*resistanceModel);
+        }
+    }
+
+    template<typename T>
+    void Simulation<T>::saveState() {
+
+        std::unordered_map<int, T> savePressures;
+        std::unordered_map<int, T> saveFlowRates;
+        std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
+
+        // pressures
+        for (auto& [id, node] : network->getNodes()) {
+            savePressures.try_emplace(node->getId(), node->getPressure());
+        }
+
+        // flow rates
+        for (auto& [id, channel] : network->getChannels()) {
+            saveFlowRates.try_emplace(channel->getId(), channel->getFlowRate());
+        }
+        for (auto& [id, pump] : network->getFlowRatePumps()) {
+            saveFlowRates.try_emplace(pump->getId(), pump->getFlowRate());
+        }
+        for (auto& [id, pump] : network->getPressurePumps()) {
+            saveFlowRates.try_emplace(pump->getId(), pump->getFlowRate());
+        }
+
+        // droplet positions
+        for (auto& [id, droplet] : droplets) {
+            // create new droplet position
+            DropletPosition<T> newDropletPosition;
+
+            // add boundaries
+            for (auto& boundary : droplet->getBoundaries()) {
+                // get channel position
+                auto channelPosition = boundary->getChannelPosition();
+                // add boundary
+                newDropletPosition.boundaries.emplace_back(channelPosition.getChannel(), channelPosition.getPosition(), boundary->isVolumeTowardsNodeA(), static_cast<BoundaryState>(static_cast<int>(boundary->getState())));
+            }
+
+            // add fully occupied channels
+            for (auto& channel : droplet->getFullyOccupiedChannels()) {
+                // add channel
+                newDropletPosition.channelIds.emplace_back(channel->getId());
+            }
+            
+            saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
+        }
+
+        // state
+        simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
+    }
+
+    template<typename T>
+    void Simulation<T>::moveDroplets(T timeStep) {
+        // loop over all droplets
+        for (auto& [key, droplet] : droplets) {
+            // only consider droplets inside the network (but no trapped droplets)
+            if (droplet->getDropletState() != DropletState::NETWORK) {
+                continue;
+            }
+
+            // loop through boundaries
+            for (auto& boundary : droplet->getBoundaries()) {
+                // move boundary in correct direction
+                boundary->moveBoundary(timeStep);
+            }
+        }
+    }
+
+    template<typename T>
+    std::vector<std::unique_ptr<Event<T>>> Simulation<T>::computeEvents() {
+        // events
+        std::vector<std::unique_ptr<Event<T>>> events;
+
+        // injection events
+        for (auto& [key, injection] : dropletInjections) {
+            double injectionTime = injection->getInjectionTime();
+            if (injection->getDroplet()->getDropletState() == DropletState::INJECTION) {
+                events.push_back(std::make_unique<DropletInjectionEvent<T>>(injectionTime - time, *injection));
+            }
+        }
+
+        // define maps that are used for detecting merging inside channels
+        std::unordered_map<int, std::vector<DropletBoundary<T>*>> channelBoundariesMap;
+        std::unordered_map<DropletBoundary<T>*, Droplet<T>*> boundaryDropletMap;
+
+        for (auto& [key, droplet] : droplets) {
+            // only consider droplets inside the network (but no trapped droplets)
+            if (droplet->getDropletState() != DropletState::NETWORK) {
+                continue;
+            }
+
+            // loop through boundaries
+            for (auto& boundary : droplet->getBoundaries()) {
+                // the flow rate of the boundary indicates if the boundary moves towards or away from the droplet center and, hence, if a BoundaryTailEvent or BoundaryHeadEvent should occur, respectively
+                // if the flow rate of the boundary is 0, then no events will be triggered (the boundary may be in a Wait state)
+                if (boundary->getFlowRate() < 0) {
+                    // boundary moves towards the droplet center => BoundaryTailEvent
+                    double time = boundary->getTime();
+                    events.push_back(std::make_unique<BoundaryTailEvent<T>>(time, *droplet, *boundary, *network));
+                } else if (boundary->getFlowRate() > 0) {
+                    // boundary moves away from the droplet center => BoundaryHeadEvent
+                    double time = boundary->getTime();
+
+                    // in this scenario also a MergeBifurcationEvent can happen when merging is enabled
+                    // this means a boundary comes to a bifurcation where a droplet is already present
+                    // hence it is either a MergeBifurcationEvent or a BoundaryHeadEvent that will happen
+
+                    // check if merging is enabled
+                    Droplet<T>* mergeDroplet = nullptr;
+
+                    // find droplet to merge (if present)
+                    auto referenceNode = boundary->getOppositeReferenceNode(network);
+                    mergeDroplet = getDropletAtNode(referenceNode->getId());
+
+                    if (mergeDroplet == nullptr) {
+                        // no merging will happen => BoundaryHeadEvent
+                        if (!boundary->isInWaitState()) {
+                            events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *network));
+                        }
+                    } else {
+                        // merging of the actual droplet with the merge droplet will happen => MergeBifurcationEvent
+                        events.push_back(std::make_unique<MergeBifurcationEvent<T>>(time, *droplet, *boundary, *mergeDroplet, *this));
+                    }
+                }
+
+                // fill the maps which are later used for merging inside channels (if merging is enabled)
+                auto [value, success] = channelBoundariesMap.try_emplace(boundary->getChannelPosition().getChannel()->getId());
+                value->second.push_back(boundary.get());
+
+                boundaryDropletMap.emplace(boundary.get(), droplet.get());
+            }
+        }
+
+        // check for MergeChannelEvents, i.e, for boundaries of other droplets that are in the same channel
+        // here the previously defined maps are used => if merging is not enabled these maps are emtpy
+        // loop through channelsBoundariesMap
+        for (auto& [channelId, boundaries] : channelBoundariesMap) {
+            // loop through boundaries that are inside this channel
+            for (size_t i = 0; i < boundaries.size(); i++) {
+                // get reference boundary and droplet
+                auto referenceBoundary = boundaries[i];
+                auto referenceDroplet = boundaryDropletMap.at(referenceBoundary);
+
+                // get channel
+                auto channel = referenceBoundary->getChannelPosition().getChannel();
+
+                // get velocity and absolute position of the boundary
+                // positive values for v0 indicate a movement from node0 towards node1
+                auto q0 = referenceBoundary->isVolumeTowardsNodeA() ? referenceBoundary->getFlowRate() : -referenceBoundary->getFlowRate();
+                auto v0 = q0 / channel->getArea();
+                auto p0 = referenceBoundary->getChannelPosition().getPosition() * channel->getLength();
+
+                // compare reference boundary against all others
+                // the two loops are defined in such a way, that only one merge event happens for a pair of boundaries
+                for (size_t j = i + 1; j < boundaries.size(); j++) {
+                    auto boundary = boundaries[j];
+                    auto droplet = boundaryDropletMap.at(boundary);
+
+                    // do not consider if this boundary is form the same droplet
+                    if (droplet == referenceDroplet) {
+                        continue;
+                    }
+
+                    // get velocity and absolute position of the boundary
+                    // positive values for v0 indicate a movement from node0 towards node1
+                    auto q1 = boundary->isVolumeTowardsNodeA() ? boundary->getFlowRate() : -boundary->getFlowRate();
+                    auto v1 = q1 / channel->getArea();
+                    auto p1 = boundary->getChannelPosition().getPosition() * channel->getLength();
+
+                    // do not merge when both velocities are equal (would result in infinity time)
+                    if (v0 == v1) {
+                        continue;
+                    }
+
+                    // compute time and merge position
+                    auto time = (p1 - p0) / (v0 - v1);
+                    auto pMerge = p0 + v0 * time;  // or p1 + v1*time
+                    auto pMergeRelative = pMerge / channel->getLength();
+
+                    // do not trigger a merge event when:
+                    // * time is negative => indicates that both boundaries go in different directions or that one boundary cannot "outrun" the other because it is too slow
+                    // * relative merge position is outside the range of [0, 1] => the merging would happen "outside" the channel and a boundary would already switch a channel before this event could happen
+                    if (time < 0 || pMergeRelative < 0 || 1 < pMergeRelative) {
+                        continue;
+                    }
+
+                    // add MergeChannelEvent
+                    events.push_back(std::make_unique<MergeChannelEvent<T>>(time, *referenceDroplet, *referenceBoundary, *droplet, *boundary, *this));
+                }
+            }
+        }
+
+        // time step event
+        if (dropletsAtBifurcation && maximalAdaptiveTimeStep > 0) {
+            events.push_back(std::make_unique<TimeStepEvent<T>>(maximalAdaptiveTimeStep));
+        }
+
+        return events;
+    }
+
+}   /// namespace sim

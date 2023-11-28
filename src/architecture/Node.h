@@ -54,6 +54,12 @@ namespace arch {
         void setGround(bool ground);
 
         /**
+         * @brief Get the sink node role of the node.
+         * @returns Boolean value for sink role.
+        */
+        bool getSink();
+
+        /**
          * @brief Get the ground node role of the node.
          * @returns Boolean value for ground node role.
         */

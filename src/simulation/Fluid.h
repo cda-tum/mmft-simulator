@@ -80,13 +80,13 @@ class Fluid {
      * @brief Adds a fluid from which the current fluid was created by mixing.
      * @param fluid Pointer to fluid.
      */
-    void addMixedFluid(Fluid* fluid);
+    void addMixedFluid(Fluid<T>* fluid);
 
     /**
      * @brief Gets the list of fluids, that created the actual fluid due to mixing.
      * @return List of mixed fluids.
      */
-    const std::vector<Fluid*>& getMixedFluids() const;
+    const std::vector<Fluid<T>*>& getMixedFluids() const;
 
 };
 

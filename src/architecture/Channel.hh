@@ -105,6 +105,16 @@ namespace arch {
     }
 
     template<typename T>
+    void Channel<T>::setDropletResistance(T dropletResistance_) {
+        this->dropletResistance = dropletResistance_;
+    }
+
+    template<typename T>
+    void Channel<T>::addDropletResistance(T dropletResistance) {
+        this->dropletResistance += dropletResistance;
+    }
+
+    template<typename T>
     void Channel<T>::setChannelType(ChannelType type_) {
         this->type = type_;
     }

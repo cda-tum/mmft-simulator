@@ -33,7 +33,7 @@ class DropletInjection {
      * @param[in] channel Channel in which the droplet should be injected. The channel must be able to fully contain the droplet.
      * @param[in] injectionPosition Relative position (between 0.0 and 1.0) of the middle of the droplet in channel. Head and tail position must be in same channel.
      */
-    DropletInjection(int id, Droplet<T>* droplet, T injectionTime, arch::Channel<T>* channel, T injectionPosition);
+    DropletInjection(int id, Droplet<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition);
 
     /**
      * @brief Set name of injection.

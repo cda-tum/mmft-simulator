@@ -7,15 +7,19 @@
 
 namespace sim {
 
+// ### ResistanceModel ###
+template<typename T>
+ResistanceModel<T>::ResistanceModel(T continuousPhaseViscosity_) : continuousPhaseViscosity(continuousPhaseViscosity_) {}
+
 // ### ResistanceModel1D ###
 template<typename T>
-ResistanceModel1D<T>::ResistanceModel1D(T continuousPhaseViscosity_) : continuousPhaseViscosity(continuousPhaseViscosity_) {}
+ResistanceModel1D<T>::ResistanceModel1D(T continuousPhaseViscosity_) : ResistanceModel<T>(continuousPhaseViscosity_) {}
 
 template<typename T>
 T ResistanceModel1D<T>::getChannelResistance(arch::RectangularChannel<T> const* const channel) const {
     T a = computeFactorA(channel->getWidth(), channel->getHeight());
 
-    return channel->getLength() * a * continuousPhaseViscosity / (channel->getWidth() * pow(channel->getHeight(), 3));
+    return channel->getLength() * a * this->continuousPhaseViscosity / (channel->getWidth() * pow(channel->getHeight(), 3));
 }
 
 template<typename T>
@@ -24,22 +28,22 @@ T ResistanceModel1D<T>::computeFactorA(T width, T height) const {
 }
 
 template<typename T>
-T ResistanceModel1D<T>::getDropletResistance(arch::Channel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const {
+T ResistanceModel1D<T>::getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const {
     T a = computeFactorA(channel->getWidth(), channel->getHeight());
     T dropletLength = volumeInsideChannel / (channel->getWidth() * channel->getHeight());
 
-    return 3 * dropletLength * a * continuousPhaseViscosity / (channel->getWidth() * pow(channel->getHeight(), 3));
+    return 3 * dropletLength * a * this->continuousPhaseViscosity / (channel->getWidth() * pow(channel->getHeight(), 3));
 }
 
 // ### ResistanceModelPoiseuille ###
 template<typename T>
-ResistanceModelPoiseuille<T>::ResistanceModelPoiseuille(T continuousPhaseViscosity_) : continuousPhaseViscosity(continuousPhaseViscosity_) {}
+ResistanceModelPoiseuille<T>::ResistanceModelPoiseuille(T continuousPhaseViscosity_) : ResistanceModel<T>(continuousPhaseViscosity_) {}
 
 template<typename T>
 T ResistanceModelPoiseuille<T>::getChannelResistance(arch::RectangularChannel<T> const* const channel) const {
     T a = computeFactorA(channel->getWidth(), channel->getHeight());
 
-    return channel->getLength() * a * continuousPhaseViscosity / (channel->getHeight() * pow(channel->getWidth(), 3));
+    return channel->getLength() * a * this->continuousPhaseViscosity / (channel->getHeight() * pow(channel->getWidth(), 3));
 }
 
 template<typename T>
@@ -47,4 +51,8 @@ T ResistanceModelPoiseuille<T>::computeFactorA(T width, T height) const {
     return 12.;
 }
 
+template<typename T>
+T ResistanceModelPoiseuille<T>::getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const {
+    std::invalid_argument("The resistance model is not compatible with droplet simulations.");
+}
 }  // namespace sim
