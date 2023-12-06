@@ -37,6 +37,9 @@ T State<T>::getTime() const {
 }
 
 template<typename T>
+SimulationResult<T>::SimulationResult() { }
+
+template<typename T>
 SimulationResult<T>::SimulationResult(  arch::Network<T>* network_, 
                                         std::unordered_map<int, sim::Fluid<T>>* fluids_,
                                         std::unordered_map<int, sim::Droplet<T>>* droplets_) :

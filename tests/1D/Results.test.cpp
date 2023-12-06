@@ -16,12 +16,12 @@ TEST(Results, allResultValues) {
     testSimulation.setNetwork(&network);
 
     // nodes
-    auto node0 = network.addNode(0.0, 0.0, false);
     auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(0.0, 0.0, false);
-    auto node3 = network.addNode(0.0, 0.0, false);
-    auto node4 = network.addNode(0.0, 0.0, false);
-    auto node5 = network.addNode(0.0, 0.0, false);
+    auto node2 = network.addNode(1e-3, 0.0, false);
+    auto node3 = network.addNode(2e-3, 0.0, false);
+    auto node4 = network.addNode(2.5e-3, 0.86602540378e-3, false);
+    auto node5 = network.addNode(3e-3, 0.0, false);
+    auto node0 = network.addNode(4e-3, 0.0, false);
 
     // flowRate pump
     auto flowRate = 3e-11;
@@ -43,7 +43,6 @@ TEST(Results, allResultValues) {
     network.setSink(node0->getId());
     //--- ground ---
     network.setGround(node0->getId());
-    network.setGround(node1->getId());
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -58,6 +57,7 @@ TEST(Results, allResultValues) {
 
     // check if chip is valid
     network.isNetworkValid();
+    network.sortGroups();
 
     // simulate
     testSimulation.simulate();
@@ -75,54 +75,54 @@ TEST(Results, allResultValues) {
     ASSERT_EQ(network.getChannels().at(c1->getId())->getNodeB(), node2->getId());
     ASSERT_EQ(network.getChannels().at(c1->getId())->getWidth(), cWidth);
     ASSERT_EQ(network.getChannels().at(c1->getId())->getHeight(), cHeight);
-    ASSERT_EQ(network.getChannels().at(c1->getId())->getLength(), cLength);
+    ASSERT_NEAR(network.getChannels().at(c1->getId())->getLength(), cLength, 1e-16);
     ASSERT_EQ(network.getChannels().at(c1->getId())->getChannelType(), arch::ChannelType::NORMAL);
     ASSERT_EQ(network.getChannels().at(c2->getId())->getId(), c2->getId());
     ASSERT_EQ(network.getChannels().at(c2->getId())->getNodeA(), node2->getId());
     ASSERT_EQ(network.getChannels().at(c2->getId())->getNodeB(), node3->getId());
     ASSERT_EQ(network.getChannels().at(c2->getId())->getWidth(), cWidth);
     ASSERT_EQ(network.getChannels().at(c2->getId())->getHeight(), cHeight);
-    ASSERT_EQ(network.getChannels().at(c2->getId())->getLength(), cLength);
+    ASSERT_NEAR(network.getChannels().at(c2->getId())->getLength(), cLength, 1e-16);
     ASSERT_EQ(network.getChannels().at(c2->getId())->getChannelType(), arch::ChannelType::NORMAL);
     ASSERT_EQ(network.getChannels().at(c3->getId())->getId(), c3->getId());
     ASSERT_EQ(network.getChannels().at(c3->getId())->getNodeA(), node3->getId());
     ASSERT_EQ(network.getChannels().at(c3->getId())->getNodeB(), node4->getId());
     ASSERT_EQ(network.getChannels().at(c3->getId())->getWidth(), cWidth);
     ASSERT_EQ(network.getChannels().at(c3->getId())->getHeight(), cHeight);
-    ASSERT_EQ(network.getChannels().at(c3->getId())->getLength(), cLength);
+    ASSERT_NEAR(network.getChannels().at(c3->getId())->getLength(), cLength, 1e-12);
     ASSERT_EQ(network.getChannels().at(c3->getId())->getChannelType(), arch::ChannelType::NORMAL);
     ASSERT_EQ(network.getChannels().at(c4->getId())->getId(), c4->getId());
     ASSERT_EQ(network.getChannels().at(c4->getId())->getNodeA(), node3->getId());
     ASSERT_EQ(network.getChannels().at(c4->getId())->getNodeB(), node5->getId());
     ASSERT_EQ(network.getChannels().at(c4->getId())->getWidth(), cWidth);
     ASSERT_EQ(network.getChannels().at(c4->getId())->getHeight(), cHeight);
-    ASSERT_EQ(network.getChannels().at(c4->getId())->getLength(), cLength);
+    ASSERT_NEAR(network.getChannels().at(c4->getId())->getLength(), cLength, 1e-16);
     ASSERT_EQ(network.getChannels().at(c4->getId())->getChannelType(), arch::ChannelType::NORMAL);
     ASSERT_EQ(network.getChannels().at(c5->getId())->getId(), c5->getId());
     ASSERT_EQ(network.getChannels().at(c5->getId())->getNodeA(), node4->getId());
     ASSERT_EQ(network.getChannels().at(c5->getId())->getNodeB(), node5->getId());
     ASSERT_EQ(network.getChannels().at(c5->getId())->getWidth(), cWidth);
     ASSERT_EQ(network.getChannels().at(c5->getId())->getHeight(), cHeight);
-    ASSERT_EQ(network.getChannels().at(c5->getId())->getLength(), cLength);
+    ASSERT_NEAR(network.getChannels().at(c5->getId())->getLength(), cLength, 1e-12);
     ASSERT_EQ(network.getChannels().at(c5->getId())->getChannelType(), arch::ChannelType::NORMAL);
     ASSERT_EQ(network.getChannels().at(c6->getId())->getId(), c6->getId());
     ASSERT_EQ(network.getChannels().at(c6->getId())->getNodeA(), node5->getId());
     ASSERT_EQ(network.getChannels().at(c6->getId())->getNodeB(), node0->getId());
     ASSERT_EQ(network.getChannels().at(c6->getId())->getWidth(), cWidth);
     ASSERT_EQ(network.getChannels().at(c6->getId())->getHeight(), cHeight);
-    ASSERT_EQ(network.getChannels().at(c6->getId())->getLength(), cLength);
+    ASSERT_NEAR(network.getChannels().at(c6->getId())->getLength(), cLength, 1e-16);
     ASSERT_EQ(network.getChannels().at(c6->getId())->getChannelType(), arch::ChannelType::NORMAL);
 
     ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getId(), fluid0->getId());
     ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getName(), "");
     ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getViscosity(), 1e-3);
     ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getDensity(), 1e3);
-    ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getConcentration(), 0.0);
-    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getId(), fluid0->getId());
+    ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getConcentration(), 1.0);
+    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getId(), fluid1->getId());
     ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getName(), "");
     ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getViscosity(), 3e-3);
     ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getDensity(), 1e3);
-    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getConcentration(), 0.0);
+    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getConcentration(), 1.0);
 
     ASSERT_EQ(testSimulation.getDroplet(droplet0->getId())->getId(), droplet0->getId());
     ASSERT_EQ(testSimulation.getDroplet(droplet0->getId())->getName(), "");

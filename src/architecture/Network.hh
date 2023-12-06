@@ -203,7 +203,7 @@ namespace arch {
         auto nodeA = nodes.at(nodeAId);
         auto nodeB = nodes.at(nodeBId);
         auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-        auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, height, width);
+        auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, width, height);
 
         addChannel->setLength(length);
         addChannel->setChannelType(type);
@@ -536,7 +536,7 @@ namespace arch {
                 }
             }
             for (auto const& [key, pump] : flowRatePumps) {
-                if (pump->getNodeA() == k || pump->getNodeA() == k) {
+                if (pump->getNodeA() == k || pump->getNodeB() == k) {
                     connections +=1 ;
                 }
             }
@@ -546,7 +546,7 @@ namespace arch {
         }
 
         if (errorNodes.length() != 0) {
-            throw std::invalid_argument("Chip is invalid. The following nodes are dangling but not ground nodes: " + errorNodes + ". Please set these nodes to ground nodes." );
+            throw std::invalid_argument("Network is invalid. The following nodes are dangling but not ground nodes: " + errorNodes + ". Please set these nodes to ground nodes." );
             return false;
         }
 
@@ -563,7 +563,7 @@ namespace arch {
         }
 
         if (errorNodes.length() != 0 || errorEdges.length() != 0) {
-            throw std::invalid_argument("Chip is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: " + errorEdges);
+            throw std::invalid_argument("Network is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: " + errorEdges);
             return false;
         }
 

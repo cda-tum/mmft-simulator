@@ -141,7 +141,7 @@ namespace arch {
 
     template<typename T>
     T Channel<T>::getResistance() const {
-        return channelResistance;
+        return channelResistance + dropletResistance;
     }
 
     template<typename T>

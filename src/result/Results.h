@@ -88,6 +88,8 @@ struct SimulationResult {
     T maximalAdaptiveTimeStep;     /// Value for the maximal adaptive time step that was used.
     int resistanceModel;                /// Id of the used resistance model.
 
+    SimulationResult();
+
     SimulationResult(   arch::Network<T>* network, 
                         std::unordered_map<int, sim::Fluid<T>>* fluids, 
                         std::unordered_map<int, sim::Droplet<T>>* droplets);

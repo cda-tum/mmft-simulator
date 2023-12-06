@@ -23,13 +23,15 @@
 namespace sim {
 
     template<typename T>
-    Simulation<T>::Simulation() {}
+    Simulation<T>::Simulation() {
+        this->simulationResult = std::make_unique<result::SimulationResult<T>>();
+    }
 
     template<typename T>
     Fluid<T>* Simulation<T>::addFluid(T viscosity, T density, T concentration) {
         auto id = fluids.size();
 
-        auto result = fluids.insert_or_assign(id, std::make_unique<Fluid<T>>(id, viscosity, density, concentration));
+        auto result = fluids.insert_or_assign(id, std::make_unique<Fluid<T>>(id, density, viscosity, concentration));
 
         return result.first->second.get();
     }
@@ -228,12 +230,9 @@ namespace sim {
     template<typename T>
     void Simulation<T>::simulate() {
 
-        std::cout << "Getting here...1" << std::endl;
-
         // initialize the simulation
         initialize();
 
-        std::cout << "Getting here...2" << std::endl;
         //printResults();
 
         // Continuous Hybrid simulation
@@ -287,17 +286,13 @@ namespace sim {
                     throw "Max iterations exceeded.";
                 }
 
-                std::cout << "Getting here...3" << std::endl;
+                std::cout << "Iteration " << iteration << std::endl;
 
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
                 updateDropletResistances();
 
-                std::cout << "Getting here...4" << std::endl;
-
                 // compute nodal analysis
                 nodal::conductNodalAnalysis(network);
-
-                std::cout << "Getting here...5" << std::endl;
 
                 // update droplets, i.e., their boundary flow rates
                 // loop over all droplets
@@ -352,7 +347,7 @@ namespace sim {
             }
         }
 
-        std::cout << "Getting here...5" << std::endl;
+        std::cout << "Getting here...end" << std::endl;
     }
 
     template<typename T>
@@ -508,7 +503,7 @@ namespace sim {
                 // add channel
                 newDropletPosition.channelIds.emplace_back(channel->getId());
             }
-            
+
             saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
         }
 
@@ -526,9 +521,30 @@ namespace sim {
             }
 
             // loop through boundaries
+            if (droplet->getDropletState() == DropletState::NETWORK) {
+                std::cout << "Droplet state: NETWORK " << std::endl;
+            }
+            std::cout << "Before movement" << std::endl;
+            for (auto& boundary : droplet->getBoundaries()) {
+                // move boundary in correct direction
+                std::cout << "droplet " << droplet->getId() << " has a boundary in channel " << 
+                boundary->getChannelPosition().getChannel()->getId() <<
+                " at position " << boundary->getChannelPosition().getPosition() << std::endl;
+            }
+
+            // loop through boundaries
             for (auto& boundary : droplet->getBoundaries()) {
                 // move boundary in correct direction
                 boundary->moveBoundary(timeStep);
+            }
+
+            // loop through boundaries
+            std::cout << "After movement" << std::endl; 
+            for (auto& boundary : droplet->getBoundaries()) {
+                // move boundary in correct direction               
+                std::cout << "droplet " << droplet->getId() << " has a boundary in channel " << 
+                boundary->getChannelPosition().getChannel()->getId() <<
+                " at position " << boundary->getChannelPosition().getPosition() << std::endl;
             }
         }
     }

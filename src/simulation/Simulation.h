@@ -58,7 +58,7 @@ namespace sim {
             T tMax = 100;
             bool eventBasedWriting = false;
             bool dropletsAtBifurcation = false;                                  ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
-            std::unique_ptr<result::SimulationResult<T>> simulationResult;
+            std::unique_ptr<result::SimulationResult<T>> simulationResult = nullptr;
 
             /**
              * @brief Initializes the resistance model and the channel resistances of the empty channels.
