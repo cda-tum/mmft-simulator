@@ -329,6 +329,13 @@ namespace sim {
                     return a->getTime() < b->getTime();  // ascending order
                 });
 
+                int test_size = events.size();
+
+                std::cout << "Number of events: " << std::to_string(test_size) << std::endl;
+                for (auto& event : events) {
+                    event->print();
+                }
+
                 // get next event or break loop, if no events remain
                 Event<T>* nextEvent = nullptr;
                 if (events.size() != 0) {

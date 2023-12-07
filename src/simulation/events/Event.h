@@ -44,6 +44,11 @@ class Event {
      * @brief Function that is called at the time of the event to perform the event.
      */
     virtual void performEvent() = 0;
+
+    /**
+     * @brief Function that prints the contents of this Event.
+    */
+    virtual void print() = 0;
 };
 
 /**
@@ -62,6 +67,13 @@ class TimeStepEvent : public Event<T> {
      * @brief Do nothing except for logging the event. As the event exists, the simulation will be forwarded to this time point in the simulation algorithm and therefore it is ensured that the simulation parameters at this point in time are calculated.
      */
     void performEvent() override { return; };
+
+    /**
+     * @brief Print the time step event
+     */
+    void print() override { 
+      std::cout << "\n Time Step Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+    };
 };
 
 }  // namespace sim

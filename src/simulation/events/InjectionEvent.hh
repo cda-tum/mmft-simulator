@@ -35,4 +35,9 @@ void DropletInjectionEvent<T>::performEvent() {
     droplet->setDropletState(DropletState::NETWORK);
 }
 
+template<typename T>
+void DropletInjectionEvent<T>::print() {
+    std::cout << "\n Droplet Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+}
+
 }  // namespace sim

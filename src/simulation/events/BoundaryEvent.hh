@@ -79,6 +79,11 @@ void BoundaryHeadEvent<T>::performEvent() {
 }
 
 template<typename T>
+void BoundaryHeadEvent<T>::print() {
+    std::cout << "\n Boundary Head Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+}
+
+template<typename T>
 BoundaryTailEvent<T>::BoundaryTailEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
     Event<T>(time, 1), droplet(droplet), boundary(boundary), network(network) { }
 
@@ -116,6 +121,11 @@ void BoundaryTailEvent<T>::performEvent() {
         // more than one entity is present => remove boundary
         droplet.removeBoundary(boundary);
     }
+}
+
+template<typename T>
+void BoundaryTailEvent<T>::print() {
+    std::cout << "\n Boundary Tail Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 
 }  // namespace sim

@@ -33,6 +33,11 @@ class MergeBifurcationEvent : public Event<T> {
      * @brief Conducts the merge at bifurcation event.
      */
     void performEvent() override;
+
+    /**
+     * @brief Print the merge at bifurcation event.
+     */
+    void print() override;
 };
 
 /**
@@ -63,6 +68,11 @@ class MergeChannelEvent : public Event<T> {
      * @brief  Perform the merge that happens within a channel sequence.
      */
     void performEvent() override;
+
+    /**
+     * @brief  Print the merge that happens within a channel sequence.
+     */
+    void print() override;
 };
 
 }  // namespace sim
