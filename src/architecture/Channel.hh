@@ -111,7 +111,6 @@ namespace arch {
 
     template<typename T>
     void Channel<T>::addDropletResistance(T dropletResistance) {
-        std::cout << "Added droplet resistance of " << dropletResistance << " to channel " << this->id << std::endl;
         this->dropletResistance += dropletResistance;
     }
 

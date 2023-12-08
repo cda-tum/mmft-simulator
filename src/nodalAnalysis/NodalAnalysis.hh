@@ -51,7 +51,6 @@ namespace nodal {
             auto nodeAMatrixId = channel.second->getNodeA();
             auto nodeBMatrixId = channel.second->getNodeB();
             const T conductance = 1. / channel.second->getResistance();
-            std::cout << "Resistance of channel " << channel.second->getId() << " is: "<< channel.second->getResistance() << std::endl;
 
             // main diagonal elements of G
             if (!network->getNodes().at(nodeAMatrixId)->getGround()) {
@@ -167,14 +166,7 @@ namespace nodal {
         }
 
         // solve equation x = A^(-1) * z
-        std::cout << "\n" << std::endl;
-        std::cout << A << std::endl;
-        std::cout << "\n" << std::endl;
-        std::cout << z << std::endl;
         VectorXd x = A.colPivHouseholderQr().solve(z);
-        std::cout << "\n" << std::endl;
-        std::cout << x << std::endl;
-        std::cout << "\n" << std::endl;
 
         // set pressure of nodes to result value
         for (const auto& [key, group] : network->getGroups()) {

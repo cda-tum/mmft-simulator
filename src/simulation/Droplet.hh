@@ -64,13 +64,6 @@ void Droplet<T>::addDropletResistance(const ResistanceModel<T>& model) {
         auto channel = boundaries[0]->getChannelPosition().getChannel();
         // volumeInsideChannel = volumeChannel - (volumeBoundary0 - volumeChannel) - (volumeBoundary1 - volumeChannel) = volumeBoundary0 + volumeBoundary1 - volumeChannel
         T volumeInsideChannel = boundaries[0]->getVolume() + boundaries[1]->getVolume() - channel->getVolume();
-        std::cout << "boundary 0 volume \t" <<  boundaries[0]->getVolume() << std::endl;
-        std::cout << "boundary 0 position \t" <<  boundaries[0]->getChannelPosition().getPosition() << std::endl;
-        std::cout << "boundary 0 towardsA \t" <<  boundaries[0]->isVolumeTowardsNodeA() << std::endl;
-        std::cout << "boundary 1 volume \t" <<  boundaries[1]->getVolume() << std::endl;
-        std::cout << "boundary 1 position \t" <<  boundaries[1]->getChannelPosition().getPosition() << std::endl;
-        std::cout << "boundary 1 towardsA \t" <<  boundaries[1]->isVolumeTowardsNodeA() << std::endl;
-        std::cout << "channel volume \t" <<  channel->getVolume() << std::endl;
         channel->addDropletResistance(model.getDropletResistance(channel, this, volumeInsideChannel));
     } else {
         // loop through boundaries

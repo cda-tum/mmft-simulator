@@ -286,7 +286,9 @@ namespace sim {
                     throw "Max iterations exceeded.";
                 }
 
-                std::cout << "Iteration " << iteration << std::endl;
+                #ifdef VERBOSE     
+                    std::cout << "Iteration " << iteration << std::endl;
+                #endif
 
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
                 updateDropletResistances();
@@ -331,10 +333,11 @@ namespace sim {
 
                 int test_size = events.size();
 
-                std::cout << "Number of events: " << std::to_string(test_size) << std::endl;
-                for (auto& event : events) {
-                    event->print();
-                }
+                #ifdef VERBOSE     
+                    for (auto& event : events) {
+                        event->print();
+                    }
+                #endif
 
                 // get next event or break loop, if no events remain
                 Event<T>* nextEvent = nullptr;
@@ -353,8 +356,6 @@ namespace sim {
                 iteration++;
             }
         }
-
-        std::cout << "Getting here...end" << std::endl;
     }
 
     template<typename T>
@@ -528,30 +529,9 @@ namespace sim {
             }
 
             // loop through boundaries
-            if (droplet->getDropletState() == DropletState::NETWORK) {
-                std::cout << "Droplet state: NETWORK " << std::endl;
-            }
-            std::cout << "Before movement" << std::endl;
-            for (auto& boundary : droplet->getBoundaries()) {
-                // move boundary in correct direction
-                std::cout << "droplet " << droplet->getId() << " has a boundary in channel " << 
-                boundary->getChannelPosition().getChannel()->getId() <<
-                " at position " << boundary->getChannelPosition().getPosition() << std::endl;
-            }
-
-            // loop through boundaries
             for (auto& boundary : droplet->getBoundaries()) {
                 // move boundary in correct direction
                 boundary->moveBoundary(timeStep);
-            }
-
-            // loop through boundaries
-            std::cout << "After movement" << std::endl; 
-            for (auto& boundary : droplet->getBoundaries()) {
-                // move boundary in correct direction               
-                std::cout << "droplet " << droplet->getId() << " has a boundary in channel " << 
-                boundary->getChannelPosition().getChannel()->getId() <<
-                " at position " << boundary->getChannelPosition().getPosition() << std::endl;
             }
         }
     }

@@ -116,6 +116,7 @@
 "simulation": {
     "platform": "continuous",
     "type": "hybrid",
+    "resistanceModel": "Poiseuille",
     "fluids": [
         {	
             "name": "Water",

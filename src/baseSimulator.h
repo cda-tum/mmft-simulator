@@ -1,6 +1,7 @@
 /**
  * @file baseSimulator.h
  */
+#pragma once
 
 #include "simulation/CFDSim.h"
 #include "simulation/Droplet.h"
