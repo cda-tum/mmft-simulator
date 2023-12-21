@@ -159,6 +159,12 @@ namespace sim {
              * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
              * @param[in] fluid The fluid the continuous phase consists of.
              */
+            void setDroplets(std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets);
+
+            /**
+             * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+             * @param[in] fluid The fluid the continuous phase consists of.
+             */
             void setContinuousPhase(int fluidId);
 
             /**
@@ -166,6 +172,18 @@ namespace sim {
              * @param[in] model The resistance model to be used.
              */
             void setResistanceModel(ResistanceModel<T>* model);
+
+            /**
+             * @brief Get the platform of the simulation.
+             * @return platform of the simulation
+             */
+            Platform getPlatform();
+
+            /**
+             * @brief Get the type of the simulation.
+             * @return type of the simulation
+             */
+            Type getType();
 
             /**
              * @brief Get the network.

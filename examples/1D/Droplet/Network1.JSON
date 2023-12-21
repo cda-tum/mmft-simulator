@@ -4,38 +4,34 @@
         {   
             "x": 0.0,
             "y": 0.0,
-            "z": 0.0,
-            "ground": true
+            "z": 0.0
         },
         {   
             "x": 1e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
-            "x": 1e-3,
-            "y": 5e-4,
-            "z": 0.0,
-            "ground": false
-        },
-        {   
-            "x": 2e-3,
-            "y": 5e-4,
-            "z": 0.0,
-            "ground": false
+            "x": 2.5e-3,
+            "y": 0.86602540378e-3,
+            "z": 0.0
         },
         {   
             "x": 3e-3,
             "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 4e-3,
+            "y": 0.0,
             "z": 0.0,
-            "ground": true
+            "ground": true,
+            "sink": true
         }
     ],
     "channels": [
@@ -52,8 +48,14 @@
             "height": 3e-5
         },        
         {	
-            "node1": 1,
+            "node1": 2,
             "node2": 3,
+            "width": 1e-4,
+            "height": 3e-5
+        },        
+        {	
+            "node1": 2,
+            "node2": 4,
             "width": 1e-4,
             "height": 3e-5
         },        
@@ -65,39 +67,46 @@
         },        
         {	
             "node1": 4,
-            "node2": 2,
+            "node2": 5,
             "width": 1e-4,
             "height": 3e-5
         },        
         {	
-            "node1": 2,
-            "node2": 5,
+            "node1": 5,
+            "node2": 0,
             "width": 1e-4,
             "height": 3e-5
         }
     ]
 },
 "simulation": {
-    "platform": "droplet",
+    "platform": "bigDroplet",
     "type": "1D",
+    "resistanceModel": "1D",
     "fluids": [
         {	
             "name": "Water",
             "concentration": 1,
-            "density": 997,           
-            "viscosity": 0.001
+            "density": 1e3,           
+            "viscosity": 1e-3
         },
         {
             "name": "Oil",
             "concentration": 1,
-            "density": 997,           
-            "viscosity": 0.003            
+            "density": 1e3,           
+            "viscosity": 3e-3        
+        }
+    ],
+    "droplets": [
+        {
+            "fluid": 1,
+            "volume": 4.5e-13
         }
     ],
     "pumps": [
         {	
-            "channel":0,
-            "type": "FlowRate",
+            "channel":6,
+            "type": "PumpFlowrate",
             "flowRate": 3e-11
         }
     ],
@@ -107,8 +116,7 @@
             "phase": 0,
             "bigDropletInjections": [
                 {
-                    "fluid": 1,
-                    "volume": 4.5e-13,
+                    "droplet": 0,
                     "channel": 0,
                     "pos": 0.5,
                     "t0": 0,

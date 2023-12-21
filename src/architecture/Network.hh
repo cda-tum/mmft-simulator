@@ -159,18 +159,26 @@ namespace arch {
     Network<T>::Network() { }
 
     template<typename T>
-    void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels) {
+    void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules) {
         const auto net = reach.at(id);
         visitedNodes.at(id) = true;
-        for (auto channel : net) {
+        for (auto [key, channel] : net) {
             if (!(channel->getChannelType() == ChannelType::CLOGGABLE)) {
                 if (visitedChannels.at(channel->getId()) == false) {
                     visitedChannels.at(channel->getId()) = true;
                     if (channel->getNodeA() != id) {
-                        visitNodes(channel->getNodeA(), visitedNodes, visitedChannels);
+                        visitNodes(channel->getNodeA(), visitedNodes, visitedChannels, visitedModules);
                     } else {
-                        visitNodes(channel->getNodeB(), visitedNodes, visitedChannels);
+                        visitNodes(channel->getNodeB(), visitedNodes, visitedChannels, visitedModules);
                     }
+                }
+            }
+        }
+        if (modularReach.count(id)) {
+            if(visitedModules.at(modularReach.at(id)->getId()) == false) {
+                visitedModules.at(modularReach.at(id)->getId()) = true;
+                for (auto& [k, node] : modularReach.at(id)->getNodes()) {
+                    visitNodes(node->getId(), visitedNodes, visitedChannels, visitedModules);
                 }
             }
         }
@@ -183,7 +191,7 @@ namespace arch {
 
         if (result.second) {
             // insertion happened and we have to add an additional entry into the reach
-            reach.insert_or_assign(nodeId, std::vector<RectangularChannel<T>*>{});
+            reach.insert_or_assign(nodeId, std::unordered_map<int, RectangularChannel<T>*>{});
         } else {
             std::out_of_range(  "Could not add Node " + std::to_string(nodeId) + " at (" + std::to_string(x_) +
                                 ", " + std::to_string(y_) + "). Nodes out of bounds.");
@@ -198,6 +206,26 @@ namespace arch {
     }
 
     template<typename T>
+    RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type) {
+        // create channel
+        auto nodeA = nodes.at(nodeAId);
+        auto nodeB = nodes.at(nodeBId);
+        auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+        auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, width, height);
+
+        addChannel->setChannelType(type);
+
+        // add to network as long as channel is still a valid pointer
+        reach.at(nodeAId).try_emplace(id, addChannel);
+        reach.at(nodeBId).try_emplace(id, addChannel);
+
+        // add channel
+        channels.try_emplace(id, addChannel);
+
+        return addChannel;
+    }
+
+    template<typename T>
     RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type) {
         // create channel
         auto nodeA = nodes.at(nodeAId);
@@ -209,8 +237,8 @@ namespace arch {
         addChannel->setChannelType(type);
 
         // add to network as long as channel is still a valid pointer
-        reach.at(nodeAId).push_back(addChannel);
-        reach.at(nodeBId).push_back(addChannel);
+        reach.at(nodeAId).try_emplace(id, addChannel);
+        reach.at(nodeBId).try_emplace(id, addChannel);
 
         // add channel
         channels.try_emplace(id, addChannel);
@@ -230,8 +258,8 @@ namespace arch {
         addChannel->setChannelType(type);
 
         // add to network as long as channel is still a valid pointer
-        reach.at(nodeAId).push_back(addChannel);
-        reach.at(nodeBId).push_back(addChannel);
+        reach.at(nodeAId).try_emplace(id, addChannel);
+        reach.at(nodeBId).try_emplace(id, addChannel);
 
         // add channel
         channels.try_emplace(id, addChannel);
@@ -264,10 +292,27 @@ namespace arch {
     }
 
     template<typename T>
-    int Network<T>::addModule() {
-        /** TODO
-         * 
-        */
+    lbmModule<T>* Network<T>::addModule(std::string name,
+                                        std::string stlFile,
+                                        std::vector<T> position,
+                                        std::vector<T> size,
+                                        std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
+                                        std::unordered_map<int, Opening<T>> openings,
+                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau) {
+        // create module
+        auto id = modules.size();
+        auto addModule = new lbmModule<T>(id, name, stlFile, position, size, nodes, openings, charPhysLength, charPhysVelocity,
+                                            alpha, resolution, epsilon, tau);
+
+        // add this module to the reach of each node
+        for (auto& [k, node] : nodes) {
+            modularReach.try_emplace(node->getId(), addModule);
+        }
+
+        // add module
+        modules.try_emplace(id, addModule);
+
+        return addModule;
     }
 
     template<typename T>
@@ -294,6 +339,8 @@ namespace arch {
         PressurePump<T>* newPump = new PressurePump<T>(channelId_, nodeAId, nodeBId, pressure_);
         pressurePumps.try_emplace(channelId_, newPump);
         channels.erase(channelId_);
+        reach.at(nodeAId).erase(channelId_);
+        reach.at(nodeBId).erase(channelId_);
     }
 
     template<typename T>
@@ -303,6 +350,8 @@ namespace arch {
         FlowRatePump<T>* newPump = new FlowRatePump<T>(channelId_, nodeAId, nodeBId, flowRate_);
         flowRatePumps.try_emplace(channelId_, newPump);
         channels.erase(channelId_);
+        reach.at(nodeAId).erase(channelId_);
+        reach.at(nodeBId).erase(channelId_);
     }
 
     template<typename T>
@@ -360,9 +409,13 @@ namespace arch {
     }
 
     template<typename T>
-    const std::vector<RectangularChannel<T>*>& Network<T>::getChannelsAtNode(int nodeId_) const {
+    const std::vector<RectangularChannel<T>*> Network<T>::getChannelsAtNode(int nodeId_) const {
         try {
-            return reach.at(nodeId_);
+            std::vector<RectangularChannel<T>*> tmp;
+            for (auto& [key, channel] : reach.at(nodeId_)) {
+                tmp.push_back(channel);
+            }
+            return tmp;
         } catch (const std::out_of_range& e) {
             throw std::invalid_argument("Node with ID " + std::to_string(nodeId_) + " does not exist.");
         }
@@ -485,6 +538,7 @@ namespace arch {
         // checks if all nodes and channels are connected to ground (if channel network is one graph)
         std::unordered_map<int, bool> visitedNodes;
         std::unordered_map<int, bool> visitedEdges;
+        std::unordered_map<int, bool> visitedModules;
 
         std::unordered_map<int, Edge<T>*> edges;
 
@@ -521,9 +575,12 @@ namespace arch {
         for (auto const& [k, v] : edges) {
             visitedEdges[k] = false;
         }
+        for (auto const& [k, v] : modules) {
+            visitedModules[k] = false;
+        }
 
         for (auto& node : groundNodes) {
-            visitNodes(node->getId(), visitedNodes, visitedEdges);
+            visitNodes(node->getId(), visitedNodes, visitedEdges, visitedModules);
         }
 
         std::string errorNodes = "";
@@ -532,13 +589,16 @@ namespace arch {
             int connections = net.size();
             for (auto const& [key, pump] : pressurePumps) {
                 if (pump->getNodeA() == k || pump->getNodeB() == k) {
-                    connections +=1 ;
+                    connections += 1;
                 }
             }
             for (auto const& [key, pump] : flowRatePumps) {
                 if (pump->getNodeA() == k || pump->getNodeB() == k) {
-                    connections +=1 ;
+                    connections += 1;
                 }
+            }
+            if (modularReach.count(k)) {
+                connections += 1;
             }
             if (connections <= 1 && !v->getGround()) {
                 errorNodes.append(" " + std::to_string(k));
@@ -561,9 +621,16 @@ namespace arch {
                 errorEdges.append(" " + std::to_string(k));
             }
         }
+        std::string errorModules = "";
+        for (auto const& [k, v] : modules) {
+            if (visitedModules[k] == false) {
+                errorModules.append(" " + std::to_string(k));
+            }
+        }
 
-        if (errorNodes.length() != 0 || errorEdges.length() != 0) {
-            throw std::invalid_argument("Network is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: " + errorEdges);
+        if (errorNodes.length() != 0 || errorEdges.length() != 0 || errorModules.length() != 0) {
+            throw std::invalid_argument("Network is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: " 
+                + errorEdges + ". The following modules are not connected to ground: " + errorModules);
             return false;
         }
 

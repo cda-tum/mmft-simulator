@@ -21,5 +21,7 @@
 #include "architecture/PressurePump.hh"
 
 #include "porting/jsonPorter.hh"
+#include "porting/jsonReaders.hh"
+#include "porting/jsonWriters.hh"
 
 #include "result/Results.hh"

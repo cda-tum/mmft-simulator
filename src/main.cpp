@@ -20,6 +20,9 @@ int main(int argc, char const* argv []) {
 
     // Load and set the simulation from a JSON file
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    
+    network.isNetworkValid();
+    network.sortGroups();
 
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results
@@ -27,7 +30,9 @@ int main(int argc, char const* argv []) {
 
     std::cout << "[Main] Results..." << std::endl;
     // Print the results
-    testSimulation.printResults();
+    testSimulation.getSimulationResults()->printStates();
+
+    porting::resultToJSON<T>("result.json", &testSimulation );
 
     return 0;
 }

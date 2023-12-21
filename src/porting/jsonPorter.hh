@@ -11,6 +11,8 @@
 #include "../simulation/Fluid.h"
 #include "../simulation/ResistanceModels.h"
 
+#include "../result/Results.h"
+
 namespace porting {
 
     using json = nlohmann::json;
@@ -21,28 +23,10 @@ namespace porting {
         std::ifstream f(jsonFile);
         json jsonString = json::parse(f);
 
-        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> nodes;
-        std::unordered_map<int, std::unique_ptr<arch::RectangularChannel<T>>> channels;
+        arch::Network<T> network;
 
-        int count=0;
-        for (auto& node : jsonString["network"]["nodes"]) {
-            arch::Node<T>* addNode = new arch::Node<T>(count, T(node["x"]), T(node["y"]));
-            if(node["ground"]) {
-                addNode->setGround(true);
-            }
-            nodes.try_emplace(count, addNode);
-            count++;
-        }
-
-        count=0;
-        for (auto& channel : jsonString["network"]["channels"]) {
-            arch::RectangularChannel<T>* addChannel = new arch::RectangularChannel<T>(count, nodes.at(channel["node1"]), nodes.at(channel["node2"]), 
-                channel["width"], channel["height"]);
-            channels.try_emplace(count, addChannel);
-            count++;
-        }
-        
-        arch::Network<T> network (nodes, std::move(channels));
+        readNodes(jsonString, network);
+        readChannels(jsonString, network);
 
         return network;
     }
@@ -54,79 +38,26 @@ namespace porting {
         json jsonString = json::parse(f);
 
         sim::Simulation<T> simulation = sim::Simulation<T>();
+        sim::Platform platform = readPlatform<T>(jsonString, simulation);
+        sim::Type simType = readType<T>(jsonString, simulation);
+        int activeFixture = readActiveFixture<T>(jsonString);
 
-        int counter;
+        simulation.setNetwork(network_);
 
-        // Define the platform
-        sim::Platform platform = sim::Platform::NONE;
-        if (!jsonString["simulation"].contains("platform")) {
-            throw std::invalid_argument("Please define a platform. The following platforms are possible:\ncontinuous\nbigDroplet\nmixing");
-        }
-        if (jsonString["simulation"]["platform"] == "continuous") {
-            platform = sim::Platform::CONTINUOUS;
-        } else if (jsonString["simulation"]["platform"] == "bigDroplet") {
-            platform = sim::Platform::DROPLET;
-        } else if (jsonString["simulation"]["platform"] == "mixing") {
-            platform = sim::Platform::MIXING;
-        } else {
-            throw std::invalid_argument("Platform is invalid. The following platforms are possible:\ncontinuous\nbigDroplet\nmixing");
-        }
-        simulation.setPlatform(platform);
+        readFluids<T>(jsonString, simulation);
 
-        // Define the simulation type
-        sim::Type simType = sim::Type::NONE;
-        if (!jsonString["simulation"].contains("type")) {
-            throw std::invalid_argument("Please define a simulation type. The following types are possible:\n1D\nhybrid\nCFD");
-        }
-        if (jsonString["simulation"]["type"] == "1D") {
-            simType = sim::Type::_1D;
-        } else if (jsonString["simulation"]["type"] == "hybrid") {
-            simType = sim::Type::HYBRID;
-        } else if (jsonString["simulation"]["type"] == "CFD") {
-            simType = sim::Type::CFD;
-        } else {
-            throw std::invalid_argument("Simulation type is invalid. The following types are possible:\n1D\nhybrid\nCFD");
-        }
-        simulation.setType(simType);
-
-        // Import fluids
-        if (!jsonString["simulation"].contains("fluids") || jsonString["simulation"]["fluids"].empty()) {
-            throw std::invalid_argument("No fluids are defined. Please define at least 1 fluid.");
-        }
-        std::unordered_map<int, std::unique_ptr<sim::Fluid<T>>> fluids;
-        counter = 0;
-        for (auto& fluid : jsonString["simulation"]["fluids"]) {
-            if (fluid.contains("density") && fluid.contains("viscosity") && fluid.contains("concentration") && fluid.contains("name")) {
-                T density = fluid["density"];
-                T viscosity = fluid["viscosity"];
-                std::string name = fluid["name"];
-                std::unique_ptr<sim::Fluid<T>> newFluid = std::make_unique<sim::Fluid<T>>( counter, density, viscosity, 1.0, name );
-                fluids.try_emplace(counter, std::move(newFluid));
-                counter++;
-            } else {
-                throw std::invalid_argument("Wrongly defined fluid. Please provide following information for fluids:\nname\ndensity\nviscosity\nconcentration");
+        if (platform == sim::Platform::CONTINUOUS) {
+            if (simType == sim::Type::CFD) {
+                throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
             }
-        }
-        simulation.setFluids(std::move(fluids));
-
+        } else
         if (platform == sim::Platform::DROPLET) {
-            // NOT YET SUPPORTED
-            throw std::invalid_argument("Droplet simulations are not yet supported in the simulator.");
-            // Import bigDroplet injections
-            int activeFixture = 0;
-            if (!jsonString["simulation"].contains("fixtures")) {
-                throw std::invalid_argument("Please define at least one fixture.");
+            if (simType != sim::Type::_1D) {
+                throw std::invalid_argument("Droplet simulations are currently only supported for 1D simulations.");
             }
-            if (!jsonString["simulation"].contains("activeFixture")) {
-                throw std::invalid_argument("Please define an active fixture.");
-            } else {
-                activeFixture = jsonString["simulation"]["activeFixture"];
-            }
-            /**TODO
-             * Add droplets with droplets.push_back (similar to fluids above)
-            */
-        }
-
+            readDroplets<T>(jsonString, simulation);
+            readDropletInjections<T>(jsonString, simulation, activeFixture);
+        } else
         if (platform == sim::Platform::MIXING) {
             // NOT YET SUPPORTED
             throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
@@ -134,115 +65,43 @@ namespace porting {
                 // TODO
             // Import bolus injections in fixture
                 // TODO
+        } else {
+            throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
         }
 
         if (simType == sim::Type::HYBRID) {
-            // Import simulators (modules)
-            counter = 0;
-            if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
-                throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");
-            }
-            std::unordered_map<int, std::unique_ptr<arch::lbmModule<T>>> modules;
-            for (auto& module : jsonString["simulation"]["settings"]["simulators"]) {
-                std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
-                std::unordered_map<int, arch::Opening<T>> Openings;
-                for (auto& opening : module["Openings"]) {
-                    int nodeId = opening["node"];
-                    Nodes.try_emplace(nodeId, network_->getNode(nodeId));
-                    std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
-                    arch::Opening<T> opening_(network_->getNode(nodeId), normal, opening["width"]);
-                    Openings.try_emplace(nodeId, opening_);
-                }
-                std::vector<T> position = { module["posX"], module["posY"] };
-                std::vector<T> size = { module["sizeX"], module["sizeY"] };
-                arch::lbmModule<T>* addModule = new arch::lbmModule<T>( counter, module["name"], module["stlFile"],
-                                                        position, size, Nodes, Openings, 
-                                                        module["charPhysLength"], module["charPhysVelocity"],
-                                                        module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
-                modules.try_emplace(counter, addModule);
-                counter++;
-            }
-            network_->setModules(std::move(modules));
+            readSimulators<T>(jsonString, network_);
+            network_->sortGroups();
         }
-        network_->sortGroups();
 
         if (simType == sim::Type::CFD) {
             // NOT YET SUPPORTED
             throw std::invalid_argument("Full CFD simulations are not yet supported in the simulator.");
         }
 
-        // Import pumps
-        if (!jsonString["simulation"].contains("pumps") || jsonString["simulation"]["pumps"].empty()) {
-            throw std::invalid_argument("No pumps are defined. Please define at least 1 pump.");
-        }
-        for (auto& pump : jsonString["simulation"]["pumps"]) {
-            if (pump.contains("channel") && pump.contains("type")) {
-                int channelId = pump["channel"];
-                if (pump["type"] == "PumpPressure") {
-                    if (pump.contains("deltaP")) {
-                        T pressure = pump["deltaP"];
-                        network_->setPressurePump(channelId, pressure);
-                    } else {
-                        throw std::invalid_argument("Please set the pressure value 'deltaP' for Pressure pump in channel " + channelId);
-                    }
-                } else if (pump["type"] == "PumpFlowrate") {
-                    if (pump.contains("flowRate")) {
-                        T flowRate = pump["flowRate"];
-                        network_->setPressurePump(channelId, flowRate);
-                    } else {
-                        throw std::invalid_argument("Please set the flow rate value 'flowRate' for Flowrate pump in channel " + channelId);
-                    }
-                } else {
-                    throw std::invalid_argument("Invalid pump type. Please choose one of the following:\nPumpPressure\nPumpFlowrate");
-                }
-            } else {
-                throw std::invalid_argument("Wrongly defined pump. Please provide following information for pumps:\nchannel\ntype");
-            }
-        }
-
-        // Import Boundary Conditions and set Continuous phase
-        if (jsonString["simulation"].contains("activeFixture")) {
-            if (!jsonString["simulation"].contains("fixtures") || jsonString["simulation"]["fixtures"].size()-1 < jsonString["simulation"]["activeFixture"]) {
-                throw std::invalid_argument("The active fixture does not exist.");
-            }
-            if (jsonString["simulation"]["fixtures"].contains("boundaryConditions")) {
-                /** TODO
-                 * Set new default values for pressure/flowrate pump
-                */
-            }
-            if (jsonString["simulation"]["fixtures"].contains("phase")) {
-                simulation.setContinuousPhase(jsonString["simulation"]["fixtures"]["phase"]);
-            }
-        }
-
-        // Import resistance model
-        sim::ResistanceModel<T>* resistanceModel; 
-        if (jsonString["simulation"].contains("resistanceModel")) {
-            if (jsonString["simulation"]["resistanceModel"] == "1D") {
-                resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
-            } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
-                resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
-            } else {
-                throw std::invalid_argument("Invalid resistance model.");
-            }
-        } else {
-            throw std::invalid_argument("No resistance model defined.");
-        }
-        
-        simulation.setResistanceModel(resistanceModel);
-
-        simulation.setNetwork(network_);
+        readBoundaryConditions<T>(jsonString, simulation, activeFixture);
+        readContinuousPhase<T>(jsonString, simulation, activeFixture);
+        readPumps<T>(jsonString, network_);
+        readResistanceModel<T>(jsonString, simulation);
 
         return simulation;
-
     }
 
     template<typename T>
-    void resultToJSON(std::string jsonFile) {
-        
-        std::ifstream f(jsonFile);
-        json jsonString = json::parse(f);
+    void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
+        json jsonString;
+        std::ofstream file(jsonFile);
 
+        for (auto const& state : simulation->getSimulationResults()->getStates()) {
+            jsonString["result"].push_back({"time", state->getTime()});
+            writePressures(jsonString, state.get());
+            writeFlowRates(jsonString, state.get());
+            if (simulation->getPlatform() == sim::Platform::DROPLET && simulation->getType() == sim::Type::_1D) {
+                writeDroplets(jsonString, state.get(), simulation);
+            }
+        }
+
+        file << jsonString.dump(4) << std::endl;
     }
 
 }   // namespace porting

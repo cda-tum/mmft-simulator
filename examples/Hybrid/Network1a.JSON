@@ -10,56 +10,47 @@
         {   
             "x": 1e-3,
             "y": 2e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 1e-3,
             "y": 1e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 1e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 2e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 1.75e-3,
             "y": 1e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 1.25e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 0.75e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2.25e-3,
             "y": 1e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 3e-3,
@@ -154,6 +145,13 @@
             "deltaP": 1000
         }
     ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0
+        }
+    ],
+    "activeFixture": 0,
     "settings": {
         "simulators": [
             {	

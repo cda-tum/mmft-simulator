@@ -27,5 +27,7 @@
 #include "architecture/PressurePump.h"
 
 #include "porting/jsonPorter.h"
+#include "porting/jsonReaders.h"
+#include "porting/jsonWriters.h"
 
 #include "result/Results.h"

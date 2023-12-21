@@ -1,5 +1,5 @@
 /**
- * @file jsonPorter.h
+ * @file jsonWriters.h
  */
 
 #pragma once
@@ -24,18 +24,13 @@
 
 namespace porting {
 
-    /**
-     * @brief Constructor of the Network from a JSON string
-     * @param json json string
-     * @return Network network
-    */
     template<typename T>
-    arch::Network<T> networkFromJSON(std::string jsonFile);
+    void writePressures (json& jsonString, result::State<T>* state);
 
     template<typename T>
-    sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_);
+    void writeFlowRates (json& jsonString, result::State<T>* state);
 
     template<typename T>
-    void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation);
+    void writeDroplets (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation);
 
 }   // namespace porting

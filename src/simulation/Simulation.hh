@@ -70,7 +70,6 @@ namespace sim {
         }
 
         auto result = dropletInjections.insert_or_assign(id, std::make_unique<DropletInjection<T>>(id, droplet, injectionTime, channel, injectionPosition));
-
         return result.first->second.get();
     }
 
@@ -95,6 +94,11 @@ namespace sim {
     }
 
     template<typename T>
+    void Simulation<T>::setDroplets(std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets_) {
+        this->droplets = std::move(droplets_);
+    }
+
+    template<typename T>
     void Simulation<T>::setContinuousPhase(int fluidId_) {
         this->continuousPhase = fluidId_;
     }
@@ -102,6 +106,16 @@ namespace sim {
     template<typename T>
     void Simulation<T>::setResistanceModel(ResistanceModel<T>* model_) {
         this->resistanceModel = model_;
+    }
+
+    template<typename T>
+    Platform Simulation<T>::getPlatform() {
+        return this->platform;
+    }
+
+    template<typename T>
+    Type Simulation<T>::getType() {
+        return this->simType;
     }
 
     template<typename T>
@@ -229,11 +243,22 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::simulate() {
-
+        #define VERBOSE
         // initialize the simulation
         initialize();
-
         //printResults();
+
+        // 1D continuous simulation
+        // ##########
+        // * conduct nodal analysis
+        // * save state
+        if (simType == Type::_1D && platform == Platform::CONTINUOUS) {
+            // compute nodal analysis
+            nodal::conductNodalAnalysis(network);
+
+            // store simulation results of current state
+            saveState();
+        }
 
         // Continuous Hybrid simulation
         if (this->simType == Type::HYBRID && this->platform == Platform::CONTINUOUS) {
@@ -266,6 +291,7 @@ namespace sim {
                     printResults();
                 #endif
             }
+            saveState();
         }
 
         // 1D Droplet simulation
@@ -289,13 +315,10 @@ namespace sim {
                 #ifdef VERBOSE     
                     std::cout << "Iteration " << iteration << std::endl;
                 #endif
-
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
                 updateDropletResistances();
-
                 // compute nodal analysis
                 nodal::conductNodalAnalysis(network);
-
                 // update droplets, i.e., their boundary flow rates
                 // loop over all droplets
                 dropletsAtBifurcation = false;
@@ -315,10 +338,8 @@ namespace sim {
                     // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
                     droplet->updateBoundaries(*network);
                 }
-
                 // store simulation results of current state
                 saveState();
-
                 // compute events
                 auto events = computeEvents();
 
@@ -330,7 +351,6 @@ namespace sim {
                     }
                     return a->getTime() < b->getTime();  // ascending order
                 });
-
                 int test_size = events.size();
 
                 #ifdef VERBOSE     
@@ -346,7 +366,6 @@ namespace sim {
                 } else {
                     break;
                 }
-
                 // move droplets until event is reached
                 time += nextEvent->getTime();
                 moveDroplets(nextEvent->getTime());

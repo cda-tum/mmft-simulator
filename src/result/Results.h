@@ -65,13 +65,18 @@ struct State {
      * @brief Function to get flow rate at a specific channel.
      * @return Flowrates of this state in m^3/s.
      */
-    const std::unordered_map<int, T>& getDropletPositions() const;
+    std::unordered_map<int, sim::DropletPosition<T>>& getDropletPositions();
 
     /**
      * @brief Function to get the time of a state.
      * @return Time in s.
      */
     T getTime() const;
+
+    /**
+     * @brief Print the state
+    */
+    const void printState();
 };
 
 /**
@@ -129,6 +134,22 @@ struct SimulationResult {
      * @return Vector of states
      */
     const std::vector<std::unique_ptr<State<T>>>& getStates() const;
+
+    /**
+     * @brief Print all the states that were stored during simulation.
+    */
+    const void printStates() const;
+
+    /**
+     * @brief Print last state that was stored during simulation.
+    */
+    const void printLastState() const;
+
+    /**
+     * @brief Print state key
+     * @param[in] key The key of the state that should be printed.
+    */
+    const void printState(int key) const;
 };
 
 }   // namespace results

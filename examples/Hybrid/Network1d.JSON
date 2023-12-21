@@ -10,56 +10,47 @@
         {   
             "x": 1e-3,
             "y": 8e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 1e-3,
             "y": 4e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 1e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 5e-3,
             "y": 8e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 4.75e-3,
             "y": 4e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 5e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 5e-3,
             "y": 4.25e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 5e-3,
             "y": 3.75e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 5.25e-3,
             "y": 4e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 9e-3,
@@ -128,6 +119,7 @@
 "simulation": {
     "platform": "continuous",
     "type": "hybrid",
+    "resistanceModel": "Poiseuille",
     "fluids": [
         {	
             "name": "Water",
@@ -153,15 +145,22 @@
             "deltaP": 1000
         }
     ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0
+        }
+    ],
+    "activeFixture": 0,
     "settings": {
         "simulators": [
             {	
                 "Type": "LBM",
-                "name": "Paper1a-cross-0",
+                "name": "Paper1d-cross-0",
                 "stlFile": "../examples/STL/cross.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.4,
+                "alpha": 0.1,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,

@@ -10,38 +10,32 @@
         {   
             "x": 1e-3,
             "y": 2e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 1e-3,
             "y": 1e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 1e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 2e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 1e-3,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 2e-3,
             "y": 0.0,
-            "z": 0.0,
-            "ground": false
+            "z": 0.0
         },
         {   
             "x": 3e-3,
@@ -83,7 +77,7 @@
         },        
         {	
             "node1": 3,
-            "node2": 5,
+            "node2": 6,
             "width": 1e-4,
             "height": 1e-4
         },        
@@ -110,12 +104,13 @@
 "simulation": {
     "platform": "continuous",
     "type": "1D",
+    "resistanceModel": "1D",
     "fluids": [
         {	
             "name": "Water",
             "concentration": 1,
             "density": 997,           
-            "viscosity": 0.001
+            "viscosity": 1e-3
         }
     ],
     "pumps": [
@@ -135,7 +130,13 @@
             "deltaP": 1000
         }
     ],
-    "settings": {
-    }
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0
+        }
+    ],
+    "activeFixture": 0
 }
+
 }
