@@ -59,12 +59,11 @@ namespace porting {
             readDropletInjections<T>(jsonString, simulation, activeFixture);
         } else
         if (platform == sim::Platform::MIXING) {
-            // NOT YET SUPPORTED
-            throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
-            // Import Species for Mixing platform
-                // TODO
-            // Import bolus injections in fixture
-                // TODO
+            if (simType != sim::Type::_1D) {
+                throw std::invalid_argument("Mixing simulations are currently only supported for 1D simulations.");
+            }
+            readSpecies<T>(jsonString, simulation);
+            readMixtureInjections<T>(jsonString, simulation, activeFixture);
         } else {
             throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
         }
@@ -98,6 +97,9 @@ namespace porting {
             writeFlowRates(jsonString, state.get());
             if (simulation->getPlatform() == sim::Platform::DROPLET && simulation->getType() == sim::Type::_1D) {
                 writeDroplets(jsonString, state.get(), simulation);
+            }
+            if (simulation->getPlatform() == sim::Platform::MIXING && simulation->getType() == sim::Type::_1D) {
+                writeConcentrations(jsonString, state.get(), simulation);
             }
         }
 

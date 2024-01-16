@@ -21,6 +21,7 @@ class Fluid {
     T density;                          ///< Density of the continuous phase in kg/m^3.
     T viscosity;                        ///< Dynamic viscosity of the continuous phase in Pas.
     T concentration;
+    T molecularSize;                    ///< Molecular size in m^3
 
   public:
     /**
@@ -75,6 +76,13 @@ class Fluid {
      * @return Concentration of the fluid from 0.0 to 1.0.
      */
     T getConcentration() const;
+
+    /**
+     * @brief Retrieve the molecular size of the fluid.
+     * 
+     * @return Molecular diameter in m. 
+     */
+    T getMolecularSize() const;
 
     /**
      * @brief Adds a fluid from which the current fluid was created by mixing.

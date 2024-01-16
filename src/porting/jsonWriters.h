@@ -33,4 +33,7 @@ namespace porting {
     template<typename T>
     void writeDroplets (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation);
 
+    template<typename T>
+    void writeConcentrations (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation);
+
 }   // namespace porting

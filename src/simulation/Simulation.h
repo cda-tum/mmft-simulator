@@ -8,12 +8,15 @@
 #include <unordered_map>
 #include <vector>
 
+#include "MixtureInjection.h"
 #include "CFDSim.h"
 #include "Droplet.h"
 #include "events/Event.h"
 #include "Fluid.h"
 #include "Injection.h"
+#include "MixingModels.h"
 #include "ResistanceModels.h"
+#include "Specie.h"
 
 #include "../architecture/Network.h"
 #include "../nodalAnalysis/NodalAnalysis.h"
@@ -46,8 +49,12 @@ namespace sim {
             arch::Network<T>* network;                                                          ///< Network for which the simulation should be conducted.
             std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
             std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
+            std::unordered_map<int, std::unique_ptr<Specie<T>>> species;                        ///< Species specified for the simulation.
             std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
+            std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                                              ///< Mixtures present in the simulation.
+            std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;   ///< Injections of fluids that should take place during the simulation.
             ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for te simulation.
+            InstantaneousMixingModel<T>* mixingModel;
             int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
             int iteration = 0;
             int maxIterations = 1e5;
@@ -122,7 +129,23 @@ namespace sim {
             Droplet<T>* addDroplet(int fluidId, T volume);
 
             /**
-             * @brief Create injection.
+             * @brief Create specie.
+             * @param[in] diffusivity Diffusivity of the specie in the carrier medium in m^2/s.
+             * @param[in] satConc Saturation concentration of the specie in the carrier medium in g/m^3.
+             * @return Pointer to created specie.
+             */
+            Specie<T>* addSpecie(T diffusivity, T satConc);
+
+            /**
+             * @brief Create mixture.
+             * @param[in] specieIds
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            Mixture<T>* addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+
+            /**
+             * @brief Create droplet injection.
              * @param[in] dropletId Id of the droplet that should be injected.
              * @param[in] injectionTime Time at which the droplet should be injected in s.
              * @param[in] channelId Id of the channel, where droplet should be injected.
@@ -130,6 +153,15 @@ namespace sim {
              * @return Pointer to created injection.
              */
             DropletInjection<T>* addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition);
+
+            /**
+             * @brief Create bolus injection.
+             * @param[in] mixtureId Id of the mixture that should be injected.
+             * @param[in] channelId Id of the channel, where specie should be injected.
+             * @param[in] injectionTime Time at which the injection should be injected in s.
+             * @return Pointer to created injection.
+             */
+            MixtureInjection<T>* addMixtureInjection(int mixtureId, int channelId, T injectionTime);
 
             /**
              * @brief Set the platform of the simulation.
@@ -172,6 +204,19 @@ namespace sim {
              * @param[in] model The resistance model to be used.
              */
             void setResistanceModel(ResistanceModel<T>* model);
+
+            /**
+             * @brief Define which mixing model should be used for the concentrations.
+             * @param[in] model The mixing model to be used.
+             */
+            void setMixingModel(InstantaneousMixingModel<T>* model);
+
+            /**
+             * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
+             * 
+             * @param timeStep Time step in s for which the new mixtures state should be calculated.
+             */
+            void calculateNewMixtures(double timeStep);
 
             /**
              * @brief Get the platform of the simulation.
@@ -224,6 +269,20 @@ namespace sim {
              * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
              */
             Fluid<T>* getContinuousPhase();
+
+            /**
+             * @brief Get mixture.
+             * @param mixtureId Id of the mixture
+             * @return Pointer to mixture with the correspondig id
+             */
+            Mixture<T>* getMixture(int mixtureId);
+
+            /**
+             * @brief Get mixture.
+             * @param mixtureId Id of the mixture
+             * @return Pointer to mixture with the correspondig id
+             */
+            Specie<T>* getSpecie(int specieId);
 
             /**
              * @brief Get the results of the simulation.

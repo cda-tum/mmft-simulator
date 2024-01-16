@@ -112,6 +112,47 @@ namespace porting {
     }
 
     template<typename T>
+    void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
+        for (auto& specie : jsonString["simulation"]["species"]) {
+            if (specie.contains("diffusivity") && specie.contains("saturationConcentration")) {
+                T diffusivity = specie["diffusivity"];
+                T satConc = specie["saturationConcentration"];
+                simulation.addSpecie(diffusivity, satConc);
+            } else {
+                throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
+            }
+        }
+    }
+
+    template<typename T>
+    void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
+        for (auto& mixture : jsonString["simulation"]["mixtures"]) {
+            if (mixture.contains("species") && mixture.contains("concentrations")) {
+                if (mixture["species"].size() == mixture["concentrations"].size()) {
+                    int counter = 0;
+                    std::unordered_map<int, sim::Specie<T>*> species;
+                    std::unordered_map<int, T> concentrations;
+                    for (auto& specie : mixture["species"]) {
+                        auto specie_ptr = simulation.getSpecie(specie);
+                        species.try_emplace(counter, specie_ptr);
+                        counter++;
+                    }
+                    counter = 0;
+                    for (auto& concentration : mixture["concentrations"]) {
+                        concentrations.try_emplace(counter, concentration);
+                        counter++;
+                    }
+                    simulation.addMixture(species, concentrations);
+                } else {
+                    throw std::invalid_argument("Wrongly defined mixture. Please provide as many concentrations as species.");
+                }
+            } else {
+                throw std::invalid_argument("Wrongly defined mixture. Please provide species and corresponding concentrations in this mixture.");
+            }
+        }
+    }
+
+    template<typename T>
     void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
         if (jsonString["simulation"]["fixtures"][activeFixture].contains("bigDropletInjections")) {
             for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
@@ -122,7 +163,21 @@ namespace porting {
                 simulation.addDropletInjection(dropletId, injectionTime, channelId, injectionPosition);
             }
         } else {
-            throw std::invalid_argument("Please define at least one droplet injection or choose a different platform.");
+            throw std::invalid_argument("Please define at least one droplet injection for the active fixture or choose a different platform.");
+        }
+    }
+
+    template<typename T>
+    void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+        if (jsonString["simulation"]["fixtures"][activeFixture].contains("mixtureInjections")) {
+            for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["mixtureInjections"]) {
+                int mixtureId = injection["mixture"];
+                int channelId = injection["channel"];
+                T injectionTime = injection["t0"];
+                simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
+            }
+        } else {
+            throw std::invalid_argument("Please define at least one bolus injection for the active fixture or choose a different platform.");
         }
     }
 

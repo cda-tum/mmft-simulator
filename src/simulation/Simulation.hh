@@ -11,6 +11,7 @@
 #include <olb2D.h>
 #include <olb2D.hh>
 
+#include "MixingModels.h"
 #include "ResistanceModels.h"
 
 #include "../architecture/Channel.h"
@@ -47,6 +48,26 @@ namespace sim {
     }
 
     template<typename T>
+    Specie<T>* Simulation<T>::addSpecie(T diffusivity, T satConc) {
+        auto id = species.size();
+        
+        auto result = species.insert_or_assign(id, std::make_unique<Specie<T>>(id, diffusivity, satConc));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
+        auto id = mixtures.size();
+
+        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+
+        mixtures.push_back(Mixture<T>(id, species, specieConcentrations, carrierFluid));
+
+        return &mixtures.back;
+    }
+
+    template<typename T>
     DropletInjection<T>* Simulation<T>::addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition) {
         auto id = dropletInjections.size();
         auto droplet = droplets.at(dropletId).get();
@@ -70,6 +91,16 @@ namespace sim {
         }
 
         auto result = dropletInjections.insert_or_assign(id, std::make_unique<DropletInjection<T>>(id, droplet, injectionTime, channel, injectionPosition));
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int channelId, T injectionTime) {
+        auto id = mixtureInjections.size();
+        auto channel = network->getChannel(channelId);
+
+        auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+
         return result.first->second.get();
     }
 
@@ -106,6 +137,16 @@ namespace sim {
     template<typename T>
     void Simulation<T>::setResistanceModel(ResistanceModel<T>* model_) {
         this->resistanceModel = model_;
+    }
+
+    template<typename T>
+    void Simulation<T>::setMixingModel(InstantaneousMixingModel<T>* model_) {
+        this->mixingModel = model_;
+    }
+
+    template<typename T>
+    void Simulation<T>::calculateNewMixtures(double timestep_) {
+        this->mixingModel->updateMixtures(timestep_, this->network, this->mixtures);
     }
 
     template<typename T>
@@ -172,6 +213,16 @@ namespace sim {
     template<typename T>
     Fluid<T>* Simulation<T>::getContinuousPhase() {
         return fluids[continuousPhase].get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::getMixture(int mixtureId) {
+        return mixtures.at(mixtureId).get();
+    }
+
+    template<typename T>
+    Specie<T>* Simulation<T>::getSpecie(int specieId) {
+        return species.at(specieId).get();
     }
 
     template<typename T>
@@ -374,6 +425,10 @@ namespace sim {
 
                 iteration++;
             }
+        }
+
+        if (simType == Type::_1D && platform == Platform::MIXING) {
+            calculateNewMixtures(time);
         }
     }
 

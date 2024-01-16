@@ -73,6 +73,16 @@ const void State<T>::printState() {
             std::cout << std::endl;
         }
     }
+    // print the mixture positions
+    if ( !mixturePositions.empty() ) {
+        for (auto& [key, mixturePosition] : mixturePositions) {
+            std::cout << "\t";
+            std::cout << "\tBoundaries:\n";
+            std::cout << "\t\tChannel: " << mixturePosition.channel << "\n";
+            std::cout << "\t\tPosition1: " << mixturePosition.position1.getPosition() << "\n";
+            std::cout << "\t\tPosition2: " << mixturePosition.position2.getPosition() << std::endl;
+        }
+    }
 }
 
 template<typename T>
