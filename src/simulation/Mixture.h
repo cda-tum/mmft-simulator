@@ -52,7 +52,7 @@ public:
      * @param density Density of the mixture in kg/m^3.
      * @param largestMolecularSize Largest molecular size in that mixture in molecular size in m^3.
      */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T>&& specieConcentrations, T viscosity, T density, T largestMolecularSize);
+    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
 
     /**
      * @brief Construct a new mixture out of a list of fluids and their concentration values.
@@ -62,7 +62,7 @@ public:
      * @param viscosity Viscosity of the mixture in Pas.
      * @param density Density of the mixture in kg/m^3.
      */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T>&& specieConcentrations, T viscosity, T density);
+    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density);
 
     /**
      * @brief Construct a new mixture out of a list of fluids and their concentration values.
@@ -71,7 +71,7 @@ public:
      * @param fluidConcentrations Map of fluid id and fluid concentration pairs.
      * @param fluid Carrier fluid of the mixture.
      */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T>&& specieConcentrations, Fluid<T>* carrierFluid);
+    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, Fluid<T>* carrierFluid);
 
     /**
      * @brief Get the id of this mixture

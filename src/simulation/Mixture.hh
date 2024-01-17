@@ -6,12 +6,23 @@ template<typename T>
 MixturePosition<T>::MixturePosition() { }
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T>&& specieConcentrations, 
+Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
                     T viscosity, T density, T largestMolecularSize) : 
                     id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
-                    density(density), largestMolecularSize(largestMolecularSize) {
-    this->specieConcentrations = std::move(specieConcentrations);
-}
+                    density(density), largestMolecularSize(largestMolecularSize) { }
+
+template<typename T>
+Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+                    T viscosity, T density) : 
+                    id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
+                    density(density), largestMolecularSize(0.0) { }
+
+template<typename T>
+Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+                    Fluid<T>* carrierFluid) : 
+                    id(id), species(species), specieConcentrations(specieConcentrations), 
+                    viscosity(carrierFluid->getViscosity()), density(carrierFluid->getDensity()), 
+                    largestMolecularSize(0.0) { }
 
 template<typename T>
 int Mixture<T>::getId() const {

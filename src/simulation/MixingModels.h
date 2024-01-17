@@ -7,10 +7,15 @@
 
 #include "Fluid.h"
 #include "Mixture.h"
+#include "Specie.h"
 
 #include "../architecture/Network.h"
 
 namespace sim { 
+
+// Forward declared dependencies
+template<typename T>
+class Simulation;
 
 template<typename T>
 struct MixtureInFlow {
@@ -35,13 +40,7 @@ public:
 
     InstantaneousMixingModel();
 
-    int addMixture(std::unordered_map<int, T>& fluidConcentrations, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures, int id = -1);
-
-    Mixture<T>* getMixture(int mixtureId);
-
-    std::vector<Mixture<T>>& getMixtures();
-
-    void updateMixtures(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 };
 
 }

@@ -62,9 +62,26 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
-        mixtures.push_back(Mixture<T>(id, species, specieConcentrations, carrierFluid));
+        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
 
-        return &mixtures.back;
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, T> specieConcentrations) {
+        auto id = mixtures.size();
+
+        std::unordered_map<int, Specie<T>*> species;
+
+        for (auto& [specieId, concentration] : specieConcentrations) {
+            species.try_emplace(specieId, getSpecie(specieId));
+        }
+
+        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+
+        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
+
+        return result.first->second.get();
     }
 
     template<typename T>
@@ -146,7 +163,7 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::calculateNewMixtures(double timestep_) {
-        this->mixingModel->updateMixtures(timestep_, this->network, this->mixtures);
+        this->mixingModel->updateMixtures(timestep_, this->network, this, this->mixtures);
     }
 
     template<typename T>

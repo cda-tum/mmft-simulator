@@ -15,6 +15,7 @@
 #include "Fluid.h"
 #include "Injection.h"
 #include "MixingModels.h"
+#include "Mixture.h"
 #include "ResistanceModels.h"
 #include "Specie.h"
 
@@ -143,6 +144,13 @@ namespace sim {
              * @return Pointer to created mixture.
              */
             Mixture<T>* addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+
+            /**
+             * @brief Create mixture.
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            Mixture<T>* addMixture(std::unordered_map<int, T> specieConcentrations);
 
             /**
              * @brief Create droplet injection.

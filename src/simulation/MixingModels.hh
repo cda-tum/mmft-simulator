@@ -8,17 +8,7 @@ template<typename T>
 InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
 
 template<typename T>
-Mixture<T>* InstantaneousMixingModel<T>::getMixture(int mixtureId) {
-    return &(mixtures[mixtureId]);
-}
-
-template<typename T>
-std::vector<Mixture<T>>& InstantaneousMixingModel<T>::getMixtures() {
-    return mixtures;
-}
-
-template<typename T>
-void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
 
     /**
      * Calculate and store the mixtures flowing into all nodes.
@@ -52,7 +42,7 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         std::unordered_map<int, T> newConcentrations;
         for (auto& mixtureInflow : mixtureInflowList) {
-            for (auto& [specieId, oldConcentration] : mixtures.at(mixtureInflow.mixtureId).getSpecieConcentrations()) {
+            for (auto& [specieId, oldConcentration] : mixtures.at(mixtureInflow.mixtureId)->getSpecieConcentrations()) {
                 T newConcentration = oldConcentration * mixtureInflow.inflowVolume / totalInflowVolumeAtNode.at(nodeId);
                 auto [iterator, inserted] = newConcentrations.try_emplace(specieId, newConcentration);
                 if (!inserted) {
@@ -61,8 +51,8 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
             }
         }
 
-        int newMixtureId = addMixture(newConcentrations, mixtures);
-        mixtureOutflowAtNode.try_emplace(nodeId, newMixtureId);
+        Mixture<T>* newMixture = sim->addMixture(newConcentrations);
+        mixtureOutflowAtNode.try_emplace(nodeId, newMixture->getId());
     }
 
     /**
@@ -75,7 +65,7 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
                 T newPos = std::abs(channel->getFlowRate()) * timeStep / channel->getVolume();
                 assert(newPos <= 1.0 && newPos >= 0.0);
                 bool oldEqualsNewConcentration = true;
-                auto& oldConcentrations = mixtures.at(mixturesInEdge.at(channel->getId()).back().first).getSpecieConcentrations();
+                auto& oldConcentrations = mixtures.at(mixturesInEdge.at(channel->getId()).back().first)->getSpecieConcentrations();
                 if (mixtureOutflowAtNode.count(nodeId)) {
                     mixturesInEdge.at(channel->getId()).push_back(std::make_pair(mixtureOutflowAtNode.at(nodeId), newPos));
                 }
