@@ -1,6 +1,7 @@
 #include "MixingModels.h"
 
 #include <unordered_map>
+#include <iostream>
 
 namespace sim {
 
@@ -10,24 +11,31 @@ InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
 template<typename T>
 void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
 
+    std::cout << "[Debug] Calculate and store the mixtures flowing into all nodes." << std::endl;
     /**
      * Calculate and store the mixtures flowing into all nodes.
     */
     for (auto& [nodeId, node] : network->getNodes()) {
+        std::cout << "[Debug] Getting here...1" << std::endl;
         // only consider channels where there is an inflow at this node (= where the flow direction is into the node)
         for (auto& [channelId, channel] : network->getChannels()) {
+            std::cout << "[Debug] Getting here...2" << std::endl;
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+                std::cout << "[Debug] Getting here...3" << std::endl;
                 for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
+                    std::cout << "[Debug] Getting here...4" << std::endl;
                     T movedDistance = (std::abs(channel->getFlowRate()) * timeStep) / channel->getVolume();
                     T newEndPos = std::min(endPos + movedDistance, 1.0);
                     endPos = newEndPos;
                     if (newEndPos == 1.0) {
+                        std::cout << "[Debug] Getting here...5" << std::endl;
                         // specie flows into node, add to mixture inflow
                         T inflowVolume = movedDistance * channel->getArea();
                         MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
                         mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
                         auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
                         if (!inserted) {
+                            std::cout << "[Debug] Getting here...6" << std::endl;
                             iterator->second = iterator->second + inflowVolume;
                         }
                     }   
@@ -35,6 +43,8 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
             }
         }
     }
+
+    std::cout << "[Debug] Calculate mixture outflow at each node from all inflows." << std::endl;
 
     /**
      * Calculate mixture outflow at each node from all inflows
@@ -55,6 +65,8 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
         mixtureOutflowAtNode.try_emplace(nodeId, newMixture->getId());
     }
 
+    std::cout << "[Debug] Add the node outflow as inflow to the channels." << std::endl;
+
     /**
      * Add the node outflow as inflow to the channels
     */
@@ -72,6 +84,8 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
             }
         }
     }
+
+    std::cout << "[Debug] Remove mixtures that have 'outflowed' their channel." << std::endl;
 
     /**
      * Remove mixtures that have 'outflowed' their channel

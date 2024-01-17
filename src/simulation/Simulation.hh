@@ -163,6 +163,7 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::calculateNewMixtures(double timestep_) {
+        std::cout << "[Debug] Calculate new mixtures" << std::endl;
         this->mixingModel->updateMixtures(timestep_, this->network, this, this->mixtures);
     }
 
@@ -445,6 +446,9 @@ namespace sim {
         }
 
         if (simType == Type::_1D && platform == Platform::MIXING) {
+            // compute nodal analysis
+            nodal::conductNodalAnalysis(network);
+            
             calculateNewMixtures(time);
         }
     }
