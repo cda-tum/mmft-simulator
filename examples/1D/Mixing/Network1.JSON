@@ -73,7 +73,7 @@
     "platform": "mixing",
     "type": "1D",
     "resistanceModel": "1D",
-    "mixingModel": "instantaneous",
+    "mixingModel": "Instantaneous",
     "fluids": [
         {	
             "name": "Water",

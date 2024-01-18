@@ -55,7 +55,7 @@ namespace sim {
             std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                                              ///< Mixtures present in the simulation.
             std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;   ///< Injections of fluids that should take place during the simulation.
             ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for te simulation.
-            InstantaneousMixingModel<T>* mixingModel;
+            MixingModel<T>* mixingModel;
             int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
             int iteration = 0;
             int maxIterations = 1e5;
@@ -82,6 +82,11 @@ namespace sim {
              * @brief Compute all possible next events.
              */
             std::vector<std::unique_ptr<Event<T>>> computeEvents();
+
+            /**
+             * @brief Compute all possible next events for mixing simulation.
+             */
+            std::vector<std::unique_ptr<Event<T>>> computeMixingEvents();
 
             /**
              * @brief Moves all droplets according to the given time step.
@@ -217,7 +222,7 @@ namespace sim {
              * @brief Define which mixing model should be used for the concentrations.
              * @param[in] model The mixing model to be used.
              */
-            void setMixingModel(InstantaneousMixingModel<T>* model);
+            void setMixingModel(MixingModel<T>* model);
 
             /**
              * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.

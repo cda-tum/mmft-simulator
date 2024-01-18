@@ -36,4 +36,31 @@ class DropletInjectionEvent : public Event<T> {
     void print() override;
 };
 
+/**
+ * @brief Class for an injection event that takes place when a mixture is injected into the network.
+ */
+template<typename T>
+class MixtureInjectionEvent : public Event<T> {
+  private:
+    MixtureInjection<T>& injection;  ///< Specifies if the injection event.
+
+  public:
+    /**
+     * @brief Definies an injection event to take place at a certain time.
+     * @param[in] time The time at which the event should take place in s elapsed since the start of the simulation.
+     * @param[in,out] injection A class containing all details necessary to conduct an injection event.
+     */
+    MixtureInjectionEvent(T time, MixtureInjection<T>& injection);
+
+    /**
+     * @brief Conducts the injection event.
+     */
+    void performEvent() override;
+
+    /**
+     * @brief Print the injection event.
+     */
+    void print() override;
+};
+
 }  // namespace sim

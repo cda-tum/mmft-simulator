@@ -278,6 +278,21 @@ namespace porting {
     }
 
     template<typename T>
+    void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
+        sim::MixingModel<T>* mixingModel; 
+        if (jsonString["simulation"].contains("mixingModel")) {
+            if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
+                mixingModel = new sim::InstantaneousMixingModel<T>();
+            } else {
+                throw std::invalid_argument("Invalid resistance model.");
+            }
+        } else {
+            throw std::invalid_argument("No mixing model defined.");
+        }
+        simulation.setMixingModel(mixingModel);
+    }
+
+    template<typename T>
     int readActiveFixture(json jsonString) {
         int activeFixture = 0;
         if (jsonString["simulation"].contains("activeFixture")) {

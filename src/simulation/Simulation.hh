@@ -157,7 +157,7 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setMixingModel(InstantaneousMixingModel<T>* model_) {
+    void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
         this->mixingModel = model_;
     }
 
@@ -446,10 +446,40 @@ namespace sim {
         }
 
         if (simType == Type::_1D && platform == Platform::MIXING) {
-            // compute nodal analysis
-            nodal::conductNodalAnalysis(network);
-            
-            calculateNewMixtures(time);
+
+            while(true) {
+                if (iteration >= 5) {
+                    throw "Max iterations exceeded.";
+                }
+                // compute nodal analysis
+                nodal::conductNodalAnalysis(network);
+                
+                // Update and flow the mixtures 
+                calculateNewMixtures(time);
+
+                // store simulation results of current state
+                saveState();
+
+                // compute events
+                auto events = computeMixingEvents();
+
+                // sort events
+                // closest events in time with the highest priority come first
+                std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
+                    if (a->getTime() == b->getTime()) {
+                        return a->getPriority() < b->getPriority();  // ascending order (the lower the priority value, the higher the priority)
+                    }
+                    return a->getTime() < b->getTime();  // ascending order
+                });
+                int test_size = events.size();
+
+                Event<T>* nextEvent = nullptr;
+                if (events.size() != 0) {
+                    nextEvent = events[0].get();
+                } else {
+                    break;
+                }
+            }
         }
     }
 
@@ -499,6 +529,10 @@ namespace sim {
             T resistance = resistanceModel->getChannelResistance(channel.get());
             channel->setResistance(resistance);
             channel->setDropletResistance(0.0);
+        }
+
+        if (this->simType == Type::_1D && this->platform == Platform::MIXING) {
+            //mixingModel->initialize(this->network);
         }
 
         if (this->simType == Type::HYBRID && this->platform == Platform::CONTINUOUS) {
@@ -629,6 +663,30 @@ namespace sim {
                 boundary->moveBoundary(timeStep);
             }
         }
+    }
+
+    template<typename T>
+    std::vector<std::unique_ptr<Event<T>>> Simulation<T>::computeMixingEvents() {
+        // events
+        std::vector<std::unique_ptr<Event<T>>> events;
+
+        // injection events
+        for (auto& [key, injection] : mixtureInjections) {
+            double injectionTime = injection->getInjectionTime();
+            if (!injection->wasPerformed()) {
+                events.push_back(std::make_unique<MixtureInjectionEvent<T>>(injectionTime - time, *injection));
+                injection->setPerformed(true);
+            }
+        }
+
+        T minimalTimeStep = mixingModel->getMinimalTimeStep();
+
+        // time step event
+        if (minimalTimeStep > 0) {
+            events.push_back(std::make_unique<TimeStepEvent<T>>(minimalTimeStep));
+        }
+
+        return events;
     }
 
     template<typename T>

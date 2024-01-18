@@ -64,6 +64,7 @@ namespace porting {
             }
             readSpecies<T>(jsonString, simulation);
             readMixtureInjections<T>(jsonString, simulation, activeFixture);
+            readMixingModel<T>(jsonString, simulation);
         } else {
             throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
         }

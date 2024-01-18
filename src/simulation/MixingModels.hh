@@ -1,9 +1,18 @@
 #include "MixingModels.h"
 
 #include <unordered_map>
+#include <deque>
 #include <iostream>
 
 namespace sim {
+
+template<typename T>
+MixingModel<T>::MixingModel() { }
+
+template<typename T>
+T MixingModel<T>::getMinimalTimeStep() {
+    return this->minimalTimeStep;
+}
 
 template<typename T>
 InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
@@ -16,30 +25,34 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
      * Calculate and store the mixtures flowing into all nodes.
     */
     for (auto& [nodeId, node] : network->getNodes()) {
-        std::cout << "[Debug] Getting here...1" << std::endl;
-        // only consider channels where there is an inflow at this node (= where the flow direction is into the node)
+        //std::cout << "[Debug] Getting here...1" << std::endl;
         for (auto& [channelId, channel] : network->getChannels()) {
-            std::cout << "[Debug] Getting here...2" << std::endl;
+            //std::cout << "[Debug] Getting here...2" << std::endl;
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
-                std::cout << "[Debug] Getting here...3" << std::endl;
-                for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
-                    std::cout << "[Debug] Getting here...4" << std::endl;
-                    T movedDistance = (std::abs(channel->getFlowRate()) * timeStep) / channel->getVolume();
-                    T newEndPos = std::min(endPos + movedDistance, 1.0);
-                    endPos = newEndPos;
-                    if (newEndPos == 1.0) {
-                        std::cout << "[Debug] Getting here...5" << std::endl;
-                        // specie flows into node, add to mixture inflow
-                        T inflowVolume = movedDistance * channel->getArea();
-                        MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
-                        mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
-                        auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
-                        if (!inserted) {
-                            std::cout << "[Debug] Getting here...6" << std::endl;
-                            iterator->second = iterator->second + inflowVolume;
-                        }
-                    }   
-                }
+                //std::cout << "[Debug] Getting here...3" << std::endl;
+                if (mixturesInEdge.count(channel->getId())){
+                    //std::cout << "Apparently channel " << channel->getId() << " has a mixture" << std::endl;
+                    for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
+                        //std::cout << "[Debug] Getting here...4" << std::endl;
+                        T movedDistance = (std::abs(channel->getFlowRate()) * timeStep) / channel->getVolume();
+                        //std::cout << "[Debug] Getting here...4.1" << std::endl;
+                        T newEndPos = std::min(endPos + movedDistance, 1.0);
+                        //std::cout << "[Debug] Getting here...4.2" << std::endl;
+                        endPos = newEndPos;
+                        if (newEndPos == 1.0) {
+                            //std::cout << "[Debug] Getting here...5" << std::endl;
+                            // specie flows into node, add to mixture inflow
+                            T inflowVolume = movedDistance * channel->getArea();
+                            MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
+                            mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
+                            auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
+                            if (!inserted) {
+                                //std::cout << "[Debug] Getting here...6" << std::endl;
+                                iterator->second = iterator->second + inflowVolume;
+                            }
+                        }   
+                    }
+                } 
             }
         }
     }
@@ -77,9 +90,11 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
                 T newPos = std::abs(channel->getFlowRate()) * timeStep / channel->getVolume();
                 assert(newPos <= 1.0 && newPos >= 0.0);
                 bool oldEqualsNewConcentration = true;
-                auto& oldConcentrations = mixtures.at(mixturesInEdge.at(channel->getId()).back().first)->getSpecieConcentrations();
-                if (mixtureOutflowAtNode.count(nodeId)) {
-                    mixturesInEdge.at(channel->getId()).push_back(std::make_pair(mixtureOutflowAtNode.at(nodeId), newPos));
+                if (mixturesInEdge.count(channel->getId())){
+                    auto& oldConcentrations = mixtures.at(mixturesInEdge.at(channel->getId()).back().first)->getSpecieConcentrations();
+                    if (mixtureOutflowAtNode.count(nodeId)) {
+                        mixturesInEdge.at(channel->getId()).push_back(std::make_pair(mixtureOutflowAtNode.at(nodeId), newPos));
+                    }
                 }
             }
         }
@@ -92,17 +107,36 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
     */
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
-            auto count = 0;  // to not remove the 1.0 fluid if there is only one
-            for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
-                //remove mixtures that completely flow out of channel (only 1 fluid with pos 1.0 left)
-                if (endPos == 1.0) {
-                    if (count != 0) {
-                        mixturesInEdge.at(channel->getId()).pop_front();
+            if (mixturesInEdge.count(channel->getId())){
+                auto count = 0;  // to not remove the 1.0 fluid if there is only one
+                for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
+                    //remove mixtures that completely flow out of channel (only 1 fluid with pos 1.0 left)
+                    if (endPos == 1.0) {
+                        if (count != 0) {
+                            mixturesInEdge.at(channel->getId()).pop_front();
+                        }
+                    } else {
+                        break;
                     }
-                } else {
-                    break;
+                    count++;
                 }
-                count++;
+            }
+        }
+    }
+
+    /**
+     * Update the minimal timestep for a mixture to 'outflow' their channel
+    */
+    this->minimalTimeStep = 0.0;
+    for (auto& [channelId, deque] : mixturesInEdge) {
+        T channelLength = network->getChannel(channelId)->getLength();
+        T channelFlowRate = network->getChannel(channelId)->getFlowRate();
+        for (auto& [mixtureId, endPos] : deque) {
+            T flowTime = (1.0 - endPos)*channelLength/channelFlowRate;
+            if (this->minimalTimeStep < 1e-12) {
+                this->minimalTimeStep = flowTime;
+            } else if (flowTime < this->minimalTimeStep) {
+                this->minimalTimeStep = flowTime;
             }
         }
     }
