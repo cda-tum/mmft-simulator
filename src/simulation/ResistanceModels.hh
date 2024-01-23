@@ -1,10 +1,5 @@
 #include "ResistanceModels.h"
 
-#include <math.h>
-
-#include "../architecture/Channel.h"
-#include "../architecture/lbmModule.h"
-
 namespace sim {
 
 // ### ResistanceModel ###

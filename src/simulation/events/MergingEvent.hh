@@ -1,9 +1,5 @@
 #include "MergingEvent.h"
 
-#include "../Droplet.h"
-#include "Event.h"
-#include "../Simulation.h"
-
 namespace sim {
 
 template<typename T>

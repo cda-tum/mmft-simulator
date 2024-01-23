@@ -1,25 +1,5 @@
 #include "Simulation.h"
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <tuple>
-#include <unordered_map>
-#include <vector>
-#include <math.h>
-
-#include <olb2D.h>
-#include <olb2D.hh>
-
-#include "ResistanceModels.h"
-
-#include "../architecture/Channel.h"
-#include "../architecture/FlowRatePump.h"
-#include "../architecture/lbmModule.h"
-#include "../architecture/Network.h"
-#include "../architecture/PressurePump.h"
-
-
 namespace sim {
 
     template<typename T>

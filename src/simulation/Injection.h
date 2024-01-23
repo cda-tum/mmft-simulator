@@ -7,10 +7,22 @@
 #include <memory>
 #include <string>
 
-#include "../architecture/ChannelPosition.h"
-#include "Droplet.h"
+namespace arch {
+
+// Forward declared dependencies
+template<typename T>
+class ChannelPosition;
+
+template<typename T>
+class RectangularChannel;
+
+}
 
 namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Droplet;
 
 /**
  * @brief Class that contains all paramaters necessary to conduct an injection.

@@ -1,7 +1,5 @@
 #include "Fluid.h"
 
-#include <string>
-
 namespace sim {
 
 template<typename T>

@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include <olb2D.h>
-#include <olb2D.hh>
+namespace arch {
 
-#include "../architecture/Network.h"
-#include "../architecture/Module.h"
-#include "../architecture/lbmModule.h"
+// Forward declared dependencies
+template<typename T>
+class Network;
+
+}   // namespace arch
 
 namespace sim {
 

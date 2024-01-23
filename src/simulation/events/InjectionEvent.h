@@ -4,10 +4,14 @@
 
 #pragma once
 
-#include "Event.h"
-#include "../Injection.h"
-
 namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Event;
+
+template<typename T>
+class DropletInjection;
 
 /**
  * @brief Class for an injection event that takes place when a droplet is injected into the network.

@@ -1,10 +1,19 @@
 #pragma once
 
-#include "../Droplet.h"
-#include "Event.h"
-#include "../Simulation.h"
-
 namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Droplet;
+
+template<typename T>
+class DropletBoundary;
+
+template<typename T>
+class Event;
+
+template<typename T>
+class Simulation;
 
 /**
  * @brief Class that specifies a merge event that takes place at a bifurcation.

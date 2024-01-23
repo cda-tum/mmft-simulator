@@ -1,11 +1,5 @@
 #include "Droplet.h"
 
-#include <cmath>
-#include <memory>
-#include <string>
-
-#include "../architecture/Channel.h"
-
 namespace sim {
 
 template<typename T>

@@ -4,12 +4,33 @@
 
 #pragma once
 
+#include <iostream>
+#include <memory>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "../architecture/Network.h"
-#include "../simulation/Droplet.h"
-#include "../simulation/Fluid.h"
-#include "../simulation/Injection.h"
+namespace arch {
+    
+// Forward declared dependencies
+template<typename T>
+class Network;
+
+}
+
+namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Droplet;
+
+template<typename T>
+class DropletPosition;
+
+template<typename T>
+class Fluid;
+}
 
 namespace result {
 

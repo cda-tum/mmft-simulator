@@ -1,13 +1,5 @@
 #include "Results.h"
 
-#include <iostream>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <nlohmann/json.hpp>
-
 namespace result {
 
 template<typename T>
