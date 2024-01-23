@@ -43,6 +43,7 @@ template<typename T>
 class MixtureInjectionEvent : public Event<T> {
   private:
     MixtureInjection<T>& injection;  ///< Specifies if the injection event.
+    InstantaneousMixingModel<T>* mixingModel;
 
   public:
     /**
@@ -50,7 +51,7 @@ class MixtureInjectionEvent : public Event<T> {
      * @param[in] time The time at which the event should take place in s elapsed since the start of the simulation.
      * @param[in,out] injection A class containing all details necessary to conduct an injection event.
      */
-    MixtureInjectionEvent(T time, MixtureInjection<T>& injection);
+    MixtureInjectionEvent(T time, MixtureInjection<T>& injection, InstantaneousMixingModel<T>* mixingModel);
 
     /**
      * @brief Conducts the injection event.

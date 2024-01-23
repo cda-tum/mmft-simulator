@@ -157,7 +157,7 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
+    void Simulation<T>::setMixingModel(InstantaneousMixingModel<T>* model_) {
         this->mixingModel = model_;
     }
 
@@ -226,6 +226,11 @@ namespace sim {
     template<typename T>
     DropletInjection<T>* Simulation<T>::getDropletInjection(int injectionId) {
         return dropletInjections.at(injectionId).get();
+    }
+
+    template<typename T>
+    MixtureInjection<T>* Simulation<T>::getMixtureInjection(int injectionId) {
+        return mixtureInjections.at(injectionId).get();
     }
 
     template<typename T>
@@ -448,10 +453,11 @@ namespace sim {
         if (simType == Type::_1D && platform == Platform::MIXING) {
 
             while(true) {
-                if (iteration >= 5) {
+                if (iteration >= 10) {
                     throw "Max iterations exceeded.";
+                    break;
                 }
-                // compute nodal analysis
+                std::cout << "minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;                // compute nodal analysis
                 nodal::conductNodalAnalysis(network);
                 
                 // Update and flow the mixtures 
@@ -459,10 +465,10 @@ namespace sim {
 
                 // store simulation results of current state
                 saveState();
-
+                std::cout << "minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;
                 // compute events
                 auto events = computeMixingEvents();
-
+                std::cout << "minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;
                 // sort events
                 // closest events in time with the highest priority come first
                 std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
@@ -473,12 +479,19 @@ namespace sim {
                 });
                 int test_size = events.size();
 
+                for (auto& event : events) {
+                    event->print();
+                }
+                std::cout << "last minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;
                 Event<T>* nextEvent = nullptr;
                 if (events.size() != 0) {
                     nextEvent = events[0].get();
                 } else {
                     break;
                 }
+
+                nextEvent->performEvent();
+                iteration++;
             }
         }
     }
@@ -674,15 +687,14 @@ namespace sim {
         for (auto& [key, injection] : mixtureInjections) {
             double injectionTime = injection->getInjectionTime();
             if (!injection->wasPerformed()) {
-                events.push_back(std::make_unique<MixtureInjectionEvent<T>>(injectionTime - time, *injection));
-                injection->setPerformed(true);
+                events.push_back(std::make_unique<MixtureInjectionEvent<T>>(injectionTime - time, *injection, static_cast<InstantaneousMixingModel<T>*>(mixingModel)));
             }
         }
 
         T minimalTimeStep = mixingModel->getMinimalTimeStep();
 
         // time step event
-        if (minimalTimeStep > 0) {
+        if (minimalTimeStep > 0.0) {
             events.push_back(std::make_unique<TimeStepEvent<T>>(minimalTimeStep));
         }
 

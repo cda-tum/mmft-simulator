@@ -63,6 +63,7 @@ namespace porting {
                 throw std::invalid_argument("Mixing simulations are currently only supported for 1D simulations.");
             }
             readSpecies<T>(jsonString, simulation);
+            readMixtures<T>(jsonString, simulation);
             readMixtureInjections<T>(jsonString, simulation, activeFixture);
             readMixingModel<T>(jsonString, simulation);
         } else {

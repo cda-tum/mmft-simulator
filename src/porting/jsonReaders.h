@@ -46,6 +46,9 @@ namespace porting {
     void readSpecies (json jsonString, sim::Simulation<T>& simulation);
 
     template<typename T>
+    void readMixtures (json jsonString, sim::Simulation<T>& simulation);
+
+    template<typename T>
     void readDropletInjections (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
 
     template<typename T>

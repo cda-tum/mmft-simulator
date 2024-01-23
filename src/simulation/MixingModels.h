@@ -27,7 +27,7 @@ struct MixtureInFlow {
 
 template<typename T>
 class MixingModel {
-private:
+protected:
 
     T minimalTimeStep = 0.0;
 
@@ -55,6 +55,8 @@ public:
     InstantaneousMixingModel();
 
     void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+
+    void injectMixtureInEdge(int mixtureId, int channelId);
 
 //    void initialize(arch::Network<T>*);
 };

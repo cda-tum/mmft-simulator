@@ -174,7 +174,7 @@ namespace porting {
                 int mixtureId = injection["mixture"];
                 int channelId = injection["channel"];
                 T injectionTime = injection["t0"];
-                simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
+                auto injectionTest = simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
             }
         } else {
             throw std::invalid_argument("Please define at least one bolus injection for the active fixture or choose a different platform.");
@@ -279,7 +279,7 @@ namespace porting {
 
     template<typename T>
     void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
-        sim::MixingModel<T>* mixingModel; 
+        sim::InstantaneousMixingModel<T>* mixingModel; 
         if (jsonString["simulation"].contains("mixingModel")) {
             if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
                 mixingModel = new sim::InstantaneousMixingModel<T>();

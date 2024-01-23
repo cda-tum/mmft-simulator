@@ -124,6 +124,8 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
         }
     }
 
+    std::cout << "[Debug] Update minimal timestep." << std::endl;
+
     /**
      * Update the minimal timestep for a mixture to 'outflow' their channel
     */
@@ -139,6 +141,19 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
                 this->minimalTimeStep = flowTime;
             }
         }
+    }
+
+    std::cout << "[Debug] Finish updateMixtures." << std::endl;
+}
+
+template<typename T>
+void InstantaneousMixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
+    if (mixturesInEdge.count(channelId)) {
+        mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
+    } else {
+        std::deque<std::pair<int,T>> newDeque;
+        newDeque.push_back(std::make_pair(mixtureId, T(0.0)));
+        mixturesInEdge.try_emplace(channelId, newDeque);
     }
 }
 
