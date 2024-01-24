@@ -36,7 +36,7 @@ class MergeBifurcationEvent : public Event<T> {
      * @param droplet1 Second droplet that will be merged (is the droplet at the bifurcation).
      * @param simulation Simulation class.
      */
-    MergeBifurcationEvent(T time, Droplet<T>& droplet0, DropletBoundary<T>& boundary0, Droplet<T>& droplet1, Simulation<T>& simulation);
+    MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, Simulation<T>& simulation);
 
     /**
      * @brief Conducts the merge at bifurcation event.
@@ -71,7 +71,7 @@ class MergeChannelEvent : public Event<T> {
      * @param boundary1 The boundary of droplet1 (will be "removed" from the merged droplet).
      * @param simulation Simulation class.
      */
-    MergeChannelEvent(T time, Droplet<T>& droplet0, DropletBoundary<T>& boundary0, Droplet<T>& droplet1, DropletBoundary<T>& boundary1, Simulation<T>& simulation);
+    MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, Simulation<T>& simulation);
 
     /**
      * @brief  Perform the merge that happens within a channel sequence.

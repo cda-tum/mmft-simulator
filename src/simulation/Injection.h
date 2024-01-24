@@ -32,8 +32,8 @@ class DropletInjection {
   private:
     const int id;                             ///< Unique identifier of an injection.
     std::string name = "";                    ///< Name of the injection.
-    T injectionTime;                          ///< Time at which the injection should take place in s elapsed since the start of the simulation.
     Droplet<T>* droplet;                          ///< Pointer to droplet to be injected.
+    T injectionTime;                          ///< Time at which the injection should take place in s elapsed since the start of the simulation.
     arch::ChannelPosition<T> injectionPosition;   ///< Position at which the droplet should be injected.
 
   public:

@@ -209,7 +209,7 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
 
 template<typename T>
 int readActiveFixture(json jsonString) {
-    int activeFixture = 0;
+    unsigned int activeFixture = 0;
     if (jsonString["simulation"].contains("activeFixture")) {
         activeFixture = jsonString["simulation"]["activeFixture"];
         if (!jsonString["simulation"].contains("fixtures") || jsonString["simulation"]["fixtures"].size()-1 < activeFixture) {

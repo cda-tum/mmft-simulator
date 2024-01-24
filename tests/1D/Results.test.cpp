@@ -708,7 +708,7 @@ TEST(Results, noSink1) {
     
     // flowRate pump
     auto flowRate = 3e-11;
-    auto pump = network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
@@ -716,7 +716,7 @@ TEST(Results, noSink1) {
     auto cLength = 1000e-6;
 
     auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    network.addChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- ground ---
     network.setGround(node0->getId());
@@ -757,7 +757,7 @@ TEST(Results, noSink2) {
     
     // flowRate pump
     auto flowRate = 3e-11;
-    auto pump = network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
@@ -765,7 +765,7 @@ TEST(Results, noSink2) {
     auto cLength = 1000e-6;
 
     auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    network.addChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- ground ---
     network.setGround(node0->getId());
@@ -806,7 +806,7 @@ TEST(Results, noSinkTwoDroplets) {
 
     // flowRate pump
     auto flowRate = 3e-11;
-    auto pump = network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
