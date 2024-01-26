@@ -379,9 +379,6 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::initialize() {
-        // set resistance model
-        this->resistanceModel = new ResistanceModel1D(fluids[continuousPhase]->getViscosity());
-
         // compute and set channel lengths
         #ifdef VERBOSE
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;

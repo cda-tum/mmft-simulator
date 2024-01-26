@@ -20,12 +20,12 @@ void lbmModule<T>::prepareGeometry () {
 
     bool print = false;
 
-    olb::STLreader<T> stlReader(stlFile, converter->getConversionFactorLength());
+    stlReader = std::make_shared<olb::STLreader<T>>(stlFile, converter->getConversionFactorLength());
     #ifdef VERBOSE
         print = true;
         std::cout << "[lbmModule] reading STL file " << name << "... OK" << std::endl;
     #endif
-    olb::IndicatorF2DfromIndicatorF3D<T> stl2Dindicator(stlReader);
+    stl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*stlReader);
     #ifdef VERBOSE
         std::cout << "[lbmModule] create 2D indicator " << name << "... OK" << std::endl;
     #endif
@@ -44,7 +44,7 @@ void lbmModule<T>::prepareGeometry () {
     #endif 
 
     this->geometry->rename(0, 2);
-    this->geometry->rename(2, 1, stl2Dindicator);
+    this->geometry->rename(2, 1, *stl2Dindicator);
 
     #ifdef VERBOSE
         std::cout << "[lbmModule] generate 2D geometry from STL  " << name << "... OK" << std::endl;
@@ -128,11 +128,13 @@ void lbmModule<T>::prepareLattice () {
             meanPressure = std::make_shared< olb::SuperPlaneIntegralFluxPressure2D<T>> (getLattice(), getConverter(), getGeometry(),
             position, Opening.tangent, materials);
             this->meanPressures.try_emplace(key, meanPressure);
+            flowProfiles.try_emplace(key, std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), 0, (T) 0.0, (T) 0.0));
         } else {
             std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;
             flux = std::make_shared< olb::SuperPlaneIntegralFluxVelocity2D<T> > (getLattice(), getConverter(), getGeometry(),
             position, Opening.tangent, materials);
             this->fluxes.try_emplace(key, flux);
+            densities.try_emplace(key, std::make_shared<olb::AnalyticalConst2D<T,T>>((T) 0.0));
         }
     }
 
@@ -162,12 +164,12 @@ void lbmModule<T>::setBoundaryValues (int iT) {
         if (groundNodes.at(key)) {
             T maxVelocity = (3./2.)*(flowRates[key]/(Opening.width));
             T distance2Wall = getConverter().getConversionFactorLength()/2.;
-            olb::Poiseuille2D<T> poiseuilleU(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
-            getLattice().defineU(getGeometry(), key+3, poiseuilleU);
+            this->flowProfiles.at(key) = std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
+            getLattice().defineU(getGeometry(), key+3, *this->flowProfiles.at(key));
         } else {
             T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]));
-            olb::AnalyticalConst2D<T,T> rho(rhoV);
-            getLattice().defineRho(getGeometry(), key+3, rho);
+            this->densities.at(key) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
+            getLattice().defineRho(getGeometry(), key+3, *this->densities.at(key));
         }
     }
 

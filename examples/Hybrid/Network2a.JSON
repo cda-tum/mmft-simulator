@@ -112,7 +112,7 @@
         {	
             "name": "Water",
             "concentration": 1,
-            "density": 997,           
+            "density": 1000,           
             "viscosity": 0.001
         }
     ],

@@ -54,6 +54,10 @@ TEST(Results, allResultValues) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
+   // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(&resistanceModel);
+
     // check if chip is valid
     network.isNetworkValid();
     network.sortGroups();
@@ -325,6 +329,10 @@ TEST(Results, inverseDirectionChannels) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
+    // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(&resistanceModel);
+
     // check if chip is valid
     network.isNetworkValid();
     network.sortGroups();
@@ -533,6 +541,10 @@ TEST(Results, mixedDirectionChannels) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
+    // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(&resistanceModel);
+
     // check if chip is valid
     network.isNetworkValid();
     network.sortGroups();
@@ -732,6 +744,10 @@ TEST(Results, noSink1) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
+    // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(&resistanceModel);
+
     // check if chip is valid
     network.isNetworkValid();
     network.sortGroups();
@@ -780,6 +796,10 @@ TEST(Results, noSink2) {
     auto dropletVolume = 1.5 * cWidth * cWidth * cHeight;
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.1, c1->getId(), 0.5);
+
+    // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(&resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();
@@ -830,6 +850,10 @@ TEST(Results, noSinkTwoDroplets) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c2->getId(), 0.5);
+
+    // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(&resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();
@@ -888,6 +912,12 @@ TEST(Chip, triangleNetwork) {
     //--- continuousPhase ---
     testSimulation1.setContinuousPhase(fluid1->getId());
     testSimulation2.setContinuousPhase(fluid2->getId());
+
+    // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel1 = sim::ResistanceModel1D<T>(testSimulation1.getContinuousPhase()->getViscosity());
+    testSimulation1.setResistanceModel(&resistanceModel1);
+    sim::ResistanceModel1D<T> resistanceModel2 = sim::ResistanceModel1D<T>(testSimulation2.getContinuousPhase()->getViscosity());
+    testSimulation2.setResistanceModel(&resistanceModel2);
 
     // check if chips are valid
     network1.isNetworkValid();
@@ -976,6 +1006,12 @@ TEST(Chip, Y_Network) {
     //--- continuousPhase ---
     testSimulation1.setContinuousPhase(fluid1->getId());
     testSimulation2.setContinuousPhase(fluid2->getId());
+
+    // Define and set the resistance model
+    sim::ResistanceModel1D<T> resistanceModel1 = sim::ResistanceModel1D<T>(testSimulation1.getContinuousPhase()->getViscosity());
+    testSimulation1.setResistanceModel(&resistanceModel1);
+    sim::ResistanceModel1D<T> resistanceModel2 = sim::ResistanceModel1D<T>(testSimulation2.getContinuousPhase()->getViscosity());
+    testSimulation2.setResistanceModel(&resistanceModel2);
 
     // check if chips are valid
     network1.isNetworkValid();
