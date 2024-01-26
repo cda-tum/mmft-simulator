@@ -15,10 +15,10 @@ jobs:
       with:
         submodules: recursive
     
-    - uses: egor-tensin/setup-mingw@v2
+    - uses: msys2/setup-msys2@v2
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "Ninja"
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "MinGW Makefiles"
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build
