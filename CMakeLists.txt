@@ -14,6 +14,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(PLATFORM_CPU_SISD)
 set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
 
+IF (WIN32)
+    set(patch_file ${CMAKE_CURRENT_SOURCE_DIR}/src/core/singleton.h)
+    set(lbm_patch get-content ${patch_file} | %{$_ -replace "#ifdef _WIN32","#ifdef _WIN321"})
+ELSE()
+    set(lbm_patch )
+ENDIF()
+
 # download external libraries
 include(FetchContent)
 FetchContent_Declare(
@@ -34,6 +41,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     lbm
     URL https://www.openlb.net/wp-content/uploads/2022/04/olb-1.5r0.tgz
+    PATCH_COMMAND ${lbm_patch}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
 )
