@@ -1,1 +1,1 @@
-:a;$!{N;ba}; s/#include <direct.h>/#include <sys/stat.h>/;
+:a;$!{N;ba}; s/#ifdef _WIN32/#ifdef _WIN321/;
