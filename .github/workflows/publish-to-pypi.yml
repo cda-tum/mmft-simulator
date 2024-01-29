@@ -41,12 +41,9 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
       - name: Build wheels
-        run: |
-          pipx run cibuildwheel
+        uses: pypa/cibuildwheel@v2.16.2
         env:
-          CIBW_BUILD: ${{ matrix.python }}-*
-          CIBW_ARCHS_WINDOWS: auto64
-          CIBW_ENVIRONMENT_WINDOWS: CC=gcc CXX=g++
+          CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.runs-on.os }}
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
