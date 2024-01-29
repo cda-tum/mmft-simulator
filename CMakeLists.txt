@@ -15,7 +15,7 @@ add_compile_definitions(PLATFORM_CPU_SISD)
 set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
 
 IF (WIN32)
-    set(patch_file ${lbm_SOURCE_DIR}/src/core/singleton.h)
+    set(patch_file ${CMAKE_CURRENT_BINARY_DIR}/src/core/singleton.h)
     set(lbm_patch sed -i -f ${CMAKE_CURRENT_SOURCE_DIR}/script.sed ${patch_file})
 ELSE()
     set(lbm_patch )
