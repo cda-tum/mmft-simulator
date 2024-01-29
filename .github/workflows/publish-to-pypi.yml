@@ -33,7 +33,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules:  recursive
-      - if: runner.os == 'windows-latest' 
+      - if: runner.os == 'Windows' 
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
