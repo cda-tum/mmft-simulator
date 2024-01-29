@@ -45,7 +45,7 @@ jobs:
           pipx run cibuildwheel
         env:
           CIBW_ARCHS_WINDOWS: auto64
-          CIBW_ENVIRONMENT_WINDOWS: CC=gcc CXX=g++ FC=gfortran
+          CIBW_ENVIRONMENT_WINDOWS: CC=gcc CXX=g++ CMAKE_GENERATOR = "Ninja"
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
