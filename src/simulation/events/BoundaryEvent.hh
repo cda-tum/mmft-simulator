@@ -1,14 +1,6 @@
 
 #include "BoundaryEvent.h"
 
-#include <memory>
-#include <vector>
-
-#include "../../architecture/Channel.h"
-#include "../Droplet.h"
-#include "Event.h"
-#include "../../architecture/Node.h"
-
 namespace sim {
 
 template<typename T>

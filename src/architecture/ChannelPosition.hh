@@ -1,7 +1,5 @@
 #include "ChannelPosition.h"
 
-#include "Channel.h"
-
 namespace arch {
 
 template<typename T>

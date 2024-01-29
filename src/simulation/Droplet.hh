@@ -1,11 +1,5 @@
 #include "Droplet.h"
 
-#include <cmath>
-#include <memory>
-#include <string>
-
-#include "../architecture/Channel.h"
-
 namespace sim {
 
 template<typename T>
@@ -116,7 +110,7 @@ template<typename T>
 void Droplet<T>::removeBoundary(DropletBoundary<T>& boundaryReference) {
     // TODO: remove more than one boundary at once (remove_if)
 
-    for (int i = 0; i < boundaries.size(); i++) {
+    for (unsigned int i = 0; i < boundaries.size(); i++) {
         if (boundaries[i].get() == &boundaryReference) {
             boundaries.erase(boundaries.begin() + i);
             break;
@@ -126,7 +120,7 @@ void Droplet<T>::removeBoundary(DropletBoundary<T>& boundaryReference) {
 
 template<typename T>
 void Droplet<T>::removeFullyOccupiedChannel(int channelId) {
-    for (int i = 0; i < channels.size(); i++) {
+    for (unsigned int i = 0; i < channels.size(); i++) {
         if (channels[i]->getId() == channelId) {
             channels.erase(channels.begin() + i);
             break;

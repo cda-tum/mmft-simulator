@@ -1,7 +1,5 @@
 #include "InjectionEvent.h"
 
-#include "../Droplet.h"
-
 namespace sim {
 
 template<typename T>

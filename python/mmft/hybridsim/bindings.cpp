@@ -19,7 +19,7 @@ PYBIND11_MODULE(pyhybridsim, m) {
       .def("setPressurePump", &arch::Network<T>::setPressurePump);
 
   py::class_<sim::Fluid<T>>(m, "Fluid")
-      .def(py::init<int &, T &, T &>())
+      .def(py::init<int &, T &, T &, T&>())
       .def("setName", &sim::Fluid<T>::setName, "name"_a)
       .def("getViscosity", &sim::Fluid<T>::getViscosity);
 

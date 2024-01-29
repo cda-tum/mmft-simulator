@@ -1,25 +1,5 @@
 #include "Simulation.h"
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <tuple>
-#include <unordered_map>
-#include <vector>
-#include <math.h>
-
-#include <olb2D.h>
-#include <olb2D.hh>
-
-#include "ResistanceModels.h"
-
-#include "../architecture/Channel.h"
-#include "../architecture/FlowRatePump.h"
-#include "../architecture/lbmModule.h"
-#include "../architecture/Network.h"
-#include "../architecture/PressurePump.h"
-
-
 namespace sim {
 
     template<typename T>
@@ -351,7 +331,6 @@ namespace sim {
                     }
                     return a->getTime() < b->getTime();  // ascending order
                 });
-                int test_size = events.size();
 
                 #ifdef VERBOSE     
                     for (auto& event : events) {
@@ -400,9 +379,6 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::initialize() {
-        // set resistance model
-        this->resistanceModel = new ResistanceModel1D(fluids[continuousPhase]->getViscosity());
-
         // compute and set channel lengths
         #ifdef VERBOSE
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
@@ -608,7 +584,7 @@ namespace sim {
                         }
                     } else {
                         // merging of the actual droplet with the merge droplet will happen => MergeBifurcationEvent
-                        events.push_back(std::make_unique<MergeBifurcationEvent<T>>(time, *droplet, *boundary, *mergeDroplet, *this));
+                        events.push_back(std::make_unique<MergeBifurcationEvent<T>>(time, *droplet, *mergeDroplet, *boundary, *this));
                     }
                 }
 
@@ -674,7 +650,7 @@ namespace sim {
                     }
 
                     // add MergeChannelEvent
-                    events.push_back(std::make_unique<MergeChannelEvent<T>>(time, *referenceDroplet, *referenceBoundary, *droplet, *boundary, *this));
+                    events.push_back(std::make_unique<MergeChannelEvent<T>>(time, *referenceDroplet, *droplet, *referenceBoundary, *boundary, *this));
                 }
             }
         }

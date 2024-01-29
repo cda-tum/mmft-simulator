@@ -4,25 +4,37 @@
 
 #pragma once
 
+#include <fstream>
 #include <memory>
+#include <queue>
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
-#include <queue>
-#include <fstream>
-
-#include "Channel.h"
-#include "FlowRatePump.h"
-#include "lbmModule.h"
-#include "Module.h"
-#include "Node.h"
-#include "PressurePump.h"
 
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
 namespace arch {
+
+// Forward declared dependencies
+enum class ChannelType;
+template<typename T>
+class FlowRatePump;
+template<typename T>
+class lbmModule;
+template<typename T>
+class Module;
+template<typename T>
+class Network;
+template<typename T>
+class Node;
+template<typename T>
+class Opening;
+template<typename T>
+class PressurePump;
+template<typename T>
+class RectangularChannel;
 
 /**
  * @brief A struct that defines an group, which is a detached 1D network, neighbouring the ground node(s) and/or CFD domains.
@@ -67,17 +79,17 @@ struct Group {
 */
 template<typename T>
 class Network {
-    private:
-        std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
-        std::set<Node<T>*> sinks;                                                   ///< Ids of nodes that are sinks.
-        std::set<Node<T>*> groundNodes;                                             ///< Ids of nodes that are ground nodes.
-        std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
-        std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
-        std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
-        std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
-        std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
-        std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
-        std::unordered_map<int, lbmModule<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
+private:
+    std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
+    std::set<Node<T>*> sinks;                                                   ///< Ids of nodes that are sinks.
+    std::set<Node<T>*> groundNodes;                                             ///< Ids of nodes that are ground nodes.
+    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
+    std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
+    std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
+    std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
+    std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
+    std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
+    std::unordered_map<int, lbmModule<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
@@ -87,7 +99,7 @@ class Network {
      */
     void visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules);
     
-    public:
+public:
     /**
      * @brief Constructor of the Network
      * @param[in] nodes Nodes of the network.

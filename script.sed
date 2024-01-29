@@ -1,0 +1,1 @@
+:a;$!{N;ba}; s/#ifdef _WIN32/#ifdef _WIN321/;

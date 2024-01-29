@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -12,13 +13,31 @@
 #include <utility>
 #include <vector>
 
-#include "../architecture/Channel.h"
-#include "../architecture/ChannelPosition.h"
-#include "../architecture/Network.h"
-#include "Fluid.h"
-#include "ResistanceModels.h"
+namespace arch {
+  
+// Forward declared dependencies
+template<typename T>
+class ChannelPosition;
+
+template<typename T>
+class Network;
+
+template<typename T>
+class Node;
+
+template<typename T>
+class RectangularChannel;
+
+}
 
 namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Fluid;
+
+template<typename T>
+class ResistanceModel;
 
 /**
  * @brief Enum to specify in which state the droplet currently is in.

@@ -4,11 +4,28 @@
  */
 #pragma once
 
-#include "../../architecture/Network.h"
-#include "../Droplet.h"
-#include "Event.h"
+#include <memory>
+#include <vector>
+
+namespace arch {
+
+// Forward declared dependencies
+template<typename T>
+class Network;
+
+}
 
 namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Droplet;
+
+template<typename T>
+class DropletBoundary;
+
+template<typename T>
+class Event;
 
 /**
  * @brief Class for a boundary head event that takes place when the boundary head reaches the end of a channel.

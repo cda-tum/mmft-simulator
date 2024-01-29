@@ -1,10 +1,5 @@
 #include "Injection.h"
 
-#include <memory>
-#include <utility>
-
-#include "../architecture/ChannelPosition.h"
-
 namespace sim {
 
 template<typename T>
