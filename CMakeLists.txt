@@ -16,7 +16,7 @@ set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
 
 IF (WIN32)
     set(patch_file ${CMAKE_CURRENT_SOURCE_DIR}/build/_deps/lbm-src/src/core/singleton.h)
-    set(lbm_patch sed -e -i ":a;$!{N;ba}; s/#ifdef _WIN32/ifdef _WIN321/;" ${patch_file})
+    set(lbm_patch sed -E -i ":a;$!{N;ba}; s/#ifdef _WIN32/ifdef _WIN321/;" ${patch_file})
 ELSE()
     set(lbm_patch )
 ENDIF()
