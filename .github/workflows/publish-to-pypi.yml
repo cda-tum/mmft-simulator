@@ -41,8 +41,7 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
       - name: Build wheels
-        run: |
-          pipx run cibuildwheel
+        uses: pypa/cibuildwheel@v2.16
         env:
           CIBW_BUILD: ${{ matrix.python }}-*
           CIBW_ARCHS_WINDOWS: auto64
