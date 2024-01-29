@@ -15,21 +15,27 @@ concurrency:
 
 jobs:
   build_wheels:
-    name:    ${{ matrix.os }} wheels
-    runs-on: ${{ matrix.os }}
+    name:    ${{ matrix.runs-on }} ${{ matrix.python }} wheels
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        runs-on: [ ubuntu-latest, macos-11, windows-latest ]
+        python: ["cp38", "cp39", "cp310", "cp311", "cp312"]
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules:  recursive
+      - uses: msys2/setup-msys2@v2
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.12.3
-      - uses: actions/upload-artifact@v3
+        uses: pypa/cibuildwheel@v2.16
+        env:
+          CIBW_BUILD: ${{ matrix.python }}-*
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
         with:
+          name: cibw-wheels-${{ matrix.runs-on }}-${{ matrix.python }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
   build_sdist:
