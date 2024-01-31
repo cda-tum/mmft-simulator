@@ -56,9 +56,43 @@ public:
 
     void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
+    /**
+     * @brief Calculate and store the mixtures flowing into all nodes
+     * @param[in] timeStep The timeStep size of the current iteration.
+     * @param[in] network Pointer to the network.
+    */
+    void updateNodeInflow(T timeStep, arch::Network<T>* network);
+
+    /**
+     * @brief Calculate the mixture outflow at each node from all inflows and, when necessary, create new mixtures.
+     * @param[in] sim Pointer to the simulation.
+     * @param[in] mixtures Unordered map of the mixtures in the system.
+    */
+    void generateNodeOutflow(Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+
+    /**
+     * @brief Add the node outflow as inflow to the channels
+     * @param[in] timeStep The timeStep size of the current iteration.
+     * @param[in] network Pointer to the network.
+     * @param[in] mixtures Unordered map of the mixtures in the system.
+    */
+    void updateChannelInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+
+    /**
+     * @brief Remove mixtures that have 'outflowed' their channel
+     * @param[in] network Pointer to the network.
+    */
+    void clean(arch::Network<T>* network);
+
+    /**
+     * @brief Update the minimal timestep for a mixture to 'outflow' their channel.
+     * @param[in] network
+    */
+    void updateMinimalTimeStep(arch::Network<T>* network);
+
     void injectMixtureInEdge(int mixtureId, int channelId);
 
 //    void initialize(arch::Network<T>*);
 };
 
-}
+}   // namespace sim

@@ -451,8 +451,11 @@ namespace sim {
         }
 
         if (simType == Type::_1D && platform == Platform::MIXING) {
+            T timestep = 0.0;
 
             while(true) {
+                std::cout << "Current time: " << time << std::endl;
+                std::cout << "Current timestep: " << timestep << std::endl;
                 if (iteration >= 10) {
                     throw "Max iterations exceeded.";
                     break;
@@ -461,7 +464,7 @@ namespace sim {
                 nodal::conductNodalAnalysis(network);
                 
                 // Update and flow the mixtures 
-                calculateNewMixtures(time);
+                calculateNewMixtures(timestep);
 
                 // store simulation results of current state
                 saveState();
@@ -489,6 +492,9 @@ namespace sim {
                 } else {
                     break;
                 }
+
+                timestep = nextEvent->getTime();
+                time += nextEvent->getTime();
 
                 nextEvent->performEvent();
                 iteration++;

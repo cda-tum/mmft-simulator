@@ -85,7 +85,7 @@ set(EXTERNAL_SOURCE_LIST
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
 
 target_include_directories(
-    lbmLib PUBLIC ${lbm_SOURCE_DIR}/src 
+    lbmLib PUBLIC ${lbm_SOURCE_DIR}/src
     ${lbm_SOURCE_DIR}/external/tinyxml
     ${lbm_SOURCE_DIR}/external/zlib
 )
