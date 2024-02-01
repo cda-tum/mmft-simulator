@@ -4,240 +4,192 @@
 
 using T = double;
 
-TEST(Mixing, Network1) {
+TEST(Mixing, Case1) {
     // Define JSON files
     std::string networkFile = "../examples/1D/Mixing/Network1.JSON";
-    std::string simFile_case1 = "../examples/1D/Mixing/Case1.JSON";
-    std::string simFile_case2 = "../examples/1D/Mixing/Case2.JSON";
+    std::string simFile = "../examples/1D/Mixing/Case1.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> case1 = porting::simulationFromJSON<T>(simFile_case1, &network);
-    sim::Simulation<T> case2 = porting::simulationFromJSON<T>(simFile_case2, &network);
+    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    case1.simulate();
-    case2.simulate();
+    sim.simulate();
 
     // results
-    result::SimulationResult<T>* result1 = case1.getSimulationResults();
-    result::SimulationResult<T>* result2 = case2.getSimulationResults();
-/*
-    ASSERT_EQ(network.getFlowRatePumps().at(pump->getId())->getId(), pump->getId());
-    ASSERT_EQ(network.getFlowRatePumps().at(pump->getId())->getNodeA(), node0->getId());
-    ASSERT_EQ(network.getFlowRatePumps().at(pump->getId())->getNodeB(), node1->getId());
-    ASSERT_EQ(network.getFlowRatePumps().at(pump->getId())->getFlowRate(), flowRate);
+    result::SimulationResult<T>* result = sim.getSimulationResults();
 
-    ASSERT_EQ(network.getChannels().at(c1->getId())->getId(), c1->getId());
-    ASSERT_EQ(network.getChannels().at(c1->getId())->getNodeA(), node1->getId());
-    ASSERT_EQ(network.getChannels().at(c1->getId())->getNodeB(), node2->getId());
-    ASSERT_EQ(network.getChannels().at(c1->getId())->getWidth(), cWidth);
-    ASSERT_EQ(network.getChannels().at(c1->getId())->getHeight(), cHeight);
-    ASSERT_NEAR(network.getChannels().at(c1->getId())->getLength(), cLength, 1e-16);
-    ASSERT_EQ(network.getChannels().at(c1->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    ASSERT_EQ(network.getChannels().at(c2->getId())->getId(), c2->getId());
-    ASSERT_EQ(network.getChannels().at(c2->getId())->getNodeA(), node2->getId());
-    ASSERT_EQ(network.getChannels().at(c2->getId())->getNodeB(), node3->getId());
-    ASSERT_EQ(network.getChannels().at(c2->getId())->getWidth(), cWidth);
-    ASSERT_EQ(network.getChannels().at(c2->getId())->getHeight(), cHeight);
-    ASSERT_NEAR(network.getChannels().at(c2->getId())->getLength(), cLength, 1e-16);
-    ASSERT_EQ(network.getChannels().at(c2->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    ASSERT_EQ(network.getChannels().at(c3->getId())->getId(), c3->getId());
-    ASSERT_EQ(network.getChannels().at(c3->getId())->getNodeA(), node3->getId());
-    ASSERT_EQ(network.getChannels().at(c3->getId())->getNodeB(), node4->getId());
-    ASSERT_EQ(network.getChannels().at(c3->getId())->getWidth(), cWidth);
-    ASSERT_EQ(network.getChannels().at(c3->getId())->getHeight(), cHeight);
-    ASSERT_NEAR(network.getChannels().at(c3->getId())->getLength(), cLength, 1e-12);
-    ASSERT_EQ(network.getChannels().at(c3->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    ASSERT_EQ(network.getChannels().at(c4->getId())->getId(), c4->getId());
-    ASSERT_EQ(network.getChannels().at(c4->getId())->getNodeA(), node3->getId());
-    ASSERT_EQ(network.getChannels().at(c4->getId())->getNodeB(), node5->getId());
-    ASSERT_EQ(network.getChannels().at(c4->getId())->getWidth(), cWidth);
-    ASSERT_EQ(network.getChannels().at(c4->getId())->getHeight(), cHeight);
-    ASSERT_NEAR(network.getChannels().at(c4->getId())->getLength(), cLength, 1e-16);
-    ASSERT_EQ(network.getChannels().at(c4->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    ASSERT_EQ(network.getChannels().at(c5->getId())->getId(), c5->getId());
-    ASSERT_EQ(network.getChannels().at(c5->getId())->getNodeA(), node4->getId());
-    ASSERT_EQ(network.getChannels().at(c5->getId())->getNodeB(), node5->getId());
-    ASSERT_EQ(network.getChannels().at(c5->getId())->getWidth(), cWidth);
-    ASSERT_EQ(network.getChannels().at(c5->getId())->getHeight(), cHeight);
-    ASSERT_NEAR(network.getChannels().at(c5->getId())->getLength(), cLength, 1e-12);
-    ASSERT_EQ(network.getChannels().at(c5->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    ASSERT_EQ(network.getChannels().at(c6->getId())->getId(), c6->getId());
-    ASSERT_EQ(network.getChannels().at(c6->getId())->getNodeA(), node5->getId());
-    ASSERT_EQ(network.getChannels().at(c6->getId())->getNodeB(), node0->getId());
-    ASSERT_EQ(network.getChannels().at(c6->getId())->getWidth(), cWidth);
-    ASSERT_EQ(network.getChannels().at(c6->getId())->getHeight(), cHeight);
-    ASSERT_NEAR(network.getChannels().at(c6->getId())->getLength(), cLength, 1e-16);
-    ASSERT_EQ(network.getChannels().at(c6->getId())->getChannelType(), arch::ChannelType::NORMAL);
-
-    ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getId(), fluid0->getId());
-    ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getName(), "");
-    ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getViscosity(), 1e-3);
-    ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getDensity(), 1e3);
-    ASSERT_EQ(testSimulation.getFluid(fluid0->getId())->getConcentration(), 1.0);
-    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getId(), fluid1->getId());
-    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getName(), "");
-    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getViscosity(), 3e-3);
-    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getDensity(), 1e3);
-    ASSERT_EQ(testSimulation.getFluid(fluid1->getId())->getConcentration(), 1.0);
-
-    ASSERT_EQ(testSimulation.getDroplet(droplet0->getId())->getId(), droplet0->getId());
-    ASSERT_EQ(testSimulation.getDroplet(droplet0->getId())->getName(), "");
-    ASSERT_EQ(testSimulation.getDroplet(droplet0->getId())->getVolume(), dropletVolume);
-
-    ASSERT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(2)->getTime(), 0.033203, 5e-7);
-    ASSERT_NEAR(result->getStates().at(3)->getTime(), 0.044922, 5e-7);
-    ASSERT_NEAR(result->getStates().at(4)->getTime(), 0.111328, 5e-7);
-    ASSERT_NEAR(result->getStates().at(5)->getTime(), 0.125391, 5e-7);
-    ASSERT_NEAR(result->getStates().at(6)->getTime(), 0.239941, 5e-7);
-    ASSERT_NEAR(result->getStates().at(7)->getTime(), 0.254778, 5e-7);
-    ASSERT_NEAR(result->getStates().at(8)->getTime(), 0.321184, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node1->getId()), 602.237537, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node2->getId()), 437.990936, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node3->getId()), 273.744335, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node4->getId()), 218.995468, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(1)->getPressures().at(node1->getId()), 676.148507, 5e-7);
-    ASSERT_NEAR(result->getStates().at(1)->getPressures().at(node2->getId()), 437.990936, 5e-7);
-    ASSERT_NEAR(result->getStates().at(1)->getPressures().at(node3->getId()), 273.744335, 5e-7);
-    ASSERT_NEAR(result->getStates().at(1)->getPressures().at(node4->getId()), 218.995468, 5e-7);
-    ASSERT_NEAR(result->getStates().at(1)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(1)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(2)->getPressures().at(node1->getId()), 676.148507, 5e-7);
-    ASSERT_NEAR(result->getStates().at(2)->getPressures().at(node2->getId()), 437.990936, 5e-7);
-    ASSERT_NEAR(result->getStates().at(2)->getPressures().at(node3->getId()), 273.744335, 5e-7);
-    ASSERT_NEAR(result->getStates().at(2)->getPressures().at(node4->getId()), 218.995468, 5e-7);
-    ASSERT_NEAR(result->getStates().at(2)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(2)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(3)->getPressures().at(node1->getId()), 676.148507, 5e-7);
-    ASSERT_NEAR(result->getStates().at(3)->getPressures().at(node2->getId()), 511.901906, 5e-7);
-    ASSERT_NEAR(result->getStates().at(3)->getPressures().at(node3->getId()), 273.744335, 5e-7);
-    ASSERT_NEAR(result->getStates().at(3)->getPressures().at(node4->getId()), 218.995468, 5e-7);
-    ASSERT_NEAR(result->getStates().at(3)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(3)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(4)->getPressures().at(node1->getId()), 676.148507, 5e-7);
-    ASSERT_NEAR(result->getStates().at(4)->getPressures().at(node2->getId()), 511.901906, 5e-7);
-    ASSERT_NEAR(result->getStates().at(4)->getPressures().at(node3->getId()), 273.744335, 5e-7);
-    ASSERT_NEAR(result->getStates().at(4)->getPressures().at(node4->getId()), 218.995468, 5e-7);
-    ASSERT_NEAR(result->getStates().at(4)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(4)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(5)->getPressures().at(node1->getId()), 630.802163, 5e-7);
-    ASSERT_NEAR(result->getStates().at(5)->getPressures().at(node2->getId()), 466.555562, 5e-7);
-    ASSERT_NEAR(result->getStates().at(5)->getPressures().at(node3->getId()), 302.308961, 5e-7);
-    ASSERT_NEAR(result->getStates().at(5)->getPressures().at(node4->getId()), 233.277781, 5e-7);
-    ASSERT_NEAR(result->getStates().at(5)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(5)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(6)->getPressures().at(node1->getId()), 630.802163, 5e-7);
-    ASSERT_NEAR(result->getStates().at(6)->getPressures().at(node2->getId()), 466.555562, 5e-7);
-    ASSERT_NEAR(result->getStates().at(6)->getPressures().at(node3->getId()), 302.308961, 5e-7);
-    ASSERT_NEAR(result->getStates().at(6)->getPressures().at(node4->getId()), 233.277781, 5e-7);
-    ASSERT_NEAR(result->getStates().at(6)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(6)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(7)->getPressures().at(node1->getId()), 676.148507, 5e-7);
-    ASSERT_NEAR(result->getStates().at(7)->getPressures().at(node2->getId()), 511.901906, 5e-7);
-    ASSERT_NEAR(result->getStates().at(7)->getPressures().at(node3->getId()), 347.655305, 5e-7);
-    ASSERT_NEAR(result->getStates().at(7)->getPressures().at(node4->getId()), 292.906438, 5e-7);
-    ASSERT_NEAR(result->getStates().at(7)->getPressures().at(node5->getId()), 238.157571, 5e-7);
-    ASSERT_NEAR(result->getStates().at(7)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(8)->getPressures().at(node1->getId()), 602.237537, 5e-7);
-    ASSERT_NEAR(result->getStates().at(8)->getPressures().at(node2->getId()), 437.990936, 5e-7);
-    ASSERT_NEAR(result->getStates().at(8)->getPressures().at(node3->getId()), 273.744335, 5e-7);
-    ASSERT_NEAR(result->getStates().at(8)->getPressures().at(node4->getId()), 218.995468, 5e-7);
-    ASSERT_NEAR(result->getStates().at(8)->getPressures().at(node5->getId()), 164.246601, 5e-7);
-    ASSERT_NEAR(result->getStates().at(8)->getPressures().at(node0->getId()), 0.000000, 5e-7);
-
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c3->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c4->getId()), 0.00000000002, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c5->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(1)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(1)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(1)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(1)->getFlowRates().at(c3->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(1)->getFlowRates().at(c4->getId()), 0.00000000002, 5e-17);
-    ASSERT_NEAR(result->getStates().at(1)->getFlowRates().at(c5->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(1)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(2)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(2)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(2)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(2)->getFlowRates().at(c3->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(2)->getFlowRates().at(c4->getId()), 0.00000000002, 5e-17);
-    ASSERT_NEAR(result->getStates().at(2)->getFlowRates().at(c5->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(2)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(3)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(3)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(3)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(3)->getFlowRates().at(c3->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(3)->getFlowRates().at(c4->getId()), 0.00000000002, 5e-17);
-    ASSERT_NEAR(result->getStates().at(3)->getFlowRates().at(c5->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(3)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(4)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(4)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(4)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(4)->getFlowRates().at(c3->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(4)->getFlowRates().at(c4->getId()), 0.00000000002, 5e-17);
-    ASSERT_NEAR(result->getStates().at(4)->getFlowRates().at(c5->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(4)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(5)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(5)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(5)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(5)->getFlowRates().at(c3->getId()), 0.0000000000126087, 5e-17);
-    ASSERT_NEAR(result->getStates().at(5)->getFlowRates().at(c4->getId()), 0.0000000000173913, 5e-17);
-    ASSERT_NEAR(result->getStates().at(5)->getFlowRates().at(c5->getId()), 0.0000000000126087, 5e-17);
-    ASSERT_NEAR(result->getStates().at(5)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(6)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(6)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(6)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(6)->getFlowRates().at(c3->getId()), 0.0000000000126087, 5e-17);
-    ASSERT_NEAR(result->getStates().at(6)->getFlowRates().at(c4->getId()), 0.0000000000173913, 5e-17);
-    ASSERT_NEAR(result->getStates().at(6)->getFlowRates().at(c5->getId()), 0.0000000000126087, 5e-17);
-    ASSERT_NEAR(result->getStates().at(6)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(7)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(7)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(7)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(7)->getFlowRates().at(c3->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(7)->getFlowRates().at(c4->getId()), 0.00000000002, 5e-17);
-    ASSERT_NEAR(result->getStates().at(7)->getFlowRates().at(c5->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(7)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(pump->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c1->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c2->getId()), 0.00000000003, 5e-17);
-    ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c3->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c4->getId()), 0.00000000002, 5e-17);
-    ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c5->getId()), 0.00000000001, 5e-17);
-    ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
-
-    ASSERT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
+    /**
+     * Case 1:
+     * 
+     * State 0 - Pre-Injection
+     * State 1 - Post-Injection
+     * State 2 - Mixture 0 reaches node 4
+     * State 3 - Mixture 0 reaches node 5
     */
+
+    ASSERT_EQ(result->getStates().size(), 4);
+
+    ASSERT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 1e-12);
+    ASSERT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 1e-12);
+    ASSERT_NEAR(result->getStates().at(2)->getTime(), 0.745356, 5e-7);
+    ASSERT_NEAR(result->getStates().at(3)->getTime(), 0.912023, 5e-7);
+
+    ASSERT_EQ(result->getStates().at(0)->getMixturePositions().size(), 0);
+
+    ASSERT_EQ(result->getStates().at(1)->getMixturePositions().size(), 1);
+    ASSERT_EQ(result->getStates().at(1)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(1)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(1)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(1)->getMixturePositions().at(2).front().position2, 0.0, 1e-12);
+
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().size(), 2);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(2).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(4).front().mixtureId, 1);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(4).front().channel, 4);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(4).front().position2, 0.0, 1e-12);
+
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().size(), 2);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(2).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(4).front().mixtureId, 1);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(4).front().channel, 4);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(4).front().position2, 1.0, 1e-12);
+}
+
+TEST(Mixing, Case2) {
+    // Define JSON files
+    std::string networkFile = "../examples/1D/Mixing/Network1.JSON";
+    std::string simFile = "../examples/1D/Mixing/Case2.JSON";
+
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+
+    // Load and set the simulations from the JSON files
+    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+
+    // Check if network is valid
+    network.isNetworkValid();
+    network.sortGroups();
+
+    // simulate
+    sim.simulate();
+
+    // results
+    result::SimulationResult<T>* result = sim.getSimulationResults();
+
+    /**
+     * Case 2:
+     * 
+     * State 0 - Pre-Injections
+     * State 1 - Post-Injection 1
+     * State 2 - Post-Injection 2
+     * State 3 - Mixture 0 reaches node 4 and creates Mixture 2
+     * State 4 - Mixture 2 reaches node 5
+     * State 5 - Mixture 1 reaches node 4 and creates Mixture 3
+     * State 6 - Mixture 3 reaches node 5
+    */
+
+    ASSERT_EQ(result->getStates().size(), 7);
+
+    ASSERT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 1e-12);
+    ASSERT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 1e-12);
+    ASSERT_NEAR(result->getStates().at(2)->getTime(), 0.500000, 1e-12);
+    ASSERT_NEAR(result->getStates().at(3)->getTime(), 0.745356, 5e-7);
+    ASSERT_NEAR(result->getStates().at(4)->getTime(), 0.912023, 5e-7);
+    ASSERT_NEAR(result->getStates().at(5)->getTime(), 1.245356, 5e-7);
+    ASSERT_NEAR(result->getStates().at(6)->getTime(), 1.412023, 5e-7);
+
+    ASSERT_EQ(result->getStates().at(0)->getMixturePositions().size(), 0);
+
+    ASSERT_EQ(result->getStates().at(1)->getMixturePositions().size(), 1);
+    ASSERT_EQ(result->getStates().at(1)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(1)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(1)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(1)->getMixturePositions().at(2).front().position2, 0.0, 1e-12);
+
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().size(), 2);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(2).front().position2, 0.670820, 5e-7);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(3).front().mixtureId, 1);
+    ASSERT_EQ(result->getStates().at(2)->getMixturePositions().at(3).front().channel, 3);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(3).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(2)->getMixturePositions().at(3).front().position2, 0.0, 1e-12);
+
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().size(), 3);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(2).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(3).front().mixtureId, 1);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(3).front().channel, 3);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(3).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(3).front().position2, 0.329180, 5e-7);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(4).front().mixtureId, 2);
+    ASSERT_EQ(result->getStates().at(3)->getMixturePositions().at(4).front().channel, 4);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(4).front().position2, 0.0, 1e-12);
+
+    ASSERT_EQ(result->getStates().at(4)->getMixturePositions().size(), 3);
+    ASSERT_EQ(result->getStates().at(4)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(4)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(4)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(4)->getMixturePositions().at(2).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(4)->getMixturePositions().at(3).front().mixtureId, 1);
+    ASSERT_EQ(result->getStates().at(4)->getMixturePositions().at(3).front().channel, 3);
+    ASSERT_NEAR(result->getStates().at(4)->getMixturePositions().at(3).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(4)->getMixturePositions().at(3).front().position2, 0.552786, 5e-7);
+    ASSERT_EQ(result->getStates().at(4)->getMixturePositions().at(4).front().mixtureId, 2);
+    ASSERT_EQ(result->getStates().at(4)->getMixturePositions().at(4).front().channel, 4);
+    ASSERT_NEAR(result->getStates().at(4)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(4)->getMixturePositions().at(4).front().position2, 1.0, 1e-12);
+
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().size(), 3);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(2).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(3).front().mixtureId, 1);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(3).front().channel, 3);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(3).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(3).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(4).front().mixtureId, 3);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(4).front().channel, 4);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(4).front().position2, 0.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(4).back().mixtureId, 2);
+    ASSERT_EQ(result->getStates().at(5)->getMixturePositions().at(4).back().channel, 4);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(4).back().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(5)->getMixturePositions().at(4).back().position2, 1.0, 1e-12);
+
+    ASSERT_EQ(result->getStates().at(6)->getMixturePositions().size(), 3);
+    ASSERT_EQ(result->getStates().at(6)->getMixturePositions().at(2).front().mixtureId, 0);
+    ASSERT_EQ(result->getStates().at(6)->getMixturePositions().at(2).front().channel, 2);
+    ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(2).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(2).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(6)->getMixturePositions().at(3).front().mixtureId, 1);
+    ASSERT_EQ(result->getStates().at(6)->getMixturePositions().at(3).front().channel, 3);
+    ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(3).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(3).front().position2, 1.0, 1e-12);
+    ASSERT_EQ(result->getStates().at(6)->getMixturePositions().at(4).front().mixtureId, 3);
+    ASSERT_EQ(result->getStates().at(6)->getMixturePositions().at(4).front().channel, 4);
+    ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
+    ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(4).front().position2, 1.0, 1e-12);
+    
 }
 

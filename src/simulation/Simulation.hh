@@ -416,7 +416,9 @@ namespace sim {
                 saveState();
                 // compute events
                 auto events = computeEvents();
-
+                #ifdef VERBOSE     
+                    std::cout << "Iteration " << iteration << std::endl;
+                #endif
                 // sort events
                 // closest events in time with the highest priority come first
                 std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
@@ -450,6 +452,15 @@ namespace sim {
             }
         }
 
+        /**
+         * 1D Mixing Simulation Loop
+         * 
+         * 1. Update pressure and flowrates
+         * 2. Calculate next mixture event
+         * 3. Sort events
+         * 4. Propagate mixtures to next event time
+         * 5. Perform next event
+        */
         if (simType == Type::_1D && platform == Platform::MIXING) {
             T timestep = 0.0;
 
@@ -496,7 +507,12 @@ namespace sim {
                 timestep = nextEvent->getTime();
                 time += nextEvent->getTime();
 
+                std::cout << "[Debug] Calculate and store the mixtures flowing into all nodes." << std::endl;
+                this->mixingModel->updateNodeInflow(timestep, network);
+
                 nextEvent->performEvent();
+                std::cout << "We performed"; 
+                nextEvent->print();
                 iteration++;
             }
         }
@@ -525,9 +541,6 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::initialize() {
-        // set resistance model
-        this->resistanceModel = new ResistanceModel1D(fluids[continuousPhase]->getViscosity());
-
         // compute and set channel lengths
         #ifdef VERBOSE
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
@@ -624,7 +637,7 @@ namespace sim {
         std::unordered_map<int, T> savePressures;
         std::unordered_map<int, T> saveFlowRates;
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
-        std::unordered_map<int, MixturePosition<T>> saveMixturePositions;
+        std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
 
         // pressures
         for (auto& [id, node] : network->getNodes()) {
@@ -664,13 +677,26 @@ namespace sim {
             saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
         }
         
-        for (auto& [channelId, deque] : mixingModel->getMixturesInEdges()) {
-            for (auto& pair : deque) {
-                // create new mixture position
-                MixturePosition<T> newMixturePosition(pair.first, channelId, pair.second);
-                std::cout << "pair.first is " << pair.first << std::endl;
-                std::cout << "pair.second is " << pair.second << std::endl;
-                saveMixturePositions.try_emplace(pair.first, newMixturePosition);
+        if (platform == Platform::MIXING) {
+            for (auto& [channelId, mixingId] : mixingModel->getFilledEdges()) {
+                std::deque<MixturePosition<T>> newDeque;
+                MixturePosition<T> newMixturePosition(mixingId, channelId, 0.0, 1.0);
+                newDeque.push_front(newMixturePosition);
+                saveMixturePositions.try_emplace(channelId, newDeque);
+            }
+            for (auto& [channelId, deque] : mixingModel->getMixturesInEdges()) {
+                for (auto& pair : deque) {
+                    if (!saveMixturePositions.count(channelId)) {
+                        std::deque<MixturePosition<T>> newDeque;
+                        MixturePosition<T> newMixturePosition(pair.first, channelId, 0.0, deque.front().second);
+                        newDeque.push_front(newMixturePosition);
+                        saveMixturePositions.try_emplace(channelId, newDeque);
+                    } else {
+                        MixturePosition<T> newMixturePosition(pair.first, channelId, 0.0, pair.second);
+                        saveMixturePositions.at(channelId).front().position1 = pair.second;
+                        saveMixturePositions.at(channelId).push_front(newMixturePosition);
+                    }
+                }
             }
         }
         

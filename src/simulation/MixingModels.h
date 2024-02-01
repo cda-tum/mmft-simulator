@@ -49,6 +49,7 @@ private:
     std::unordered_map<int, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;    // <nodeId <mixtureId, inflowVolume>>
     std::unordered_map<int, int> mixtureOutflowAtNode;
     std::unordered_map<int, T> totalInflowVolumeAtNode;
+    std::unordered_map<int, int> filledEdges;                                   ///<  Which edges are currently filled with a single mixture <EdgeID, MixtureID>
 
 public:
 
@@ -92,9 +93,13 @@ public:
 
     void injectMixtureInEdge(int mixtureId, int channelId);
 
+    void printMixturesInNetwork();
+
     const std::deque<std::pair<int,T>>& getMixturesInEdge(int channelId) const;
 
     const std::unordered_map<int, std::deque<std::pair<int,T>>>& getMixturesInEdges() const;
+
+    const std::unordered_map<int, int>& getFilledEdges() const;
 
 //    void initialize(arch::Network<T>*);
 };

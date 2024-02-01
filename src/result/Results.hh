@@ -22,7 +22,7 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_) { }
 
 template<typename T>
-State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, sim::MixturePosition<T>> mixturePositions_) 
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions_) 
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_) { }
 
 template<typename T>
@@ -38,6 +38,11 @@ const std::unordered_map<int, T>& State<T>::getFlowRates() const {
 template<typename T>
 std::unordered_map<int, sim::DropletPosition<T>>& State<T>::getDropletPositions() {
     return dropletPositions;
+}
+
+template<typename T>
+std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& State<T>::getMixturePositions() {
+    return mixturePositions;
 }
 
 template<typename T>
@@ -79,10 +84,12 @@ const void State<T>::printState() {
     }
     // print the mixture positions
     if ( !mixturePositions.empty() ) {
-        for (auto& [key, mixturePosition] : mixturePositions) {
-            std::cout << "\t[Result] Mixture " << mixturePosition.mixtureId;
-            std::cout << " is in channel " << mixturePosition.channel;
-            std::cout << " at position " << mixturePosition.position << "." << std::endl;
+        for (auto& [channelId, deque] : mixturePositions){
+            std::cout << "\t[Result] Channel " << channelId << " contains\n";
+            for (auto& mixturePosition : deque) {
+                std::cout << "\t\tMixture " << mixturePosition.mixtureId << " from position "
+                << mixturePosition.position1 << " to " << mixturePosition.position2 << "\n";
+            }
         }
         std::cout << "\n";
     }
@@ -112,7 +119,7 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
 }
 
 template<typename T>
-void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::MixturePosition<T>> mixturePositions) {
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions) {
     int id = states.size();
     std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions);
     states.push_back(std::move(newState));

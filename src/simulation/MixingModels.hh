@@ -20,21 +20,19 @@ InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
 template<typename T>
 void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
 
-    std::cout << "[Debug] Calculate and store the mixtures flowing into all nodes." << std::endl;
-    updateNodeInflow(timeStep, network);
-
+    printMixturesInNetwork();
     std::cout << "[Debug] Calculate mixture outflow at each node from all inflows." << std::endl;
     generateNodeOutflow(sim, mixtures);
-
+    printMixturesInNetwork();
     std::cout << "[Debug] Add the node outflow as inflow to the channels." << std::endl;
     updateChannelInflow(timeStep, network, mixtures);
-
+    printMixturesInNetwork();
     std::cout << "[Debug] Remove mixtures that have 'outflowed' their channel." << std::endl;
     clean(network);
-
+    printMixturesInNetwork();
     std::cout << "[Debug] Update minimal timestep." << std::endl;
     updateMinimalTimeStep(network);
-
+    printMixturesInNetwork();
     std::cout << "[Debug] Finish updateMixtures." << std::endl;
 }
 
@@ -49,7 +47,7 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                         T movedDistance = (std::abs(channel->getFlowRate()) * timeStep) / channel->getVolume();
                         T newEndPos = std::min(endPos + movedDistance, 1.0);
                         endPos = newEndPos;
-                        if (newEndPos == 1.0) {
+                        if (newEndPos == 1.0 && !node->getSink()) {
                             std::cout<< "We do recognize mixture " << mixtureId << " as flowing into node " << nodeId << std::endl;
                             // specie flows into node, add to mixture inflow
                             T inflowVolume = movedDistance * channel->getArea();
@@ -124,6 +122,12 @@ void InstantaneousMixingModel<T>::clean(arch::Network<T>* network) {
                     if (endPos == 1.0) {
                         //if (count != 0) {
                         mixturesInEdge.at(channel->getId()).pop_front();
+                        // if the mixture front left the channel, it's fully filled
+                        if (filledEdges.count(channel->getId())) {
+                            filledEdges.at(channel->getId()) = mixtureId;
+                        } else {
+                            filledEdges.try_emplace(channel->getId(), mixtureId);
+                        }
                         //}
                     } else {
                         break;
@@ -171,6 +175,16 @@ void InstantaneousMixingModel<T>::injectMixtureInEdge(int mixtureId, int channel
 }
 
 template<typename T>
+void InstantaneousMixingModel<T>::printMixturesInNetwork() {
+    for (auto& [channelId, deque] : mixturesInEdge) {
+        for (auto& [mixtureId, endPos] : deque) {
+            std::cout << "This is mixture " << mixtureId << " in channel " << channelId << 
+            " at position " << endPos << std::endl;
+        }
+    }
+}
+
+template<typename T>
 const std::deque<std::pair<int,T>>& InstantaneousMixingModel<T>::getMixturesInEdge(int channelId) const {
     return mixturesInEdge.at(channelId);
 }
@@ -178,6 +192,11 @@ const std::deque<std::pair<int,T>>& InstantaneousMixingModel<T>::getMixturesInEd
 template<typename T>
 const std::unordered_map<int, std::deque<std::pair<int,T>>>& InstantaneousMixingModel<T>::getMixturesInEdges() const {
     return mixturesInEdge;
+}
+
+template<typename T>
+const std::unordered_map<int, int>& InstantaneousMixingModel<T>::getFilledEdges() const {
+    return filledEdges;
 }
 
 }   /// namespace sim

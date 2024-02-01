@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <deque>
 #include <unordered_map>
 
 #include "../architecture/Network.h"
@@ -24,7 +25,7 @@ struct State {
     std::unordered_map<int, T> pressures;                               ///< Keys are the nodeIds.
     std::unordered_map<int, T> flowRates;                               ///< Keys are the edgeIds (channels and pumps).
     std::unordered_map<int, sim::DropletPosition<T>> dropletPositions;  ///< Only contains the position of droplets that are currently inside the network (key is the droplet id).
-    std::unordered_map<int, sim::MixturePosition<T>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the mixture id).
+    std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the mixture id).
     
     /**
      * @brief Constructs a state, which represent a time step during a simulation.
@@ -60,7 +61,7 @@ struct State {
      * @param[in] flowRates The flowRate values at the nodes at the current time step.
      * @param[in] mixturePositions The positions of the mixtures at the current time step.
      */
-    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::MixturePosition<T>> mixturePositions);
+    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
      * @brief Function to get pressure at a specific node.
@@ -84,7 +85,7 @@ struct State {
      * @brief Function to get the mixture positions of this state.
      * @return MixturePositions.
      */
-    std::unordered_map<int, sim::MixturePosition<T>>& getMixturePositions();
+    std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& getMixturePositions();
 
     /**
      * @brief Function to get the time of a state.
@@ -135,7 +136,7 @@ struct SimulationResult {
      * @brief Adds a state to the simulation results.
      * @param[in] state
     */
-    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::MixturePosition<T>> mixturePositions);
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
      * @brief Get the simulated pressures at the nodes.

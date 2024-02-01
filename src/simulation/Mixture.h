@@ -22,13 +22,14 @@ template<typename T>
 struct MixturePosition {
     int mixtureId;
     int channel;
-    T position;
+    T position1;
+    T position2;
 
     /**
      * @brief Constructs a mixture position
     */
-    MixturePosition(int mixtureId, int channelId, T channelPos) : 
-        mixtureId(mixtureId), channel(channelId), position(channelPos) { }
+    MixturePosition(int mixtureId, int channelId, T channelPos1, T channelPos2) : 
+        mixtureId(mixtureId), channel(channelId), position1(channelPos1), position2(channelPos2) { }
 };
 
 template<typename T>
