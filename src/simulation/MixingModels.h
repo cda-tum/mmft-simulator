@@ -92,6 +92,10 @@ public:
 
     void injectMixtureInEdge(int mixtureId, int channelId);
 
+    const std::deque<std::pair<int,T>>& getMixturesInEdge(int channelId) const;
+
+    const std::unordered_map<int, std::deque<std::pair<int,T>>>& getMixturesInEdges() const;
+
 //    void initialize(arch::Network<T>*);
 };
 

@@ -170,4 +170,14 @@ void InstantaneousMixingModel<T>::injectMixtureInEdge(int mixtureId, int channel
     }
 }
 
+template<typename T>
+const std::deque<std::pair<int,T>>& InstantaneousMixingModel<T>::getMixturesInEdge(int channelId) const {
+    return mixturesInEdge.at(channelId);
+}
+
+template<typename T>
+const std::unordered_map<int, std::deque<std::pair<int,T>>>& InstantaneousMixingModel<T>::getMixturesInEdges() const {
+    return mixturesInEdge;
+}
+
 }   /// namespace sim

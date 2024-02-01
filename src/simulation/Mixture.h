@@ -20,15 +20,15 @@ class Mixture;
 
 template<typename T>
 struct MixturePosition {
-    Mixture<T>* mixture;
-    arch::RectangularChannel<T>* channel;
-    arch::ChannelPosition<T> position1;
-    arch::ChannelPosition<T> position2;
+    int mixtureId;
+    int channel;
+    T position;
 
     /**
      * @brief Constructs a mixture position
     */
-    MixturePosition();
+    MixturePosition(int mixtureId, int channelId, T channelPos) : 
+        mixtureId(mixtureId), channel(channelId), position(channelPos) { }
 };
 
 template<typename T>

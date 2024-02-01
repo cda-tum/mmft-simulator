@@ -624,6 +624,7 @@ namespace sim {
         std::unordered_map<int, T> savePressures;
         std::unordered_map<int, T> saveFlowRates;
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
+        std::unordered_map<int, MixturePosition<T>> saveMixturePositions;
 
         // pressures
         for (auto& [id, node] : network->getNodes()) {
@@ -662,9 +663,26 @@ namespace sim {
 
             saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
         }
-
+        
+        for (auto& [channelId, deque] : mixingModel->getMixturesInEdges()) {
+            for (auto& pair : deque) {
+                // create new mixture position
+                MixturePosition<T> newMixturePosition(pair.first, channelId, pair.second);
+                std::cout << "pair.first is " << pair.first << std::endl;
+                std::cout << "pair.second is " << pair.second << std::endl;
+                saveMixturePositions.try_emplace(pair.first, newMixturePosition);
+            }
+        }
+        
         // state
-        simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
+        if (platform == Platform::CONTINUOUS) {
+            simulationResult->addState(time, savePressures, saveFlowRates);
+        } else if (platform == Platform::DROPLET) {
+            simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
+        } else if (platform == Platform::MIXING) {
+            simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions);
+        }
+        
     }
 
     template<typename T>

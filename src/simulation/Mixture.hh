@@ -3,9 +3,6 @@
 namespace sim {
 
 template<typename T>
-MixturePosition<T>::MixturePosition() { }
-
-template<typename T>
 Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
                     T viscosity, T density, T largestMolecularSize) : 
                     id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
