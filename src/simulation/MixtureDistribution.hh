@@ -1,12 +1,12 @@
-#include "Mixture.h"
+#include "MixtureDistribution.h"
 
 namespace sim {
 
 template<typename T>
-MixturePosition<T>::MixturePosition() { }
+DistributionGrid<T>::DistributionGrid() { }
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+MixtureDistribution<T>::MixtureDistribution(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
                     T viscosity, T density, T largestMolecularSize) : 
                     id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
                     density(density), largestMolecularSize(largestMolecularSize) { }

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <vector>
 
 #include "../architecture/Channel.h"
 #include "../architecture/ChannelPosition.h"
@@ -19,26 +20,25 @@ template<typename T>
 class Mixture;
 
 template<typename T>
-struct MixturePosition {
-    Mixture<T>* mixture;
-    arch::RectangularChannel<T>* channel;
-    arch::ChannelPosition<T> position1;
-    arch::ChannelPosition<T> position2;
+struct DistributionGrid {
+    std::vector<T> gridPoints;
+    std::vector<T> concentrations;
 
     /**
      * @brief Constructs a mixture position
     */
-    MixturePosition();
+    DistributionGrid();
 };
 
 template<typename T>
-class Mixture {
+class MixtureDistribution {
 private:
 
-    int const id;
-    T viscosity;
-    T density;
-    T largestMolecularSize;
+    // int const id;
+    T diffusionFactor;
+    arch::RectangularChannel<T>* channel;
+    T channelWidth;
+    T channelLength;
     std::unordered_map<int, Specie<T>*> species;
     std::unordered_map<int, T> specieConcentrations;
 
@@ -52,7 +52,7 @@ public:
      * @param density Density of the mixture in kg/m^3.
      * @param largestMolecularSize Largest molecular size in that mixture in molecular size in m^3.
      */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
+    MixtureDistribution(arch::RectangularChannel<T>* channel, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
 
     /**
      * @brief Construct a new mixture out of a list of fluids and their concentration values.
