@@ -72,6 +72,11 @@ public:
      */
     arch::RectangularChannel<T>* getLength() const;
 
+    struct DistributionGrid<T> getDistributionGridAtChannelEnd() const; //TODO
+
+    double getConcentrationChange(double resistance, double timeStep, double mixtureLength, double concentrationDifference, double concentrationTank, double concentrationChannel, double currTime) const;
+
+
 };
 
 }   /// namespace sim

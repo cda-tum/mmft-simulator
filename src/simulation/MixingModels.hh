@@ -261,14 +261,31 @@ void DiffusionMixingModel<T>::updateChannelInflow(T timeStep, arch::Network<T>* 
 
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
+            // check if there is a mixture distribution at the channel start
+            auto* mixtureDistribution = channel->getMixtureDistributionAtStart(); // TODO
+            
             // check if edge is an outflow edge to this node
             if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+                auto flowRate = channel->getFlowRate();
+                if flowRate > 0.0 // StartNode = NodeA
+                if flowRate < 0.0 // StartNode = NodeB
+                if mixtureDistribution->getNrOfMixtures() > 1 {
+                    for (mixture in range(len(nrOfMixtures)-1)):{ // TODO this might need to be done per specie
+                    // das vorzeichen der Konzentrationsdifferenz definiert die Richtung in die die Species diffundieren
+                        T concentrationDifference = (concentration(mixture) - concentration(mixture+1)) // TODO also use always the old concnetrations here per time step (in case there are 3 concentrations so that they don't skip the middle mixture)
+                        // TODO define mixtureLength??? needs to be included for the surface of the boundary layer??? or should the residence time just be calculated with the channel surface anyway?
+                        // TODO 
+                        T concentrationChangeMol = mixtureDistribution->getConcentrationChange(diffusionFactor, timeStep, residenceTime, concentrationDifference, currTime); // todo
+                    }
+                }
+                T concentrationDifference = mixtureDistribution -> getConcentrationDifference() // TODO
                 //T newPos = std::abs(channel->getFlowRate()) * timeStep / channel->getVolume();
                 //assert(newPos <= 1.0 && newPos >= 0.0);
                 //bool oldEqualsNewConcentration = true;
                 //if (mixturesInEdge.count(channel->getId())){
                 //auto& oldConcentrations = mixtures.at(mixturesInEdge.at(channel->getId()).back().first)->getSpecieConcentrations();
-                if (mixtureOutflowAtNode.count(nodeId)) {
+                if (mixtureOutflowAtNode.count(nodeId)) { // TODO get all inflowing Mixtures at the same time
+
                     injectMixtureInEdge(mixtureOutflowAtNode.at(nodeId), channel->getId());
                     //mixturesInEdge.at(channel->getId()).push_back(std::make_pair(mixtureOutflowAtNode.at(nodeId), 0.0));
                 }
