@@ -12,12 +12,9 @@
 
 #include "Fluid.h"
 #include "Specie.h"
+#include "Mixture.h"
 
 namespace sim {
-
-// Forward declared dependencies
-template<typename T>
-class Mixture;
 
 template<typename T>
 struct DistributionGrid {
@@ -33,7 +30,6 @@ struct DistributionGrid {
 template<typename T>
 class MixtureDistribution {
 private:
-
     // int const id;
     T diffusionFactor;
     arch::RectangularChannel<T>* channel;
@@ -41,6 +37,7 @@ private:
     T channelLength;
     std::unordered_map<int, Specie<T>*> species;
     std::unordered_map<int, T> specieConcentrations;
+    Mixture<int>* mixtureId;
 
 public:
     /**
@@ -52,84 +49,29 @@ public:
      * @param density Density of the mixture in kg/m^3.
      * @param largestMolecularSize Largest molecular size in that mixture in molecular size in m^3.
      */
-    MixtureDistribution(arch::RectangularChannel<T>* channel, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
-
-    /**
-     * @brief Construct a new mixture out of a list of fluids and their concentration values.
-     * 
-     * @param id Id of the mixture.
-     * @param fluidConcentrations Map of fluid id and fluid concentration pairs.
-     * @param viscosity Viscosity of the mixture in Pas.
-     * @param density Density of the mixture in kg/m^3.
-     */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density);
-
-    /**
-     * @brief Construct a new mixture out of a list of fluids and their concentration values.
-     * 
-     * @param id Id of the mixture.
-     * @param fluidConcentrations Map of fluid id and fluid concentration pairs.
-     * @param fluid Carrier fluid of the mixture.
-     */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, Fluid<T>* carrierFluid);
+    MixtureDistribution(arch::RectangularChannel<T>* channel, std::unordered_map<int, Specie<T>*> species);
 
     /**
      * @brief Get the id of this mixture
      * 
      * @return Unique identifier of the mixture.
      */
-    int getId() const;
+    Mixture<int>* getId() const;
 
     /**
-     * @brief Get the concentration of a specific specie in that mixture.
+     * @brief Get the id of this mixture
      * 
-     * @param specieId Id of the specie.
-     * @return Volume concentration of that specie within the mixture.
+     * @return width of that specific channel.
      */
-    T getConcentrationOfSpecie(int specieId) const;
+    arch::RectangularChannel<T>* getWidth() const;
 
-    /**
-     * @brief Get the viscosity of the mixture.
+        /**
+     * @brief Get the id of this mixture
      * 
-     * @return Viscosity of the mixture in Pas.
+     * @return length of that channel.
      */
-    T getViscosity() const;
+    arch::RectangularChannel<T>* getLength() const;
 
-    /**
-     * @brief Get the density of this mixture.
-     * 
-     * @return Density of the mixture in kg/m^3.
-     */
-    T getDensity() const;
-
-    /**
-     * @brief Get the largest molecular size in this mixture.
-     * 
-     * @return Largest molecular size in the mixture in \\TODO unit.
-     */
-    T getLargestMolecularSize() const;
-
-    /**
-     * @brief Get the number of fluids this mixture consists of.
-     * 
-     * @return Number of fluids this mixture consists of. 
-     */
-    int getSpecieCount() const;
-
-    /**
-     * @brief Get a map of all flud id ids and their volume concentrations of the mixture.
-     * 
-     * @return Map of fluid id and volume concentration pairs.
-     */
-    const std::unordered_map<int, T>& getSpecieConcentrations() const;
-
-    /**
-     * @brief Change the concentration of a fluid within a mixture. As mixtures are not stored for every state, be aware that if you use this function, only the end concentration of this mixture will be returned to the user, which means intermediate steps are not visible. 
-     * 
-     * @param fluidId Id of the fluid for which the concentration should be changed.
-     * @param concentrationChange The change of concentration that will be added to the current concentration of the fluid.
-     */
-    void changeFluidConcentration(int fluidId, T concentrationChange);
 };
 
 }   /// namespace sim

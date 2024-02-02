@@ -6,60 +6,24 @@ template<typename T>
 DistributionGrid<T>::DistributionGrid() { }
 
 template<typename T>
-MixtureDistribution<T>::MixtureDistribution(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-                    T viscosity, T density, T largestMolecularSize) : 
-                    id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
-                    density(density), largestMolecularSize(largestMolecularSize) { }
+MixtureDistribution<T>::MixtureDistribution(int id, std::unordered_map<int, Specie<T>*> species) : 
+                    id(id), species(species) { }
+
+
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-                    T viscosity, T density) : 
-                    id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
-                    density(density), largestMolecularSize(0.0) { }
-
-template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-                    Fluid<T>* carrierFluid) : 
-                    id(id), species(species), specieConcentrations(specieConcentrations), 
-                    viscosity(carrierFluid->getViscosity()), density(carrierFluid->getDensity()), 
-                    largestMolecularSize(0.0) { }
-
-template<typename T>
-int Mixture<T>::getId() const {
+Mixture<int>* MixtureDistribution::getId() const {
     return id;
 }
 
 template<typename T>
-T Mixture<T>::getDensity() const {
-    return density;
+arch::RectangularChannel<T>* MixtureDistribution<T>::getWidth() {
+    return channelWidth;
 }
 
 template<typename T>
-T Mixture<T>::getViscosity() const {
-    return viscosity;
-}
-
-template<typename T>
-T Mixture<T>::getConcentrationOfSpecie(int specieId) const {
-    if (specieConcentrations.count(specieId) == 1) {
-        return specieConcentrations.at(specieId);
-    }
-    return 0.0;
-}
-
-template<typename T>
-T Mixture<T>::getLargestMolecularSize() const {
-    return largestMolecularSize;
-}
-
-template<typename T>
-int Mixture<T>::getSpecieCount() const {
-    return species.size();
-}
-
-template<typename T>
-const std::unordered_map<int, T>& Mixture<T>::getSpecieConcentrations() const {
-    return specieConcentrations;
+arch::RectangularChannel<T>* MixtureDistribution<T>::getWidth() {
+    return channelLength;
 }
 
 }   // namespace sim
