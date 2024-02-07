@@ -111,6 +111,11 @@ namespace sim {
             */
             void saveState();
 
+            /**
+             * @brief Store the mixtures in this simulation in simulationResult.
+            */
+            void saveMixtures();
+
         public:
             /**
              * @brief Creates simulation.

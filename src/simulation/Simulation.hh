@@ -471,7 +471,7 @@ namespace sim {
                     throw "Max iterations exceeded.";
                     break;
                 }
-                std::cout << "minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;                // compute nodal analysis
+                // compute nodal analysis
                 nodal::conductNodalAnalysis(network);
                 
                 // Update and flow the mixtures 
@@ -479,10 +479,10 @@ namespace sim {
 
                 // store simulation results of current state
                 saveState();
-                std::cout << "minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;
+                
                 // compute events
                 auto events = computeMixingEvents();
-                std::cout << "minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;
+                
                 // sort events
                 // closest events in time with the highest priority come first
                 std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
@@ -496,7 +496,7 @@ namespace sim {
                 for (auto& event : events) {
                     event->print();
                 }
-                std::cout << "last minimal timestep: " << mixingModel->getMinimalTimeStep() << std::endl;
+                
                 Event<T>* nextEvent = nullptr;
                 if (events.size() != 0) {
                     nextEvent = events[0].get();
@@ -515,6 +515,8 @@ namespace sim {
                 nextEvent->print();
                 iteration++;
             }
+            // Store the mixtures that were in the simulation
+            saveMixtures();
         }
     }
 
@@ -709,6 +711,15 @@ namespace sim {
             simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions);
         }
         
+    }
+
+    template<typename T>
+    void Simulation<T>::saveMixtures() {
+        std::unordered_map<int, Mixture<T>*> mixtures_ptr;
+        for (auto& [mixtureId, mixture] : this->mixtures) {
+            mixtures_ptr.try_emplace(mixtureId, mixture.get());
+        }
+        simulationResult->setMixtures(mixtures_ptr);
     }
 
     template<typename T>

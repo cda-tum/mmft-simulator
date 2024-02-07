@@ -134,12 +134,8 @@ namespace porting {
                     std::unordered_map<int, T> concentrations;
                     for (auto& specie : mixture["species"]) {
                         auto specie_ptr = simulation.getSpecie(specie);
-                        species.try_emplace(counter, specie_ptr);
-                        counter++;
-                    }
-                    counter = 0;
-                    for (auto& concentration : mixture["concentrations"]) {
-                        concentrations.try_emplace(counter, concentration);
+                        species.try_emplace(specie, specie_ptr);
+                        concentrations.try_emplace(specie, mixture["concentrations"][counter]);
                         counter++;
                     }
                     simulation.addMixture(species, concentrations);

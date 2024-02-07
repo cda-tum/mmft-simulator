@@ -50,6 +50,9 @@ private:
     std::unordered_map<int, int> mixtureOutflowAtNode;
     std::unordered_map<int, T> totalInflowVolumeAtNode;
     std::unordered_map<int, int> filledEdges;                                   ///<  Which edges are currently filled with a single mixture <EdgeID, MixtureID>
+    std::unordered_map<int, bool> createMixture;
+
+    int generateInflows(int nodeId, T timeStep, arch::Network<T>* network);
 
 public:
 

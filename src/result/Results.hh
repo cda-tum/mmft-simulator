@@ -147,4 +147,30 @@ const void SimulationResult<T>::printState(int key) const {
     states.at(key)->printState();
 }
 
+template<typename T>
+const void SimulationResult<T>::setMixtures(std::unordered_map<int, sim::Mixture<T>*> mixtures_) {
+    mixtures = mixtures_;
+}
+
+template<typename T>
+const std::unordered_map<int, sim::Mixture<T>*>& SimulationResult<T>::getMixtures() const {
+    return mixtures;
+}
+
+template<typename T>
+const void SimulationResult<T>::printMixtures() {
+
+    if (mixtures.empty()) {
+        throw std::invalid_argument("There are no mixture results stored.");
+    } else {
+        for (auto& [mixtureId, mixture] : mixtures) {
+            std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+            for (auto& [specieId, concentration] : mixture->getSpecieConcentrations()) {
+                std::cout << "\t\tSpecie " << specieId << " with concentration " << concentration << " kg/m^3\n";
+            }
+        }
+        std::cout << "\n";
+    }
+}
+
 }  // namespace droplet

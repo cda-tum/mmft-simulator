@@ -20,49 +20,81 @@ InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
 template<typename T>
 void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
 
-    printMixturesInNetwork();
-    std::cout << "[Debug] Calculate mixture outflow at each node from all inflows." << std::endl;
     generateNodeOutflow(sim, mixtures);
-    printMixturesInNetwork();
-    std::cout << "[Debug] Add the node outflow as inflow to the channels." << std::endl;
     updateChannelInflow(timeStep, network, mixtures);
-    printMixturesInNetwork();
-    std::cout << "[Debug] Remove mixtures that have 'outflowed' their channel." << std::endl;
     clean(network);
-    printMixturesInNetwork();
-    std::cout << "[Debug] Update minimal timestep." << std::endl;
     updateMinimalTimeStep(network);
-    printMixturesInNetwork();
-    std::cout << "[Debug] Finish updateMixtures." << std::endl;
 }
 
 template<typename T>
 void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network) {
 
     for (auto& [nodeId, node] : network->getNodes()) {
+        bool generateInflow = false;
+        int totalInflowCount = 0;
+        int mixtureInflowCount = 0;
+        if (createMixture.count(nodeId)) {
+            createMixture.at(nodeId) = false;
+        } else {
+            createMixture.try_emplace(nodeId, false);
+        }
         for (auto& [channelId, channel] : network->getChannels()) {
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+                totalInflowCount++;
+                T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
+                T movedDistance = inflowVolume / channel->getVolume();
+                auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
+                if (!inserted) {
+                    iterator->second += inflowVolume;
+                }
                 if (mixturesInEdge.count(channel->getId())){
                     for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
-                        T movedDistance = (std::abs(channel->getFlowRate()) * timeStep) / channel->getVolume();
                         T newEndPos = std::min(endPos + movedDistance, 1.0);
                         endPos = newEndPos;
-                        if (newEndPos == 1.0 && !node->getSink()) {
-                            std::cout<< "We do recognize mixture " << mixtureId << " as flowing into node " << nodeId << std::endl;
-                            // specie flows into node, add to mixture inflow
-                            T inflowVolume = movedDistance * channel->getArea();
-                            MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
-                            mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
-                            auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
-                            if (!inserted) {
-                                iterator->second = iterator->second + inflowVolume;
+                        if (newEndPos == 1.0) {
+                            // if the mixture front left the channel, it's fully filled
+                            if (filledEdges.count(channel->getId())) {
+                                filledEdges.at(channel->getId()) = mixtureId;
+                            } else {
+                                filledEdges.try_emplace(channel->getId(), mixtureId);
                             }
+                            generateInflow = true;
                         }   
                     }
-                } 
+                }
+            }
+        }
+        // specie flows into node, add to mixture inflow
+        if (generateInflow) {
+            mixtureInflowCount = generateInflows(nodeId, timeStep, network);
+        }
+        if (totalInflowCount != mixtureInflowCount) {
+            createMixture.at(nodeId) = true;
+        }
+    }
+    for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
+        for (auto& mixtureInflow : mixtureInflowList) {
+            if (mixtureInflow.mixtureId != mixtureInflowList[0].mixtureId) {
+                createMixture.at(nodeId) = true;
             }
         }
     }
+}
+
+template<typename T>
+int InstantaneousMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Network<T>* network) {
+    int mixtureInflowCount = 0;
+    for (auto& [channelId, channel] : network->getChannels()) {
+        T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
+        if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+            if (filledEdges.count(channelId)  && !network->getNode(nodeId)->getSink()) {
+                MixtureInFlow<T> mixtureInflow = {filledEdges.at(channelId), inflowVolume};
+                mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
+                mixtureInflowCount++;
+            }
+        }
+    }
+    return mixtureInflowCount;
 }
 
 template<typename T>
@@ -79,12 +111,13 @@ void InstantaneousMixingModel<T>::generateNodeOutflow(Simulation<T>* sim, std::u
                 }
             }
         }
-
-        Mixture<T>* newMixture = sim->addMixture(newConcentrations);
-        mixtureOutflowAtNode.try_emplace(nodeId, newMixture->getId());
-    }
-    for (auto& [nodeId, mixtureId] : mixtureOutflowAtNode) {
-        std::cout << "We have mixture " << mixtureId << " flowing out at node " << nodeId << std::endl;
+        if ( !createMixture.at(nodeId)) {
+            mixtureOutflowAtNode.try_emplace(nodeId, mixtureInflowList[0].mixtureId);
+        } else {
+            Mixture<T>* newMixture = sim->addMixture(newConcentrations);
+            mixtureOutflowAtNode.try_emplace(nodeId, newMixture->getId());
+            createMixture.at(nodeId) = false;
+        }
     }
 }
 
@@ -95,16 +128,9 @@ void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, arch::Network<
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
             // check if edge is an outflow edge to this node
             if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
-                //T newPos = std::abs(channel->getFlowRate()) * timeStep / channel->getVolume();
-                //assert(newPos <= 1.0 && newPos >= 0.0);
-                //bool oldEqualsNewConcentration = true;
-                //if (mixturesInEdge.count(channel->getId())){
-                //auto& oldConcentrations = mixtures.at(mixturesInEdge.at(channel->getId()).back().first)->getSpecieConcentrations();
                 if (mixtureOutflowAtNode.count(nodeId)) {
                     injectMixtureInEdge(mixtureOutflowAtNode.at(nodeId), channel->getId());
-                    //mixturesInEdge.at(channel->getId()).push_back(std::make_pair(mixtureOutflowAtNode.at(nodeId), 0.0));
                 }
-                //}
             }
         }
     }
@@ -116,48 +142,33 @@ void InstantaneousMixingModel<T>::clean(arch::Network<T>* network) {
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
             if (mixturesInEdge.count(channel->getId())){
-                //auto count = 0;  // to not remove the 1.0 fluid if there is only one
                 for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
-                    //remove mixtures that completely flow out of channel (only 1 fluid with pos 1.0 left)
                     if (endPos == 1.0) {
-                        //if (count != 0) {
                         mixturesInEdge.at(channel->getId()).pop_front();
-                        // if the mixture front left the channel, it's fully filled
-                        if (filledEdges.count(channel->getId())) {
-                            filledEdges.at(channel->getId()) = mixtureId;
-                        } else {
-                            filledEdges.try_emplace(channel->getId(), mixtureId);
-                        }
-                        //}
                     } else {
                         break;
                     }
-                    //count++;
                 }
             }
         }
     }
     mixtureInflowAtNode.clear();
     mixtureOutflowAtNode.clear();
+    totalInflowVolumeAtNode.clear();
 }
 
 template<typename T>
 void InstantaneousMixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
     this->minimalTimeStep = 0.0;
-    std::cout << "[Debug] Set timestep to 0.0" << std::endl;
     for (auto& [channelId, deque] : mixturesInEdge) {
         T channelVolume = network->getChannel(channelId)->getVolume();
         T channelFlowRate = network->getChannel(channelId)->getFlowRate();
         for (auto& [mixtureId, endPos] : deque) {
-            std::cout << "This is mixture " << mixtureId << " in channel " << channelId << 
-            " at position " << endPos << std::endl;
             T flowTime = (1.0 - endPos)*channelVolume/channelFlowRate;
             if (this->minimalTimeStep < 1e-12) {
                 this->minimalTimeStep = flowTime;
-                std::cout << "[Debug] Update timestep to " << (1.0 - endPos)*channelVolume << "/" << channelFlowRate << " = " << flowTime << std::endl;
             } else if (flowTime < this->minimalTimeStep) {
                 this->minimalTimeStep = flowTime;
-                std::cout << "[Debug] Update timestep to " << (1.0 - endPos)*channelVolume << "/" << channelFlowRate << " = " << flowTime << std::endl;
             }
         }
     }
@@ -178,7 +189,7 @@ template<typename T>
 void InstantaneousMixingModel<T>::printMixturesInNetwork() {
     for (auto& [channelId, deque] : mixturesInEdge) {
         for (auto& [mixtureId, endPos] : deque) {
-            std::cout << "This is mixture " << mixtureId << " in channel " << channelId << 
+            std::cout << "Mixture " << mixtureId << " in channel " << channelId << 
             " at position " << endPos << std::endl;
         }
     }
