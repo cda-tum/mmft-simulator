@@ -4,6 +4,8 @@
 #include <deque>
 #include <iostream>
 
+#define M_PI 3.14159265358979323846
+
 namespace sim {
 
 template<typename T>
@@ -208,6 +210,235 @@ const std::unordered_map<int, std::deque<std::pair<int,T>>>& InstantaneousMixing
 template<typename T>
 const std::unordered_map<int, int>& InstantaneousMixingModel<T>::getFilledEdges() const {
     return filledEdges;
+}
+
+
+//=========================================================================================
+//================================  diffusive Mixing  =====================================
+//=========================================================================================
+
+template<typename T>
+DiffusionMixingModel<T>::DiffusionMixingModel() : MixingModel<T>() { }
+
+template<typename T>
+void DiffusionMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::updateMixtureDistributions(T timeStep, arch::Network<T>* network, Simulation<T>* sim) {
+    topologyAnalysis();
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network ) {
+    /**
+     * 1. List all connecting angles with angle and inflow
+     * 2. Order connected channels according to radial angle
+     * 3. Group connected channels into groups of 
+     *      - Concatenated inflows
+     *      - Concatenated outflows
+     * 4. Inflow groups always (?) merge incoming channels
+     * 5. Inflow group is always (?) split into the 1 or 2 neighbouring outflow groups
+     * 6. Outflow groups always (?) merge the incoming 1 or 2 neighbouring inflow groups
+     * 7. Outflow groups always (?) split the total income into channels.
+    */
+    for (auto& [nodeId, node] : network->getNodes()) {
+        if (!node->getGround()){
+
+            // 1. List all connecting angles with angle and inflow
+            std::vector<RadialPosition<T>> channelOrder;
+            for (auto& [channelId, channel] : network->getChannels()) {
+                bool inflow;
+                arch::Node<T>* nodeA = network->getNode(channel->getNodeA()).get();
+                arch::Node<T>* nodeB = network->getNode(channel->getNodeB()).get();
+                T dx = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[0]-nodeA->getPosition()[0] : nodeA->getPosition()[0]-nodeB->getPosition()[0];
+                T dy = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[1]-nodeA->getPosition()[1] : nodeA->getPosition()[1]-nodeB->getPosition()[1];
+                T angle = atan2(dy,dx);
+                angle = std::fmod(atan2(dy,dx)+2*M_PI,2*M_PI);
+                if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+                    // Channel is inflow channel
+                    inflow = true;
+                } else if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+                    // Channel is outflow channel
+                    inflow = false;
+                } else {
+                    // Channel has no flow rate: Do nothing.
+                    continue;
+                }
+                RadialPosition<T> newPosition = {angle, channel->getId(), inflow};
+                channelOrder.push_back(newPosition);
+            }
+
+            // 2. Order connected channels according to radial angle
+            std::sort(channelOrder.begin(), channelOrder.end(), [](auto& a, auto& b) {
+                return a.radialAngle < b.radialAngle;  // ascending order
+            });
+
+            // 3. Group connected channels into groups of
+            //     - Concatenated inflows
+            //     - Concatenated outflows
+            while (!channelOrder.empty()) {
+                std::vector<RadialPosition<T>> concatenatedFlow;
+                concatenatedFlow.emplace_back( std::move(channelOrder.front()) );
+                channelOrder.erase(channelOrder.begin());
+                int n = 0;(relative, 0.0-1.0)
+                for (auto& flow : channelOrder) {
+                    if (flow.inFlow == concatenatedFlow.back().inFlow) {
+                        concatenatedFlow.emplace_back( std::move(channelOrder.front()) );
+                        n++;
+                    } else {
+                        break;
+                    }
+                }
+
+                channelOrder.erase(channelOrder.begin(), channelOrder.begin() + n);
+                concatenatedFlows.push_back(concatenatedFlow);
+            }
+            if (concatenatedFlows.front().front().inFlow == concatenatedFlows.back().back().inFlow) {
+                for (auto& flow : concatenatedFlows.front()) {
+                    concatenatedFlows.back().emplace_back( std::move(flow) );
+                }
+                concatenatedFlows.erase(concatenatedFlows.begin());
+            }
+
+            // 4. Calculate the flow connections between inflow/outflow channels
+            // and generate outflowDistribution.
+            if (concatenatedFlows.size() == 2) {
+                int in = (concatenatedFlows[0][0].inFlow) ? 0 : 1;
+                int out = (concatenatedFlows[0][0].inFlow) ? 1 : 0;
+                T flowRateIn;
+                T flowRateOut;
+                for (auto& channel : concatenatedFlows[in]) {
+                    flowRateIn += network->getChannel(channel.channelId)->getFlowRate();
+                }
+                for (auto& channel : concatenatedFlows[out]) {
+                    flowRateOut += network->getChannel(channel.channelId)->getFlowRate();
+                }
+
+                std::vector<T> inflow = {0.0};
+                std::vector<int> channelInIDs;
+                // Calculate inflow separations
+                for (auto& channelIn = concatenatedFlows[in].rbegin(); channelIn != concatenatedFlows[in].rend(); ++channelIn) {
+                    T newCut = inflow.back() + network->getChannel(channelIn.channelId)->getFlowRate()/flowRateIn;
+                    inflow.push_back(std::min(newCut, 1.0));
+                    channelInIDs.push_back(channelIn.channelId);
+                }
+
+                for (auto& channelOut : concatenatedFlows[out]) {
+                    bool filled = false;
+                }
+
+
+                FlowSection<T> inFlowSection = {angle, channel->getId(), inflow};
+                outflowDistributions.push_back()
+            } else {
+                // loop over groups and look at their neighbouring groups
+            }
+
+                /*
+                for (auto& channelOut : concatenatedFlows[out]) {
+                    bool filled = false;
+                    T percentage = 0.0;
+                    std::vector<FlowSection<T>> outflowDistribution;
+                    for (auto& channelIn = begin(concatenatedFlows[in] + n); channelIn != end(concatenatedFlows[in]); channelIn++ ) {
+                        T start;
+                        T end;
+                        if (!outflowDistribution.empty() && !filled) {
+                            end = outflowDistribution.back().start;
+                        } else {
+                            end = 1.0;
+                        }
+                        if (flowRateIn < restFlowRateOut) {
+                            start = 1.0 - (flowRateIn/flowRateOut);
+                            n++;
+                        } else {
+                            start = 0.0;
+                            filled = true;
+                        }
+                        FlowSection<T> inFlowSection = {channelIn->channelId, start, end};
+                        outflowDistribution.push_back(inFlowSection);
+                        if (filled) {
+                            break;
+                        }
+                    }
+                    std::reverse(outflowDistribution.begin(), outflowDistribution.end());
+                    outflowDistributions.try_emplace(channelOut.channelId, outflowDistribution);
+                }
+                */
+
+            for (auto& group : concatenatedFlows) {
+                // If it is an outflow group
+                if ( !group.front().inflow ) {
+
+                }
+            }
+
+
+            if (concatenatedFlows.size() > 2) {
+
+            }
+
+            /**
+             * What we want to have in the end
+             * 
+             * The channels need to know what stuff is flowing in.
+             * So the nodes need to list PER OUTFLOWING CHANNEL, what is going to flow into them.
+             * 
+             * More precisely, per outflowing channel:
+             * - list of concatenated flows
+             * - these are sections of incoming flows
+             * - and are mapped to a new relative width.
+            */
+
+            // 5. Inflow group is always (?) split into the 1 or 2 neighbouring outflow groups
+
+            // 6. Outflow groups always (?) merge the incoming 1 or 2 neighbouring inflow groups
+
+            // 7. Outflow groups always (?) split the total income into channels.
+
+        }
+    }
+
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::printTopology() {
+    int iteration = 0;
+    for (auto& flows : concatenatedFlows) {
+        std::cout << "Group " << iteration << std::endl;
+        for (auto& flow : flows) {
+            std::cout << "Channel " << flow.channelId << " has radial angle = " << flow.radialAngle
+                << " and is ";
+            if (!flow.inFlow) {
+                std::cout << " an outflow.\n";
+            } else {
+                std::cout << " an inflow.\n";
+            }
+        }
+        std::cout << "\n";
+        iteration++;
+    }
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::updateNodeInflow() {
+    // TODO
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::generateInflows() {
+    // TODO
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::generateNodeOutflow() {
+    // TODO
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::updateChannelInflow() {
+    // TODO
 }
 
 }   /// namespace sim

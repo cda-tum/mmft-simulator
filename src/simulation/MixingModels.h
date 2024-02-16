@@ -26,6 +26,29 @@ struct MixtureInFlow {
 };
 
 template<typename T>
+struct MixtureDistributionInFlow {
+    
+    int mixtureId;
+    int gridResolution;
+    T inflowVolume;
+};
+
+template<typename T>
+struct RadialPosition {
+
+    T radialAngle;
+    int channelId;
+    bool inFlow;
+};
+
+template<typename T>
+struct FlowSection {
+    int channelId;  // Channel of this flow coming into the node
+    T sectionStart; // Start of the relevant section of this inflow (relative, 0.0-1.0)
+    T sectionEnd;   // End of the relevant section of this inflow (relative, 0.0-1.0)
+};
+
+template<typename T>
 class MixingModel {
 protected:
 
@@ -105,6 +128,34 @@ public:
     const std::unordered_map<int, int>& getFilledEdges() const;
 
 //    void initialize(arch::Network<T>*);
+};
+
+template<typename T>
+class DiffusionMixingModel : public MixingModel<T> {
+
+private:
+    std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
+    std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
+    void generateInflows();
+
+public:
+
+    DiffusionMixingModel();
+
+    void topologyAnalysis(arch::Network<T>* network);
+    
+    void printTopology();
+
+    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+
+    void updateMixtureDistributions(T timeStep, arch::Network<T>* network, Simulation<T>* sim);
+
+    void updateNodeInflow();
+
+    void generateNodeOutflow();
+
+    void updateChannelInflow();
+
 };
 
 }   // namespace sim
