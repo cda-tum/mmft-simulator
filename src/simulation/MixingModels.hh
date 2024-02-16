@@ -316,90 +316,81 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network ) {
                     flowRateOut += network->getChannel(channel.channelId)->getFlowRate();
                 }
 
-                std::vector<T> inflow = {0.0};
+                std::vector<T> inflowCuts = {0.0};
                 std::vector<int> channelInIDs;
                 // Calculate inflow separations
                 for (auto& channelIn = concatenatedFlows[in].rbegin(); channelIn != concatenatedFlows[in].rend(); ++channelIn) {
-                    T newCut = inflow.back() + network->getChannel(channelIn.channelId)->getFlowRate()/flowRateIn;
-                    inflow.push_back(std::min(newCut, 1.0));
+                    T newCut = inflowCuts.back() + network->getChannel(channelIn.channelId)->getFlowRate()/flowRateIn;
+                    inflowCuts.push_back(std::min(newCut, 1.0));
                     channelInIDs.push_back(channelIn.channelId);
                 }
 
+                std::vector<T> outflowCuts = {0.0};
+                std::vector<int> channelOutIDs;
                 for (auto& channelOut : concatenatedFlows[out]) {
-                    bool filled = false;
+                    T newCut = outflowCuts.back() + network->getChannel(channelOut.channelId)->getFlowRate()/flowRateOut;
+                    outflowCuts.push_back(std::min(newCut, 1.0));
+                    channelOutIDs.push_back(channelOut.channelId);
                 }
 
-
-                FlowSection<T> inFlowSection = {angle, channel->getId(), inflow};
-                outflowDistributions.push_back()
-            } else {
-                // loop over groups and look at their neighbouring groups
-            }
-
-                /*
-                for (auto& channelOut : concatenatedFlows[out]) {
-                    bool filled = false;
-                    T percentage = 0.0;
-                    std::vector<FlowSection<T>> outflowDistribution;
-                    for (auto& channelIn = begin(concatenatedFlows[in] + n); channelIn != end(concatenatedFlows[in]); channelIn++ ) {
-                        T start;
-                        T end;
-                        if (!outflowDistribution.empty() && !filled) {
-                            end = outflowDistribution.back().start;
-                        } else {
-                            end = 1.0;
-                        }
-                        if (flowRateIn < restFlowRateOut) {
-                            start = 1.0 - (flowRateIn/flowRateOut);
-                            n++;
-                        } else {
+                int n_in = 0;
+                int n_out = 0;
+                T start = 0.0;
+                T end = 0.0;
+                for (auto& channelOutId : channelOutIDs) {
+                    for (auto& channelInId : channelInIDs) {
+                        FlowSection<T> inFlowSection;
+                        inFlowSection.channelId = channelInId;
+                        if (inflowCut[n_in + 1] < outflowCut[n_out + 1]) {
+                            T flowRate = (1.0 - start) * network->getChannel(channelInId)->getFlowRate();
+                            inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate};
+                            n_in++;
                             start = 0.0;
-                            filled = true;
-                        }
-                        FlowSection<T> inFlowSection = {channelIn->channelId, start, end};
-                        outflowDistribution.push_back(inFlowSection);
-                        if (filled) {
+                        } else {
+                            T flowRate = (outflowCuts[n_out + 1] - std::max(inflowCuts[n_in], outflowCuts[n_out]))*flowRateIn;
+                            end = start + flowRate / network->getChannel(channelInId)->getFlowRate();
+                            inFlowSection = FlowSection<T> {channelInId, start, end, flowRate};
+                            n_out++;
+                            start = end;
                             break;
                         }
+                        if (outflowDistributions.count(channelOutId)) {
+                            outflowDistributions.at(channelOutId).push_back(inFlowSection);
+                        } else {
+                            std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
+                            outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
+                        }
+                    }                    
+                }
+
+            } else if (concatenatedFlows.size() == 4){
+                // Assume case with 2 pairs of opposing channels
+                for (auto& concatenatedFlow = concatenatedFlows.begin(); concatenatedFlow != concatenatedFlows.end(); ++concatenatedFlow) {
+                    if (concatenatedFlow->at(0).inflow) {
+                        // Close the loop of the concatenatedFlows vector
+                        auto& clockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.end()) ? concatenatedFlows.begin() : 1);
+                        int channelInId = concatenatedFlow->at(0).channelId;
+                        int channelOutId = clockWise->at(0).channelId;
+                        FlowSection<T> inFlowSection {channelInId, 0.0, 0.5, 0.5*network->getChannel(channelInId)->getFlowRate()};
+                        std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
+                        outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
                     }
-                    std::reverse(outflowDistribution.begin(), outflowDistribution.end());
-                    outflowDistributions.try_emplace(channelOut.channelId, outflowDistribution);
                 }
-                */
-
-            for (auto& group : concatenatedFlows) {
-                // If it is an outflow group
-                if ( !group.front().inflow ) {
-
+                for (auto& concatenatedFlow = concatenatedFlows.begin(); concatenatedFlow != concatenatedFlows.end(); ++concatenatedFlow) {
+                    if (concatenatedFlow->at(0).inflow) {
+                        // Close the loop of the concatenatedFlows vector
+                        auto& antiClockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.begin()) ? concatenatedFlows.end() : -1);
+                        int channelInId = concatenatedFlow->at(0).channelId;
+                        int channelOutId = antiClockWise->at(0).channelId;
+                        FlowSection<T> inFlowSection {channelInId, 0.5, 1.0, 0.5*network->getChannel(channelInId)->getFlowRate()};
+                        outflowDistributions.at(channelOutId).push_back(inFlowSection);
+                    }
                 }
+            } else {
+                throw std::invalid_argument("Too many channels at node " << nodeId << " for DiffusionMixingModel.");
             }
-
-
-            if (concatenatedFlows.size() > 2) {
-
-            }
-
-            /**
-             * What we want to have in the end
-             * 
-             * The channels need to know what stuff is flowing in.
-             * So the nodes need to list PER OUTFLOWING CHANNEL, what is going to flow into them.
-             * 
-             * More precisely, per outflowing channel:
-             * - list of concatenated flows
-             * - these are sections of incoming flows
-             * - and are mapped to a new relative width.
-            */
-
-            // 5. Inflow group is always (?) split into the 1 or 2 neighbouring outflow groups
-
-            // 6. Outflow groups always (?) merge the incoming 1 or 2 neighbouring inflow groups
-
-            // 7. Outflow groups always (?) split the total income into channels.
-
         }
     }
-
 }
 
 template<typename T>
