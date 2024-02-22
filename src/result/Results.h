@@ -108,6 +108,7 @@ struct SimulationResult {
     std::unordered_map<int, sim::Fluid<T>>* fluids;                 /// Contains all fluids which were defined (i.e., also the fluids which were created when droplets merged).
     std::unordered_map<int, sim::Droplet<T>>* droplets;             /// Contains all droplets that occurred during the simulation not only the once that were injected (i.e., also merged and splitted droplets)
     std::unordered_map<int, sim::Mixture<T>*> mixtures;
+    std::unordered_map<int, sim::DiffusiveMixture<T>*> diffusiveMixtures;
     std::unordered_map<int, sim::Specie<T>>* species;
     std::vector<std::unique_ptr<State<T>>> states;                  /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
 
@@ -189,7 +190,13 @@ struct SimulationResult {
 
     const std::unordered_map<int, sim::Mixture<T>*>& getMixtures() const;
 
+    const void setDiffusiveMixtures(std::unordered_map<int, sim::DiffusiveMixture<T>*> mixtures);
+
+    const std::unordered_map<int, sim::DiffusiveMixture<T>*>& getDiffusiveMixtures() const;
+
     const void printMixtures();
+
+    const void writeDiffusiveMixtures();
 };
 
 }   // namespace results

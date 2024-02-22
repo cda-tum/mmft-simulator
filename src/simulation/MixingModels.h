@@ -46,6 +46,17 @@ struct FlowSection {
     int channelId;  // Channel of this flow coming into the node
     T sectionStart; // Start of the relevant section of this inflow (relative, 0.0-1.0)
     T sectionEnd;   // End of the relevant section of this inflow (relative, 0.0-1.0)
+    T flowRate;
+};
+
+template<typename T>
+struct FlowSectionInput {
+    T startWidth;
+    T endWidth;
+    T stretchFactor; // this is technically redundant for constant flow sections
+    T startWidthIfFunctionWasSplit;
+    std::function<T(T)> concentrationAtChannelEndFunction;
+    std::vector<T> segmentedResult; // this is technically redundant for constant flow sections
 };
 
 template<typename T>
@@ -61,6 +72,8 @@ public:
     virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
 
     T getMinimalTimeStep();
+
+    virtual bool getDiffusive() = 0;
 };
 
 template<typename T>
@@ -127,6 +140,8 @@ public:
 
     const std::unordered_map<int, int>& getFilledEdges() const;
 
+    bool getDiffusive() { return false; }
+
 //    void initialize(arch::Network<T>*);
 };
 
@@ -136,25 +151,28 @@ class DiffusionMixingModel : public MixingModel<T> {
 private:
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
+    std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
     void generateInflows();
 
 public:
 
     DiffusionMixingModel();
 
+    void updateNodeInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
+
     void topologyAnalysis(arch::Network<T>* network);
     
     void printTopology();
 
-    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
-
-    void updateMixtureDistributions(T timeStep, arch::Network<T>* network, Simulation<T>* sim);
-
-    void updateNodeInflow();
+    void updateDiffusiveMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
 
     void generateNodeOutflow();
 
+    void generateInflows(int nodeId, T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures)
+
     void updateChannelInflow();
+
+    bool getDiffusive() { return false; }
 
 };
 

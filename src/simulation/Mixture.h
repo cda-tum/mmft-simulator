@@ -133,4 +133,33 @@ public:
     void changeFluidConcentration(int fluidId, T concentrationChange);
 };
 
+template<typename T>
+class DiffusiveMixture : public Mixture<T> {
+private:
+
+    bool isConstant = true;
+
+    int resolution = 10;
+
+    std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions;
+
+public:
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density);
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, Fluid<T>* carrierFluid);
+
+    std::function<T(T)> getConcentrationOfSpecie(int specieId) const override;
+
+    void changeFluidConcentration(int fluidId, T concentrationChange) override;
+
+    const std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>>& getSpecieConcentrations() const;
+
+    bool getIsConstant();
+
+    void setNonConstant();
+};
+
 }   /// namespace sim

@@ -158,6 +158,16 @@ const std::unordered_map<int, sim::Mixture<T>*>& SimulationResult<T>::getMixture
 }
 
 template<typename T>
+const void SimulationResult<T>::setDiffusiveMixtures(std::unordered_map<int, sim::DiffusiveMixture<T>*> mixtures_) {
+    diffusiveMixtures = mixtures_;
+}
+
+template<typename T>
+const std::unordered_map<int, sim::DiffusiveMixture<T>*>& SimulationResult<T>::getDiffusiveMixtures() const {
+    return diffusiveMixtures;
+}
+
+template<typename T>
 const void SimulationResult<T>::printMixtures() {
 
     if (mixtures.empty()) {
@@ -171,6 +181,11 @@ const void SimulationResult<T>::printMixtures() {
         }
         std::cout << "\n";
     }
+}
+
+template<typename T>
+const void SimulationResult<T>::writeDiffusiveMixtures() {
+    // TODO Maria, CSV Writer here
 }
 
 }  // namespace droplet

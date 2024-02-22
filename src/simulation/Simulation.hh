@@ -157,7 +157,7 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setMixingModel(InstantaneousMixingModel<T>* model_) {
+    void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
         this->mixingModel = model_;
     }
 
@@ -715,11 +715,19 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::saveMixtures() {
-        std::unordered_map<int, Mixture<T>*> mixtures_ptr;
-        for (auto& [mixtureId, mixture] : this->mixtures) {
-            mixtures_ptr.try_emplace(mixtureId, mixture.get());
+        if (mixingModel->getDiffusive()) {
+            std::unordered_map<int, DiffusiveMixture<T>*> mixtures_ptr;
+            for (auto& [mixtureId, mixture] : this->diffusiveMixtures) {
+                mixtures_ptr.try_emplace(mixtureId, mixture.get());
+            }
+            simulationResult->setDiffusiveMixtures(mixtures_ptr);
+        } else {
+            std::unordered_map<int, Mixture<T>*> mixtures_ptr;
+            for (auto& [mixtureId, mixture] : this->mixtures) {
+                mixtures_ptr.try_emplace(mixtureId, mixture.get());
+            }
+            simulationResult->setMixtures(mixtures_ptr);   
         }
-        simulationResult->setMixtures(mixtures_ptr);
     }
 
     template<typename T>
