@@ -56,7 +56,8 @@ namespace sim {
             std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>> diffusiveMixtures;    ///< Diffusive Mixtures present in the simulation.
             std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;   ///< Injections of fluids that should take place during the simulation.
             ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for te simulation.
-            MixingModel<T>* mixingModel;
+            InstantaneousMixingModel<T>* instMixingModel;
+            DiffusionMixingModel<T>* diffMixingModel;
             int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
             int iteration = 0;
             int maxIterations = 1e5;
@@ -123,6 +124,9 @@ namespace sim {
              */
             Simulation();
 
+            // TODO
+            bool diffusiveMixing = false;
+
             /**
              * @brief Create fluid.
              * @param[in] viscosity Viscosity of the fluid in Pas.
@@ -170,6 +174,14 @@ namespace sim {
              * @return Pointer to created mixture.
              */
             DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+            
+            /**
+             * @brief Create mixture.
+             * @param[in] specieIds
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions);
 
             /**
              * @brief Create mixture.
@@ -177,6 +189,13 @@ namespace sim {
              * @return Pointer to created mixture.
              */
             DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations);
+
+            /**
+             * @brief Create mixture.
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions);
 
             /**
              * @brief Create droplet injection.
@@ -243,7 +262,13 @@ namespace sim {
              * @brief Define which mixing model should be used for the concentrations.
              * @param[in] model The mixing model to be used.
              */
-            void setMixingModel(MixingModel<T>* model);
+            void setMixingModel(InstantaneousMixingModel<T>* model);
+
+            /**
+             * @brief Define which mixing model should be used for the concentrations.
+             * @param[in] model The mixing model to be used.
+             */
+            void setMixingModel(DiffusionMixingModel<T>* model);
 
             /**
              * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.

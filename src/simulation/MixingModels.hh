@@ -17,6 +17,34 @@ T MixingModel<T>::getMinimalTimeStep() {
 }
 
 template<typename T>
+void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
+    this->minimalTimeStep = 0.0;
+    for (auto& [channelId, deque] : mixturesInEdge) {
+        T channelVolume = network->getChannel(channelId)->getVolume();
+        T channelFlowRate = network->getChannel(channelId)->getFlowRate();
+        for (auto& [mixtureId, endPos] : deque) {
+            T flowTime = (1.0 - endPos)*channelVolume/channelFlowRate;
+            if (this->minimalTimeStep < 1e-12) {
+                this->minimalTimeStep = flowTime;
+            } else if (flowTime < this->minimalTimeStep) {
+                this->minimalTimeStep = flowTime;
+            }
+        }
+    }
+    std::cout << "The minimal timestep is now " << this->minimalTimeStep << std::endl;
+}
+
+template<typename T>
+const std::deque<std::pair<int,T>>& MixingModel<T>::getMixturesInEdge(int channelId) const {
+    return mixturesInEdge.at(channelId);
+}
+
+template<typename T>
+const std::unordered_map<int, std::deque<std::pair<int,T>>>& MixingModel<T>::getMixturesInEdges() const {
+    return mixturesInEdge;
+}
+
+template<typename T>
 InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
 
 template<typename T>
@@ -25,7 +53,7 @@ void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* n
     generateNodeOutflow(sim, mixtures);
     updateChannelInflow(timeStep, network, mixtures);
     clean(network);
-    updateMinimalTimeStep(network);
+    this->updateMinimalTimeStep(network);
 }
 
 template<typename T>
@@ -49,8 +77,8 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                 if (!inserted) {
                     iterator->second += inflowVolume;
                 }
-                if (mixturesInEdge.count(channel->getId())){
-                    for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
+                if (this->mixturesInEdge.count(channel->getId())){
+                    for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
                         T newEndPos = std::min(endPos + movedDistance, 1.0);
                         endPos = newEndPos;
                         if (newEndPos == 1.0) {
@@ -143,10 +171,10 @@ void InstantaneousMixingModel<T>::clean(arch::Network<T>* network) {
     
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
-            if (mixturesInEdge.count(channel->getId())){
-                for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
+            if (this->mixturesInEdge.count(channel->getId())){
+                for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
                     if (endPos == 1.0) {
-                        mixturesInEdge.at(channel->getId()).pop_front();
+                        this->mixturesInEdge.at(channel->getId()).pop_front();
                     } else {
                         break;
                     }
@@ -160,51 +188,24 @@ void InstantaneousMixingModel<T>::clean(arch::Network<T>* network) {
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
-    this->minimalTimeStep = 0.0;
-    for (auto& [channelId, deque] : mixturesInEdge) {
-        T channelVolume = network->getChannel(channelId)->getVolume();
-        T channelFlowRate = network->getChannel(channelId)->getFlowRate();
-        for (auto& [mixtureId, endPos] : deque) {
-            T flowTime = (1.0 - endPos)*channelVolume/channelFlowRate;
-            if (this->minimalTimeStep < 1e-12) {
-                this->minimalTimeStep = flowTime;
-            } else if (flowTime < this->minimalTimeStep) {
-                this->minimalTimeStep = flowTime;
-            }
-        }
-    }
-}
-
-template<typename T>
 void InstantaneousMixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
-    if (mixturesInEdge.count(channelId)) {
-        mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
+    if (this->mixturesInEdge.count(channelId)) {
+        this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
     } else {
         std::deque<std::pair<int,T>> newDeque;
         newDeque.push_back(std::make_pair(mixtureId, T(0.0)));
-        mixturesInEdge.try_emplace(channelId, newDeque);
+        this->mixturesInEdge.try_emplace(channelId, newDeque);
     }
 }
 
 template<typename T>
 void InstantaneousMixingModel<T>::printMixturesInNetwork() {
-    for (auto& [channelId, deque] : mixturesInEdge) {
+    for (auto& [channelId, deque] : this->mixturesInEdge) {
         for (auto& [mixtureId, endPos] : deque) {
             std::cout << "Mixture " << mixtureId << " in channel " << channelId << 
             " at position " << endPos << std::endl;
         }
     }
-}
-
-template<typename T>
-const std::deque<std::pair<int,T>>& InstantaneousMixingModel<T>::getMixturesInEdge(int channelId) const {
-    return mixturesInEdge.at(channelId);
-}
-
-template<typename T>
-const std::unordered_map<int, std::deque<std::pair<int,T>>>& InstantaneousMixingModel<T>::getMixturesInEdges() const {
-    return mixturesInEdge;
 }
 
 template<typename T>
@@ -222,53 +223,125 @@ DiffusionMixingModel<T>::DiffusionMixingModel() : MixingModel<T>() { }
 
 template<typename T>
 void DiffusionMixingModel<T>::updateDiffusiveMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
-    updateNodeInflow(timeStep, network, mixtures)
-    updateMinimalTimeStep(network);
+    updateNodeInflow(timeStep, network, sim, mixtures);
+    clean(network);
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
+void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
+    std::cout<< "Getting here 1" << std::endl;
     for (auto& [nodeId, node] : network->getNodes()) {
         bool generateInflow = false;
         for (auto& [channelId, channel] : network->getChannels()) {
+            std::cout<< "Getting here 2" << std::endl;
             // If the channel flows into this node
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
-                for (auto& [mixtureId, endPos] : mixturesInEdge.at(channel->getId())) {
-                    // Propage the mixture positions in the channel with movedDistance
-                    T newEndPos = std::min(endPos + movedDistance, 1.0);
-                    endPos = newEndPos;
-                    if (newEndPos == 1.0) {
-                        // We must generate the outflow of this node, i.e., the inflow of the channels that flow out of the node
-                        generateInflow = true;
-                    }   
+                std::cout<< "Getting here 3" << std::endl;
+                T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
+                T movedDistance = inflowVolume / channel->getVolume();
+                std::cout << "The current channelId is " << channelId << std::endl;
+                if (this->mixturesInEdge.count(channel->getId())) {
+                    for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
+                        std::cout<< "Getting here 4" << std::endl;
+                        // Propage the mixture positions in the channel with movedDistance
+                        T newEndPos = std::min(endPos + movedDistance, 1.0);
+                        endPos = newEndPos;
+                        if (newEndPos == 1.0) {
+                            std::cout<< "Getting here 5" << std::endl;
+                            // if the mixture front left the channel, it's fully filled with the current mixture
+                            if (filledEdges.count(channel->getId())) {
+                                filledEdges.at(channel->getId()) = mixtureId;
+                            } else {
+                                filledEdges.try_emplace(channel->getId(), mixtureId);
+                            }
+                            // We must generate the outflow of this node, i.e., the inflow of the channels that flow out of the node
+                            generateInflow = true;
+                        }   
+                    }
                 }
             }
         }
+        std::cout<< "Getting here 6" << std::endl;
         // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
         // It is unlikely that this exact mixture, with same species and functions already exists
         if (generateInflow) {
-            generateInflows(nodeId, timeStep, network, mixtures);
+            std::cout<< "Getting here 7" << std::endl;
+            generateInflows(nodeId, timeStep, network, sim, mixtures);
         }
     }
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
-    topologyAnalysis();
+void DiffusionMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
+    // Perform topoology analysis at node, to know how the inflow sections and their relative order.
+    std::cout<< "Start topology analysis for node " << nodeId << std::endl;
+    topologyAnalysis(network, nodeId);
+    std::cout<< "Finished topology analysis for node " << nodeId << std::endl;
     for (auto& [channelId, channel] : network->getChannels()) {
         // If the channel flows out of this node
         if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
-            // We should evaluate the final function of the mixture reaching the end of this channel
-            for (auto& [specieId, specie_ptr] : mixtures.at(TODO)->getSpecieDistributions()) {
-                T pecletNr = channel->getFlowRate() * channel->getWidth() / species->getDiffusionCoefficient();
-                std::function<T(T)> concentrationAtChannelEndFunction = getAnalyticalSolutionTotal(channel->getChannelLength(), channel->getChannelWidth(), this->resolution, pecletNr, outflowDistributions.at(channel->getId()));
+            std::cout<< "Getting here 8" << std::endl;
+            // Loop over all species in the incoming mixtures and add to set of present species
+            std::set<int> presentSpecies;
+            for (auto& [channelId, fowSections] : outflowDistributions) {
+                std::cout << "We have flowsections listed for channel " << channelId << std::endl;  
             }
+            for (auto& section : outflowDistributions.at(channel->getId())) {
+                std::cout<< "Getting here 8.1" << std::endl;
+                std::cout<< "section.channelId is " << section.channelId << std::endl;
+                for (auto& [channelId, mixtureId] : filledEdges) {
+                    std::cout << "In filled edges we have channel " << channelId << " with mixture " << mixtureId << std::endl;  
+                }
+                std::cout << "The size of mixtures is " << mixtures.size() << std::endl;
+                for (auto& [mixtureId, mixture_ptr] : mixtures) {
+                    std::cout << "In mixtures we have mixture " << mixtureId << std::endl;
+                }
+                if (filledEdges.count(section.channelId)) {
+                    for (auto& [specieId, pair] : mixtures.at(filledEdges.at(section.channelId))->getSpecieDistributions()) {
+                        std::cout<< "Getting here 8.2" << std::endl;
+                        std::cout << "The specie concentrations are for specie " << specieId << std::endl;
+                        if (presentSpecies.find(specieId) == presentSpecies.end()) {
+                            presentSpecies.emplace(specieId);
+                        }
+                    }
+                }
+            }
+            std::cout<< "Getting here 9" << std::endl;
+            // We should evaluate the final function of the mixture reaching the end of this channel
+            std::unordered_map<int, std::pair<std::function<T(T)>,std::vector<T>>> newDistributions;
+            std::cout<< "Getting here 9.1" << std::endl;
+            for (auto& specieId : presentSpecies) {
+                std::cout<< "Getting here 9.2" << std::endl;
+                T pecletNr = (channel->getFlowRate() / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                std::cout<< "Getting here 9.3" << std::endl;
+                std::pair<std::function<T(T)>,std::vector<T>> analyticalResult = getAnalyticalSolutionTotal(
+                    channel->getLength(), channel->getFlowRate(), channel->getWidth(), this->resolution, specieId, 
+                    pecletNr, outflowDistributions.at(channel->getId()), mixtures);
+                std::cout<< "Getting here 9.4" << std::endl;
+                newDistributions.try_emplace(specieId, analyticalResult);
+                std::cout<< "Getting here 9.5" << std::endl;
+                int numValues = 100;
+                T step = 1.0 / (numValues);
+                for (int i = 0; i < numValues; ++i) {
+                    T x = i * step;
+                    T y;
+                    y = analyticalResult.first(x);
+                    std::cout << std::setprecision(4) << x << "," << y << "\n"; 
+                }
+            }
+            std::cout<< "Getting here 10" << std::endl;
+            //Create new DiffusiveMixture
+            DiffusiveMixture<T>* newMixture = sim->addDiffusiveMixture(newDistributions);
+            newMixture->setNonConstant();
+            std::cout<< "Getting here 11" << std::endl;
+            this->injectMixtureInEdge(newMixture->getId(), channelId);
+            std::cout<< "Getting here 12" << std::endl;
         }
     }
-}
+} 
 
 template<typename T>
-void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network ) {
+void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int nodeId) {
     /**
      * 1. List all connecting angles with angle and inflow
      * 2. Order connected channels according to radial angle
@@ -280,158 +353,174 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network ) {
      * 6. Outflow groups always (?) merge the incoming 1 or 2 neighbouring inflow groups
      * 7. Outflow groups always (?) split the total income into channels.
     */
-    for (auto& [nodeId, node] : network->getNodes()) {
-        if (!node->getGround()){
+    arch::Node<T>* node = network->getNode(nodeId).get();
+    concatenatedFlows.clear();
+    if (!node->getGround()){
 
-            // 1. List all connecting angles with angle and inflow
-            std::vector<RadialPosition<T>> channelOrder;
-            for (auto& [channelId, channel] : network->getChannels()) {
-                bool inflow;
-                arch::Node<T>* nodeA = network->getNode(channel->getNodeA()).get();
-                arch::Node<T>* nodeB = network->getNode(channel->getNodeB()).get();
-                T dx = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[0]-nodeA->getPosition()[0] : nodeA->getPosition()[0]-nodeB->getPosition()[0];
-                T dy = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[1]-nodeA->getPosition()[1] : nodeA->getPosition()[1]-nodeB->getPosition()[1];
-                T angle = atan2(dy,dx);
-                angle = std::fmod(atan2(dy,dx)+2*M_PI,2*M_PI);
-                if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
-                    // Channel is inflow channel
-                    inflow = true;
-                } else if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
-                    // Channel is outflow channel
-                    inflow = false;
+        // 1. List all connecting channels with angle and inflow
+        std::vector<RadialPosition<T>> channelOrder;
+        for (auto& [channelId, channel] : network->getChannels()) {
+            bool inflow;
+            arch::Node<T>* nodeA = network->getNode(channel->getNodeA()).get();
+            arch::Node<T>* nodeB = network->getNode(channel->getNodeB()).get();
+            T dx = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[0]-nodeA->getPosition()[0] : nodeA->getPosition()[0]-nodeB->getPosition()[0];
+            T dy = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[1]-nodeA->getPosition()[1] : nodeA->getPosition()[1]-nodeB->getPosition()[1];
+            T angle = atan2(dy,dx);
+            angle = std::fmod(atan2(dy,dx)+2*M_PI,2*M_PI);
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+                // Channel is inflow channel
+                inflow = true;
+            } else if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+                // Channel is outflow channel
+                inflow = false;
+            } else {
+                // Channel has no flow rate: Do nothing.
+                continue;
+            }
+            RadialPosition<T> newPosition = {angle, channel->getId(), inflow};
+            channelOrder.push_back(newPosition);
+        }
+
+        // 2. Order connected channels according to radial angle
+        std::sort(channelOrder.begin(), channelOrder.end(), [](auto& a, auto& b) {
+            return a.radialAngle < b.radialAngle;  // ascending order
+        });
+
+        // 3. Group connected channels into groups of
+        //     - Concatenated inflows
+        //     - Concatenated outflows
+        while (!channelOrder.empty()) {
+            std::vector<RadialPosition<T>> concatenatedFlow;
+            concatenatedFlow.emplace_back( std::move(channelOrder.front()) );
+            channelOrder.erase(channelOrder.begin());
+            int n = 0;
+            for (auto& flow : channelOrder) {
+                if (flow.inFlow == concatenatedFlow.back().inFlow) {
+                    concatenatedFlow.emplace_back( std::move(channelOrder.front()) );
+                    n++;
                 } else {
-                    // Channel has no flow rate: Do nothing.
-                    continue;
+                    break;
                 }
-                RadialPosition<T> newPosition = {angle, channel->getId(), inflow};
-                channelOrder.push_back(newPosition);
             }
 
-            // 2. Order connected channels according to radial angle
-            std::sort(channelOrder.begin(), channelOrder.end(), [](auto& a, auto& b) {
-                return a.radialAngle < b.radialAngle;  // ascending order
-            });
-
-            // 3. Group connected channels into groups of
-            //     - Concatenated inflows
-            //     - Concatenated outflows
-            while (!channelOrder.empty()) {
-                std::vector<RadialPosition<T>> concatenatedFlow;
-                concatenatedFlow.emplace_back( std::move(channelOrder.front()) );
-                channelOrder.erase(channelOrder.begin());
-                int n = 0;(relative, 0.0-1.0)
-                for (auto& flow : channelOrder) {
-                    if (flow.inFlow == concatenatedFlow.back().inFlow) {
-                        concatenatedFlow.emplace_back( std::move(channelOrder.front()) );
-                        n++;
-                    } else {
-                        break;
-                    }
-                }
-
-                channelOrder.erase(channelOrder.begin(), channelOrder.begin() + n);
-                concatenatedFlows.push_back(concatenatedFlow);
+            channelOrder.erase(channelOrder.begin(), channelOrder.begin() + n);
+            concatenatedFlows.push_back(concatenatedFlow);
+        }
+        if (concatenatedFlows.front().front().inFlow == concatenatedFlows.back().back().inFlow) {
+            for (auto& flow : concatenatedFlows.front()) {
+                concatenatedFlows.back().emplace_back( std::move(flow) );
             }
-            if (concatenatedFlows.front().front().inFlow == concatenatedFlows.back().back().inFlow) {
-                for (auto& flow : concatenatedFlows.front()) {
-                    concatenatedFlows.back().emplace_back( std::move(flow) );
-                }
-                concatenatedFlows.erase(concatenatedFlows.begin());
+            concatenatedFlows.erase(concatenatedFlows.begin());
+        }
+
+        // 4. Calculate the flow connections between inflow/outflow channels
+        // and generate outflowDistribution.
+        std::cout << "The concatenatedFlows size is " << concatenatedFlows.size() << std::endl;
+        printTopology();
+        if (concatenatedFlows.size() == 2) {
+            int in = (concatenatedFlows[0][0].inFlow) ? 0 : 1;
+            int out = (concatenatedFlows[0][0].inFlow) ? 1 : 0;
+            T flowRateIn;
+            T flowRateOut;
+            for (auto& channel : concatenatedFlows[in]) {
+                flowRateIn += network->getChannel(channel.channelId)->getFlowRate();
+            }
+            for (auto& channel : concatenatedFlows[out]) {
+                flowRateOut += network->getChannel(channel.channelId)->getFlowRate();
             }
 
-            // 4. Calculate the flow connections between inflow/outflow channels
-            // and generate outflowDistribution.
-            if (concatenatedFlows.size() == 2) {
-                int in = (concatenatedFlows[0][0].inFlow) ? 0 : 1;
-                int out = (concatenatedFlows[0][0].inFlow) ? 1 : 0;
-                T flowRateIn;
-                T flowRateOut;
-                for (auto& channel : concatenatedFlows[in]) {
-                    flowRateIn += network->getChannel(channel.channelId)->getFlowRate();
-                }
-                for (auto& channel : concatenatedFlows[out]) {
-                    flowRateOut += network->getChannel(channel.channelId)->getFlowRate();
-                }
+            std::vector<T> inflowCuts = {0.0};
+            std::vector<int> channelInIDs;
+            // Calculate inflow separations
+            for (auto channelIn = concatenatedFlows[in].rbegin(); channelIn != concatenatedFlows[in].rend(); ++channelIn) {
+                T newCut = inflowCuts.back() + network->getChannel(channelIn->channelId)->getFlowRate()/flowRateIn;
+                inflowCuts.push_back(std::min(newCut, 1.0));
+                channelInIDs.push_back(channelIn->channelId);
+            }
 
-                std::vector<T> inflowCuts = {0.0};
-                std::vector<int> channelInIDs;
-                // Calculate inflow separations
-                for (auto& channelIn = concatenatedFlows[in].rbegin(); channelIn != concatenatedFlows[in].rend(); ++channelIn) {
-                    T newCut = inflowCuts.back() + network->getChannel(channelIn.channelId)->getFlowRate()/flowRateIn;
-                    inflowCuts.push_back(std::min(newCut, 1.0));
-                    channelInIDs.push_back(channelIn.channelId);
-                }
+            std::vector<T> outflowCuts = {0.0};
+            std::vector<int> channelOutIDs;
+            for (auto& channelOut : concatenatedFlows[out]) {
+                T newCut = outflowCuts.back() + network->getChannel(channelOut.channelId)->getFlowRate()/flowRateOut;
+                outflowCuts.push_back(std::min(newCut, 1.0));
+                channelOutIDs.push_back(channelOut.channelId);
+            }
 
-                std::vector<T> outflowCuts = {0.0};
-                std::vector<int> channelOutIDs;
-                for (auto& channelOut : concatenatedFlows[out]) {
-                    T newCut = outflowCuts.back() + network->getChannel(channelOut.channelId)->getFlowRate()/flowRateOut;
-                    outflowCuts.push_back(std::min(newCut, 1.0));
-                    channelOutIDs.push_back(channelOut.channelId);
-                }
-
-                int n_in = 0;
-                int n_out = 0;
-                T start = 0.0;
-                T end = 0.0;
-                for (auto& channelOutId : channelOutIDs) {
-                    for (auto& channelInId : channelInIDs) {
-                        FlowSection<T> inFlowSection;
-                        inFlowSection.channelId = channelInId;
-                        if (inflowCut[n_in + 1] < outflowCut[n_out + 1]) {
-                            T flowRate = (1.0 - start) * network->getChannel(channelInId)->getFlowRate();
-                            inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate};
-                            n_in++;
-                            start = 0.0;
-                        } else {
-                            T flowRate = (outflowCuts[n_out + 1] - std::max(inflowCuts[n_in], outflowCuts[n_out]))*flowRateIn;
-                            end = start + flowRate / network->getChannel(channelInId)->getFlowRate();
-                            inFlowSection = FlowSection<T> {channelInId, start, end, flowRate};
-                            n_out++;
-                            start = end;
-                            break;
-                        }
+            int n_in = 0;
+            int n_out = 0;
+            T start = 0.0;
+            T end = 0.0;
+            for (auto& channelOutId : channelOutIDs) {
+                std::cout << "Channel " << channelOutId << " is recognized as outflow channel" << std::endl;
+                for (auto& channelInId : channelInIDs) {
+                    FlowSection<T> inFlowSection;
+                    inFlowSection.channelId = channelInId;
+                    if (inflowCuts[n_in + 1] < outflowCuts[n_out + 1]) {
+                        T flowRate = (1.0 - start) * network->getChannel(channelInId)->getFlowRate();
+                        inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate};
                         if (outflowDistributions.count(channelOutId)) {
+                            std::cout << "outflowDistribution entry for channel " << channelOutId << " exists and we are adding a section" << std::endl;
                             outflowDistributions.at(channelOutId).push_back(inFlowSection);
                         } else {
+                            std::cout << "Creating new outflowDistribution entry for channel " << channelOutId << std::endl;
                             std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
                             outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
                         }
-                    }                    
-                }
-
-            } else if (concatenatedFlows.size() == 4){
-                // Assume case with 2 pairs of opposing channels
-                for (auto& concatenatedFlow = concatenatedFlows.begin(); concatenatedFlow != concatenatedFlows.end(); ++concatenatedFlow) {
-                    if (concatenatedFlow->at(0).inflow) {
-                        // Close the loop of the concatenatedFlows vector
-                        auto& clockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.end()) ? concatenatedFlows.begin() : 1);
-                        int channelInId = concatenatedFlow->at(0).channelId;
-                        int channelOutId = clockWise->at(0).channelId;
-                        FlowSection<T> inFlowSection {channelInId, 0.0, 0.5, 0.5*network->getChannel(channelInId)->getFlowRate()};
-                        std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
-                        outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
+                        n_in++;
+                        start = 0.0;
+                    } else {
+                        T flowRate = (outflowCuts[n_out + 1] - std::max(inflowCuts[n_in], outflowCuts[n_out]))*flowRateIn;
+                        end = start + flowRate / network->getChannel(channelInId)->getFlowRate();
+                        inFlowSection = FlowSection<T> {channelInId, start, end, flowRate};
+                        if (outflowDistributions.count(channelOutId)) {
+                            std::cout << "outflowDistribution entry for channel " << channelOutId << " exists and we are adding a section" << std::endl;
+                            outflowDistributions.at(channelOutId).push_back(inFlowSection);
+                        } else {
+                            std::cout << "Creating new outflowDistribution entry for channel " << channelOutId << std::endl;
+                            std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
+                            outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
+                        }
+                        n_out++;
+                        start = end;
+                        break;
                     }
-                }
-                for (auto& concatenatedFlow = concatenatedFlows.begin(); concatenatedFlow != concatenatedFlows.end(); ++concatenatedFlow) {
-                    if (concatenatedFlow->at(0).inflow) {
-                        // Close the loop of the concatenatedFlows vector
-                        auto& antiClockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.begin()) ? concatenatedFlows.end() : -1);
-                        int channelInId = concatenatedFlow->at(0).channelId;
-                        int channelOutId = antiClockWise->at(0).channelId;
-                        FlowSection<T> inFlowSection {channelInId, 0.5, 1.0, 0.5*network->getChannel(channelInId)->getFlowRate()};
-                        outflowDistributions.at(channelOutId).push_back(inFlowSection);
-                    }
-                }
-            } else {
-                throw std::invalid_argument("Too many channels at node " << nodeId << " for DiffusionMixingModel.");
+                }                    
             }
+
+        } else if (concatenatedFlows.size() == 4){
+            // Assume case with 2 pairs of opposing channels
+            for (auto flowIt = concatenatedFlows.begin(); flowIt != concatenatedFlows.end(); ++flowIt) {
+                if (flowIt->at(0).inFlow) {
+                    // Close the loop of the concatenatedFlows vector
+                    auto clockWise = (flowIt == concatenatedFlows.end() ? concatenatedFlows.begin() : std::next(flowIt, 1));
+                    //auto& clockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.end()) ? concatenatedFlows.begin() : 1);
+                    int channelInId = flowIt->at(0).channelId;
+                    int channelOutId = clockWise->at(0).channelId;
+                    FlowSection<T> inFlowSection {channelInId, 0.0, 0.5, 0.5*network->getChannel(channelInId)->getFlowRate()};
+                    std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
+                    outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
+                }
+            }
+            for (auto flowIt = concatenatedFlows.begin(); flowIt != concatenatedFlows.end(); ++flowIt) {
+                if (flowIt->at(0).inFlow) {
+                    // Close the loop of the concatenatedFlows vector
+                    auto antiClockWise = (flowIt == concatenatedFlows.begin() ? concatenatedFlows.end() : std::next(flowIt, -1));
+                    //auto& antiClockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.begin()) ? concatenatedFlows.end() : -1);
+                    int channelInId = flowIt->at(0).channelId;
+                    int channelOutId = antiClockWise->at(0).channelId;
+                    FlowSection<T> inFlowSection {channelInId, 0.5, 1.0, 0.5*network->getChannel(channelInId)->getFlowRate()};
+                    outflowDistributions.at(channelOutId).push_back(inFlowSection);
+                }
+            }
+        } else {
+            throw std::invalid_argument("Too many channels at node " + std::to_string(nodeId) + " for DiffusionMixingModel.");
         }
     }
 }
 
 template<typename T>
-std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { // From Channel Start to Channel End for constant input!!
+std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
+    // From Channel Start to Channel End for constant input!!
     // Get the concentration distribution at the end of the channel along its width w
     // resolution defines the number of times the fourier series is solved for (?)
     /*
@@ -445,9 +534,24 @@ std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyti
     std::vector<T> segmentedResult;
     // T a_n = 0.0;
 
+    for (int n = 1; n < resolution; n++) {
+        for (const auto& parameter : parameters) {
+            T a_n = (2/M_PI) * parameter.concentrationAtChannelEnd * (1/(n*M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
+            std::cout << "a_n should be " << a_n << " = 2 * " << parameter.concentrationAtChannelEnd << "*" << n 
+                << "*(" << sin(n * M_PI * parameter.endWidth) << "-" << sin(n * M_PI * parameter.startWidth) << ")"  << std::endl;
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
+            std::cout << "Following is pushed back: " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << 
+            " = " << a_n << " * exp(" << -pow(n, 2) << "*"  <<  pow(M_PI, 2) << "*" << (1 / pecletNr) << "*" << channelLength << std::endl;
+        }
+    }
+    std::cout<<"segmentedResultFunction in getAnalyticalSolutionConstant"<<std::endl;
+    for (auto& element : segmentedResult) {
+        std::cout << "an element is: " << element << std::endl;
+    }
+
 
     for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
-            a_0 += parameter.concentration * (parameter.endWidth - parameter.startWidth);
+            a_0 += parameter.concentrationAtChannelEnd * (parameter.endWidth - parameter.startWidth);
         }
 
     auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters, &segmentedResult](T w) { // This returns C(w, l_1)
@@ -455,59 +559,96 @@ std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyti
 
         for (int n = 1; n < resolution; n++) {
             for (const auto& parameter : parameters) {
-                T a_n = 2 * parameter.concentration * n * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
+                T a_n = (2/M_PI) * parameter.concentrationAtChannelEnd * (1/(n * M_PI))  * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
                 f_sum += a_n * std::cos(0.5 * n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
                 segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
+                std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
             }
         }
         return 0.5 * a_0 + f_sum;
     };
+    std::cout<<"segmentedResultFunction in getAnalyticalSolutionConstant"<<std::endl;
+    for (auto& element : segmentedResult) {
+        std::cout << "an element is: " << element << std::endl;
+    }
+    std::cout<<std::endl;
     return {f, segmentedResult};
 }
 
 template<typename T> // TODO maybe combine this function with the function above
-std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { // From Channel Start to Channel End for complex input
-    T a_0 = 0.0;
+std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
+    // From Channel Start to Channel End for complex input
     std::vector<T> segmentedResult;
-    // T a_n = 0.0;
+    T a_0 = 0.0;
+    T a_n = 0.0;
+    for (int n = 1; n < resolution; n++) {    
+        for (const auto& parameter : parameters) {
+            for (int i = 0; i < parameter.segmentedResult.size(); i++) {
+                T stretchFactor = parameter.stretchFactor; // Moved here
+                T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
+                T a_0 = 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
 
-    // for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
-    //         a_0 += parameter.concentration * (parameter.endWidth - parameter.startWidth); // TODO adapt this for 
-    //     }
-    T stretchFactor = parameters.stretchFactor;
-    T startWidthIfFunctionWasSplit = parameters.startWidthIfFunctionWasSplit;
+                a_n += (2 / M_PI) * 0.5 *(
+                (1/((n * M_PI * (1/stretchFactor + 1))) * 
+                (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1)))    // Changed parameters -> parameter
+                - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))) 
+                - (1/(n * M_PI * (1/stretchFactor + 1))) * 
+                (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
+                - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))))))) 
+                * parameter.segmentedResult[i];
+            }
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
+            std::cout << "Following is pushed back: " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << 
+            " = " << a_n << " * exp(" << -pow(n, 2) << "*"  <<  pow(M_PI, 2) << "*" << (1 / pecletNr) << "*" << channelLength << std::endl;
+        }
+    }
+    std::cout<<"segmentedResultFunction in getAnalyticalSolutionFunction"<<std::endl;
+    for (auto& element : segmentedResult) {
+        std::cout << "an element is: " << element << std::endl;
+    }
+    std::cout<<std::endl;
 
-    auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters, stretchFactor, startWidthIfFunctionWasSplit, &segmentedResult, fConstant](T w) { // This returns C(w, l_1)
+    auto f = [channelLength, channelWidth, resolution, pecletNr, parameters, &segmentedResult, fConstant](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
+        T a_0 = 0.0;
         T a_n = 0.0;
         for (int n = 1; n < resolution; n++) {    
             for (const auto& parameter : parameters) {
-                for (int i = 0; i < len(parameter.segmentedResult); i++) {
-                    T a_0 = 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * n * M_PI * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
+
+                for (int i = 0; i < parameter.segmentedResult.size(); i++) {
+                    T stretchFactor = parameter.stretchFactor; // Moved here
+                    T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
+                    T a_0 = 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
                     // T a_0 = 2 / M_PI * parameter.segmentedResult[i] * n * M_PI * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
 
-                    a_n += (2 / M_PI) * 0.5 *
-                    ((n * M_PI * (1/stretchFactor + 1)) * 
-                    (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameters.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                    - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameters.startWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                    - (n * M_PI * (1/stretchFactor + 1)) * 
-                    (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameters.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                    - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameters.startWidth * (n * M_PI * (1/stretchFactor + 1)))))) 
+                    a_n += (2 / M_PI) * 0.5 *(
+                    (1/((n * M_PI * (1/stretchFactor + 1))) * 
+                    (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1)))    // Changed parameters -> parameter
+                    - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))) 
+                    - (1/(n * M_PI * (1/stretchFactor + 1))) * 
+                    (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
+                    - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))))))) 
                     * parameter.segmentedResult[i];
                 }
                 // T a_n = 2 * parameter.concentration * n * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
                 f_sum += a_n * std::cos(0.5 * n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
                 segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
+                std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
+            
             }
         }
-        return 0.5 * a_0 + f_sum + fConstant;
+        return 0.5 * a_0 + f_sum + fConstant(w);
     };
+
     return {f, segmentedResult};
 }
 
+// From Channel Start to Channel End for complex input
 template<typename T>
-std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSection<T>>& flowSections) { // From Channel Start to Channel End for complex input
-
+std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
+    T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
+    T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& diffusiveMixtures) { 
+    std::cout << "Getting into getAnalyticalSolutionTotal" << std::endl;
     T prevEndWidth = 0.0;
 
     std::vector<FlowSectionInput<T>> constantFlowSections;
@@ -518,19 +659,47 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
         T endWidth = startWidth + flowSection.flowRate / currChannelFlowRate;
         prevEndWidth = endWidth;
         T stretchFactor = flowSection.flowRate / currChannelFlowRate;
-        T startWidthIfFunctionWasSplit = flowSection.startWidth;
+        T startWidthIfFunctionWasSplit = flowSection.sectionStart;
 
-        if (flowSection.isConstant == true) {
-            constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, flowSection.concentrationAtChannelEndFunction, flowSection.segmentedResult});
+        if (!filledEdges.count(flowSection.channelId)){
+            T concentration = 0.0;
+            std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
+            std::vector<T> zeroSegmentedResult = {0};
+            constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult});
         } else {
-            functionFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, flowSection.concentrationAtChannelEndFunction, flowSection.segmentedResult});
+            T mixtureId = filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
+            DiffusiveMixture<T>* diffusiveMixture = diffusiveMixtures.at(mixtureId).get(); // Assuming diffusiveMixtures is passed
+            if (diffusiveMixture->getSpecieConcentrations().find(speciesId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
+                T concentration = 0.0;
+                std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
+                std::vector<T> zeroSegmentedResult = {0};
+                constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult});
+            } else if (diffusiveMixture->getIsConstant()) { 
+                T concentration = diffusiveMixture->getConcentrationOfSpecie(speciesId); 
+                std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
+                std::vector<T> zeroSegmentedResult = {0};
+                constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult}); 
+            } else {
+                auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(speciesId);
+                std::function<T(T)> concentrationFunction = specieDistribution.first;
+                std::vector<T> segmentedResults = specieDistribution.second;
+                functionFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults});
+            }
         }
     }
 
     auto [fConstant, segmentedResultConstant] = getAnalyticalSolutionConstant(channelLength, channelWidth, resolution, pecletNr, constantFlowSections);
     auto [fFunction, segmentedResultFunction] = getAnalyticalSolutionFunction(channelLength, channelWidth, resolution, pecletNr, functionFlowSections, fConstant);
 
+    //segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
+
     segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
+
+    std::cout<<"segmentedResultFunction"<<std::endl;
+    for (auto& element : segmentedResultFunction) {
+        std::cout << "an element is: " << element << std::endl;
+    }
+    std::cout<<std::endl;
 
     return {fFunction, segmentedResultFunction};
 }
@@ -557,8 +726,32 @@ void DiffusionMixingModel<T>::printTopology() {
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::updateNodeInflow() {
-    // TODO
+void DiffusionMixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
+    if (this->mixturesInEdge.count(channelId)) {
+        this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
+    } else {
+        std::deque<std::pair<int,T>> newDeque;
+        newDeque.push_back(std::make_pair(mixtureId, T(0.0)));
+        this->mixturesInEdge.try_emplace(channelId, newDeque);
+    }
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::clean(arch::Network<T>* network) {
+    
+    for (auto& [nodeId, node] : network->getNodes()) {
+        for (auto& channel : network->getChannelsAtNode(nodeId)) {
+            if (this->mixturesInEdge.count(channel->getId())){
+                for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
+                    if (endPos == 1.0) {
+                        this->mixturesInEdge.at(channel->getId()).pop_front();
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 template<typename T>

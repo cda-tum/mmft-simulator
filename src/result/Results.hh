@@ -184,8 +184,70 @@ const void SimulationResult<T>::printMixtures() {
 }
 
 template<typename T>
-const void SimulationResult<T>::writeDiffusiveMixtures() {
+const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, std::unique_ptr<sim::DiffusiveMixture<T>>>& diffMixtures) {
     // TODO Maria, CSV Writer here
+    // TODO get a channel pointer
+    int numValues = 100; // Number of points to calculate
+
+    std::cout << "Generating CSV files" << std::endl;
+
+    T step = 1.0 / (numValues);
+
+    for (auto& [mixtureId, mixture] : diffMixtures) {
+        std::cout << "We have mixture " << mixtureId << " in diffMixtures" <<std::endl;
+        for (auto& [specieId, pair] : mixture->getSpecieDistributions()) {
+            std::cout << "Mixture " << mixtureId << " contains species " << specieId <<std::endl;
+        }
+    }
+
+    for (auto& [mixtureId, mixture] : diffMixtures) { // adapt for diffusive mixtures
+        // std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+        std::cout << "Mixture " << mixtureId << std::endl;
+        for (auto& [specieId, pair] : mixture->getSpecieDistributions()) {
+            std::cout << "Specie " << specieId << std::endl;
+            std::string outputFileName = "function_mixture"+std::to_string(mixtureId)+"_species"+std::to_string(specieId)+".csv";
+            std::cout << "Generating CSV file: " << outputFileName << std::endl;
+            // Open a file in write mode.
+            std::ofstream outputFile;
+            //outputFile.open(outputFileName); // TODO maybe define this inside of the loop
+            // Write the header to the CSV file TODO adapt this to fit the specific mixture
+            outputFile << "x,f(x)\n";
+            // Calculate and write the values to the file
+            for (int i = 0; i < numValues; ++i) {
+                T x = i * step;
+                T y;
+                y = pair.first(x);
+                std::cout << std::setprecision(4) << x << "," << y << "\n"; 
+            }
+            // Close the file
+            //outputFile.close();
+            
+        }
+    }
+    std::cout << "CSV files has been generated " << std::endl;
+
+    // for (auto& [channelId, channel] : network->getChannels()) {
+    //     // Calculate the step size
+    //     double step = channel->getWidth() / (numValues - 1);
+
+    //     for (auto& [mixtureId, mixture] : diffMixtures) { // adapt for diffusive mixtures
+    //         // std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+    //         for (auto& [specieId, pair] : mixture->getSpecieDistributions()) {
+    //             // Calculate and write the values to the file
+    //             for (int i = 0; i < numValues; ++i) {
+    //                 T x = i * step;
+    //                 T y;
+    //                 if (mixture->getIsConstant()){ 
+    //                     y = species[specieId]->getConcentration(); // why is the getConcentration() defined in the fluid.h
+    //                 } else {
+    //                     y = species[specieId]->getConcentrationFunctionAtWidth(x); // TODO define this function?
+    //                 }
+    //                 y = pair.first(x);
+    //             outputFile << channelId << "," << std::fixed << std::setprecision(4) << x << "," << y << "\n"; 
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 }  // namespace droplet

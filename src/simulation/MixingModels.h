@@ -55,6 +55,7 @@ struct FlowSectionInput {
     T endWidth;
     T stretchFactor; // this is technically redundant for constant flow sections
     T startWidthIfFunctionWasSplit;
+    T concentrationAtChannelEnd; // concentration if it is a constant flow section
     std::function<T(T)> concentrationAtChannelEndFunction;
     std::vector<T> segmentedResult; // this is technically redundant for constant flow sections
 };
@@ -64,14 +65,26 @@ class MixingModel {
 protected:
 
     T minimalTimeStep = 0.0;
+    std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
 
 public:
 
     MixingModel();
 
-    virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
+    //virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
 
     T getMinimalTimeStep();
+
+    /**
+     * @brief Update the minimal timestep for a mixture to 'outflow' their channel.
+     * @param[in] network
+    */
+    void updateMinimalTimeStep(arch::Network<T>* network);
+
+
+    const std::deque<std::pair<int,T>>& getMixturesInEdge(int channelId) const;
+
+    const std::unordered_map<int, std::deque<std::pair<int,T>>>& getMixturesInEdges() const;
 
     virtual bool getDiffusive() = 0;
 };
@@ -81,7 +94,6 @@ class InstantaneousMixingModel : public MixingModel<T> {
 
 private:
 
-    std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
     std::unordered_map<int, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;    // <nodeId <mixtureId, inflowVolume>>
     std::unordered_map<int, int> mixtureOutflowAtNode;
     std::unordered_map<int, T> totalInflowVolumeAtNode;
@@ -124,19 +136,9 @@ public:
     */
     void clean(arch::Network<T>* network);
 
-    /**
-     * @brief Update the minimal timestep for a mixture to 'outflow' their channel.
-     * @param[in] network
-    */
-    void updateMinimalTimeStep(arch::Network<T>* network);
-
     void injectMixtureInEdge(int mixtureId, int channelId);
 
     void printMixturesInNetwork();
-
-    const std::deque<std::pair<int,T>>& getMixturesInEdge(int channelId) const;
-
-    const std::unordered_map<int, std::deque<std::pair<int,T>>>& getMixturesInEdges() const;
 
     const std::unordered_map<int, int>& getFilledEdges() const;
 
@@ -149,30 +151,48 @@ template<typename T>
 class DiffusionMixingModel : public MixingModel<T> {
 
 private:
+    int resolution = 10;
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
-    std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
+    std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
     void generateInflows();
 
 public:
 
     DiffusionMixingModel();
 
-    void updateNodeInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
+    /**
+     * @brief Propagate the mixtures and check if a mixtures reaches channel end.
+    */
+    void updateNodeInflow(T timeStep, arch::Network<T>* network, Simulation<T>*, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
 
-    void topologyAnalysis(arch::Network<T>* network);
+    /**
+     * @brief Generate a new inflow in case a mixture has reached channel end. Invoked by updateNodeInflow.
+    */
+    void generateInflows(int nodeId, T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
+
+    void topologyAnalysis(arch::Network<T>* network, int nodeId);
     
     void printTopology();
+
+    std::pair<std::function<T(T)>,std::vector<T>> getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+
+    std::pair<std::function<T(T)>,std::vector<T>> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
+
+    std::pair<std::function<T(T)>,std::vector<T>> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
+        const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& diffusiveMixtures);
 
     void updateDiffusiveMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
 
     void generateNodeOutflow();
 
-    void generateInflows(int nodeId, T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures)
-
     void updateChannelInflow();
 
-    bool getDiffusive() { return false; }
+    void injectMixtureInEdge(int mixtureId, int channelId);
+
+    void clean(arch::Network<T>* network);
+
+    bool getDiffusive() { return true; }
 
 };
 

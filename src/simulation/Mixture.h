@@ -139,27 +139,34 @@ private:
 
     bool isConstant = true;
 
-    int resolution = 10;
+    int resolution;
 
     std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions;
 
 public:
 
-    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions,T viscosity, T density, T largestMolecularSize, int resolution=10);
 
-    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density);
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions, T viscosity, T density, int resolution=10);
 
-    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, Fluid<T>* carrierFluid);
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions, Fluid<T>* carrierFluid, int resolution=10);
 
-    std::function<T(T)> getConcentrationOfSpecie(int specieId) const override;
+    std::function<T(T)> getDistributionOfSpecie(int specieId) const;
 
-    void changeFluidConcentration(int fluidId, T concentrationChange) override;
+    void changeFluidConcentration(int fluidId, T concentrationChange);
 
-    const std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>>& getSpecieConcentrations() const;
+    const std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>>& getSpecieDistributions() const;
 
     bool getIsConstant();
 
     void setNonConstant();
+
+    void setResolution(int resolution);
+
+    int getResolution();
 };
 
 }   /// namespace sim

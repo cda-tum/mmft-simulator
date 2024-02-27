@@ -11,33 +11,24 @@ using T = double;
 
 int main(int argc, char const* argv []) {
 
-    std::string file = argv[1];
-
-    std::cout << "[Main] Create simulation object..." << std::endl;
+    // Define JSON files
+    std::string file = "../examples/1D/Mixing/DiffusionCase1.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
-    // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    // Load and set the simulations from the JSON files
+    sim::Simulation<T> sim = porting::simulationFromJSON<T>(file, &network);
 
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
-   
-    network.sortGroups();
+    // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
-    std::cout << "[Main] Simulation..." << std::endl;
-    // Perform simulation and store results
-    testSimulation.simulate();
+    // simulate
+    sim.simulate();
 
-    std::cout << "[Main] Results..." << std::endl;
-    // Print the results
-    testSimulation.getSimulationResults()->printStates();
-    testSimulation.getSimulationResults()->printMixtures();
-
-    porting::resultToJSON<T>("result.json", &testSimulation );
+    // results
+    //result::SimulationResult<T>* result = sim.getSimulationResults();
 
     return 0;
 }

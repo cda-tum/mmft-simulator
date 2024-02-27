@@ -40,7 +40,9 @@ TEST(Topology, case1) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network);
+    for (auto& [nodeId, node] : network.getNodes()) {
+        mixingModel.topologyAnalysis(&network, nodeId);
+    }
     mixingModel.printTopology();
 }
 
@@ -80,7 +82,9 @@ TEST(Topology, case2) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network);
+    for (auto& [nodeId, node] : network.getNodes()) {
+        mixingModel.topologyAnalysis(&network, nodeId);
+    }
     mixingModel.printTopology();
 }
 
@@ -124,7 +128,9 @@ TEST(Topology, case3) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network);
+    for (auto& [nodeId, node] : network.getNodes()) {
+        mixingModel.topologyAnalysis(&network, nodeId);
+    }
     mixingModel.printTopology();
 }
 
@@ -168,7 +174,9 @@ TEST(Topology, case4) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network);
+    for (auto& [nodeId, node] : network.getNodes()) {
+        mixingModel.topologyAnalysis(&network, nodeId);
+    }
     mixingModel.printTopology();
 }
 
@@ -212,7 +220,9 @@ TEST(Topology, case5) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network);
+    for (auto& [nodeId, node] : network.getNodes()) {
+        mixingModel.topologyAnalysis(&network, nodeId);
+    }
     mixingModel.printTopology();
 }
 
@@ -256,8 +266,37 @@ TEST(Topology, case6) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network);
+    for (auto& [nodeId, node] : network.getNodes()) {
+        mixingModel.topologyAnalysis(&network, nodeId);
+    }
     mixingModel.printTopology();
+}
+
+/** Case1:
+ * 
+ * operations 1 and 2
+*/
+TEST(DiffusionMixing, case1) {
+
+    // Define JSON files
+    std::string file = "../examples/1D/Mixing/DiffusionCase1.JSON";
+
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(file);
+
+    // Load and set the simulations from the JSON files
+    sim::Simulation<T> sim = porting::simulationFromJSON<T>(file, &network);
+
+    // Check if network is valid
+    network.isNetworkValid();
+    network.sortGroups();
+
+    // simulate
+    sim.simulate();
+
+    // results
+    result::SimulationResult<T>* result = sim.getSimulationResults();
+
 }
 
 

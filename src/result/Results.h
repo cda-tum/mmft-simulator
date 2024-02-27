@@ -196,7 +196,7 @@ struct SimulationResult {
 
     const void printMixtures();
 
-    const void writeDiffusiveMixtures();
+    const void writeDiffusiveMixtures(std::unordered_map<int, std::unique_ptr<sim::DiffusiveMixture<T>>>& diffMixtures);
 };
 
 }   // namespace results
