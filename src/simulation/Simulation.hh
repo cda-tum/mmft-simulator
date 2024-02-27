@@ -661,7 +661,7 @@ namespace sim {
                 }
                 // Store the mixtures that were in the simulation
                 //saveMixtures();
-                //simulationResult->writeDiffusiveMixtures(diffusiveMixtures);
+                simulationResult->writeDiffusiveMixtures(diffusiveMixtures);
             }
         }
     }

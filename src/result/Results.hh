@@ -209,7 +209,7 @@ const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, s
             std::cout << "Generating CSV file: " << outputFileName << std::endl;
             // Open a file in write mode.
             std::ofstream outputFile;
-            //outputFile.open(outputFileName); // TODO maybe define this inside of the loop
+            outputFile.open(outputFileName); // TODO maybe define this inside of the loop
             // Write the header to the CSV file TODO adapt this to fit the specific mixture
             outputFile << "x,f(x)\n";
             // Calculate and write the values to the file
@@ -217,10 +217,10 @@ const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, s
                 T x = i * step;
                 T y;
                 y = pair.first(x);
-                std::cout << std::setprecision(4) << x << "," << y << "\n"; 
+                outputFile << std::setprecision(4) << x << "," << y << "\n"; 
             }
             // Close the file
-            //outputFile.close();
+            outputFile.close();
             
         }
     }

@@ -534,7 +534,7 @@ std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyti
     std::vector<T> segmentedResult;
     // T a_n = 0.0;
 
-    for (int n = 1; n < resolution; n++) {
+    for (int n = 1; n < 10*resolution; n++) {
         for (const auto& parameter : parameters) {
             T a_n = (2/M_PI) * parameter.concentrationAtChannelEnd * (1/(n*M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
             std::cout << "a_n should be " << a_n << " = 2 * " << parameter.concentrationAtChannelEnd << "*" << n 
@@ -551,18 +551,20 @@ std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyti
 
 
     for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
-            a_0 += parameter.concentrationAtChannelEnd * (parameter.endWidth - parameter.startWidth);
+            a_0 += (2/M_PI)*(parameter.concentrationAtChannelEnd)  * (parameter.endWidth - parameter.startWidth);
         }
 
-    auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters, &segmentedResult](T w) { // This returns C(w, l_1)
+    auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
 
-        for (int n = 1; n < resolution; n++) {
+        for (int n = 1; n < 10*resolution; n++) {
             for (const auto& parameter : parameters) {
-                T a_n = (2/M_PI) * parameter.concentrationAtChannelEnd * (1/(n * M_PI))  * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-                f_sum += a_n * std::cos(0.5 * n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
-                segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
-                std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
+                T a_n = (2/M_PI) * (parameter.concentrationAtChannelEnd) * (1/(n * M_PI))  * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
+                f_sum += a_n * std::cos(0.5 * n * M_PI * (w/parameter.stretchFactor)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
+                std::cout << "startWidth: " << parameter.startWidth << "\t endWidth: " << parameter.endWidth << "\t concAtChannelEnd: " 
+                << parameter.concentrationAtChannelEnd << "\t stretchFactor: " << parameter.stretchFactor << std::endl;
+                //segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
+                //std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
             }
         }
         return 0.5 * a_0 + f_sum;
@@ -581,7 +583,7 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
     std::vector<T> segmentedResult;
     T a_0 = 0.0;
     T a_n = 0.0;
-    for (int n = 1; n < resolution; n++) {    
+    for (int n = 1; n < 10*resolution; n++) {    
         for (const auto& parameter : parameters) {
             for (int i = 0; i < parameter.segmentedResult.size(); i++) {
                 T stretchFactor = parameter.stretchFactor; // Moved here
@@ -608,11 +610,11 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
     }
     std::cout<<std::endl;
 
-    auto f = [channelLength, channelWidth, resolution, pecletNr, parameters, &segmentedResult, fConstant](T w) { // This returns C(w, l_1)
+    auto f = [channelLength, channelWidth, resolution, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
         T a_0 = 0.0;
         T a_n = 0.0;
-        for (int n = 1; n < resolution; n++) {    
+        for (int n = 1; n < 10*resolution; n++) {    
             for (const auto& parameter : parameters) {
 
                 for (int i = 0; i < parameter.segmentedResult.size(); i++) {
@@ -631,9 +633,9 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
                     * parameter.segmentedResult[i];
                 }
                 // T a_n = 2 * parameter.concentration * n * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-                f_sum += a_n * std::cos(0.5 * n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
-                segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
-                std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
+                f_sum += a_n * std::cos(0.5 * n * M_PI * (w/parameter.stretchFactor)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
+                //segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
+                //std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
             
             }
         }
