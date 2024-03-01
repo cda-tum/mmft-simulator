@@ -42,7 +42,7 @@ sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* ne
         if (simType != sim::Type::_1D) {
             throw std::invalid_argument("Droplet simulations are currently only supported for 1D simulations.");
         }
-        readDroplets<T>(jsonString, simulation);
+        //readDroplets<T>(jsonString, simulation);
         readDropletInjections<T>(jsonString, simulation, activeFixture);
     } else
     if (platform == sim::Platform::MIXING) {

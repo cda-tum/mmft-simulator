@@ -89,7 +89,7 @@ void readDroplets(json jsonString, sim::Simulation<T>& simulation) {
         if (droplet.contains("fluid") && droplet.contains("volume")) {
             int fluid = droplet["fluid"];
             T volume = droplet["volume"];
-            simulation.addDroplet(fluid, volume);
+            auto newDroplet = simulation.addDroplet(fluid, volume);
         } else {
             throw std::invalid_argument("Wrongly defined droplet. Please provide following information for droplets:\nfluid\nvolume");
         }
@@ -100,11 +100,14 @@ template<typename T>
 void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("bigDropletInjections")) {
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
-            int dropletId = injection["droplet"];
+            int fluid = injection["fluid"];
+            T volume = injection["volume"];
+            //int dropletId = injection["droplet"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
             T injectionPosition = injection["pos"];
-            simulation.addDropletInjection(dropletId, injectionTime, channelId, injectionPosition);
+            auto newDroplet = simulation.addDroplet(fluid, volume);
+            simulation.addDropletInjection(newDroplet->getId(), injectionTime, channelId, injectionPosition);
         }
     } else {
         throw std::invalid_argument("Please define at least one droplet injection or choose a different platform.");

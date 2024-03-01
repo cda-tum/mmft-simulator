@@ -97,12 +97,6 @@
             "viscosity": 3e-3        
         }
     ],
-    "droplets": [
-        {
-            "fluid": 1,
-            "volume": 4.5e-13
-        }
-    ],
     "pumps": [
         {	
             "channel":6,
@@ -116,7 +110,8 @@
             "phase": 0,
             "bigDropletInjections": [
                 {
-                    "droplet": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
                     "channel": 0,
                     "pos": 0.5,
                     "t0": 0,
