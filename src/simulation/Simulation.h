@@ -51,13 +51,13 @@ class ResistanceModel;
 
 enum class Type {
     Abstract,       ///< A simulation in the 1D abstraction level
-    Hybrid,          ///< A simulation combining the 1D and CFD abstraction levels
+    Hybrid,         ///< A simulation combining the 1D and CFD abstraction levels
     CFD             ///< A simulation in the CFD abstraction level
 };
 
 enum class Platform {
     Continuous,     ///< A simulation with a single continuous fluid.
-    BigDroplet,        ///< A simulation with droplets filling a channel cross-section
+    BigDroplet,     ///< A simulation with droplets filling a channel cross-section
     Mixing          ///< A simulation wit multiple miscible fluids.
 };
 

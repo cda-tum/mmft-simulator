@@ -39,9 +39,18 @@ template<typename T>
 arch::Network<T> networkFromJSON(std::string jsonFile);
 
 template<typename T>
+arch::Network<T> networkFromJSON(nlohmann::json jsonString);
+
+template<typename T>
 sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_);
 
 template<typename T>
+sim::Simulation<T> simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network_);
+
+template<typename T>
 void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation);
+
+template<typename T>
+nlohmann::json resultToJSON(sim::Simulation<T>* simulation);
 
 }   // namespace porting

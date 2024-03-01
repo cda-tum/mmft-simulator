@@ -21,6 +21,7 @@ int main(int argc, char const* argv []) {
     // Load and set the simulation from a JSON file
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
    
+    network.sortGroups();
     network.isNetworkValid();
 
     std::cout << "[Main] Simulation..." << std::endl;

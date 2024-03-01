@@ -10,6 +10,14 @@ arch::Network<T> networkFromJSON(std::string jsonFile) {
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
+    arch::Network<T> network = networkFromJSON<T>(jsonString);
+
+    return network;
+}
+
+template<typename T>
+arch::Network<T> networkFromJSON(json jsonString) {
+
     arch::Network<T> network;
 
     readNodes(jsonString, network);
@@ -20,9 +28,16 @@ arch::Network<T> networkFromJSON(std::string jsonFile) {
 
 template<typename T>
 sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_) {
-
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
+
+    sim::Simulation<T> simulation = simulationFromJSON<T>(jsonString, network_);
+
+    return simulation;
+}
+
+template<typename T>
+sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
 
     sim::Simulation<T> simulation = sim::Simulation<T>();
     sim::Platform platform = readPlatform<T>(jsonString, simulation);
@@ -79,6 +94,15 @@ void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
     json jsonString;
     std::ofstream file(jsonFile);
 
+    jsonString = resultToJSON<T>(simulation);
+
+    file << jsonString.dump(4) << std::endl;
+}
+
+template<typename T>
+nlohmann::json resultToJSON(sim::Simulation<T>* simulation) {
+    json jsonString;
+
     for (auto const& state : simulation->getSimulationResults()->getStates()) {
         jsonString["result"].push_back({"time", state->getTime()});
         writePressures(jsonString, state.get());
@@ -88,7 +112,7 @@ void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
         }
     }
 
-    file << jsonString.dump(4) << std::endl;
+    return jsonString;
 }
 
 }   // namespace porting
