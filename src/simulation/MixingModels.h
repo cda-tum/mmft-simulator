@@ -58,6 +58,15 @@ struct FlowSectionInput {
     T concentrationAtChannelEnd; // concentration if it is a constant flow section
     std::function<T(T)> concentrationAtChannelEndFunction;
     std::vector<T> segmentedResult; // this is technically redundant for constant flow sections
+    T a_0_old;
+
+    // T getA_0() {
+    //     return a_0_old;
+    // }
+
+    // void setA_0(T a_0_old) {
+    //     this->a_0_old = a_0_old;
+    // }
 };
 
 template<typename T>
@@ -175,11 +184,11 @@ public:
     
     void printTopology();
 
-    std::pair<std::function<T(T)>,std::vector<T>> getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
-    std::pair<std::function<T(T)>,std::vector<T>> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
 
-    std::pair<std::function<T(T)>,std::vector<T>> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& diffusiveMixtures);
 
     void updateDiffusiveMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);

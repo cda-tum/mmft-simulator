@@ -308,24 +308,25 @@ void DiffusionMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Netw
             }
             std::cout<< "Getting here 9" << std::endl;
             // We should evaluate the final function of the mixture reaching the end of this channel
-            std::unordered_map<int, std::pair<std::function<T(T)>,std::vector<T>>> newDistributions;
+            std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
             std::cout<< "Getting here 9.1" << std::endl;
             for (auto& specieId : presentSpecies) {
                 std::cout<< "Getting here 9.2" << std::endl;
                 T pecletNr = (channel->getFlowRate() / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
                 std::cout<< "Getting here 9.3" << std::endl;
-                std::pair<std::function<T(T)>,std::vector<T>> analyticalResult = getAnalyticalSolutionTotal(
+                std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
                     channel->getLength(), channel->getFlowRate(), channel->getWidth(), this->resolution, specieId, 
                     pecletNr, outflowDistributions.at(channel->getId()), mixtures);
                 std::cout<< "Getting here 9.4" << std::endl;
-                newDistributions.try_emplace(specieId, analyticalResult);
+                newDistributions.try_emplace(specieId, analyticalResult); // TODO
                 std::cout<< "Getting here 9.5" << std::endl;
                 int numValues = 100;
                 T step = 1.0 / (numValues);
                 for (int i = 0; i < numValues; ++i) {
                     T x = i * step;
                     T y;
-                    y = analyticalResult.first(x);
+                    // y = analyticalResult.first(x);
+                    y = std::get<0>(analyticalResult)(x);
                     std::cout << std::setprecision(4) << x << "," << y << "\n"; 
                 }
             }
@@ -519,39 +520,27 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
 }
 
 template<typename T>
-std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
-    // From Channel Start to Channel End for constant input!!
-    // Get the concentration distribution at the end of the channel along its width w
-    // resolution defines the number of times the fourier series is solved for (?)
-    /*
-    * parameter would look something like this
-    *    std::vector<channelStartSectionsConstant> parameter = {
-    *    {1.0, 5.0, 1.0}, 
-    *    {3.0, 7.0, 2.0e-3} 
-    *   };  
-    */
+std::tuple<std::function<T(T)>, std::vector<T>, T>DiffusionMixingModel<T>::getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
+
     T a_0 = 0.0;
     std::vector<T> segmentedResult;
     // T a_n = 0.0;
 
     for (int n = 1; n < 10*resolution; n++) {
         for (const auto& parameter : parameters) {
-            T a_n = (2/M_PI) * parameter.concentrationAtChannelEnd * (1/(n*M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-            std::cout << "a_n should be " << a_n << " = 2 * " << parameter.concentrationAtChannelEnd << "*" << n 
-                << "*(" << sin(n * M_PI * parameter.endWidth) << "-" << sin(n * M_PI * parameter.startWidth) << ")"  << std::endl;
+            // T a_n = (2/M_PI) * parameter.concentrationAtChannelEnd * (1/n) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does not work
+            T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does work, why?
+            // std::cout << "a_n should be " << a_n << " = 2 * " << parameter.concentrationAtChannelEnd << "*" << n 
+            //     << "*(" << sin(n * M_PI * parameter.endWidth) << "-" << sin(n * M_PI * parameter.startWidth) << ")"  << std::endl;
             segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
-            std::cout << "Following is pushed back: " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << 
-            " = " << a_n << " * exp(" << -pow(n, 2) << "*"  <<  pow(M_PI, 2) << "*" << (1 / pecletNr) << "*" << channelLength << std::endl;
+            // std::cout << "Following is pushed back: " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << 
+            // " = " << a_n << " * exp(" << -pow(n, 2) << "*"  <<  pow(M_PI, 2) << "*" << (1 / pecletNr) << "*" << channelLength << std::endl;
         }
     }
-    std::cout<<"segmentedResultFunction in getAnalyticalSolutionConstant"<<std::endl;
-    for (auto& element : segmentedResult) {
-        std::cout << "an element is: " << element << std::endl;
-    }
-
 
     for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
-            a_0 += (2/M_PI)*(parameter.concentrationAtChannelEnd)  * (parameter.endWidth - parameter.startWidth);
+            // a_0 += 2 * (parameter.concentrationAtChannelEnd)  * (parameter.endWidth - parameter.startWidth); // this does not work
+            a_0 += (parameter.concentrationAtChannelEnd/parameter.stretchFactor)  * (parameter.endWidth - parameter.startWidth); // this does work, why?
         }
 
     auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters](T w) { // This returns C(w, l_1)
@@ -559,26 +548,23 @@ std::pair<std::function<T(T)>,std::vector<T>>DiffusionMixingModel<T>::getAnalyti
 
         for (int n = 1; n < 10*resolution; n++) {
             for (const auto& parameter : parameters) {
-                T a_n = (2/M_PI) * (parameter.concentrationAtChannelEnd) * (1/(n * M_PI))  * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-                f_sum += a_n * std::cos(0.5 * n * M_PI * (w/parameter.stretchFactor)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
-                std::cout << "startWidth: " << parameter.startWidth << "\t endWidth: " << parameter.endWidth << "\t concAtChannelEnd: " 
-                << parameter.concentrationAtChannelEnd << "\t stretchFactor: " << parameter.stretchFactor << std::endl;
+                // T a_n = (2/M_PI) * (parameter.concentrationAtChannelEnd) * (1 / n)  * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does not work
+                T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does work, why?
+                f_sum += a_n * std::cos(n * M_PI * (w)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
+                // std::cout << "startWidth: " << parameter.startWidth << "\t endWidth: " << parameter.endWidth << "\t concAtChannelEnd: " 
+                // << parameter.concentrationAtChannelEnd << "\t stretchFactor: " << parameter.stretchFactor << std::endl;
                 //segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
                 //std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
             }
         }
         return 0.5 * a_0 + f_sum;
     };
-    std::cout<<"segmentedResultFunction in getAnalyticalSolutionConstant"<<std::endl;
-    for (auto& element : segmentedResult) {
-        std::cout << "an element is: " << element << std::endl;
-    }
-    std::cout<<std::endl;
-    return {f, segmentedResult};
+    return {f, segmentedResult, a_0};
 }
 
+
 template<typename T> // TODO maybe combine this function with the function above
-std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
     // From Channel Start to Channel End for complex input
     std::vector<T> segmentedResult;
     T a_0 = 0.0;
@@ -586,17 +572,22 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
     for (int n = 1; n < 10*resolution; n++) {    
         for (const auto& parameter : parameters) {
             for (int i = 0; i < parameter.segmentedResult.size(); i++) {
+                // std::cout << "stretchFactor" << parameter.stretchFactor << std::endl;
                 T stretchFactor = parameter.stretchFactor; // Moved here
                 T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
-                T a_0 = 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
+                // a_0 += 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
+                // T a_0 = 1.25;
 
-                a_n += (2 / M_PI) * 0.5 *(
-                (1/((n * M_PI * (1/stretchFactor + 1))) * 
-                (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1)))    // Changed parameters -> parameter
-                - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                - (1/(n * M_PI * (1/stretchFactor + 1))) * 
-                (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))))))) 
+
+                a_n += (2 / M_PI) * 0.5 * (
+                (1/(n * M_PI * (1/stretchFactor + 1))) * 
+                (std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1)))    // Changed parameters -> parameter
+                + (1/(n * M_PI * (1/stretchFactor - 1))) * 
+                std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor - 1))) 
+                - (1/(n * M_PI * (1/stretchFactor - 1))) * 
+                std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
+                + (1/(n * M_PI * (1/stretchFactor - 1))) * 
+                std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor - 1)))))
                 * parameter.segmentedResult[i];
             }
             segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
@@ -604,36 +595,63 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
             " = " << a_n << " * exp(" << -pow(n, 2) << "*"  <<  pow(M_PI, 2) << "*" << (1 / pecletNr) << "*" << channelLength << std::endl;
         }
     }
-    std::cout<<"segmentedResultFunction in getAnalyticalSolutionFunction"<<std::endl;
-    for (auto& element : segmentedResult) {
-        std::cout << "an element is: " << element << std::endl;
-    }
-    std::cout<<std::endl;
+    // std::cout<<"segmentedResultFunction in getAnalyticalSolutionFunction"<<std::endl;
+    // for (auto& element : segmentedResult) {
+    //     std::cout << "an element is: " << element << std::endl;
+    // }
+    // std::cout<<std::endl;
 
     auto f = [channelLength, channelWidth, resolution, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
         T a_0 = 0.0;
         T a_n = 0.0;
+
+        // calculating a_0
+        for (const auto& parameter : parameters) { // there should be one a_0_old per section
+            T a_0_old = parameter.a_0_old;
+            a_0 += 0.5 * a_0_old * (parameter.endWidth - parameter.startWidth);
+            for (int i = 0; i < parameter.segmentedResult.size(); i++) { 
+                T stretchFactor = parameter.stretchFactor; // Moved here
+                T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
+                // int sectionNrOld = parameter.segmentedResult.size() / (10 * resolution-1);
+                int oldN = (i % (resolution * 10 - 1)) + 1; 
+                a_0 += parameter.segmentedResult[i] * (stretchFactor / oldN * M_PI) * 
+                (sin(oldN * M_PI * 1/stretchFactor * parameter.endWidth - startWidthIfFunctionWasSplit / stretchFactor) - 
+                sin(oldN * M_PI * 1/stretchFactor * parameter.startWidth - startWidthIfFunctionWasSplit / stretchFactor));
+            }
+        }
+
+        
+
+        // Calculating a_n
         for (int n = 1; n < 10*resolution; n++) {    
             for (const auto& parameter : parameters) {
-
+                T a_0_old = parameter.a_0_old;
+                a_n += 0.5 * a_0_old * 1/ (n * M_PI) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
                 for (int i = 0; i < parameter.segmentedResult.size(); i++) {
                     T stretchFactor = parameter.stretchFactor; // Moved here
                     T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
-                    T a_0 = 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
-                    // T a_0 = 2 / M_PI * parameter.segmentedResult[i] * n * M_PI * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
+                    int oldN = (i % (resolution * 10 - 1)) + 1;
 
-                    a_n += (2 / M_PI) * 0.5 *(
-                    (1/((n * M_PI * (1/stretchFactor + 1))) * 
-                    (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1)))    // Changed parameters -> parameter
-                    - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                    - (1/(n * M_PI * (1/stretchFactor + 1))) * 
-                    (std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                    - std::sin(-startWidthIfFunctionWasSplit * 1/stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1))))))) 
+                    // T a_0 = 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
+                    // a_0 += 2 * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
+                    // T a_0 = 2 / M_PI * parameter.segmentedResult[i] * n * M_PI * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
+                    // a_0 += parameter.segmentedResult[i]* (1 / M_PI) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
+                    // T a_0 = 1.25;
+
+                    a_n += (2 / M_PI) * 0.5 * (
+                    (1/((oldN * M_PI) / stretchFactor + n * M_PI)) * 
+                    (std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.startWidth * ((oldN * M_PI) / stretchFactor + n * M_PI))
+                    + (1/((oldN * M_PI) / stretchFactor - n * M_PI)) * 
+                    std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.startWidth * ((oldN * M_PI) / stretchFactor - n * M_PI)) 
+                    - (1/((oldN * M_PI) / stretchFactor + n * M_PI)) * 
+                    std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.endWidth * ((oldN * M_PI) / stretchFactor + n * M_PI)) 
+                    + (1/((oldN * M_PI) / stretchFactor - n * M_PI)) * 
+                    std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.endWidth * ((oldN * M_PI) / stretchFactor - n * M_PI))))
                     * parameter.segmentedResult[i];
                 }
                 // T a_n = 2 * parameter.concentration * n * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-                f_sum += a_n * std::cos(0.5 * n * M_PI * (w/parameter.stretchFactor)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
+                f_sum += a_n * std::cos(n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
                 //segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
                 //std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
             
@@ -642,12 +660,12 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
         return 0.5 * a_0 + f_sum + fConstant(w);
     };
 
-    return {f, segmentedResult};
+    return {f, segmentedResult, a_0}; 
 }
 
 // From Channel Start to Channel End for complex input
 template<typename T>
-std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
     T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
     T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& diffusiveMixtures) { 
     std::cout << "Getting into getAnalyticalSolutionTotal" << std::endl;
@@ -661,13 +679,15 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
         T endWidth = startWidth + flowSection.flowRate / currChannelFlowRate;
         prevEndWidth = endWidth;
         T stretchFactor = flowSection.flowRate / currChannelFlowRate;
+        std::cout << "The stretchFactor is " << stretchFactor << std::endl;
+        std::cout << "The flowSection flowrate is " << flowSection.flowRate << "and the currChannelFlowRate" << currChannelFlowRate<<std::endl;
         T startWidthIfFunctionWasSplit = flowSection.sectionStart;
 
         if (!filledEdges.count(flowSection.channelId)){
             T concentration = 0.0;
             std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
             std::vector<T> zeroSegmentedResult = {0};
-            constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult});
+            constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
         } else {
             T mixtureId = filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
             DiffusiveMixture<T>* diffusiveMixture = diffusiveMixtures.at(mixtureId).get(); // Assuming diffusiveMixtures is passed
@@ -675,35 +695,42 @@ std::pair<std::function<T(T)>,std::vector<T>> DiffusionMixingModel<T>::getAnalyt
                 T concentration = 0.0;
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
-                constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult});
+                constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
             } else if (diffusiveMixture->getIsConstant()) { 
                 T concentration = diffusiveMixture->getConcentrationOfSpecie(speciesId); 
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
-                constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult}); 
+                constantFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult, T(0.0)}); 
             } else {
                 auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(speciesId);
-                std::function<T(T)> concentrationFunction = specieDistribution.first;
-                std::vector<T> segmentedResults = specieDistribution.second;
-                functionFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults});
+                // std::function<T(T)> concentrationFunction = specieDistribution.first;
+                // std::vector<T> segmentedResults = specieDistribution.second;
+                std::function<T(T)> concentrationFunction = std::get<0>(specieDistribution);
+                std::vector<T> segmentedResults = std::get<1>(specieDistribution);
+
+                T a_0_old = std::get<2>(specieDistribution);
+                functionFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults, a_0_old});
             }
         }
     }
 
-    auto [fConstant, segmentedResultConstant] = getAnalyticalSolutionConstant(channelLength, channelWidth, resolution, pecletNr, constantFlowSections);
-    auto [fFunction, segmentedResultFunction] = getAnalyticalSolutionFunction(channelLength, channelWidth, resolution, pecletNr, functionFlowSections, fConstant);
+    auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalSolutionConstant(channelLength, channelWidth, resolution, pecletNr, constantFlowSections);
+    auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalSolutionFunction(channelLength, channelWidth, resolution, pecletNr, functionFlowSections, fConstant);
 
     //segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
 
     segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
 
-    std::cout<<"segmentedResultFunction"<<std::endl;
-    for (auto& element : segmentedResultFunction) {
-        std::cout << "an element is: " << element << std::endl;
-    }
-    std::cout<<std::endl;
+    // std::cout<<"segmentedResultFunction"<<std::endl;
+    // for (auto& element : segmentedResultFunction) {
+    //     std::cout << "an element is: " << element << std::endl;
+    // }
+    // std::cout<<std::endl;
+    T a_0 = a_0_Constant + a_0_Function;
 
-    return {fFunction, segmentedResultFunction};
+    // return {fFunction, segmentedResultFunction, a_0};
+    return {fFunction, segmentedResultFunction, a_0};
+
 }
 
 

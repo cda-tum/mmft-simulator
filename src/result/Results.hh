@@ -195,7 +195,7 @@ const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, s
 
     for (auto& [mixtureId, mixture] : diffMixtures) {
         std::cout << "We have mixture " << mixtureId << " in diffMixtures" <<std::endl;
-        for (auto& [specieId, pair] : mixture->getSpecieDistributions()) {
+        for (auto& [specieId, tuple] : mixture->getSpecieDistributions()) {
             std::cout << "Mixture " << mixtureId << " contains species " << specieId <<std::endl;
         }
     }
@@ -203,7 +203,7 @@ const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, s
     for (auto& [mixtureId, mixture] : diffMixtures) { // adapt for diffusive mixtures
         // std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
         std::cout << "Mixture " << mixtureId << std::endl;
-        for (auto& [specieId, pair] : mixture->getSpecieDistributions()) {
+        for (auto& [specieId, tuple] : mixture->getSpecieDistributions()) {
             std::cout << "Specie " << specieId << std::endl;
             std::string outputFileName = "function_mixture"+std::to_string(mixtureId)+"_species"+std::to_string(specieId)+".csv";
             std::cout << "Generating CSV file: " << outputFileName << std::endl;
@@ -216,7 +216,8 @@ const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, s
             for (int i = 0; i < numValues; ++i) {
                 T x = i * step;
                 T y;
-                y = pair.first(x);
+                // y = tuple.first(x);
+                y = std::get<0>(tuple)(x);
                 outputFile << std::setprecision(4) << x << "," << y << "\n"; 
             }
             // Close the file

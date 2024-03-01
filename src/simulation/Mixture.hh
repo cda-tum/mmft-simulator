@@ -61,17 +61,17 @@ const std::unordered_map<int, T>& Mixture<T>::getSpecieConcentrations() const {
 
 template<typename T>
 DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-    std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions, T viscosity, T density, T largestMolecularSize, int resolution) : 
+    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, T largestMolecularSize, int resolution) : 
     Mixture<T>(id, species, specieConcentrations, viscosity, density, largestMolecularSize), specieDistributions(specieDistributions), resolution(resolution) { }
 
 template<typename T>
 DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-    std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions, T viscosity, T density, int resolution) :
+    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution) :
     Mixture<T>(id, species, specieConcentrations, viscosity, density), specieDistributions(specieDistributions), resolution(resolution) { }
 
 template<typename T>
 DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-    std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions, Fluid<T>* carrierFluid, int resolution) : 
+    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution) : 
     Mixture<T>(id, species, specieConcentrations, carrierFluid), specieDistributions(specieDistributions), resolution(resolution) { }
 
 template<typename T>
@@ -94,7 +94,7 @@ void DiffusiveMixture<T>::changeFluidConcentration(int fluidId, T concentrationC
 }
 
 template<typename T>
-const std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>>& DiffusiveMixture<T>::getSpecieDistributions() const {
+const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>>& DiffusiveMixture<T>::getSpecieDistributions() const {
     return this->specieDistributions;
 }
 

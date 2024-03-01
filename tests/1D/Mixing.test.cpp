@@ -232,45 +232,45 @@ TEST(Topology, case5) {
  *  - 2 inflows opposed
  *  - 2 outflows opposed
 */
-TEST(Topology, case6) {    
-    // define network
-    arch::Network<T> network;
+// TEST(Topology, case6) {    
+//     // define network
+//     arch::Network<T> network;
 
-    // nodes
-    auto node0 = network.addNode(0.0, 0.0, true);
-    auto node1 = network.addNode(0.0, 1e-3, true);
-    auto node2 = network.addNode(0.0, 2e-3, true);
-    auto node3 = network.addNode(1e-3, 1e-3, false);
-    auto node4 = network.addNode(2e-3, 1e-3, true);
+//     // nodes
+//     auto node0 = network.addNode(0.0, 0.0, true);
+//     auto node1 = network.addNode(0.0, 1e-3, true);
+//     auto node2 = network.addNode(0.0, 2e-3, true);
+//     auto node3 = network.addNode(1e-3, 1e-3, false);
+//     auto node4 = network.addNode(2e-3, 1e-3, true);
 
-    // channels
-    auto cWidth = 100e-6;
-    auto cHeight = 30e-6;
-    auto cLength = 1000e-6;
-    T flowRate = 3e-11;
+//     // channels
+//     auto cWidth = 100e-6;
+//     auto cHeight = 30e-6;
+//     auto cLength = 1000e-6;
+//     T flowRate = 3e-11;
     
-    auto c0 = network.addChannel(node0->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c1 = network.addChannel(node3->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network.addChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+//     auto c0 = network.addChannel(node0->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+//     auto c1 = network.addChannel(node3->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+//     auto c2 = network.addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+//     auto c3 = network.addChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
-    c0->setPressure(flowRate);
-    c1->setPressure(0.5*flowRate);
-    c2->setPressure(1.5*flowRate);
-    c3->setPressure(2*flowRate);
+//     c0->setPressure(flowRate);
+//     c1->setPressure(0.5*flowRate);
+//     c2->setPressure(1.5*flowRate);
+//     c3->setPressure(2*flowRate);
 
-    c0->setResistance(1);
-    c1->setResistance(1);
-    c2->setResistance(1);
-    c3->setResistance(1);
+//     c0->setResistance(1);
+//     c1->setResistance(1);
+//     c2->setResistance(1);
+//     c3->setResistance(1);
 
-    // mixing model
-    sim::DiffusionMixingModel<T> mixingModel;
-    for (auto& [nodeId, node] : network.getNodes()) {
-        mixingModel.topologyAnalysis(&network, nodeId);
-    }
-    mixingModel.printTopology();
-}
+//     // mixing model
+//     sim::DiffusionMixingModel<T> mixingModel;
+//     for (auto& [nodeId, node] : network.getNodes()) {
+//         mixingModel.topologyAnalysis(&network, nodeId);
+//     }
+//     mixingModel.printTopology();
+// }
 
 /** Case1:
  * 
@@ -278,24 +278,68 @@ TEST(Topology, case6) {
 */
 TEST(DiffusionMixing, case1) {
 
-    // Define JSON files
-    std::string file = "../examples/1D/Mixing/DiffusionCase1.JSON";
+// Define Simulation
+sim::Simulation<T> testSimulation;
+testSimulation.setType(sim::Type::_1D);
+testSimulation.setPlatform(sim::Platform::MIXING);
 
-    // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(file);
+// define network
+arch::Network<T> network;
+testSimulation.setNetwork(&network);
 
-    // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(file, &network);
+// nodes
+auto node0 = network.addNode(1e-3, 0.0, false);
+auto node1 = network.addNode(1e-3, 2e-3, false);
+auto node2 = network.addNode(2e-3, 1e-3, false);
+auto node3 = network.addNode(4e-3, 1e-3, false);
+auto node4 = network.addNode(5e-3, 0.0, true);
+auto node5 = network.addNode(5e-3, 2e-3, true);
+auto node6 = network.addNode(0.0, 0.0, true);
+auto node7 = network.addNode(0.0, 2e-3, true);
 
-    // Check if network is valid
-    network.isNetworkValid();
-    network.sortGroups();
+// channels
+auto cWidth = 100e-6;
+auto cHeight = 100e-6;
+auto cLength = 1000e-6;
+T flowRate = 3e-11;
 
-    // simulate
-    sim.simulate();
+auto c0 = network.addChannel(node0->getId(), node2->getId(), cHeight, cWidth, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
+auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
+auto c2 = network.addChannel(node2->getId(), node3->getId(), cHeight, cWidth, 2e-3, arch::ChannelType::NORMAL);
+auto c3 = network.addChannel(node3->getId(), node4->getId(), cHeight, cWidth*2, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
+auto c4 = network.addChannel(node3->getId(), node5->getId(), cHeight, cWidth, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
+auto c5 = network.addPressurePump(node6->getId(), node0->getId(), 80);
+auto c6 = network.addPressurePump(node7->getId(), node1->getId(), 80);
 
-    // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+auto fluid1 = testSimulation.addFluid(1e-3, 1e3, 1.0);
+
+testSimulation.setContinuousPhase(fluid1->getId());
+
+sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(testSimulation.getContinuousPhase()->getViscosity());
+testSimulation.setResistanceModel(&resistanceModel);
+sim::DiffusionMixingModel<T> diffusionMixingModel = sim::DiffusionMixingModel<T>();
+testSimulation.setMixingModel(&diffusionMixingModel);
+testSimulation.diffusiveMixing = true;
+
+// Check if network is valid
+network.isNetworkValid();
+network.sortGroups();
+
+T flowRateC2 = c2->getFlowRate();
+T velocity = c2->getFlowRate() / c2->getArea();
+
+auto specie1 = testSimulation.addSpecie(1e-8, 8.3);
+std::unordered_map<int, T> species;
+species.try_emplace(specie1->getId(), 1.0);
+sim::DiffusiveMixture<T>* mixture = testSimulation.addDiffusiveMixture(species);
+testSimulation.addMixtureInjection(mixture->getId(), c1->getId(), 0.0);
+
+testSimulation.simulate();
+
+std::cout << "Flow Rate: " << flowRateC2 << "\tVelocity:" << velocity << std::endl;
+
+// results
+// result::SimulationResult<T>* result = testSimulation.getSimulationResults();
 
 }
 

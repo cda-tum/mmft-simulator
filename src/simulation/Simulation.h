@@ -181,7 +181,7 @@ namespace sim {
              * @param[in] specieConcentrations
              * @return Pointer to created mixture.
              */
-            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions);
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
             /**
              * @brief Create mixture.
@@ -195,7 +195,7 @@ namespace sim {
              * @param[in] specieConcentrations
              * @return Pointer to created mixture.
              */
-            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, std::pair<std::function<T(T)>, std::vector<T>>> specieDistributions);
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
             /**
              * @brief Create droplet injection.
