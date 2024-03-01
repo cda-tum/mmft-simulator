@@ -28,18 +28,18 @@ void readChannels(json jsonString, arch::Network<T>& network) {
 
 template<typename T>
 sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
-    sim::Platform platform = sim::Platform::NONE;
+    sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
-        throw std::invalid_argument("Please define a platform. The following platforms are possible:\ncontinuous\nbigDroplet\nmixing");
+        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
     }
-    if (jsonString["simulation"]["platform"] == "continuous") {
-        platform = sim::Platform::CONTINUOUS;
-    } else if (jsonString["simulation"]["platform"] == "bigDroplet") {
-        platform = sim::Platform::DROPLET;
-    } else if (jsonString["simulation"]["platform"] == "mixing") {
-        platform = sim::Platform::MIXING;
+    if (jsonString["simulation"]["platform"] == "Continuous") {
+        platform = sim::Platform::Continuous;
+    } else if (jsonString["simulation"]["platform"] == "BigDroplet") {
+        platform = sim::Platform::BigDroplet;
+    } else if (jsonString["simulation"]["platform"] == "Mixing") {
+        platform = sim::Platform::Mixing;
     } else {
-        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\ncontinuous\nbigDroplet\nmixing");
+        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
     }
     simulation.setPlatform(platform);
     return platform;
@@ -47,18 +47,18 @@ sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
 
 template<typename T>
 sim::Type readType(json jsonString, sim::Simulation<T>& simulation) {
-    sim::Type simType = sim::Type::NONE;
+    sim::Type simType = sim::Type::Abstract;
     if (!jsonString["simulation"].contains("type")) {
-        throw std::invalid_argument("Please define a simulation type. The following types are possible:\n1D\nhybrid\nCFD");
+        throw std::invalid_argument("Please define a simulation type. The following types are possible:\nAbstract\nHybrid\nCFD");
     }
-    if (jsonString["simulation"]["type"] == "1D") {
-        simType = sim::Type::_1D;
-    } else if (jsonString["simulation"]["type"] == "hybrid") {
-        simType = sim::Type::HYBRID;
+    if (jsonString["simulation"]["type"] == "Abstract") {
+        simType = sim::Type::Abstract;
+    } else if (jsonString["simulation"]["type"] == "Hybrid") {
+        simType = sim::Type::Hybrid;
     } else if (jsonString["simulation"]["type"] == "CFD") {
         simType = sim::Type::CFD;
     } else {
-        throw std::invalid_argument("Simulation type is invalid. The following types are possible:\n1D\nhybrid\nCFD");
+        throw std::invalid_argument("Simulation type is invalid. The following types are possible:\nAbstract\nHybrid\nCFD");
     }
     simulation.setType(simType);
     return simType;

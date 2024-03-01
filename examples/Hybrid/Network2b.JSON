@@ -106,8 +106,8 @@
     ]
 },
 "simulation": {
-    "platform": "continuous",
-    "type": "hybrid",
+    "platform": "Continuous",
+    "type": "Hybrid",
     "resistanceModel": "Poiseuille",
     "fluids": [
         {	

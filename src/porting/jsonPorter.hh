@@ -33,19 +33,19 @@ sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* ne
 
     readFluids<T>(jsonString, simulation);
 
-    if (platform == sim::Platform::CONTINUOUS) {
+    if (platform == sim::Platform::Continuous) {
         if (simType == sim::Type::CFD) {
             throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
         }
     } else
-    if (platform == sim::Platform::DROPLET) {
-        if (simType != sim::Type::_1D) {
-            throw std::invalid_argument("Droplet simulations are currently only supported for 1D simulations.");
+    if (platform == sim::Platform::BigDroplet) {
+        if (simType != sim::Type::Abstract) {
+            throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
         }
         //readDroplets<T>(jsonString, simulation);
         readDropletInjections<T>(jsonString, simulation, activeFixture);
     } else
-    if (platform == sim::Platform::MIXING) {
+    if (platform == sim::Platform::Mixing) {
         // NOT YET SUPPORTED
         throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
         // Import Species for Mixing platform
@@ -56,7 +56,7 @@ sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* ne
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }
 
-    if (simType == sim::Type::HYBRID) {
+    if (simType == sim::Type::Hybrid) {
         readSimulators<T>(jsonString, network_);
         network_->sortGroups();
     }
@@ -83,7 +83,7 @@ void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
         jsonString["result"].push_back({"time", state->getTime()});
         writePressures(jsonString, state.get());
         writeFlowRates(jsonString, state.get());
-        if (simulation->getPlatform() == sim::Platform::DROPLET && simulation->getType() == sim::Type::_1D) {
+        if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
             writeDroplets(jsonString, state.get(), simulation);
         }
     }

@@ -102,8 +102,8 @@
     ]
 },
 "simulation": {
-    "platform": "continuous",
-    "type": "1D",
+    "platform": "Continuous",
+    "type": "Abstract",
     "resistanceModel": "1D",
     "fluids": [
         {	

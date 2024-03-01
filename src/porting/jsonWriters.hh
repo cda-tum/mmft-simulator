@@ -22,19 +22,19 @@ void writeFlowRates(json& jsonString, result::State<T>* state) {
 
 template<typename T>
 void writeDroplets(json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {      
-    auto bigDroplets = json::array();
+    auto BigDroplets = json::array();
     for (auto& [key, dropletPosition] : state->getDropletPositions()) {
         //dropletPosition
-        auto bigDroplet = json::object();
+        auto BigDroplet = json::object();
 
         //state
-        bigDroplet["id"] = key;
-        bigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
+        BigDroplet["id"] = key;
+        BigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
 
         //boundaries
-        bigDroplet["boundaries"] = json::array();
+        BigDroplet["boundaries"] = json::array();
         for(auto& boundary : dropletPosition.boundaries) {
-            bigDroplet["boundaries"].push_back({
+            BigDroplet["boundaries"].push_back({
                 {"volumeTowards1", boundary.isVolumeTowardsNodeA()},
                 {"position", {
                     {"channelId", boundary.getChannelPosition().getChannel()->getId()},
@@ -44,13 +44,13 @@ void writeDroplets(json& jsonString, result::State<T>* state, sim::Simulation<T>
         }
 
         //channels
-        bigDroplet["channels"] = json::array();
+        BigDroplet["channels"] = json::array();
         for (auto const& channelId : dropletPosition.channelIds) {
-            bigDroplet["channels"].push_back(channelId);
+            BigDroplet["channels"].push_back(channelId);
         }
-        bigDroplets.push_back(bigDroplet);
+        BigDroplets.push_back(BigDroplet);
     }
-    jsonString["result"].push_back({"droplets", bigDroplets});
+    jsonString["result"].push_back({"droplets", BigDroplets});
 }
 
 }   // namespace porting

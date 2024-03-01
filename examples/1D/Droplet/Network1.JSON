@@ -80,8 +80,8 @@
     ]
 },
 "simulation": {
-    "platform": "bigDroplet",
-    "type": "1D",
+    "platform": "BigDroplet",
+    "type": "Abstract",
     "resistanceModel": "1D",
     "fluids": [
         {	

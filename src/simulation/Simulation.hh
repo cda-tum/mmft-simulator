@@ -232,7 +232,7 @@ namespace sim {
         // ##########
         // * conduct nodal analysis
         // * save state
-        if (simType == Type::_1D && platform == Platform::CONTINUOUS) {
+        if (simType == Type::Abstract && platform == Platform::Continuous) {
             // compute nodal analysis
             nodal::conductNodalAnalysis(network);
 
@@ -241,7 +241,7 @@ namespace sim {
         }
 
         // Continuous Hybrid simulation
-        if (this->simType == Type::HYBRID && this->platform == Platform::CONTINUOUS) {
+        if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             if (network->getModules().size() > 0 ) {
                 bool allConverged = false;
                 bool pressureConverged = false;
@@ -285,7 +285,7 @@ namespace sim {
         // * search for next event (break if no event is left)
         // * move droplets
         // * perform event
-        if (simType == Type::_1D && platform == Platform::DROPLET) {
+        if (simType == Type::Abstract && platform == Platform::BigDroplet) {
 
             while (true) {
                 if (iteration >= maxIterations) {
@@ -401,7 +401,7 @@ namespace sim {
             channel->setDropletResistance(0.0);
         }
 
-        if (this->simType == Type::HYBRID && this->platform == Platform::CONTINUOUS) {
+        if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             
             for (auto& [key, module] : network->getModules()) {
                 module->lbmInit(fluids[continuousPhase]->getViscosity(),

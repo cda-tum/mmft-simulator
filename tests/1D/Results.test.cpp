@@ -7,8 +7,8 @@ using T = double;
 TEST(Results, allResultValues) {
     // define simulation
     sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::_1D);
-    testSimulation.setPlatform(sim::Platform::DROPLET);
+    testSimulation.setType(sim::Type::Abstract);
+    testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
     arch::Network<T> network;
@@ -282,8 +282,8 @@ TEST(Results, allResultValues) {
 TEST(Results, inverseDirectionChannels) {
     // define simulation
     sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::_1D);
-    testSimulation.setPlatform(sim::Platform::DROPLET);
+    testSimulation.setType(sim::Type::Abstract);
+    testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
     arch::Network<T> network;
@@ -494,8 +494,8 @@ TEST(Results, inverseDirectionChannels) {
 TEST(Results, mixedDirectionChannels) {
     // define simulation
     sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::_1D);
-    testSimulation.setPlatform(sim::Platform::DROPLET);
+    testSimulation.setType(sim::Type::Abstract);
+    testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
     arch::Network<T> network;
@@ -706,8 +706,8 @@ TEST(Results, mixedDirectionChannels) {
 TEST(Results, noSink1) {
     // define simulation
     sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::_1D);
-    testSimulation.setPlatform(sim::Platform::DROPLET);
+    testSimulation.setType(sim::Type::Abstract);
+    testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
     arch::Network<T> network;
@@ -759,8 +759,8 @@ TEST(Results, noSink1) {
 TEST(Results, noSink2) {
     // define simulation
     sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::_1D);
-    testSimulation.setPlatform(sim::Platform::DROPLET);
+    testSimulation.setType(sim::Type::Abstract);
+    testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
     arch::Network<T> network;
@@ -812,8 +812,8 @@ TEST(Results, noSink2) {
 TEST(Results, noSinkTwoDroplets) {
     // define simulation
     sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::_1D);
-    testSimulation.setPlatform(sim::Platform::DROPLET);
+    testSimulation.setType(sim::Type::Abstract);
+    testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
     arch::Network<T> network;
@@ -867,13 +867,13 @@ TEST(Results, noSinkTwoDroplets) {
 TEST(Chip, triangleNetwork) {
     // define simulation 1
     sim::Simulation<T> testSimulation1;
-    testSimulation1.setType(sim::Type::_1D);
-    testSimulation1.setPlatform(sim::Platform::DROPLET);
+    testSimulation1.setType(sim::Type::Abstract);
+    testSimulation1.setPlatform(sim::Platform::BigDroplet);
 
     // define simulation 2
     sim::Simulation<T> testSimulation2;
-    testSimulation2.setType(sim::Type::_1D);
-    testSimulation2.setPlatform(sim::Platform::DROPLET);
+    testSimulation2.setType(sim::Type::Abstract);
+    testSimulation2.setPlatform(sim::Platform::BigDroplet);
 
     // define network 1
     arch::Network<T> network1;
@@ -951,13 +951,13 @@ TEST(Chip, triangleNetwork) {
 TEST(Chip, Y_Network) {
     // define simulation 1
     sim::Simulation<T> testSimulation1;
-    testSimulation1.setType(sim::Type::_1D);
-    testSimulation1.setPlatform(sim::Platform::DROPLET);
+    testSimulation1.setType(sim::Type::Abstract);
+    testSimulation1.setPlatform(sim::Platform::BigDroplet);
 
     // define simulation 2
     sim::Simulation<T> testSimulation2;
-    testSimulation2.setType(sim::Type::_1D);
-    testSimulation2.setPlatform(sim::Platform::DROPLET);
+    testSimulation2.setType(sim::Type::Abstract);
+    testSimulation2.setPlatform(sim::Platform::BigDroplet);
 
     // define network 1
     arch::Network<T> network1;

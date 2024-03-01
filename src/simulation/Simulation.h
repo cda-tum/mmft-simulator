@@ -50,17 +50,15 @@ template<typename T>
 class ResistanceModel;
 
 enum class Type {
-    NONE,
-    _1D,            ///< A simulation in the 1D abstraction level
-    HYBRID,         ///< A simulation combining the 1D and CFD abstraction levels
+    Abstract,       ///< A simulation in the 1D abstraction level
+    Hybrid,          ///< A simulation combining the 1D and CFD abstraction levels
     CFD             ///< A simulation in the CFD abstraction level
 };
 
 enum class Platform {
-    NONE,
-    CONTINUOUS,     ///< A simulation with a single continuous fluid.
-    DROPLET,        ///< A simulation with droplets filling a channel cross-section
-    MIXING          ///< A simulation wit multiple miscible fluids.
+    Continuous,     ///< A simulation with a single continuous fluid.
+    BigDroplet,        ///< A simulation with droplets filling a channel cross-section
+    Mixing          ///< A simulation wit multiple miscible fluids.
 };
 
 /**
@@ -69,8 +67,8 @@ enum class Platform {
 template<typename T>
 class Simulation {
 private:
-    Type simType = Type::NONE;                                                          ///< The type of simulation that is being done.                                      
-    Platform platform = Platform::NONE;                                                 ///< The microfluidic platform that is simulated in this simulation.
+    Type simType = Type::Abstract;                                                      ///< The type of simulation that is being done.                                      
+    Platform platform = Platform::Continuous;                                           ///< The microfluidic platform that is simulated in this simulation.
     arch::Network<T>* network;                                                          ///< Network for which the simulation should be conducted.
     std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
     std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
