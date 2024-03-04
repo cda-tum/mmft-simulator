@@ -203,6 +203,10 @@ public:
 
     bool getDiffusive() { return true; }
 
+    std::vector<std::vector<RadialPosition<T>>>& getConcatenatedFlows() { return concatenatedFlows; }
+
+    std::unordered_map<int, std::vector<FlowSection<T>>>& getOutflowDistributions() { return outflowDistributions; }
+
 };
 
 }   // namespace sim

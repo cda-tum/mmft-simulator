@@ -397,7 +397,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             int n = 0;
             for (auto& flow : channelOrder) {
                 if (flow.inFlow == concatenatedFlow.back().inFlow) {
-                    concatenatedFlow.emplace_back( std::move(channelOrder.front()) );
+                    concatenatedFlow.emplace_back( std::move(flow) );
                     n++;
                 } else {
                     break;
@@ -416,8 +416,6 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
 
         // 4. Calculate the flow connections between inflow/outflow channels
         // and generate outflowDistribution.
-        std::cout << "The concatenatedFlows size is " << concatenatedFlows.size() << std::endl;
-        printTopology();
         if (concatenatedFlows.size() == 2) {
             int in = (concatenatedFlows[0][0].inFlow) ? 0 : 1;
             int out = (concatenatedFlows[0][0].inFlow) ? 1 : 0;
@@ -452,7 +450,6 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             T start = 0.0;
             T end = 0.0;
             for (auto& channelOutId : channelOutIDs) {
-                std::cout << "Channel " << channelOutId << " is recognized as outflow channel" << std::endl;
                 for (auto& channelInId : channelInIDs) {
                     FlowSection<T> inFlowSection;
                     inFlowSection.channelId = channelInId;
@@ -460,10 +457,8 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                         T flowRate = (1.0 - start) * network->getChannel(channelInId)->getFlowRate();
                         inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate};
                         if (outflowDistributions.count(channelOutId)) {
-                            std::cout << "outflowDistribution entry for channel " << channelOutId << " exists and we are adding a section" << std::endl;
                             outflowDistributions.at(channelOutId).push_back(inFlowSection);
                         } else {
-                            std::cout << "Creating new outflowDistribution entry for channel " << channelOutId << std::endl;
                             std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
                             outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
                         }
@@ -474,10 +469,8 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                         end = start + flowRate / network->getChannel(channelInId)->getFlowRate();
                         inFlowSection = FlowSection<T> {channelInId, start, end, flowRate};
                         if (outflowDistributions.count(channelOutId)) {
-                            std::cout << "outflowDistribution entry for channel " << channelOutId << " exists and we are adding a section" << std::endl;
                             outflowDistributions.at(channelOutId).push_back(inFlowSection);
                         } else {
-                            std::cout << "Creating new outflowDistribution entry for channel " << channelOutId << std::endl;
                             std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
                             outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
                         }
@@ -490,29 +483,57 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
 
         } else if (concatenatedFlows.size() == 4){
             // Assume case with 2 pairs of opposing channels
-            for (auto flowIt = concatenatedFlows.begin(); flowIt != concatenatedFlows.end(); ++flowIt) {
-                if (flowIt->at(0).inFlow) {
-                    // Close the loop of the concatenatedFlows vector
-                    auto clockWise = (flowIt == concatenatedFlows.end() ? concatenatedFlows.begin() : std::next(flowIt, 1));
-                    //auto& clockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.end()) ? concatenatedFlows.begin() : 1);
-                    int channelInId = flowIt->at(0).channelId;
-                    int channelOutId = clockWise->at(0).channelId;
-                    FlowSection<T> inFlowSection {channelInId, 0.0, 0.5, 0.5*network->getChannel(channelInId)->getFlowRate()};
-                    std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
-                    outflowDistributions.try_emplace(channelOutId, newFlowSectionVector);
+            int lowest = 0;
+            int n = 0;
+            for (auto flowIt : concatenatedFlows) {
+                if (network->getChannel(flowIt[0].channelId)->getFlowRate() < network->getChannel(concatenatedFlows.at(lowest)[0].channelId)->getFlowRate()) {
+                    lowest = n;
                 }
+                n++;
             }
-            for (auto flowIt = concatenatedFlows.begin(); flowIt != concatenatedFlows.end(); ++flowIt) {
-                if (flowIt->at(0).inFlow) {
-                    // Close the loop of the concatenatedFlows vector
-                    auto antiClockWise = (flowIt == concatenatedFlows.begin() ? concatenatedFlows.end() : std::next(flowIt, -1));
-                    //auto& antiClockWise = concatenatedFlow + ((concatenatedFlow == concatenatedFlows.begin()) ? concatenatedFlows.end() : -1);
-                    int channelInId = flowIt->at(0).channelId;
-                    int channelOutId = antiClockWise->at(0).channelId;
-                    FlowSection<T> inFlowSection {channelInId, 0.5, 1.0, 0.5*network->getChannel(channelInId)->getFlowRate()};
-                    outflowDistributions.at(channelOutId).push_back(inFlowSection);
-                }
+            auto flow = concatenatedFlows.at(lowest);
+            auto clockWise = concatenatedFlows.at((lowest + 1) % 4);
+            auto counterClockWise = concatenatedFlows.at((lowest - 1) % 4);
+            auto opposed = concatenatedFlows.at((lowest + 2) % 4);
+
+            if (flow.at(0).inFlow) {
+
+                T ratio = (network->getChannel(counterClockWise.at(0).channelId)->getFlowRate() - 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate()) 
+                            / network->getChannel(opposed.at(0).channelId)->getFlowRate();
+
+                FlowSection<T> flow1 {flow.at(0).channelId, 0.0, 0.5, 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate()};
+                std::vector<FlowSection<T>> newFlow1Vector = {flow1};
+                outflowDistributions.try_emplace(clockWise.at(0).channelId, newFlow1Vector);
+                FlowSection<T> flow2 {opposed.at(0).channelId, 0.0, ratio, ratio*network->getChannel(opposed.at(0).channelId)->getFlowRate()};
+                std::vector<FlowSection<T>> newFlow2Vector = {flow2};
+                outflowDistributions.try_emplace(counterClockWise.at(0).channelId, newFlow2Vector);
+
+                FlowSection<T> flow3 {flow.at(0).channelId, 0.5, 1.0, 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate()};
+                outflowDistributions.at(counterClockWise.at(0).channelId).push_back(flow3);
+                FlowSection<T> flow4 {opposed.at(0).channelId, ratio, 1.0, (1.0 - ratio)*network->getChannel(opposed.at(0).channelId)->getFlowRate()};
+                outflowDistributions.at(clockWise.at(0).channelId).push_back(flow4);
+
+            } else {
+                T ratio = network->getChannel(clockWise.at(0).channelId)->getFlowRate() / 
+                            (network->getChannel(clockWise.at(0).channelId)->getFlowRate() + network->getChannel(counterClockWise.at(0).channelId)->getFlowRate());
+                T ratio1 = (ratio*network->getChannel(flow.at(0).channelId)->getFlowRate())/(network->getChannel(clockWise.at(0).channelId)->getFlowRate());
+                T ratio2 = ((1.0-ratio)*network->getChannel(flow.at(0).channelId)->getFlowRate())/(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate());
+
+                FlowSection<T> flow1 {clockWise.at(0).channelId, 0.0, (1.0-ratio1), (1.0-ratio1)*network->getChannel(clockWise.at(0).channelId)->getFlowRate()};
+                std::vector<FlowSection<T>> newFlow1Vector = {flow1};
+                outflowDistributions.try_emplace(opposed.at(0).channelId, newFlow1Vector);
+
+                FlowSection<T> flow2 {counterClockWise.at(0).channelId, 0.0, ratio2, ratio2*network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()};
+                std::vector<FlowSection<T>> newFlow2Vector = {flow2};
+                outflowDistributions.try_emplace(flow.at(0).channelId, newFlow2Vector);
+
+                FlowSection<T> flow3 {clockWise.at(0).channelId, (1.0-ratio1), 1.0, ratio1*network->getChannel(clockWise.at(0).channelId)->getFlowRate()};
+                outflowDistributions.at(flow.at(0).channelId).push_back(flow3);
+                FlowSection<T> flow4 {counterClockWise.at(0).channelId, ratio2, 1.0, (1.0 - ratio2)*network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()};
+                outflowDistributions.at(opposed.at(0).channelId).push_back(flow4);
+
             }
+
         } else {
             throw std::invalid_argument("Too many channels at node " + std::to_string(nodeId) + " for DiffusionMixingModel.");
         }
