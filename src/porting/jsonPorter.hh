@@ -43,6 +43,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     sim::Platform platform = readPlatform<T>(jsonString, simulation);
     sim::Type simType = readType<T>(jsonString, simulation);
     int activeFixture = readActiveFixture<T>(jsonString);
+    simulation.setFixtureId(activeFixture);
 
     simulation.setNetwork(network_);
 
@@ -91,28 +92,37 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
 
 template<typename T>
 void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
-    json jsonString;
     std::ofstream file(jsonFile);
 
-    jsonString = resultToJSON<T>(simulation);
+    json jsonString = resultToJSON<T>(simulation);
 
     file << jsonString.dump(4) << std::endl;
 }
 
 template<typename T>
 nlohmann::json resultToJSON(sim::Simulation<T>* simulation) {
-    json jsonString;
+
+    auto jsonResult = json::object();
+    auto jsonStates = json::array();
 
     for (auto const& state : simulation->getSimulationResults()->getStates()) {
-        jsonString["result"].push_back({"time", state->getTime()});
-        writePressures(jsonString, state.get());
-        writeFlowRates(jsonString, state.get());
+        auto jsonState = json::object();
+        jsonState["time"] = state->getTime();
+        jsonState["nodes"] = writePressures(state.get());
+        jsonState["channels"] = writeFlowRates(state.get());
+        jsonState["fluids"] =  writeFluids(simulation);
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
-            writeDroplets(jsonString, state.get(), simulation);
+            jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
         }
+        jsonStates.push_back(jsonState);
     }
 
-    return jsonString;
+    jsonResult["fixture"] = simulation->getFixtureId();
+    jsonResult["type"] = writeSimType(simulation);
+    jsonResult["platform"] = writeSimPlatform(simulation);
+    jsonResult.push_back({"network", jsonStates});
+
+    return jsonResult;
 }
 
 }   // namespace porting

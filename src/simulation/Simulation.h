@@ -67,6 +67,7 @@ enum class Platform {
 template<typename T>
 class Simulation {
 private:
+    int fixtureId = 0;
     Type simType = Type::Abstract;                                                      ///< The type of simulation that is being done.                                      
     Platform platform = Platform::Continuous;                                           ///< The microfluidic platform that is simulated in this simulation.
     arch::Network<T>* network;                                                          ///< Network for which the simulation should be conducted.
@@ -170,6 +171,12 @@ public:
     void setType(Type type);
 
     /**
+     * @brief Set the type of the simulation.
+     * @param[in] type
+     */
+    void setFixtureId(int fixtureId);
+
+    /**
      * @brief Set the network for which the simulation should be conducted.
      * @param[in] network Network on which the simulation will be conducted.
      */
@@ -212,6 +219,12 @@ public:
     Type getType();
 
     /**
+     * @brief Set the type of the simulation.
+     * @param[in] type
+     */
+    int getFixtureId();
+
+    /**
      * @brief Get the network.
      * @return Network or nullptr if no network is specified.
      */
@@ -223,6 +236,13 @@ public:
      * @return Pointer to fluid with the corresponding id
      */
     Fluid<T>* getFluid(int fluidId);
+
+    /**
+     * @brief Get fluid.
+     * @param[in] fluidId Id of the fluid
+     * @return Pointer to fluid with the corresponding id
+     */
+    std::unordered_map<int, std::unique_ptr<Fluid<T>>>& getFluids();
 
     /**
      * @brief Get droplet

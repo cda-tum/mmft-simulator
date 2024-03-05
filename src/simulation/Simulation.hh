@@ -64,6 +64,11 @@ namespace sim {
     }
 
     template<typename T>
+    void Simulation<T>::setFixtureId(int fixtureId_) {
+        this->fixtureId = fixtureId_;
+    }
+
+    template<typename T>
     void Simulation<T>::setNetwork(arch::Network<T>* network_) {
         this->network = network_;
     }
@@ -99,6 +104,11 @@ namespace sim {
     }
 
     template<typename T>
+    int Simulation<T>::getFixtureId() {
+        return this->fixtureId;
+    }
+
+    template<typename T>
     arch::Network<T>* Simulation<T>::getNetwork() {
         return this->network;
     }
@@ -106,6 +116,11 @@ namespace sim {
     template<typename T>
     Fluid<T>* Simulation<T>::getFluid(int fluidId) {
         return fluids.at(fluidId).get();
+    }
+
+    template<typename T>
+    std::unordered_map<int, std::unique_ptr<Fluid<T>>>& Simulation<T>::getFluids() {
+        return fluids;
     }
 
     template<typename T>

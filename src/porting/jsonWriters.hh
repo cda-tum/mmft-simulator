@@ -3,25 +3,25 @@
 namespace porting {
 
 template<typename T>
-void writePressures(json& jsonString, result::State<T>* state) {
+auto writePressures(result::State<T>* state) {
     auto nodes = json::array();
     for (auto const& [key, pressure] : state->getPressures()) {
         nodes.push_back({{"pressure", pressure}});
     }
-    jsonString["result"].push_back({"nodes", nodes});
+    return nodes;
 }
 
 template<typename T>
-void writeFlowRates(json& jsonString, result::State<T>* state) {      
+auto writeFlowRates(result::State<T>* state) {      
     auto channels = json::array();
     for (auto const& [key, flowRate] : state->getFlowRates()) {
         channels.push_back({{"flowRate", flowRate}});
     }
-    jsonString["result"].push_back({"channels", channels});
+    return channels;
 }
 
 template<typename T>
-void writeDroplets(json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {      
+auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {      
     auto BigDroplets = json::array();
     for (auto& [key, dropletPosition] : state->getDropletPositions()) {
         //dropletPosition
@@ -30,6 +30,7 @@ void writeDroplets(json& jsonString, result::State<T>* state, sim::Simulation<T>
         //state
         BigDroplet["id"] = key;
         BigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
+        BigDroplet["volume"] = simulation->getDroplet(key)->getVolume();
 
         //boundaries
         BigDroplet["boundaries"] = json::array();
@@ -50,7 +51,42 @@ void writeDroplets(json& jsonString, result::State<T>* state, sim::Simulation<T>
         }
         BigDroplets.push_back(BigDroplet);
     }
-    jsonString["result"].push_back({"droplets", BigDroplets});
+    return BigDroplets;
+}
+
+template<typename T>
+auto writeFluids(sim::Simulation<T>* simulation) {      
+    auto Fluids = json::array();
+    for (auto const& [key, fluid] : simulation->getFluids()) {
+        auto Fluid = json::object();
+        Fluid["id"] = key;
+        Fluid["name"] = fluid->getName();
+        Fluid["concentration"] = fluid->getConcentration();
+        Fluid["density"] = fluid->getDensity();
+        Fluid["viscosity"] = fluid->getViscosity();
+        Fluids.push_back(Fluid);
+    }
+    return Fluids;
+}
+
+template<typename T>
+std::string writeSimType(sim::Simulation<T>* simulation) {      
+    if(simulation->getType() == sim::Type::Hybrid) {
+        return("Hybrid");
+    } else if (simulation->getType() == sim::Type::CFD) {
+        return("CFD");
+    }
+    return("Abstract");
+}
+
+template<typename T>
+std::string writeSimPlatform(sim::Simulation<T>* simulation) {      
+    if(simulation->getPlatform() == sim::Platform::BigDroplet) {
+        return("BigDroplet");
+    } else if (simulation->getPlatform() == sim::Platform::Mixing) {
+        return("Mixing");
+    }
+    return("Continuous");
 }
 
 }   // namespace porting

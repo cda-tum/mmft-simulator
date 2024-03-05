@@ -33,12 +33,21 @@ class State;
 namespace porting {
 
 template<typename T>
-void writePressures (json& jsonString, result::State<T>* state);
+auto writePressures (result::State<T>* state);
 
 template<typename T>
-void writeFlowRates (json& jsonString, result::State<T>* state);
+auto writeFlowRates (result::State<T>* state);
 
 template<typename T>
-void writeDroplets (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation);
+auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
+
+template<typename T>
+auto writeFluids (sim::Simulation<T>* simulation);
+
+template<typename T>
+std::string writeSimType (sim::Simulation<T>* simulation);
+
+template<typename T>
+std::string writeSimPlatform (sim::Simulation<T>* simulation);
 
 }   // namespace porting
