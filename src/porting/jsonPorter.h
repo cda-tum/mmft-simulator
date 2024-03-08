@@ -51,6 +51,6 @@ template<typename T>
 void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation);
 
 template<typename T>
-nlohmann::json resultToJSON(sim::Simulation<T>* simulation);
+nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation);
 
 }   // namespace porting

@@ -3,6 +3,7 @@
 namespace porting {
 
 using json = nlohmann::json;
+using ordered_json = nlohmann::ordered_json;
 
 template<typename T>
 arch::Network<T> networkFromJSON(std::string jsonFile) {
@@ -94,23 +95,22 @@ template<typename T>
 void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
     std::ofstream file(jsonFile);
 
-    json jsonString = resultToJSON<T>(simulation);
+    ordered_json jsonString = resultToJSON<T>(simulation);
 
     file << jsonString.dump(4) << std::endl;
 }
 
 template<typename T>
-nlohmann::json resultToJSON(sim::Simulation<T>* simulation) {
+nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
 
-    auto jsonResult = json::object();
-    auto jsonStates = json::array();
+    auto jsonResult = ordered_json::object();
+    auto jsonStates = ordered_json::array();
 
     for (auto const& state : simulation->getSimulationResults()->getStates()) {
-        auto jsonState = json::object();
+        auto jsonState = ordered_json::object();
         jsonState["time"] = state->getTime();
         jsonState["nodes"] = writePressures(state.get());
         jsonState["channels"] = writeFlowRates(state.get());
-        jsonState["fluids"] =  writeFluids(simulation);
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
             jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
         }
@@ -120,6 +120,7 @@ nlohmann::json resultToJSON(sim::Simulation<T>* simulation) {
     jsonResult["fixture"] = simulation->getFixtureId();
     jsonResult["type"] = writeSimType(simulation);
     jsonResult["platform"] = writeSimPlatform(simulation);
+    jsonResult["fluids"] =  writeFluids(simulation);
     jsonResult.push_back({"network", jsonStates});
 
     return jsonResult;
