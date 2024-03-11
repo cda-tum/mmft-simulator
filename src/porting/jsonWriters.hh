@@ -32,6 +32,7 @@ auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {
         //state
         BigDroplet["id"] = key;
         BigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
+        BigDroplet["volume"] = simulation->getDroplet(key)->getVolume();
 
         //boundaries
         BigDroplet["boundaries"] = ordered_json::array();
