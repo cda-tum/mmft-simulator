@@ -25,16 +25,13 @@ auto writeFlowRates(result::State<T>* state) {
 template<typename T>
 auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {      
     auto BigDroplets = ordered_json::array();
-    auto& dropletPositions = state->getDropletPositions();
-    for (long unsigned int i=0; i<dropletPositions.size(); ++i) {
+    for (auto& [key, dropletPosition] : state->getDropletPositions()) {
         //dropletPosition
         auto BigDroplet = ordered_json::object();
-        auto& dropletPosition = dropletPositions.at(i);
 
         //state
-        BigDroplet["id"] = i;
-        BigDroplet["fluid"] = simulation->getDroplet(i)->getFluid()->getId();
-        BigDroplet["volume"] = simulation->getDroplet(i)->getVolume();
+        BigDroplet["id"] = key;
+        BigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
 
         //boundaries
         BigDroplet["boundaries"] = ordered_json::array();
@@ -42,7 +39,7 @@ auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {
             BigDroplet["boundaries"].push_back({
                 {"volumeTowards1", boundary.isVolumeTowardsNodeA()},
                 {"position", {
-                    {"channelId", boundary.getChannelPosition().getChannel()->getId()},
+                    {"channel", boundary.getChannelPosition().getChannel()->getId()},
                     {"position", boundary.getChannelPosition().getPosition()}}
                 }
             });
