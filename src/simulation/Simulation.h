@@ -148,6 +148,8 @@ public:
      */
     Droplet<T>* addDroplet(int fluidId, T volume);
 
+    int addDropletPyBind(int fluidId, T volume);
+
     /**
      * @brief Create injection.
      * @param[in] dropletId Id of the droplet that should be injected.
@@ -196,9 +198,15 @@ public:
 
     /**
      * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluid The fluid the continuous phase consists of.
+     * @param[in] fluidId The ID of the fluid the continuous phase consists of.
      */
     void setContinuousPhase(int fluidId);
+
+    /**
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluid The fluid the continuous phase consists of.
+     */
+    void setContinuousPhase(Fluid<T>* fluid);
 
     /**
      * @brief Define which resistance model should be used for the channel and droplet resistance calculations.

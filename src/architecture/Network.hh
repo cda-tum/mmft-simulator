@@ -309,6 +309,50 @@ lbmModule<T>* Network<T>::addModule(std::string name,
 }
 
 template<typename T>
+lbmModule<T>* Network<T>::addModulePyBind(std::string name,
+                                std::string stlFile,
+                                std::vector<T> position,
+                                std::vector<T> size,
+                                std::vector<int> nodes,
+                                std::vector<std::vector<T>> normals,
+                                std::vector<T> widths,
+                                std::vector<T> heights,
+                                T charPhysLength, 
+                                T charPhysVelocity, 
+                                T alpha, 
+                                T resolution, 
+                                T epsilon, 
+                                T tau) {
+    // ASSERT equal length for nodes, normals, widths and heights
+    if (nodes.size() != normals.size() || nodes.size() != widths.size() || nodes.size() != heights.size()) {
+        throw std::invalid_argument("There should be an equal amount of nodes, normals, widths and heights");
+    }
+    
+    std::unordered_map<int, std::shared_ptr<Node<T>>> newNodes;
+    std::unordered_map<int, Opening<T>> openings;
+
+    for (long unsigned int i=0; i<nodes.size(); ++i) {
+        newNodes.try_emplace(nodes[i], getNode(nodes[i]));
+        openings.try_emplace(nodes[i], Opening<T>{getNode(nodes[i]), normals[i], widths[i], heights[i]});
+    }
+
+    // create module
+    auto id = modules.size();
+    auto addModule = new lbmModule<T>(id, name, stlFile, position, size, newNodes, openings, charPhysLength, charPhysVelocity,
+                                        alpha, resolution, epsilon, tau);
+
+    // add this module to the reach of each node
+    for (auto& [k, node] : newNodes) {
+        modularReach.try_emplace(node->getId(), addModule);
+    }
+
+    // add module
+    modules.try_emplace(id, addModule);
+
+    return addModule;
+}
+
+template<typename T>
 bool Network<T>::hasNode(int nodeId_) const {
     return nodes.count(nodeId_);
 }

@@ -146,6 +146,10 @@ public:
     */
     Node<T>* addNode(T x, T y, bool ground=false);
 
+    int addNodePyBind(T x, T y, bool ground=false) {
+        return addNode(x, y, ground)->getId();
+    }
+
     /**
      * @brief Adds a new channel to the chip.
      * @param[in] nodeAId Id of the node at one end of the channel.
@@ -169,7 +173,6 @@ public:
      */
     RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type);
 
-
     /**
      * @brief Adds a new channel to the chip.
      * @param[in] nodeAId Id of the node at one end of the channel.
@@ -179,6 +182,19 @@ public:
      * @return Id of the newly created channel.
      */
     RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T resistance, ChannelType type);
+
+    /**
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @return Id of the newly created channel.
+     */
+    int addChannelPyBind(int nodeAId, int nodeBId, T height, T width, ChannelType type) {
+        return addChannel(nodeAId, nodeBId, height, width, type)->getId();
+    }
 
     /**
      * @brief Adds a new flow rate pump to the chip.
@@ -224,8 +240,34 @@ public:
 
     /**
      * @brief Adds a new module to the network.
+     * @param[in] name Name of the module.
+     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+     * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
+     * @param[in] size Absolute size of the module in m.
+     * @param[in] nodes Map of nodes that are on the module boundary.
+     * @param[in] openings Map of openings corresponding to the nodes.
+     * @param[in] charPhysLength Characteristic physical length of this simulator.
+     * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
+     * @param[in] alpha Relaxation parameter for this simulator.
+     * @param[in] resolution Resolution of this simulator.
+     * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
+     * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
+     * @return Pointer to the newly created module.
     */
-    int addModule();
+    lbmModule<T>* addModulePyBind(std::string name,
+                        std::string stlFile,
+                        std::vector<T> position,
+                        std::vector<T> size,
+                        std::vector<int> nodes,
+                        std::vector<std::vector<T>> normals,
+                        std::vector<T> widths,
+                        std::vector<T> heights,
+                        T charPhysLength, 
+                        T charPhysVelocity, 
+                        T alpha, 
+                        T resolution, 
+                        T epsilon, 
+                        T tau);
 
     /**
      * @brief Checks if a node with the specified id exists in the network.

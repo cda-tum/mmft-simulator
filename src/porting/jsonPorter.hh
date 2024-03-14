@@ -17,6 +17,16 @@ arch::Network<T> networkFromJSON(std::string jsonFile) {
 }
 
 template<typename T>
+void networkFromJSON(std::string jsonFile, arch::Network<T>* network) {
+
+    std::ifstream f(jsonFile);
+    json jsonString = json::parse(f);
+
+    readNodes(jsonString, *network);
+    readChannels(jsonString, *network);
+}
+
+template<typename T>
 arch::Network<T> networkFromJSON(json jsonString) {
 
     arch::Network<T> network;

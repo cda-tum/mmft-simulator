@@ -39,6 +39,9 @@ template<typename T>
 arch::Network<T> networkFromJSON(std::string jsonFile);
 
 template<typename T>
+void networkFromJSON(std::string jsonFile, arch::Network<T>*);
+
+template<typename T>
 arch::Network<T> networkFromJSON(nlohmann::json jsonString);
 
 template<typename T>
