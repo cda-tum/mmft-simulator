@@ -17,13 +17,13 @@ arch::Network<T> networkFromJSON(std::string jsonFile) {
 }
 
 template<typename T>
-void networkFromJSON(std::string jsonFile, arch::Network<T>* network) {
+void networkFromJSON(std::string jsonFile, arch::Network<T>& network) {
 
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
-    readNodes(jsonString, *network);
-    readChannels(jsonString, *network);
+    readNodes(jsonString, network);
+    readChannels(jsonString, network);
 }
 
 template<typename T>
@@ -45,6 +45,60 @@ sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* ne
     sim::Simulation<T> simulation = simulationFromJSON<T>(jsonString, network_);
 
     return simulation;
+}
+
+template<typename T>
+void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
+    
+    std::ifstream f(jsonFile);
+    json jsonString = json::parse(f);
+
+    sim::Platform platform = readPlatform<T>(jsonString, simulation);
+    sim::Type simType = readType<T>(jsonString, simulation);
+    int activeFixture = readActiveFixture<T>(jsonString);
+    simulation.setFixtureId(activeFixture);
+
+    simulation.setNetwork(network_);
+
+    readFluids<T>(jsonString, simulation);
+
+    if (platform == sim::Platform::Continuous) {
+        if (simType == sim::Type::CFD) {
+            throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
+        }
+    } else
+    if (platform == sim::Platform::BigDroplet) {
+        if (simType != sim::Type::Abstract) {
+            throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
+        }
+        //readDroplets<T>(jsonString, simulation);
+        readDropletInjections<T>(jsonString, simulation, activeFixture);
+    } else
+    if (platform == sim::Platform::Mixing) {
+        // NOT YET SUPPORTED
+        throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
+        // Import Species for Mixing platform
+            // TODO
+        // Import bolus injections in fixture
+            // TODO
+    } else {
+        throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
+    }
+
+    if (simType == sim::Type::Hybrid) {
+        readSimulators<T>(jsonString, network_);
+        network_->sortGroups();
+    }
+
+    if (simType == sim::Type::CFD) {
+        // NOT YET SUPPORTED
+        throw std::invalid_argument("Full CFD simulations are not yet supported in the simulator.");
+    }
+
+    readBoundaryConditions<T>(jsonString, simulation, activeFixture);
+    readContinuousPhase<T>(jsonString, simulation, activeFixture);
+    readPumps<T>(jsonString, network_);
+    readResistanceModel<T>(jsonString, simulation);
 }
 
 template<typename T>

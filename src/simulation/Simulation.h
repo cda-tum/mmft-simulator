@@ -148,8 +148,6 @@ public:
      */
     Droplet<T>* addDroplet(int fluidId, T volume);
 
-    int addDropletPyBind(int fluidId, T volume);
-
     /**
      * @brief Create injection.
      * @param[in] dropletId Id of the droplet that should be injected.

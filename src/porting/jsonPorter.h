@@ -39,13 +39,16 @@ template<typename T>
 arch::Network<T> networkFromJSON(std::string jsonFile);
 
 template<typename T>
-void networkFromJSON(std::string jsonFile, arch::Network<T>*);
+void networkFromJSON(std::string jsonFile, arch::Network<T>& network_);
 
 template<typename T>
 arch::Network<T> networkFromJSON(nlohmann::json jsonString);
 
 template<typename T>
 sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_);
+
+template<typename T>
+void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::Simulation<T>& simulation_);
 
 template<typename T>
 sim::Simulation<T> simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network_);

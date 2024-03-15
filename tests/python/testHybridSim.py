@@ -19,12 +19,12 @@ def continuousAbstract():
     network.addPressurePump(n0, n1, 1e3)
     network.addPressurePump(n0, n2, 1e3)
     network.addPressurePump(n0, n3, 1e3)
-    network.addChannel(n1, n4, 1e-4, 1e-4)
-    network.addChannel(n2, n5, 1e-4, 1e-4)
-    network.addChannel(n3, n6, 1e-4, 1e-4)
-    network.addChannel(n4, n5, 1e-4, 1e-4)
-    network.addChannel(n6, n5, 1e-4, 1e-4)
-    network.addChannel(n5, n7, 1e-4, 1e-4)
+    network.addChannel(n1, n4, 1e-4, 1e-4, ChannelType.normal)
+    network.addChannel(n2, n5, 1e-4, 1e-4, ChannelType.normal)
+    network.addChannel(n3, n6, 1e-4, 1e-4, ChannelType.normal)
+    network.addChannel(n4, n5, 1e-4, 1e-4, ChannelType.normal)
+    network.addChannel(n6, n5, 1e-4, 1e-4, ChannelType.normal)
+    network.addChannel(n5, n7, 1e-4, 1e-4, ChannelType.normal)
 
     network.sort()
     network.valid()
@@ -37,28 +37,28 @@ def continuousAbstract():
     simulation.setNetwork(network)
 
     # Fluid & Resistance Model
-    f0 = simulation.addFluid(1e3, 1e-3, 1.0)
+    f0 = simulation.addFluid(997, 1e-3, 1.0)
     simulation.setContinuousPhase(f0)
-    rm = ResistanceModelPoiseuille(f0.getViscosity())
-    simulation.setResistanceModel(rm)
+    simulation.setRectangularResistanceModel()
 
     simulation.simulate()
 
-    simulation.writeJSON("contAbst.JSON")
+    simulation.saveResult("contAbst.JSON")
 
 def continuousAbstractJSON():
+    
     network = Network()
-    readNetwork("../../../../examples/1D/Continuous/Network1.JSON", network)
+    network.loadNetwork("../../../../examples/1D/Continuous/Network1.JSON")
 
     network.sort()
     network.valid()
 
     simulation = Simulation()
-    readSimulation("../../../../examples/1D/Continuous/Network1.JSON", simulation)
+    simulation.loadSimulation(network, "../../../../examples/1D/Continuous/Network1.JSON")
 
     simulation.simulate()
 
-    simulation.writeJSON("constAbstjson.JSON")
+    simulation.saveResult("constAbstjson.JSON")
 
 def main():
     continuousAbstract()

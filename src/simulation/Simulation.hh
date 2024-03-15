@@ -27,16 +27,6 @@ namespace sim {
     }
 
     template<typename T>
-    int Simulation<T>::addDropletPyBind(int fluidId, T volume) {
-        auto id = droplets.size();
-        auto fluid = fluids.at(fluidId).get();
-
-        droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluid));
-
-        return id;
-    }
-
-    template<typename T>
     DropletInjection<T>* Simulation<T>::addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition) {
         auto id = dropletInjections.size();
         auto droplet = droplets.at(dropletId).get();
