@@ -42,11 +42,11 @@ void DropletInjectionEvent<T>::print() {
 
 
 template<typename T>
-MixtureInjectionEvent<T>::MixtureInjectionEvent(T time, MixtureInjection<T>& injection, InstantaneousMixingModel<T>* mixingModel) : 
-    Event<T>(time, 1), injection(injection), mixingModel(mixingModel) {}
+InstantaneousMixtureInjectionEvent<T>::InstantaneousMixtureInjectionEvent(T time, MixtureInjection<T>& injection, InstantaneousMixingModel<T>* mixingModel) : 
+    Event<T>(time, 1), injection(injection), mixingModel(mixingModel) { }
 
 template<typename T>
-void MixtureInjectionEvent<T>::performEvent() {
+void InstantaneousMixtureInjectionEvent<T>::performEvent() {
 
     auto channel = injection.getInjectionChannel();
     auto mixture = injection.getMixtureId();
@@ -57,8 +57,28 @@ void MixtureInjectionEvent<T>::performEvent() {
 }
 
 template<typename T>
-void MixtureInjectionEvent<T>::print() {
-    std::cout << "\n Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+void InstantaneousMixtureInjectionEvent<T>::print() {
+    std::cout << "\n Instantaneous Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+}
+
+template<typename T>
+DiffusiveMixtureInjectionEvent<T>::DiffusiveMixtureInjectionEvent(T time, MixtureInjection<T>& injection, DiffusionMixingModel<T>* mixingModel) : 
+    Event<T>(time, 1), injection(injection), mixingModel(mixingModel) {}
+
+template<typename T>
+void DiffusiveMixtureInjectionEvent<T>::performEvent() {
+
+    auto channel = injection.getInjectionChannel();
+    auto mixture = injection.getMixtureId();
+
+    mixingModel->injectMixtureInEdge(mixture, channel->getId());
+
+    injection.setPerformed(true);
+}
+
+template<typename T>
+void DiffusiveMixtureInjectionEvent<T>::print() {
+    std::cout << "\n Diffusive Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 
 }  // namespace sim

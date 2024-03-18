@@ -22,6 +22,10 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_) { }
 
 template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_) { }
+
+template<typename T>
 const std::unordered_map<int, T>& State<T>::getPressures() const {
     return pressures;
 }
@@ -34,6 +38,11 @@ const std::unordered_map<int, T>& State<T>::getFlowRates() const {
 template<typename T>
 std::unordered_map<int, sim::DropletPosition<T>>& State<T>::getDropletPositions() {
     return dropletPositions;
+}
+
+template<typename T>
+std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& State<T>::getMixturePositions() {
+    return mixturePositions;
 }
 
 template<typename T>
@@ -75,13 +84,14 @@ const void State<T>::printState() {
     }
     // print the mixture positions
     if ( !mixturePositions.empty() ) {
-        for (auto& [key, mixturePosition] : mixturePositions) {
-            std::cout << "\t";
-            std::cout << "\tBoundaries:\n";
-            std::cout << "\t\tChannel: " << mixturePosition.channel << "\n";
-            std::cout << "\t\tPosition1: " << mixturePosition.position1.getPosition() << "\n";
-            std::cout << "\t\tPosition2: " << mixturePosition.position2.getPosition() << std::endl;
+        for (auto& [channelId, deque] : mixturePositions){
+            std::cout << "\t[Result] Channel " << channelId << " contains\n";
+            for (auto& mixturePosition : deque) {
+                std::cout << "\t\tMixture " << mixturePosition.mixtureId << " from position "
+                << mixturePosition.position1 << " to " << mixturePosition.position2 << "\n";
+            }
         }
+        std::cout << "\n";
     }
 }
 
@@ -109,6 +119,13 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
 }
 
 template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions) {
+    int id = states.size();
+    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions);
+    states.push_back(std::move(newState));
+}
+
+template<typename T>
 const std::vector<std::unique_ptr<State<T>>>& SimulationResult<T>::getStates() const {
     return states;
 }
@@ -128,6 +145,110 @@ const void SimulationResult<T>::printLastState() const {
 template<typename T>
 const void SimulationResult<T>::printState(int key) const {
     states.at(key)->printState();
+}
+
+template<typename T>
+const void SimulationResult<T>::setMixtures(std::unordered_map<int, sim::Mixture<T>*> mixtures_) {
+    mixtures = mixtures_;
+}
+
+template<typename T>
+const std::unordered_map<int, sim::Mixture<T>*>& SimulationResult<T>::getMixtures() const {
+    return mixtures;
+}
+
+template<typename T>
+const void SimulationResult<T>::setDiffusiveMixtures(std::unordered_map<int, sim::DiffusiveMixture<T>*> mixtures_) {
+    diffusiveMixtures = mixtures_;
+}
+
+template<typename T>
+const std::unordered_map<int, sim::DiffusiveMixture<T>*>& SimulationResult<T>::getDiffusiveMixtures() const {
+    return diffusiveMixtures;
+}
+
+template<typename T>
+const void SimulationResult<T>::printMixtures() {
+
+    if (mixtures.empty()) {
+        throw std::invalid_argument("There are no mixture results stored.");
+    } else {
+        for (auto& [mixtureId, mixture] : mixtures) {
+            std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+            for (auto& [specieId, concentration] : mixture->getSpecieConcentrations()) {
+                std::cout << "\t\tSpecie " << specieId << " with concentration " << concentration << " kg/m^3\n";
+            }
+        }
+        std::cout << "\n";
+    }
+}
+
+template<typename T>
+const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, std::unique_ptr<sim::DiffusiveMixture<T>>>& diffMixtures) {
+    // TODO Maria, CSV Writer here
+    // TODO get a channel pointer
+    int numValues = 100; // Number of points to calculate
+
+    std::cout << "Generating CSV files" << std::endl;
+
+    T step = 1.0 / (numValues);
+
+    for (auto& [mixtureId, mixture] : diffMixtures) {
+        std::cout << "We have mixture " << mixtureId << " in diffMixtures" <<std::endl;
+        for (auto& [specieId, tuple] : mixture->getSpecieDistributions()) {
+            std::cout << "Mixture " << mixtureId << " contains species " << specieId <<std::endl;
+        }
+    }
+
+    for (auto& [mixtureId, mixture] : diffMixtures) { // adapt for diffusive mixtures
+        // std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+        std::cout << "Mixture " << mixtureId << std::endl;
+        for (auto& [specieId, tuple] : mixture->getSpecieDistributions()) {
+            std::cout << "Specie " << specieId << std::endl;
+            std::string outputFileName = "function_mixture"+std::to_string(mixtureId)+"_species"+std::to_string(specieId)+".csv";
+            std::cout << "Generating CSV file: " << outputFileName << std::endl;
+            // Open a file in write mode.
+            std::ofstream outputFile;
+            outputFile.open(outputFileName); // TODO maybe define this inside of the loop
+            // Write the header to the CSV file TODO adapt this to fit the specific mixture
+            outputFile << "x,f(x)\n";
+            // Calculate and write the values to the file
+            for (int i = 0; i < numValues; ++i) {
+                T x = i * step;
+                T y;
+                // y = tuple.first(x);
+                y = std::get<0>(tuple)(x);
+                outputFile << std::setprecision(4) << x << "," << y << "\n"; 
+            }
+            // Close the file
+            outputFile.close();
+            
+        }
+    }
+    std::cout << "CSV files has been generated " << std::endl;
+
+    // for (auto& [channelId, channel] : network->getChannels()) {
+    //     // Calculate the step size
+    //     double step = channel->getWidth() / (numValues - 1);
+
+    //     for (auto& [mixtureId, mixture] : diffMixtures) { // adapt for diffusive mixtures
+    //         // std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+    //         for (auto& [specieId, pair] : mixture->getSpecieDistributions()) {
+    //             // Calculate and write the values to the file
+    //             for (int i = 0; i < numValues; ++i) {
+    //                 T x = i * step;
+    //                 T y;
+    //                 if (mixture->getIsConstant()){ 
+    //                     y = species[specieId]->getConcentration(); // why is the getConcentration() defined in the fluid.h
+    //                 } else {
+    //                     y = species[specieId]->getConcentrationFunctionAtWidth(x); // TODO define this function?
+    //                 }
+    //                 y = pair.first(x);
+    //             outputFile << channelId << "," << std::fixed << std::setprecision(4) << x << "," << y << "\n"; 
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 }  // namespace droplet

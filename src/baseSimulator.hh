@@ -3,6 +3,7 @@
 #include "simulation/Fluid.hh"
 #include "simulation/Injection.hh"
 #include "simulation/Mixture.hh"
+#include "simulation/MixtureDistribution.hh"
 #include "simulation/MixtureInjection.hh"
 #include "simulation/MixingModels.hh"
 #include "simulation/ResistanceModels.hh"

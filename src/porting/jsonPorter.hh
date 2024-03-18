@@ -62,10 +62,10 @@ namespace porting {
             if (simType != sim::Type::_1D) {
                 throw std::invalid_argument("Mixing simulations are currently only supported for 1D simulations.");
             }
+            readMixingModel<T>(jsonString, simulation);
             readSpecies<T>(jsonString, simulation);
             readMixtures<T>(jsonString, simulation);
             readMixtureInjections<T>(jsonString, simulation, activeFixture);
-            readMixingModel<T>(jsonString, simulation);
         } else {
             throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
         }

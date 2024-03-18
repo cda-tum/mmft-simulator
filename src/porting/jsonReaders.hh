@@ -134,15 +134,15 @@ namespace porting {
                     std::unordered_map<int, T> concentrations;
                     for (auto& specie : mixture["species"]) {
                         auto specie_ptr = simulation.getSpecie(specie);
-                        species.try_emplace(counter, specie_ptr);
+                        species.try_emplace(specie, specie_ptr);
+                        concentrations.try_emplace(specie, mixture["concentrations"][counter]);
                         counter++;
                     }
-                    counter = 0;
-                    for (auto& concentration : mixture["concentrations"]) {
-                        concentrations.try_emplace(counter, concentration);
-                        counter++;
+                    if (simulation.diffusiveMixing) {
+                        simulation.addDiffusiveMixture(species, concentrations);
+                    } else {
+                        simulation.addMixture(species, concentrations);
                     }
-                    simulation.addMixture(species, concentrations);
                 } else {
                     throw std::invalid_argument("Wrongly defined mixture. Please provide as many concentrations as species.");
                 }
@@ -279,17 +279,22 @@ namespace porting {
 
     template<typename T>
     void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
-        sim::InstantaneousMixingModel<T>* mixingModel; 
+        sim::InstantaneousMixingModel<T>* instMixingModel; 
+        sim::DiffusionMixingModel<T>* diffMixingModel; 
         if (jsonString["simulation"].contains("mixingModel")) {
             if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
-                mixingModel = new sim::InstantaneousMixingModel<T>();
+                instMixingModel = new sim::InstantaneousMixingModel<T>();
+                simulation.setMixingModel(instMixingModel);
+            } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
+                diffMixingModel = new sim::DiffusionMixingModel<T>();
+                simulation.setMixingModel(diffMixingModel);
+                simulation.diffusiveMixing = true;
             } else {
-                throw std::invalid_argument("Invalid resistance model.");
+                throw std::invalid_argument("Invalid mixing model.");
             }
         } else {
             throw std::invalid_argument("No mixing model defined.");
         }
-        simulation.setMixingModel(mixingModel);
     }
 
     template<typename T>

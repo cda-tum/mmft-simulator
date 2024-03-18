@@ -1,5 +1,6 @@
 set(SOURCE_LIST 
     Architecture.test.cpp
+    Mixing.test.cpp
     Results.test.cpp
 )
 

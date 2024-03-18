@@ -52,10 +52,12 @@ namespace sim {
             std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
             std::unordered_map<int, std::unique_ptr<Specie<T>>> species;                        ///< Species specified for the simulation.
             std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
-            std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                                              ///< Mixtures present in the simulation.
+            std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
+            std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>> diffusiveMixtures;    ///< Diffusive Mixtures present in the simulation.
             std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;   ///< Injections of fluids that should take place during the simulation.
             ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for te simulation.
-            InstantaneousMixingModel<T>* mixingModel;
+            InstantaneousMixingModel<T>* instMixingModel;
+            DiffusionMixingModel<T>* diffMixingModel;
             int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
             int iteration = 0;
             int maxIterations = 1e5;
@@ -111,11 +113,19 @@ namespace sim {
             */
             void saveState();
 
+            /**
+             * @brief Store the mixtures in this simulation in simulationResult.
+            */
+            void saveMixtures();
+
         public:
             /**
              * @brief Creates simulation.
              */
             Simulation();
+
+            // TODO
+            bool diffusiveMixing = false;
 
             /**
              * @brief Create fluid.
@@ -156,6 +166,36 @@ namespace sim {
              * @return Pointer to created mixture.
              */
             Mixture<T>* addMixture(std::unordered_map<int, T> specieConcentrations);
+
+            /**
+             * @brief Create mixture.
+             * @param[in] specieIds
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+            
+            /**
+             * @brief Create mixture.
+             * @param[in] specieIds
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
+
+            /**
+             * @brief Create mixture.
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations);
+
+            /**
+             * @brief Create mixture.
+             * @param[in] specieConcentrations
+             * @return Pointer to created mixture.
+             */
+            DiffusiveMixture<T>* addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
             /**
              * @brief Create droplet injection.
@@ -223,6 +263,12 @@ namespace sim {
              * @param[in] model The mixing model to be used.
              */
             void setMixingModel(InstantaneousMixingModel<T>* model);
+
+            /**
+             * @brief Define which mixing model should be used for the concentrations.
+             * @param[in] model The mixing model to be used.
+             */
+            void setMixingModel(DiffusionMixingModel<T>* model);
 
             /**
              * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
@@ -296,6 +342,13 @@ namespace sim {
              * @return Pointer to mixture with the correspondig id
              */
             Mixture<T>* getMixture(int mixtureId);
+
+            /**
+             * @brief Get mixture.
+             * @param mixtureId Id of the mixture
+             * @return Pointer to mixture with the correspondig id
+             */
+            DiffusiveMixture<T>* getDiffusiveMixture(int mixtureId);
 
             /**
              * @brief Get mixture.

@@ -20,15 +20,16 @@ class Mixture;
 
 template<typename T>
 struct MixturePosition {
-    Mixture<T>* mixture;
-    arch::RectangularChannel<T>* channel;
-    arch::ChannelPosition<T> position1;
-    arch::ChannelPosition<T> position2;
+    int mixtureId;
+    int channel;
+    T position1;
+    T position2;
 
     /**
      * @brief Constructs a mixture position
     */
-    MixturePosition();
+    MixturePosition(int mixtureId, int channelId, T channelPos1, T channelPos2) : 
+        mixtureId(mixtureId), channel(channelId), position1(channelPos1), position2(channelPos2) { }
 };
 
 template<typename T>
@@ -130,6 +131,42 @@ public:
      * @param concentrationChange The change of concentration that will be added to the current concentration of the fluid.
      */
     void changeFluidConcentration(int fluidId, T concentrationChange);
+};
+
+template<typename T>
+class DiffusiveMixture : public Mixture<T> {
+private:
+
+    bool isConstant = true;
+
+    int resolution;
+
+    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
+
+public:
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions,T viscosity, T density, T largestMolecularSize, int resolution=10);
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution=10);
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution=10);
+
+    std::function<T(T)> getDistributionOfSpecie(int specieId) const;
+
+    void changeFluidConcentration(int fluidId, T concentrationChange);
+
+    const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const;
+
+    bool getIsConstant();
+
+    void setNonConstant();
+
+    void setResolution(int resolution);
+
+    int getResolution();
 };
 
 }   /// namespace sim

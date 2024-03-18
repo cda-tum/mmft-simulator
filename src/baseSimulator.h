@@ -8,6 +8,7 @@
 #include "simulation/Fluid.h"
 #include "simulation/Injection.h"
 #include "simulation/Mixture.h"
+#include "simulation/MixtureDistribution.h"
 #include "simulation/MixtureInjection.h"
 #include "simulation/MixingModels.h"
 #include "simulation/ResistanceModels.h"
