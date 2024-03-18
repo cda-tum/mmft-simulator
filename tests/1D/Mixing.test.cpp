@@ -435,9 +435,12 @@ TEST(DiffusionMixing, case1) {
     T cWidth = 100e-6;
     T cHeight = 100e-6;
     T cLength = 1000e-6;
-    T flowRate = 3e-11;
-    T pecletNr = (flowRate / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    T cLength2 = 0;
+    T flowRate1 = 3e-11;
+    T flowRate2 = 3e-11 * 0.5;
+    T pecletNr1 = (flowRate1 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    T pecletNr2 = (flowRate2 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
     int resolution = 100;
 
     // create necessary objects
@@ -452,18 +455,18 @@ TEST(DiffusionMixing, case1) {
     sim::DiffusionMixingModel<T> diffusionMixingModelTest = sim::DiffusionMixingModel<T>();
 
     // start outflowChannel, end outFlowchannel, stretchFactor, start inflowChannel, concentration
-    constantFlowSections.push_back({0.0, 0.5, 0.5, 0.0, 0.0, zeroFunction, zeroSegmentedResult, T(0.0)});
-    constantFlowSections.push_back({0.5, 1.0, 0.5, 0.0, 1.0, zeroFunction, zeroSegmentedResult, T(0.0)});
+    constantFlowSections.push_back({0.0, 0.5, 1.0, 0.0, 0.0, zeroFunction, zeroSegmentedResult, T(0.0)});
+    constantFlowSections.push_back({0.5, 1.0, 1.0, 0.0, 1.0, zeroFunction, zeroSegmentedResult, T(0.0)});
 
     // perform analytical solution for constant input
-    auto [fConstant0, segmentedResultConstant0, a_0_Constant0] = diffusionMixingModelTest.getAnalyticalSolutionConstant(cLength, cWidth, resolution, 2*pecletNr, constantFlowSections);
+    auto [fConstant0, segmentedResultConstant0, a_0_Constant0] = diffusionMixingModelTest.getAnalyticalSolutionConstant(cLength, cWidth, resolution, pecletNr1, constantFlowSections);
 
-    functionFlowSections1.push_back({0.0, 1.0, 1.0, 0.0, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
-    functionFlowSections2.push_back({0.0, 1.0, 1.0, 0.5, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
+    functionFlowSections1.push_back({0.0, 1.0, 2.0, 0.0, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // bottom outflow channel
+    functionFlowSections2.push_back({0.0, 1.0, 2.0, 0.5, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // top outflow channel
 
     // perform analytical solution for function input
-    auto [fFunction1, segmentedResultFunction1, a_0_Function1] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr, functionFlowSections1, fConstant0);
-    auto [fFunction2, segmentedResultFunction2, a_0_Function2] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr, functionFlowSections2, fConstant0);
+    auto [fFunction1, segmentedResultFunction1, a_0_Function1] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength2, cWidth, resolution, pecletNr2, functionFlowSections1, zeroFunction);
+    auto [fFunction2, segmentedResultFunction2, a_0_Function2] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength2, cWidth, resolution, pecletNr2, functionFlowSections2, zeroFunction);
 
     // generate resulting csv files
     std::ofstream outputFile0;
@@ -478,11 +481,13 @@ TEST(DiffusionMixing, case1) {
     outputFile1 << "x,f(x)\n";
     outputFile2 << "x,f(x)\n";
 
-    int numValues = 100;
-    T step = 1.0 / (numValues);
+    int numValues = 1001;
+    double xStart = 0.0, xEnd = 1.0;
+    double range = xEnd - xStart;
+    double step = range / (numValues - 1);
 
     for (int i = 0; i < numValues; ++i) {
-        T x = i * step;
+        T x = xStart + i * step;
         T y0;
         T y1;
         T y2;
@@ -493,70 +498,10 @@ TEST(DiffusionMixing, case1) {
         outputFile1 << std::setprecision(4) << x << "," << y1 << "\n"; 
         outputFile2 << std::setprecision(4) << x << "," << y2 << "\n"; 
     }
-    // Close the file
+    // Close the files
     outputFile0.close();
     outputFile1.close();
     outputFile2.close();
-
-    // // Define Simulation
-    // sim::Simulation<T> testSimulation;
-    // testSimulation.setType(sim::Type::Abstract);
-    // testSimulation.setPlatform(sim::Platform::Mixing);
-
-    // // define network
-    // arch::Network<T> network;
-    // testSimulation.setNetwork(&network);
-
-    // // nodes
-    // auto node0 = network.addNode(1e-3, 0.0, false);
-    // auto node1 = network.addNode(1e-3, 2e-3, false);
-    // auto node2 = network.addNode(2e-3, 1e-3, false);
-    // auto node3 = network.addNode(4e-3, 1e-3, false);
-    // auto node4 = network.addNode(5e-3, 0.0, true);
-    // auto node5 = network.addNode(5e-3, 2e-3, true);
-    // auto node6 = network.addNode(0.0, 0.0, true);
-    // auto node7 = network.addNode(0.0, 2e-3, true);
-
-    // // channels
-    // auto cWidth = 100e-6;
-    // auto cHeight = 100e-6;
-    // auto cLength = 1000e-6;
-    // T flowRate = 3e-11;
-
-    // auto c0 = network.addChannel(node0->getId(), node2->getId(), cHeight, cWidth, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
-    // auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
-    // auto c2 = network.addChannel(node2->getId(), node3->getId(), cHeight, cWidth, 2e-3, arch::ChannelType::NORMAL);
-    // auto c3 = network.addChannel(node3->getId(), node4->getId(), cHeight, cWidth*2, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
-    // auto c4 = network.addChannel(node3->getId(), node5->getId(), cHeight, cWidth, sqrt(2)*1e-3, arch::ChannelType::NORMAL);
-    // auto c5 = network.addPressurePump(node6->getId(), node0->getId(), 100);
-    // auto c6 = network.addPressurePump(node7->getId(), node1->getId(), 100);
-
-    // auto fluid1 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-
-    // testSimulation.setContinuousPhase(fluid1->getId());
-
-    // sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(testSimulation.getContinuousPhase()->getViscosity());
-    // testSimulation.setResistanceModel(&resistanceModel);
-    // sim::DiffusionMixingModel<T> diffusionMixingModel = sim::DiffusionMixingModel<T>();
-    // testSimulation.setMixingModel(&diffusionMixingModel);
-    // testSimulation.diffusiveMixing = true;
-
-    // // Check if network is valid
-    // network.isNetworkValid();
-    // network.sortGroups();
-
-    // T flowRateC2 = c2->getFlowRate();
-    // T velocity = c2->getFlowRate() / c2->getArea();
-
-    // auto specie1 = testSimulation.addSpecie(1e-8, 8.3);
-    // std::unordered_map<int, T> species;
-    // species.try_emplace(specie1->getId(), 1.0);
-    // sim::DiffusiveMixture<T>* mixture = testSimulation.addDiffusiveMixture(species);
-    // testSimulation.addMixtureInjection(mixture->getId(), c1->getId(), 0.0);
-
-    // testSimulation.simulate();
-
-    // std::cout << "Flow Rate: " << flowRateC2 << "\tVelocity:" << velocity << std::endl;
 
 }
 
