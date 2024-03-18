@@ -35,6 +35,11 @@ PYBIND11_MODULE(pyhybridsim, m) {
 		.def("addNode", [](arch::Network<T> &network, T x, T y, bool ground) {
 			return network.addNode(x, y, ground)->getId();
 			}, "Add a new node to the network.")
+		.def("addNode", [](arch::Network<T> &network, T x, T y, bool ground, bool sink) {
+			int id = network.addNode(x, y, ground)->getId();
+			network.setSink(id);
+			return id;
+			}, "Add a new node to the network.")
 		.def("addChannel", [](arch::Network<T> &network, int nodeAId, int nodeBId, T height, T width, arch::ChannelType type) {
 			return network.addChannel(nodeAId, nodeBId, height, width, type)->getId();
 			}, "Add a new channel to the network.")
