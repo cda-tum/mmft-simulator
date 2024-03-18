@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <deque>
 #include <iostream>
+#include <cmath>
 
 #define M_PI 3.14159265358979323846
 
@@ -531,9 +532,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                 outflowDistributions.at(flow.at(0).channelId).push_back(flow3);
                 FlowSection<T> flow4 {counterClockWise.at(0).channelId, ratio2, 1.0, (1.0 - ratio2)*network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()};
                 outflowDistributions.at(opposed.at(0).channelId).push_back(flow4);
-
             }
-
         } else {
             throw std::invalid_argument("Too many channels at node " + std::to_string(nodeId) + " for DiffusionMixingModel.");
         }
@@ -542,40 +541,27 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
 
 template<typename T>
 std::tuple<std::function<T(T)>, std::vector<T>, T>DiffusionMixingModel<T>::getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
-
     T a_0 = 0.0;
     std::vector<T> segmentedResult;
-    // T a_n = 0.0;
 
-    for (int n = 1; n < 10*resolution; n++) {
-        for (const auto& parameter : parameters) {
-            // T a_n = (2/M_PI) * parameter.concentrationAtChannelEnd * (1/n) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does not work
-            T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does work, why?
-            // std::cout << "a_n should be " << a_n << " = 2 * " << parameter.concentrationAtChannelEnd << "*" << n 
-            //     << "*(" << sin(n * M_PI * parameter.endWidth) << "-" << sin(n * M_PI * parameter.startWidth) << ")"  << std::endl;
-            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
-            // std::cout << "Following is pushed back: " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << 
-            // " = " << a_n << " * exp(" << -pow(n, 2) << "*"  <<  pow(M_PI, 2) << "*" << (1 / pecletNr) << "*" << channelLength << std::endl;
+    for (const auto& parameter : parameters) {
+        for (int n = 1; n < resolution; n++) {
+            T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth)); 
+                segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
         }
     }
 
     for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
-            // a_0 += 2 * (parameter.concentrationAtChannelEnd)  * (parameter.endWidth - parameter.startWidth); // this does not work
-            a_0 += (parameter.concentrationAtChannelEnd/parameter.stretchFactor)  * (parameter.endWidth - parameter.startWidth); // this does work, why?
+            a_0 += 2 * parameter.concentrationAtChannelEnd  * (parameter.endWidth - parameter.startWidth);
         }
 
     auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
 
-        for (int n = 1; n < 10*resolution; n++) {
-            for (const auto& parameter : parameters) {
-                // T a_n = (2/M_PI) * (parameter.concentrationAtChannelEnd) * (1 / n)  * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does not work
-                T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)); // this does work, why?
+        for (const auto& parameter : parameters) {
+            for (int n = 1; n < resolution; n++) {
+                T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
                 f_sum += a_n * std::cos(n * M_PI * (w)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
-                // std::cout << "startWidth: " << parameter.startWidth << "\t endWidth: " << parameter.endWidth << "\t concAtChannelEnd: " 
-                // << parameter.concentrationAtChannelEnd << "\t stretchFactor: " << parameter.stretchFactor << std::endl;
-                //segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength)); // * std::cos(0.5 * n * M_PI * w) // store that in the other struct as well?
-                //std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
             }
         }
         return 0.5 * a_0 + f_sum;
@@ -584,43 +570,39 @@ std::tuple<std::function<T(T)>, std::vector<T>, T>DiffusionMixingModel<T>::getAn
 }
 
 
-template<typename T> // TODO maybe combine this function with the function above
+template<typename T> 
 std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
     // From Channel Start to Channel End for complex input
     std::vector<T> segmentedResult;
     T a_0 = 0.0;
     T a_n = 0.0;
-    for (int n = 1; n < 10*resolution; n++) {    
-        for (const auto& parameter : parameters) {
+    for (const auto& parameter : parameters) {
+        T a_0_old = parameter.a_0_old;
+        T stretchFactor = parameter.stretchFactor;
+        for (int n = 1; n < resolution; n++) {
+            a_n = a_0_old / (M_PI * n) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
+            
             for (int i = 0; i < parameter.segmentedResult.size(); i++) {
-                // std::cout << "stretchFactor" << parameter.stretchFactor << std::endl;
-                T stretchFactor = parameter.stretchFactor; // Moved here
-                T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
-                // a_0 += 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
-                // T a_0 = 1.25;
+                T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
+                int oldN = (i % (resolution - 1)) + 1;
 
-
-                a_n += (2 / M_PI) * 0.5 * (
-                (1/(n * M_PI * (1/stretchFactor + 1))) * 
-                (std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor + 1)))    // Changed parameters -> parameter
-                + (1/(n * M_PI * (1/stretchFactor - 1))) * 
-                std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.startWidth * (n * M_PI * (1/stretchFactor - 1))) 
-                - (1/(n * M_PI * (1/stretchFactor - 1))) * 
-                std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor + 1))) 
-                + (1/(n * M_PI * (1/stretchFactor - 1))) * 
-                std::sin(-startWidthIfFunctionWasSplit * (n * M_PI) / stretchFactor + parameter.endWidth * (n * M_PI * (1/stretchFactor - 1)))))
-                * parameter.segmentedResult[i];
+                if (abs(oldN/stretchFactor - n) < 1e-8) { 
+                    a_n += 2 * (0.5 * parameter.endWidth - 0.5 * parameter.startWidth + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
+                        * parameter.segmentedResult[i];
+                } else {
+                    a_n += (1 / ((oldN * M_PI / stretchFactor) + n * M_PI)) *
+                        (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.endWidth * (oldN * M_PI / stretchFactor) + parameter.endWidth * (n * M_PI))
+                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.startWidth * (oldN * M_PI / stretchFactor) + parameter.startWidth * (n * M_PI)))
+                        * parameter.segmentedResult[i];
+                    a_n += (1 / ((oldN * M_PI / stretchFactor) - n * M_PI)) * 
+                        (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.endWidth * (oldN * M_PI / stretchFactor) - parameter.endWidth * (n * M_PI)) 
+                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.startWidth * (oldN * M_PI / stretchFactor) - parameter.startWidth * (n * M_PI)))
+                        * parameter.segmentedResult[i];
+                }
             }
             segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
-            std::cout << "Following is pushed back: " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << 
-            " = " << a_n << " * exp(" << -pow(n, 2) << "*"  <<  pow(M_PI, 2) << "*" << (1 / pecletNr) << "*" << channelLength << std::endl;
         }
     }
-    // std::cout<<"segmentedResultFunction in getAnalyticalSolutionFunction"<<std::endl;
-    // for (auto& element : segmentedResult) {
-    //     std::cout << "an element is: " << element << std::endl;
-    // }
-    // std::cout<<std::endl;
 
     auto f = [channelLength, channelWidth, resolution, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
@@ -628,57 +610,48 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         T a_n = 0.0;
 
         // calculating a_0
-        for (const auto& parameter : parameters) { // there should be one a_0_old per section
+        for (const auto& parameter : parameters) {
             T a_0_old = parameter.a_0_old;
-            a_0 += 0.5 * a_0_old * (parameter.endWidth - parameter.startWidth);
+            a_0 += a_0_old * (parameter.endWidth - parameter.startWidth); 
             for (int i = 0; i < parameter.segmentedResult.size(); i++) { 
-                T stretchFactor = parameter.stretchFactor; // Moved here
-                T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
-                // int sectionNrOld = parameter.segmentedResult.size() / (10 * resolution-1);
-                int oldN = (i % (resolution * 10 - 1)) + 1; 
-                a_0 += parameter.segmentedResult[i] * (stretchFactor / oldN * M_PI) * 
-                (sin(oldN * M_PI * 1/stretchFactor * parameter.endWidth - startWidthIfFunctionWasSplit / stretchFactor) - 
-                sin(oldN * M_PI * 1/stretchFactor * parameter.startWidth - startWidthIfFunctionWasSplit / stretchFactor));
+                T stretchFactor = parameter.stretchFactor;
+                T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
+                int oldN = (i % (resolution - 1)) + 1;
+                a_0 += 2 * parameter.segmentedResult[i] * stretchFactor/(oldN * M_PI) * 
+                    (std::sin(oldN * M_PI * parameter.endWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit) 
+                    - std::sin(oldN * M_PI * parameter.startWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit));
             }
-        }
-
-        
+        }     
 
         // Calculating a_n
-        for (int n = 1; n < 10*resolution; n++) {    
-            for (const auto& parameter : parameters) {
-                T a_0_old = parameter.a_0_old;
-                a_n += 0.5 * a_0_old * 1/ (n * M_PI) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
+        for (const auto& parameter : parameters) {
+            T a_0_old = parameter.a_0_old;
+            T stretchFactor = parameter.stretchFactor;
+            for (int n = 1; n < resolution; n++) {
+                a_n = a_0_old / (M_PI * n) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
+                
                 for (int i = 0; i < parameter.segmentedResult.size(); i++) {
-                    T stretchFactor = parameter.stretchFactor; // Moved here
-                    T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit; // Moved here
-                    int oldN = (i % (resolution * 10 - 1)) + 1;
+                    T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
+                    int oldN = (i % (resolution - 1)) + 1;
 
-                    // T a_0 = 2 / M_PI * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
-                    // a_0 += 2 * ((parameter.endWidth - parameter.startWidth) + parameter.segmentedResult[i] * (1/(n * M_PI)) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth)));
-                    // T a_0 = 2 / M_PI * parameter.segmentedResult[i] * n * M_PI * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-                    // a_0 += parameter.segmentedResult[i]* (1 / M_PI) * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-                    // T a_0 = 1.25;
-
-                    a_n += (2 / M_PI) * 0.5 * (
-                    (1/((oldN * M_PI) / stretchFactor + n * M_PI)) * 
-                    (std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.startWidth * ((oldN * M_PI) / stretchFactor + n * M_PI))
-                    + (1/((oldN * M_PI) / stretchFactor - n * M_PI)) * 
-                    std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.startWidth * ((oldN * M_PI) / stretchFactor - n * M_PI)) 
-                    - (1/((oldN * M_PI) / stretchFactor + n * M_PI)) * 
-                    std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.endWidth * ((oldN * M_PI) / stretchFactor + n * M_PI)) 
-                    + (1/((oldN * M_PI) / stretchFactor - n * M_PI)) * 
-                    std::sin(-startWidthIfFunctionWasSplit * (oldN * M_PI) / stretchFactor + parameter.endWidth * ((oldN * M_PI) / stretchFactor - n * M_PI))))
-                    * parameter.segmentedResult[i];
+                    if (abs(oldN/stretchFactor - n) < 1e-8) { 
+                        a_n += 2 * (0.5 * parameter.endWidth - 0.5 * parameter.startWidth + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
+                            * parameter.segmentedResult[i];
+                    } else {
+                        a_n += (1 / ((oldN * M_PI / stretchFactor) + n * M_PI)) *
+                            (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.endWidth * (oldN * M_PI / stretchFactor) + parameter.endWidth * (n * M_PI))
+                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.startWidth * (oldN * M_PI / stretchFactor) + parameter.startWidth * (n * M_PI)))
+                            * parameter.segmentedResult[i];
+                        a_n += (1 / ((oldN * M_PI / stretchFactor) - n * M_PI)) * 
+                            (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.endWidth * (oldN * M_PI / stretchFactor) - parameter.endWidth * (n * M_PI)) 
+                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.startWidth * (oldN * M_PI / stretchFactor) - parameter.startWidth * (n * M_PI)))
+                            * parameter.segmentedResult[i];
+                    }
                 }
-                // T a_n = 2 * parameter.concentration * n * (sin(n * M_PI * parameter.endWidth) - sin(n * M_PI * parameter.startWidth));
-                f_sum += a_n * std::cos(n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength);
-                //segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength));
-                //std::cout<<"Following should be pushed_back " << a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * channelLength) << std::endl;
-            
+                f_sum += a_n * std::cos(n * M_PI * w) * std::exp(-n*n*M_PI*M_PI* (1 / pecletNr) * channelLength);          
             }
         }
-        return 0.5 * a_0 + f_sum + fConstant(w);
+        return 0.5 * a_0 + f_sum + fConstant(w); 
     };
 
     return {f, segmentedResult, a_0}; 
@@ -697,11 +670,9 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
     for (const auto& flowSection : flowSections) {
         T startWidth = prevEndWidth;
-        T endWidth = startWidth + flowSection.flowRate / currChannelFlowRate;
+        T endWidth = startWidth + (1/(flowSection.flowRate / currChannelFlowRate));
         prevEndWidth = endWidth;
         T stretchFactor = flowSection.flowRate / currChannelFlowRate;
-        std::cout << "The stretchFactor is " << stretchFactor << std::endl;
-        std::cout << "The flowSection flowrate is " << flowSection.flowRate << "and the currChannelFlowRate" << currChannelFlowRate<<std::endl;
         T startWidthIfFunctionWasSplit = flowSection.sectionStart;
 
         if (!filledEdges.count(flowSection.channelId)){
@@ -738,18 +709,10 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
     auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalSolutionConstant(channelLength, channelWidth, resolution, pecletNr, constantFlowSections);
     auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalSolutionFunction(channelLength, channelWidth, resolution, pecletNr, functionFlowSections, fConstant);
 
-    //segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
-
     segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
 
-    // std::cout<<"segmentedResultFunction"<<std::endl;
-    // for (auto& element : segmentedResultFunction) {
-    //     std::cout << "an element is: " << element << std::endl;
-    // }
-    // std::cout<<std::endl;
     T a_0 = a_0_Constant + a_0_Function;
 
-    // return {fFunction, segmentedResultFunction, a_0};
     return {fFunction, segmentedResultFunction, a_0};
 
 }
