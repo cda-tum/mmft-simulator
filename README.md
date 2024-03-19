@@ -16,9 +16,40 @@ For more information about our work on Microfluidics, please visit https://www.c
 
 If you have any questions, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
 
+<style>
+table.css3 tbody tr + tr td:nth-child(3) {  
+    background-image: repeating-linear-gradient( -45deg, #ddd, #ddd 5px, #ccc 5px, #ccc 10px );
+    background-repeat: no-repeat;
+}
+</style>
+
+<center>
+<table class="css3">
+<thead>
+<tr>
+  <th></th>
+  <th>Abstract</th>
+  <th>Hybrid</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Continuous</td>
+  <td style="text-align: center; vertical-align: middle;">&#x2705;</td>
+  <td style="text-align: center; vertical-align: middle;">&#x2705;</td>
+</tr>
+<tr>
+  <td>Droplet</td>
+  <td style="text-align: center; vertical-align: middle;">&#x2705;</td>
+  <td></td>
+</tr>
+</tbody>
+</table>
+</center>
+
 ## System Requirements
 
-The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.7 or newer. The package is currently tested for Linux distributions.
+The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.7 or newer. The package is currently tested for Linux distributions and MacOS.
 
 ## Usage
 ### C++
