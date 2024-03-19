@@ -1,6 +1,7 @@
 set(SOURCE_LIST 
     Architecture.test.cpp
-    Results.test.cpp
+    BigDroplet.test.cpp
+    Continuous.test.cpp
 )
 
 target_sources(${TARGET_NAME} PRIVATE ${SOURCE_LIST})

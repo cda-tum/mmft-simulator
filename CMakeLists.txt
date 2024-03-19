@@ -119,7 +119,7 @@ endif()
 
 # create tests
 option(TEST "Configure for building test cases")
-if(TEST_INCLUDE_FILE)
+if(TEST)
     enable_testing()
     include(GoogleTest)
     set(TARGET_NAME testLib)
