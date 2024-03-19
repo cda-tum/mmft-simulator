@@ -19,7 +19,7 @@ If you have any questions, feel free to contact us via microfluidics.cda@xcit.tu
 <div align="center">
 
 |               | Abstract      | Hybrid        |
-| -----------   | :-----------: | :-----------: |
+| :-----------  | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      |
 | Droplet       | &#x2705;      |   |
 
