@@ -22,7 +22,9 @@ enum class ModuleType {
     MIXER,      ///< A mixer module that mixes the incoming fluids to a certain degree.
     HEATER,     ///< A heater module that heats the passing fluid to a certain degree.
     ORGAN,      ///< An organ module that models the functionality of an organ in the network.
-    LBM         ///< A CFD module that maps the LBM simulation result on the 1D level.
+    LBM,         ///< A CFD module that maps the LBM simulation result on the 1D level.
+    ESS_LBM         ///< A CFD module that maps the LBM simulation result on the 1D level.
+
 };
 
 /**

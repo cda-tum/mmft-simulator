@@ -40,6 +40,68 @@ TEST(Hybrid, testCase1a) {
 
 }
 
+TEST(Hybrid, esstest) {
+
+    std::string file = "../examples/Hybrid/Network1a.JSON";
+
+    // Load and set the network from a JSON file
+    arch::Network<float> network = porting::networkFromJSON<float>(file);
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<float> testSimulation = porting::simulationFromJSON<float>(file, &network);
+
+    std::ifstream f(file);
+    json jsonString = json::parse(f);
+
+
+    for (auto& module : jsonString["simulation"]["settings"]["simulators"])
+    {
+        std::string name = module["name"];
+
+        std::vector<float> position = { module["posX"], module["posY"] };
+        std::vector<float> size = { module["sizeX"], module["sizeY"] };
+
+        std::unordered_map<int, std::shared_ptr<arch::Node<float>>> Nodes;
+        std::unordered_map<int, arch::Opening<float>> Openings;
+        for (auto& opening : module["Openings"]) {
+            int nodeId = opening["node"];
+            Nodes.try_emplace(nodeId, network.getNode(nodeId));
+            std::vector<float> normal = { opening["normal"]["x"], opening["normal"]["y"] };
+            arch::Opening<float> opening_(network.getNode(nodeId), normal, opening["width"]);
+            Openings.try_emplace(nodeId, opening_);
+        }
+        network.addModule(name, file, position, size, Nodes, Openings);
+    }
+
+    network.sortGroups();
+
+
+    network.isNetworkValid();
+
+    // Simulate
+    testSimulation.simulate();
+
+    ASSERT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(2)->getPressure(), 1000, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(3)->getPressure(), 1000, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(4)->getPressure(), 859.216, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(5)->getPressure(), 791.962, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(6)->getPressure(), 859.216, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(7)->getPressure(), 753.628, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(8)->getPressure(), 753.628, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(9)->getPressure(), 422.270, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(10)->getPressure(), 0, 1e-3);
+
+    ASSERT_NEAR(network.getChannels().at(3)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(4)->getFlowRate(), 2.31153e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(5)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(6)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(7)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 4.69188e-9, 1e-14);
+
+}
+
 /*
 TEST(Hybrid, testCase2a) {
     

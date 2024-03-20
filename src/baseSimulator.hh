@@ -15,6 +15,7 @@
 #include "architecture/Edge.hh"
 #include "architecture/FlowRatePump.hh"
 #include "architecture/lbmModule.hh"
+#include "architecture/essLbmModule.hh"
 #include "architecture/Module.hh"
 #include "architecture/Network.hh"
 #include "architecture/Node.hh"

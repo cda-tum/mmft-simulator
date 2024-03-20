@@ -8,7 +8,7 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
                     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
                     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
                     std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_) :
-                    nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_), 
+                    nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_),
                     pressurePumps(pressurePumps_), modules(modules_) { }
 
 template<typename T>
@@ -113,7 +113,7 @@ Network<T>::Network(std::string jsonFile) {
             addChannel = new RectangularChannel<T>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
                 line_segments, arcs, channel["width"], channel["height"]);
         } else {
-            addChannel = new RectangularChannel<T>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]), 
+            addChannel = new RectangularChannel<T>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
                 channel["width"], channel["height"]);
         }
         channels.try_emplace(channel["iD"], addChannel);
@@ -136,8 +136,8 @@ Network<T>::Network(std::string jsonFile) {
         }
         std::vector<T> position = { module["posX"], module["posY"] };
         std::vector<T> size = { module["sizeX"], module["sizeY"] };
-        lbmModule<T>* addModule = new lbmModule<T>( module["iD"], module["name"], module["stlFile"],  
-                                                    position, size, Nodes, Openings, 
+        lbmModule<T>* addModule = new lbmModule<T>( module["iD"], module["name"], module["stlFile"],
+                                                    position, size, Nodes, Openings,
                                                     module["charPhysLength"], module["charPhysVelocity"],
                                                     module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
         modules.try_emplace(module["iD"], addModule);
@@ -309,6 +309,29 @@ lbmModule<T>* Network<T>::addModule(std::string name,
 }
 
 template<typename T>
+essLbmModule* Network<T>::addModule(std::string name,
+                                    std::string jsonFile,
+                                    std::vector<float> position,
+                                    std::vector<float> size,
+                                    std::unordered_map<int, std::shared_ptr<Node<float>>> nodes,
+                                    std::unordered_map<int, Opening<T>> openings)
+{
+    // create module
+    auto id = modules.size();
+    auto addModule = new essLbmModule(id, name, jsonFile, position, size, nodes, openings);
+
+    // add this module to the reach of each node
+    for (auto& [k, node] : nodes) {
+        modularReach.try_emplace(node->getId(), addModule);
+    }
+
+    // add module
+    modules.try_emplace(id, addModule);
+
+    return addModule;
+}
+
+template<typename T>
 bool Network<T>::hasNode(int nodeId_) const {
     return nodes.count(nodeId_);
 }
@@ -442,7 +465,7 @@ const std::unordered_map<int, std::unique_ptr<Group<T>>>& Network<T>::getGroups(
 template<typename T>
 void Network<T>::toJson(std::string jsonString) const {
     /** TODO
-     * 
+     *
     */
 }
 
@@ -492,7 +515,7 @@ void Network<T>::sortGroups() {
                 }
             }
         }
-        
+
         while(!connectedNodes.empty()) {
             auto q = nodeIds.insert(connectedNodes.front());
             if (q.second) {
@@ -521,7 +544,7 @@ void Network<T>::sortGroups() {
 
         Group<T>* addGroup = new Group<T>(groupId, nodeIds, edgeIds, this);
         groups.try_emplace(groupId, addGroup);
-        
+
         groupId++;
     }
 }
@@ -622,7 +645,7 @@ bool Network<T>::isNetworkValid() {
     }
 
     if (errorNodes.length() != 0 || errorEdges.length() != 0 || errorModules.length() != 0) {
-        throw std::invalid_argument("Network is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: " 
+        throw std::invalid_argument("Network is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: "
             + errorEdges + ". The following modules are not connected to ground: " + errorModules);
         return false;
     }

@@ -23,6 +23,7 @@ template<typename T>
 class FlowRatePump;
 template<typename T>
 class lbmModule;
+class essLbmModule;
 template<typename T>
 class Module;
 template<typename T>
@@ -221,6 +222,22 @@ public:
                             std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
                             std::unordered_map<int, Opening<T>> openings,
                             T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+
+    /**
+     * @brief Adds a new module to the network.
+     * @param[in] name Name of the module.
+     * @param[in] JsonFile Location of the input JSON file of the case.
+     * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
+     * @param[in] size Absolute size of the module in m.
+     * @param[in] nodes Map of nodes that are on the module boundary.
+     * @param[in] openings Map of openings corresponding to the nodes.
+    */
+    essLbmModule* addModule(std::string name,
+                            std::string jsonFile,
+                            std::vector<float> position,
+                            std::vector<float> size,
+                            std::unordered_map<int, std::shared_ptr<Node<float>>> nodes,
+                            std::unordered_map<int, Opening<T>> openings);
 
     /**
      * @brief Adds a new module to the network.

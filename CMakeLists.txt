@@ -47,6 +47,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
+option(VERBOSE "VERBOSE" ON)
+if(VERBOSE)
+    add_definitions(-DVERBOSE)
+endif()
+
+option(USE_ESSLBM "USE_ESSLBM" ON)
+if(USE_ESSLBM)
+    find_package(ESSLbm REQUIRED)
+    find_package(OpenMP REQUIRED)
+    find_package(MPI REQUIRED)
+    find_package(CUDAToolkit REQUIRED)
+endif()
+
 add_library(lbmLib)
 
 set(EXTERNAL_DIR ${lbm_SOURCE_DIR}/external)
@@ -103,6 +116,8 @@ add_library(${TARGET_NAME})
 
 # add sources
 add_subdirectory(src)
+
+target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
 
 # create executable and tests (if build as main project)
 

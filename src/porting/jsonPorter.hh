@@ -73,10 +73,10 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }
 
-    if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, network_);
-        network_->sortGroups();
-    }
+//    if (simType == sim::Type::Hybrid) {
+//        readSimulators<T>(jsonString, network_);
+//        network_->sortGroups();
+//    }
 
     if (simType == sim::Type::CFD) {
         // NOT YET SUPPORTED
