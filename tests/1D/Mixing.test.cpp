@@ -473,9 +473,9 @@ TEST(DiffusionMixing, case1) {
     std::ofstream outputFile1;
     std::ofstream outputFile2;
 
-    outputFile0.open("out0.csv");
-    outputFile1.open("out1.csv");
-    outputFile2.open("out2.csv");
+    outputFile0.open("Case1out0.csv");
+    outputFile1.open("Case1out1.csv");
+    outputFile2.open("Case1out2.csv");
     
     outputFile0 << "x,f(x)\n";
     outputFile1 << "x,f(x)\n";
@@ -559,10 +559,10 @@ TEST(DiffusionMixing, case2) {
     std::ofstream outputFile2;
     std::ofstream outputFile3;
 
-    outputFile0.open("out0.csv");
-    outputFile1.open("out1.csv");
-    outputFile2.open("out2.csv");
-    outputFile3.open("out3.csv");
+    outputFile0.open("Case2out0.csv");
+    outputFile1.open("Case2out1.csv");
+    outputFile2.open("Case2out2.csv");
+    outputFile3.open("Case2out3.csv");
     
     outputFile0 << "x,f(x)\n";
     outputFile1 << "x,f(x)\n";

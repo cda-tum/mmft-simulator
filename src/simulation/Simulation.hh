@@ -605,8 +605,8 @@ namespace sim {
                 while(true) {
                     std::cout << "Current time: " << time << std::endl;
                     std::cout << "Current timestep: " << timestep << std::endl;
-                    if (iteration >= 10) {
-                        throw "Max iterations exceeded.";
+                    if (iteration >= 100) {
+                        throw std::invalid_argument("Max iterations exceeded.");
                         break;
                     }
                     // compute nodal analysis
@@ -651,7 +651,6 @@ namespace sim {
                     
                     std::cout << "[Debug] Calculate and store the mixtures flowing into all nodes." << std::endl;
                     this->diffMixingModel->updateDiffusiveMixtures(timestep, network, this, diffusiveMixtures);
-                    //this->diffMixingModel->updateNodeInflow(timestep, network, this, diffusiveMixtures);
                     
                     std::cout << "PerformEvent" << std::endl; 
                     nextEvent->performEvent();

@@ -28,7 +28,9 @@ int main(int argc, char const* argv []) {
     sim.simulate();
 
     // results
-    //result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim.getSimulationResults();
+
+    porting::resultToJSON("../DiffusionCase2.JSON", &sim);
 
     return 0;
 }

@@ -187,11 +187,11 @@ template<typename T>
 const void SimulationResult<T>::writeDiffusiveMixtures(std::unordered_map<int, std::unique_ptr<sim::DiffusiveMixture<T>>>& diffMixtures) {
     // TODO Maria, CSV Writer here
     // TODO get a channel pointer
-    int numValues = 100; // Number of points to calculate
+    int numValues = 101; // Number of points to calculate
 
     std::cout << "Generating CSV files" << std::endl;
 
-    T step = 1.0 / (numValues);
+    T step = 1.0 / (numValues-1);
 
     for (auto& [mixtureId, mixture] : diffMixtures) {
         std::cout << "We have mixture " << mixtureId << " in diffMixtures" <<std::endl;
