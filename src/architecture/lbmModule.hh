@@ -1,4 +1,5 @@
 #include "lbmModule.h"
+#include <filesystem>
 
 namespace arch{
 
@@ -207,7 +208,11 @@ void lbmModule<T>::lbmInit (T dynViscosity,
                             T density) {
     // Create network with fully connected graph and set initial resistances
 
-    olb::singleton::directories().setOutputDir( "./tmp/" );  // set output directory     
+    if (!std::filesystem::is_directory(vtkFolder) || !std::filesystem::exists(vtkFolder)) {
+        std::filesystem::create_directory(vtkFolder);
+    }
+
+    olb::singleton::directories().setOutputDir( this->vtkFolder+"/" );  // set output directory     
 
     T kinViscosity = dynViscosity/density;
 
@@ -321,6 +326,11 @@ void lbmModule<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_){
 template<typename T>
 void lbmModule<T>::setInitialized(bool initialization_) {
     this->initialized = initialization_;
+}
+
+template<typename T>
+void lbmModule<T>::setVtkFolder(std::string vtkFolder_) {
+    this->vtkFolder = vtkFolder_;
 }
 
 }   // namespace arch

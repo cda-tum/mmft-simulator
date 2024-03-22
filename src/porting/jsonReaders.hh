@@ -116,8 +116,14 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
 
 template<typename T>
 void readSimulators(json jsonString, arch::Network<T>* network) {
+        std::string vtkFolder;
         if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
             throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");
+        }
+        if (jsonString["simulation"]["settings"].contains("vtkFolder")) {
+            vtkFolder = jsonString["simulation"]["settings"]["vtkFolder"];
+        } else {
+            vtkFolder = "./tmp/";
         }
         for (auto& module : jsonString["simulation"]["settings"]["simulators"]) {
             std::string name = module["name"];
@@ -139,8 +145,9 @@ void readSimulators(json jsonString, arch::Network<T>* network) {
                 arch::Opening<T> opening_(network->getNode(nodeId), normal, opening["width"]);
                 Openings.try_emplace(nodeId, opening_);
             }
-            network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
+            auto mod = network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
                                 alpha, resolution, epsilon, tau);
+            mod->setVtkFolder(vtkFolder);
         }
 }
 
