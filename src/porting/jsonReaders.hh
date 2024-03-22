@@ -139,8 +139,17 @@ void readSimulators(json jsonString, arch::Network<T>* network) {
                 arch::Opening<T> opening_(network->getNode(nodeId), normal, opening["width"]);
                 Openings.try_emplace(nodeId, opening_);
             }
-            network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
-                                alpha, resolution, epsilon, tau);
+
+            if(module["Type"] == "LBM")
+            {
+                network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
+                                   alpha, resolution, epsilon, tau);
+            }
+            else if(module["Type"] == "ESS_LBM")
+            {
+                network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
+                                   resolution, epsilon, tau);
+            }
         }
 }
 

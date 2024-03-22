@@ -26,6 +26,7 @@
 #include "architecture/Network.h"
 #include "architecture/Node.h"
 #include "architecture/PressurePump.h"
+#include "ModuleOpening.h"
 
 #include "porting/jsonPorter.h"
 #include "porting/jsonReaders.h"

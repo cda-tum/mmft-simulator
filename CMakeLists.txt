@@ -126,6 +126,10 @@ add_executable(hybridSim)
 target_sources(hybridSim PUBLIC src/main.cpp)
 target_link_libraries(hybridSim PUBLIC ${TARGET_NAME})
 
+if(USE_ESSLBM)
+    target_link_libraries(hybridSim PUBLIC ESS::ESSLbm)
+endif()
+
 # add Python binding code
 option(BINDINGS "Configure for building Python bindings")
 if(BINDINGS)

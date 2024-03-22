@@ -8,11 +8,6 @@
 #include <math.h>
 #include <iostream>
 
-#include <olb2D.h>
-#include <olb2D.hh>
-#include <olb3D.h>
-#include <olb3D.hh>
-
 #include "Module.h"
 #include "ModuleOpening.h"
 #include "Node.h"
@@ -22,18 +17,11 @@
 
 namespace arch {
 
-    // Forward declared dependencies
-    template<typename T>
-    class Module;
-    template<typename T>
-    class Network;
-    template<typename T>
-    class Node;
-
     /**
      * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
     */
-    class essLbmModule : public Module<float> {
+    template<typename T>
+    class essLbmModule : public Module<T> {
         private:
             int step = 0;                           ///< Iteration step of this module.
             int stepIter = 1000;                    ///< Number of iterations for the value tracer.
@@ -41,12 +29,21 @@ namespace arch {
             int theta = 10;                         ///< Number of OLB iterations per communication iteration.
 
             std::string name;                       ///< Name of the module.
+            std::string stlFile;                    ///< The STL file of the CFD domain.
+
             bool initialized = false;               ///< Is the module initialized?
             bool isConverged = false;               ///< Has the module converged?
             
-            std::shared_ptr<Network<float>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
-            std::unordered_map<int, Opening<float>> moduleOpenings;             ///< Map of openings.
+            std::shared_ptr<Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
+            std::unordered_map<int, Opening<T>> moduleOpenings;             ///< Map of openings.
             std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
+
+            T charPhysLength;                       ///< Characteristic physical length (= width, usually).
+            T charPhysVelocity;                     ///< Characteristic physical velocity (expected maximal velocity).
+            T alpha;                                ///< Relaxation factor.
+            T resolution;                           ///< Resolution of the CFD domain. Gridpoints in charPhysLength.
+            T epsilon;                              ///< Convergence criterion.
+            T relaxationTime;
 
             std::unordered_map<int, float> flowRates;              ///< Map of fluxes at module nodes.
             std::unordered_map<int, float> pressures;       ///< Map of mean pressure values at module nodes.
@@ -63,13 +60,14 @@ namespace arch {
              * @param[in] nodes Map of nodes that are on the boundary of the module.
              * @param[in] openings Map of the in-/outlets of the module.
             */
-            essLbmModule(int id_, std::string name_, std::vector<float> pos_, std::vector<float> size_, std::unordered_map<int, std::shared_ptr<Node<float>>> nodes_, std::unordered_map<int, Opening<float>> openings_);
+            essLbmModule(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,
+                         T charPhysLenth_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_);
             /**
              * @brief Initialize an instance of the LBM solver for this module.
              * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
              * @param[in] density Density of the simulated fluid in _kg / m^3_.
             */
-            void initialize(std::string filename);
+            void lbmInit(T dynViscosity, T density);
 
             /**
              * @brief Set the boundary values on the lattice at the module nodes.
@@ -98,13 +96,13 @@ namespace arch {
              * @brief Set the pressures at the nodes on the module boundary.
              * @param[in] pressure Map of pressures and node ids.
              */
-            void setPressures(std::unordered_map<int, float> pressure);
+            void setPressures(std::unordered_map<int, T> pressure);
 
             /**
              * @brief Set the flow rates at the nodes on the module boundary.
              * @param[in] flowRate Map of flow rates and node ids.
              */
-            void setFlowRates(std::unordered_map<int, float> flowRate);
+            void setFlowRates(std::unordered_map<int, T> flowRate);
 
             /**
              * @brief Set the nodes of the module that communicate the pressure to the 1D solver.
@@ -116,7 +114,7 @@ namespace arch {
              * @brief Get the pressures at the boundary nodes.
              * @returns Pressures in Pa.
              */
-            std::unordered_map<int, float> getPressures() const {
+            std::unordered_map<int, T> getPressures() const {
                 return solver_->getPressures();
             }
 
@@ -124,7 +122,7 @@ namespace arch {
              * @brief Get the flow rates at the boundary nodes.
              * @returns Flow rates in m^3/s.
              */
-            std::unordered_map<int, float> getFlowRates() const {
+            std::unordered_map<int, T> getFlowRates() const {
                 return solver_->getFlowRates();
             }
 

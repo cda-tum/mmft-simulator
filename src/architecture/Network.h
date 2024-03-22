@@ -22,8 +22,9 @@ enum class ChannelType;
 template<typename T>
 class FlowRatePump;
 template<typename T>
-class lbmModule;
-class essLbmModule;
+class Module;
+template<typename T>
+class essModule;
 template<typename T>
 class Module;
 template<typename T>
@@ -87,10 +88,10 @@ private:
     std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
-    std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
+    std::unordered_map<int, std::unique_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
-    std::unordered_map<int, lbmModule<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
+    std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
@@ -113,7 +114,7 @@ public:
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
             std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
-            std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
+            std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
 
     /**
      * @brief Constructor of the Network
@@ -226,18 +227,16 @@ public:
     /**
      * @brief Adds a new module to the network.
      * @param[in] name Name of the module.
-     * @param[in] JsonFile Location of the input JSON file of the case.
      * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
      * @param[in] size Absolute size of the module in m.
      * @param[in] nodes Map of nodes that are on the module boundary.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmModule* addModule(std::string name,
-                            std::string jsonFile,
-                            std::vector<float> position,
-                            std::vector<float> size,
-                            std::unordered_map<int, std::shared_ptr<Node<float>>> nodes,
-                            std::unordered_map<int, Opening<T>> openings);
+    essLbmModule<T> *addModule(std::string name, std::string stlFile,
+                               std::vector<T> position,
+                               std::vector<T> size,
+                               std::unordered_map<int, std::shared_ptr<Node<T> > > nodes,
+                               std::unordered_map<int, Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.
@@ -281,7 +280,7 @@ public:
      * @brief Set the modules of the network for a hybrid simulation.
      * @param[in] modules The modules that handle the CFD simulations.
     */
-    void setModules(std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
+    void setModules(std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
 
     /**
      * @brief Checks and returns if a node is a sink.
@@ -359,7 +358,7 @@ public:
      * @brief Get the modules of the network.
      * @returns Modules.
     */
-    const std::unordered_map<int, std::unique_ptr<lbmModule<T>>>& getModules() const;
+    const std::unordered_map<int, std::unique_ptr<Module<T>>>& getModules() const;
 
     /**
      * @brief Get the groups in the network.

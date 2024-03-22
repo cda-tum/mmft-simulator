@@ -13,6 +13,8 @@ namespace arch {
 // Forward declared dependencies
 template<typename T>
 class Node;
+template<typename T>
+class Opening;
 
 /**
  * @brief An enum to specify the type of module.
@@ -84,6 +86,36 @@ class Module {
      * @returns What type the channel has.
      */
     ModuleType getModuleType() const;
+
+    virtual void lbmInit(float density, float dynViscosity) {}
+
+    virtual void solve() {}
+
+    virtual std::shared_ptr<Network<T>> getNetwork() {}
+
+    virtual void prepareGeometry() {}
+
+    virtual void prepareLattice() {}
+
+    virtual bool getInitialized() {}
+
+    virtual void setInitialized(bool initialization) {}
+
+    virtual std::unordered_map<int, T> getPressures() {}
+
+    virtual std::unordered_map<int, T> getFlowRates() {}
+
+    virtual void setPressures(std::unordered_map<int, T> pressure) {}
+
+    virtual void setFlowRates(std::unordered_map<int, T> flowRate) {}
+
+    virtual bool hasConverged() {}
+
+    virtual T getAlpha() { return (T)1.0; }
+
+    virtual std::unordered_map<int, Opening<T>> getOpenings() {}
+
+    virtual void setGroundNodes(std::unordered_map<int, bool> groundNodes) {}
 };
 
 }   // namespace arch

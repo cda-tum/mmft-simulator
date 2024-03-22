@@ -7,7 +7,7 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
                     std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
                     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
                     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
-                    std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_) :
+                    std::unordered_map<int, std::unique_ptr<Module<T>>> modules_) :
                     nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_),
                     pressurePumps(pressurePumps_), modules(modules_) { }
 
@@ -309,16 +309,17 @@ lbmModule<T>* Network<T>::addModule(std::string name,
 }
 
 template<typename T>
-essLbmModule* Network<T>::addModule(std::string name,
-                                    std::string jsonFile,
-                                    std::vector<float> position,
-                                    std::vector<float> size,
-                                    std::unordered_map<int, std::shared_ptr<Node<float>>> nodes,
-                                    std::unordered_map<int, Opening<T>> openings)
+essLbmModule<T>* Network<T>::addModule(std::string name,
+                                    std::string stlFile,
+                                    std::vector<T> position,
+                                    std::vector<T> size,
+                                    std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
+                                    std::unordered_map<int, Opening<T>> openings,
+                                    T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
 {
     // create module
     auto id = modules.size();
-    auto addModule = new essLbmModule(id, name, jsonFile, position, size, nodes, openings);
+    auto addModule = new essLbmModule(id, name, stlFile, position, size, nodes, openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
     // add this module to the reach of each node
     for (auto& [k, node] : nodes) {
@@ -371,7 +372,7 @@ void Network<T>::setFlowRatePump(int channelId_, T flowRate_) {
 }
 
 template<typename T>
-void Network<T>::setModules(std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules_) {
+void Network<T>::setModules(std::unordered_map<int, std::unique_ptr<Module<T>>> modules_) {
     this->modules = std::move(modules_);
 }
 
@@ -453,7 +454,7 @@ Module<T>* Network<T>::getModule(int moduleId) const {
 }
 
 template<typename T>
-const std::unordered_map<int, std::unique_ptr<lbmModule<T>>>& Network<T>::getModules() const {
+const std::unordered_map<int, std::unique_ptr<Module<T>>>& Network<T>::getModules() const {
     return modules;
 }
 

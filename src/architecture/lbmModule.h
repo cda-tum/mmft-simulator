@@ -17,8 +17,6 @@
 #include <olb3D.h>
 #include <olb3D.hh>
 
-#include "ModuleOpening.h"
-
 namespace arch {
 
 // Forward declared dependencies
@@ -28,6 +26,8 @@ template<typename T>
 class Network;
 template<typename T>
 class Node;
+template<typename T>
+class Opening;
 
 /**
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.

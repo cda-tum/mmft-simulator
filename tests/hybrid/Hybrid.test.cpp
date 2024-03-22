@@ -1,5 +1,5 @@
 #include "../src/baseSimulator.h"
-
+#include <mpi.h>
 #include "gtest/gtest.h"
 
 using T = double;
@@ -42,6 +42,7 @@ TEST(Hybrid, testCase1a) {
 
 TEST(Hybrid, esstest) {
 
+    MPI_Init(NULL, NULL);
     std::string file = "../examples/Hybrid/Network1a.JSON";
 
     // Load and set the network from a JSON file
@@ -49,32 +50,6 @@ TEST(Hybrid, esstest) {
 
     // Load and set the simulation from a JSON file
     sim::Simulation<float> testSimulation = porting::simulationFromJSON<float>(file, &network);
-
-    std::ifstream f(file);
-    json jsonString = json::parse(f);
-
-
-    for (auto& module : jsonString["simulation"]["settings"]["simulators"])
-    {
-        std::string name = module["name"];
-
-        std::vector<float> position = { module["posX"], module["posY"] };
-        std::vector<float> size = { module["sizeX"], module["sizeY"] };
-
-        std::unordered_map<int, std::shared_ptr<arch::Node<float>>> Nodes;
-        std::unordered_map<int, arch::Opening<float>> Openings;
-        for (auto& opening : module["Openings"]) {
-            int nodeId = opening["node"];
-            Nodes.try_emplace(nodeId, network.getNode(nodeId));
-            std::vector<float> normal = { opening["normal"]["x"], opening["normal"]["y"] };
-            arch::Opening<float> opening_(network.getNode(nodeId), normal, opening["width"]);
-            Openings.try_emplace(nodeId, opening_);
-        }
-        network.addModule(name, file, position, size, Nodes, Openings);
-    }
-
-    network.sortGroups();
-
 
     network.isNetworkValid();
 
@@ -100,6 +75,7 @@ TEST(Hybrid, esstest) {
     ASSERT_NEAR(network.getChannels().at(7)->getFlowRate(), 1.1732e-9, 1e-14);
     ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 4.69188e-9, 1e-14);
 
+    MPI_Finalize();
 }
 
 /*

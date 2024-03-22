@@ -119,7 +119,7 @@
     ]
 },
 "simulation": {
-    "workDirectory": "/home/alexander.stadik/ALSIM/AUTOMATE/build/",
+    "workDirectory": "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/build/",
     "platform": "Continuous",
     "type": "Hybrid",
     "resistanceModel": "Poiseuille",
@@ -158,14 +158,14 @@
     "settings": {
         "simulators": [
             {	
-                "Type": "LBM",
+                "Type": "ESS_LBM",
                 "name": "Paper1a-cross-0",
-                "stlFile": "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/examples/STL/cross2.stl",
+                "stlFile": "../examples/STL/cross2.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.1,
                 "resolution": 20,
-                "epsilon": 1e-1,
+                "epsilon": 1e-5,
                 "tau": 0.55,
                 "posX": 1.75e-3,
                 "posY": 0.75e-3,

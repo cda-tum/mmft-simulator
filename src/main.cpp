@@ -6,8 +6,9 @@
 
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
+#include <nlohmann/json.hpp>
 
-using T = double;
+using T = float;
 
 int main(int argc, char const* argv []) {
 
