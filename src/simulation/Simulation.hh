@@ -235,10 +235,12 @@ namespace sim {
     template<typename T>
     void Simulation<T>::setMixingModel(InstantaneousMixingModel<T>* model_) {
         this->instMixingModel = model_;
+        this->diffMixingModel = NULL;
     }
 
     template<typename T>
     void Simulation<T>::setMixingModel(DiffusionMixingModel<T>* model_) {
+        this->instMixingModel = NULL;
         this->diffMixingModel = model_;
     }
 
@@ -616,12 +618,10 @@ namespace sim {
                     this->diffMixingModel->updateMinimalTimeStep(network);
                     
                     // store simulation results of current state
-                    //saveState();
-                    std::cout << "ComputeMixingEvents" << std::endl;
+                    saveState();
                     // compute events
                     auto events = computeMixingEvents();
 
-                    std::cout << "ComputeMixingEvents done" << std::endl;
                     
                     // sort events
                     // closest events in time with the highest priority come first
@@ -652,15 +652,13 @@ namespace sim {
                     std::cout << "[Debug] Calculate and store the mixtures flowing into all nodes." << std::endl;
                     this->diffMixingModel->updateDiffusiveMixtures(timestep, network, this, diffusiveMixtures);
                     
-                    std::cout << "PerformEvent" << std::endl; 
                     nextEvent->performEvent();
-                    std::cout << "We performed" << std::endl; 
-                    nextEvent->print();
+                    //nextEvent->print();
                     iteration++;
                 }
                 // Store the mixtures that were in the simulation
-                //saveMixtures();
-                simulationResult->writeDiffusiveMixtures(diffusiveMixtures);
+                saveMixtures();
+                //simulationResult->writeDiffusiveMixtures(diffusiveMixtures);
             }
         }
     }
@@ -803,28 +801,30 @@ namespace sim {
         }
 
         // droplet positions
-        for (auto& [id, droplet] : droplets) {
-            // create new droplet position
-            DropletPosition<T> newDropletPosition;
+        if (platform == Platform::DROPLET) {
+            for (auto& [id, droplet] : droplets) {
+                // create new droplet position
+                DropletPosition<T> newDropletPosition;
 
-            // add boundaries
-            for (auto& boundary : droplet->getBoundaries()) {
-                // get channel position
-                auto channelPosition = boundary->getChannelPosition();
-                // add boundary
-                newDropletPosition.boundaries.emplace_back(channelPosition.getChannel(), channelPosition.getPosition(), boundary->isVolumeTowardsNodeA(), static_cast<BoundaryState>(static_cast<int>(boundary->getState())));
+                // add boundaries
+                for (auto& boundary : droplet->getBoundaries()) {
+                    // get channel position
+                    auto channelPosition = boundary->getChannelPosition();
+                    // add boundary
+                    newDropletPosition.boundaries.emplace_back(channelPosition.getChannel(), channelPosition.getPosition(), boundary->isVolumeTowardsNodeA(), static_cast<BoundaryState>(static_cast<int>(boundary->getState())));
+                }
+
+                // add fully occupied channels
+                for (auto& channel : droplet->getFullyOccupiedChannels()) {
+                    // add channel
+                    newDropletPosition.channelIds.emplace_back(channel->getId());
+                }
+
+                saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
             }
-
-            // add fully occupied channels
-            for (auto& channel : droplet->getFullyOccupiedChannels()) {
-                // add channel
-                newDropletPosition.channelIds.emplace_back(channel->getId());
-            }
-
-            saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
         }
         
-        if (platform == Platform::MIXING) {
+        if (platform == Platform::MIXING && instMixingModel != NULL) {
             for (auto& [channelId, mixingId] : instMixingModel->getFilledEdges()) {
                 std::deque<MixturePosition<T>> newDeque;
                 MixturePosition<T> newMixturePosition(mixingId, channelId, 0.0, 1.0);
@@ -832,6 +832,28 @@ namespace sim {
                 saveMixturePositions.try_emplace(channelId, newDeque);
             }
             for (auto& [channelId, deque] : instMixingModel->getMixturesInEdges()) {
+                for (auto& pair : deque) {
+                    if (!saveMixturePositions.count(channelId)) {
+                        std::deque<MixturePosition<T>> newDeque;
+                        MixturePosition<T> newMixturePosition(pair.first, channelId, 0.0, deque.front().second);
+                        newDeque.push_front(newMixturePosition);
+                        saveMixturePositions.try_emplace(channelId, newDeque);
+                    } else {
+                        MixturePosition<T> newMixturePosition(pair.first, channelId, 0.0, pair.second);
+                        saveMixturePositions.at(channelId).front().position1 = pair.second;
+                        saveMixturePositions.at(channelId).push_front(newMixturePosition);
+                    }
+                }
+            }
+        } else if (platform == Platform::MIXING && diffMixingModel != NULL) {
+            for (auto& [channelId, mixingId] : diffMixingModel->getFilledEdges()) {
+                std::cout << "Getting here 1.1" << std::endl;
+                std::deque<MixturePosition<T>> newDeque;
+                MixturePosition<T> newMixturePosition(mixingId, channelId, 0.0, 1.0);
+                newDeque.push_front(newMixturePosition);
+                saveMixturePositions.try_emplace(channelId, newDeque);
+            }
+            for (auto& [channelId, deque] : diffMixingModel->getMixturesInEdges()) {
                 for (auto& pair : deque) {
                     if (!saveMixturePositions.count(channelId)) {
                         std::deque<MixturePosition<T>> newDeque;
@@ -860,7 +882,7 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::saveMixtures() {
-        if (instMixingModel->getDiffusive()) {
+        if (diffMixingModel != NULL) {
             std::unordered_map<int, DiffusiveMixture<T>*> mixtures_ptr;
             for (auto& [mixtureId, mixture] : this->diffusiveMixtures) {
                 mixtures_ptr.try_emplace(mixtureId, mixture.get());

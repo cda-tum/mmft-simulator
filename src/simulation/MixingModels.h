@@ -75,6 +75,7 @@ protected:
 
     T minimalTimeStep = 0.0;
     std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
+    std::unordered_map<int, int> filledEdges;                                   ///<  Which edges are currently filled with a single mixture <EdgeID, MixtureID>
 
 public:
 
@@ -95,6 +96,8 @@ public:
 
     const std::unordered_map<int, std::deque<std::pair<int,T>>>& getMixturesInEdges() const;
 
+    const std::unordered_map<int, int>& getFilledEdges() const;
+
     virtual bool getDiffusive() = 0;
 };
 
@@ -106,7 +109,6 @@ private:
     std::unordered_map<int, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;    // <nodeId <mixtureId, inflowVolume>>
     std::unordered_map<int, int> mixtureOutflowAtNode;
     std::unordered_map<int, T> totalInflowVolumeAtNode;
-    std::unordered_map<int, int> filledEdges;                                   ///<  Which edges are currently filled with a single mixture <EdgeID, MixtureID>
     std::unordered_map<int, bool> createMixture;
 
     int generateInflows(int nodeId, T timeStep, arch::Network<T>* network);
@@ -148,8 +150,6 @@ public:
     void injectMixtureInEdge(int mixtureId, int channelId);
 
     void printMixturesInNetwork();
-
-    const std::unordered_map<int, int>& getFilledEdges() const;
 
     bool getDiffusive() { return false; }
 
@@ -193,13 +193,11 @@ public:
 
     void updateDiffusiveMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
 
-    void generateNodeOutflow();
-
-    void updateChannelInflow();
-
     void injectMixtureInEdge(int mixtureId, int channelId);
 
     void clean(arch::Network<T>* network);
+
+    void printMixturesInNetwork();
 
     bool getDiffusive() { return true; }
 
