@@ -8,9 +8,13 @@
 #include <baseSimulator.hh>
 #include <nlohmann/json.hpp>
 
+#include <mpi.h>
+
 using T = float;
 
 int main(int argc, char const* argv []) {
+
+    MPI_Init(NULL,NULL);
 
     std::string file = argv[1];
 
@@ -34,6 +38,8 @@ int main(int argc, char const* argv []) {
     testSimulation.getSimulationResults()->printStates();
 
     porting::resultToJSON<T>("result.json", &testSimulation );
+
+    MPI_Finalize();
 
     return 0;
 }

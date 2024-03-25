@@ -45,8 +45,8 @@ namespace arch {
             T epsilon;                              ///< Convergence criterion.
             T relaxationTime;
 
-            std::unordered_map<int, float> flowRates;              ///< Map of fluxes at module nodes.
-            std::unordered_map<int, float> pressures;       ///< Map of mean pressure values at module nodes.
+            std::unordered_map<int, T> flowRates;              ///< Map of fluxes at module nodes.
+            std::unordered_map<int, T> pressures;       ///< Map of mean pressure values at module nodes.
 
             std::shared_ptr<ess::lbmSolver> solver_;
 
@@ -67,7 +67,7 @@ namespace arch {
              * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
              * @param[in] density Density of the simulated fluid in _kg / m^3_.
             */
-            void lbmInit(T dynViscosity, T density);
+            void lbmInit(T dynViscosity, T density) override;
 
             /**
              * @brief Set the boundary values on the lattice at the module nodes.
@@ -78,7 +78,7 @@ namespace arch {
             /**
              * @brief Conducts the collide and stream operations of the lattice.
             */
-            void solve();
+            void solve() override;
 
             /**
              * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
@@ -96,43 +96,37 @@ namespace arch {
              * @brief Set the pressures at the nodes on the module boundary.
              * @param[in] pressure Map of pressures and node ids.
              */
-            void setPressures(std::unordered_map<int, T> pressure);
+            void setPressures(std::unordered_map<int, T> pressure) override;
 
             /**
              * @brief Set the flow rates at the nodes on the module boundary.
              * @param[in] flowRate Map of flow rates and node ids.
              */
-            void setFlowRates(std::unordered_map<int, T> flowRate);
+            void setFlowRates(std::unordered_map<int, T> flowRate) override;
 
             /**
              * @brief Set the nodes of the module that communicate the pressure to the 1D solver.
              * @param[in] groundNodes Map of nodes.
              */
-            void setGroundNodes(std::unordered_map<int, bool> groundNodes);
+            void setGroundNodes(std::unordered_map<int, bool> groundNodes) override;
 
             /**
              * @brief Get the pressures at the boundary nodes.
              * @returns Pressures in Pa.
              */
-            std::unordered_map<int, T> getPressures() const {
-                return solver_->getPressures();
-            }
+            std::unordered_map<int, T> getPressures() const override;
 
             /**
              * @brief Get the flow rates at the boundary nodes.
              * @returns Flow rates in m^3/s.
              */
-            std::unordered_map<int, T> getFlowRates() const {
-                return solver_->getFlowRates();
-            }
+            std::unordered_map<int, T> getFlowRates() const override;
 
             /**
              * @brief Get the openings of the module.
              * @returns Module openings.
              */
-            std::unordered_map<int, Opening<T>> getOpenings() const {
-                return moduleOpenings;
-             }
+            std::unordered_map<int, Opening<T>> getOpenings() const override;
 
             /**
              * @brief Get the ground nodes of the module.
@@ -154,31 +148,26 @@ namespace arch {
              * @brief Returns whether the module is initialized or not.
              * @returns Boolean for initialization.
             */
-            bool getInitialized() const { 
-                return initialized; 
-            }
+            bool getInitialized() const override;
 
             /**
              * @brief Returns whether the module has converged or not.
              * @returns Boolean for module convergence.
             */
-            bool hasConverged() const {
-                return solver_->hasConverged();
-            }
+            bool hasConverged() const override;
 
             /**
              * @brief Set the initialized status for this module.
              * @param[in] initialization Boolean for initialization status.
             */
 
-            void setInitialized(bool initialization);
+            void setInitialized(bool initialization) override;
 
             /**
              * @brief Get the fully connected graph of this module, that is used for the initial approximation.
              * @return Network of the fully connected graph.
             */
-            std::shared_ptr<Network<T>> getNetwork() const {
-                return moduleNetwork;
-            }
+            std::shared_ptr<Network<T>> getNetwork() const override;
+
     };
 }

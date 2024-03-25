@@ -87,33 +87,36 @@ class Module {
      */
     ModuleType getModuleType() const;
 
-    virtual void lbmInit(float density, float dynViscosity) {}
+    virtual void lbmInit(T dynViscosity, T density) {}
 
     virtual void solve() {}
 
-    virtual std::shared_ptr<Network<T>> getNetwork() {}
+    virtual std::shared_ptr<Network<T>> getNetwork() const
+    {
+        std::cout << "Not here!!!!!" << std::endl;
+    }
 
     virtual void prepareGeometry() {}
 
     virtual void prepareLattice() {}
 
-    virtual bool getInitialized() {}
+    virtual bool getInitialized() const {}
 
     virtual void setInitialized(bool initialization) {}
 
-    virtual std::unordered_map<int, T> getPressures() {}
+    virtual std::unordered_map<int, T> getPressures() const {}
 
-    virtual std::unordered_map<int, T> getFlowRates() {}
+    virtual std::unordered_map<int, T> getFlowRates() const {}
 
     virtual void setPressures(std::unordered_map<int, T> pressure) {}
 
     virtual void setFlowRates(std::unordered_map<int, T> flowRate) {}
 
-    virtual bool hasConverged() {}
+    virtual bool hasConverged() const {}
 
     virtual T getAlpha() { return (T)1.0; }
 
-    virtual std::unordered_map<int, Opening<T>> getOpenings() {}
+    virtual std::unordered_map<int, Opening<T>> getOpenings() const {}
 
     virtual void setGroundNodes(std::unordered_map<int, bool> groundNodes) {}
 };

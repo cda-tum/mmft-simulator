@@ -2,6 +2,7 @@
 #include <mpi.h>
 
 #include <iostream>
+#include <type_traits>
 
 namespace arch{
 
@@ -24,8 +25,10 @@ namespace arch{
     template<typename T>
     void essLbmModule<T>::getResults()
     {
-        flowRates = solver_->getFlowRates();
-        pressures = solver_->getPressures();
+        for(auto& [key,value] : solver_->getPressures())
+            pressures[key] = value;
+        for(auto& [key,value] : solver_->getFlowRates())
+            flowRates[key] = value;
     }
 
     template<typename T>
@@ -33,9 +36,9 @@ namespace arch{
     {
         moduleNetwork = std::make_shared<Network<T>> (this->boundaryNodes);
 
-        std::string work_dir = "<path-to-set>";
+        std::string work_dir = "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/build/";
         const auto& allNodes = moduleNetwork->getNodes();
-        std::vector<ess::BoundaryNode> nodes(allNodes.size());
+        std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
 
         for(auto& op : moduleOpenings)
@@ -43,7 +46,7 @@ namespace arch{
             ess::Opening opening;
             opening.width = op.second.width;
             opening.height = op.second.height;
-            opening.normal = op.second.normal;
+            opening.normal = {op.second.normal[0],op.second.normal[1],op.second.normal[2]};
             openings.try_emplace(op.first, opening);
 
             ess::BoundaryNode node(allNodes.at(op.first)->getPosition()[0],
@@ -51,15 +54,11 @@ namespace arch{
                                    allNodes.at(op.first)->getPosition()[2],
                                    allNodes.at(op.first)->getGround());
 
-            std::cout << op.first << ", " << node.x << ", " << node.y << ", " << node.z << std::endl;
-            nodes[op.first] = node;
+            nodes.try_emplace(op.first, node);
         }
 
         solver_ = std::make_shared<ess::lbmSolver>(work_dir, stlFile, openings, nodes, charPhysLength, charPhysVelocity, 1.0f / resolution, epsilon, relaxationTime, density, dynViscosity);
-        std::cout << "here2" << std::endl;
-
         solver_->prepareLattice();
-        std::cout << "here3" << std::endl;
 
         // There must be more than 1 node to have meaningful flow in the module domain
         assert(this->boundaryNodes.size() > 1);
@@ -74,8 +73,8 @@ namespace arch{
             flowRates.try_emplace(key, 0.0f);
         }
 
-        solver_->setFlowRates(flowRates);
-        solver_->setPressures(pressures);
+        setFlowRates(flowRates);
+        setPressures(pressures);
 
         #ifdef VERBOSE
             std::cout << "[essLbmModule] lbmInit " << name << "... OK" << std::endl;
@@ -95,7 +94,7 @@ namespace arch{
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : pressure_)
             interface.try_emplace(key, value);
-        pressures = interface;
+        pressures = pressure_;
         solver_->setPressures(interface);
     }
 
@@ -105,8 +104,19 @@ namespace arch{
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : flowRate_)
             interface.try_emplace(key, value);
-        flowRates = interface;
+        flowRates = flowRate_;
         solver_->setFlowRates(interface);
+    }
+
+    template<typename T>
+    std::unordered_map<int, T> essLbmModule<T>::getPressures() const {
+        return pressures;
+    }
+
+
+    template<typename T>
+    std::unordered_map<int, T> essLbmModule<T>::getFlowRates() const {
+        return flowRates;
     }
 
     template<typename T>
@@ -121,4 +131,27 @@ namespace arch{
         initialized = initialization_;
     }
 
+    template<typename T>
+    std::shared_ptr<Network<T>> essLbmModule<T>::getNetwork() const
+    {
+        return moduleNetwork;
+    }
+
+    template<typename T>
+    bool essLbmModule<T>::hasConverged() const
+    {
+        return solver_->hasConverged();
+    }
+
+    template<typename T>
+    bool essLbmModule<T>::getInitialized() const
+    {
+        return initialized;
+    }
+
+    template<typename T>
+    std::unordered_map<int, Opening<T>>  essLbmModule<T>::getOpenings() const
+    {
+        return moduleOpenings;
+    }
 }   // namespace arch

@@ -11,7 +11,8 @@ namespace sim {
         for (const auto& module : network->getModules()) {
             
             // Assertion that the current module is of lbm type, and can conduct CFD simulations.
-            assert(module.second->getModuleType() == arch::ModuleType::LBM);
+            assert(module.second->getModuleType() == arch::ModuleType::LBM ||
+                   module.second->getModuleType() == arch::ModuleType::ESS_LBM);
             module.second->solve();
 
             if (!module.second->hasConverged()) {
