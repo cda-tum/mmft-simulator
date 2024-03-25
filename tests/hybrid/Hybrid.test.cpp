@@ -12,7 +12,6 @@ TEST(Continuous, Case1a) {
 
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
     
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -27,25 +26,20 @@ TEST(Continuous, Case1a) {
     auto node9 = network.addNode(2.25e-3, 1e-3, false);
     auto node10 = network.addNode(3e-3, 1e-3, true);
 
-    // pressure pump
-    auto pressure = 1e3;
-    network.addPressurePump(node0->getId(), node1->getId(), pressure);
-    network.addPressurePump(node0->getId(), node2->getId(), pressure);
-    network.addPressurePump(node0->getId(), node3->getId(), pressure);
-
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 100e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network.addChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node2->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network.addChannel(node3->getId(), node6->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c4 = network.addChannel(node4->getId(), node7->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c5 = network.addChannel(node6->getId(), node8->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c6 = network.addChannel(node9->getId(), node10->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-
-    network.sortGroups();
+    auto c0 = network.addChannel(node0->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network.addChannel(node0->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network.addChannel(node0->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network.addChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c4 = network.addChannel(node2->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c5 = network.addChannel(node3->getId(), node6->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c6 = network.addChannel(node4->getId(), node7->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c7 = network.addChannel(node6->getId(), node8->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c8 = network.addChannel(node9->getId(), node10->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     // module
     std::string name = "Paper1a-cross-0";
@@ -68,8 +62,9 @@ TEST(Continuous, Case1a) {
     Openings.try_emplace(7, arch::Opening<T>(network.getNode(7), std::vector<T>({0.0, -1.0}), 1e-4));
     Openings.try_emplace(8, arch::Opening<T>(network.getNode(8), std::vector<T>({0.0, 1.0}), 1e-4));
     Openings.try_emplace(9, arch::Opening<T>(network.getNode(9), std::vector<T>({-1.0, 0.0}), 1e-4));
-    auto m1 = network.addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
-                                alpha, resolution, epsilon, tau);
+
+    network.addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
+                        alpha, resolution, epsilon, tau);
     
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -80,9 +75,17 @@ TEST(Continuous, Case1a) {
     testSimulation.setResistanceModel(&resistanceModel);
 
     network.sortGroups();
+
+    // pressure pump
+    auto pressure = 1e3;
+    network.setPressurePump(c0->getId(), pressure);
+    network.setPressurePump(c1->getId(), pressure);
+    network.setPressurePump(c2->getId(), pressure);
+
     network.isNetworkValid();
     
     // Simulate
+    testSimulation.setNetwork(&network);
     testSimulation.simulate();
 
     ASSERT_NEAR(network.getNodes().at(node0->getId())->getPressure(), 0, 1e-3);
@@ -97,12 +100,12 @@ TEST(Continuous, Case1a) {
     ASSERT_NEAR(network.getNodes().at(node9->getId())->getPressure(), 422.270, 1e-3);
     ASSERT_NEAR(network.getNodes().at(node10->getId())->getPressure(), 0, 1e-3);
 
-    ASSERT_NEAR(network.getChannels().at(c1->getId())->getFlowRate(), 1.1732e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(c2->getId())->getFlowRate(), 2.31153e-9, 1e-14);
     ASSERT_NEAR(network.getChannels().at(c3->getId())->getFlowRate(), 1.1732e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(c4->getId())->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(c4->getId())->getFlowRate(), 2.31153e-9, 1e-14);
     ASSERT_NEAR(network.getChannels().at(c5->getId())->getFlowRate(), 1.1732e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(c6->getId())->getFlowRate(), 4.69188e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(c6->getId())->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(c7->getId())->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(c8->getId())->getFlowRate(), 4.69188e-9, 1e-14);
 
 }
 

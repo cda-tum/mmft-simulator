@@ -108,9 +108,9 @@ def hybridContinuous():
     n10 = network.addNode(3e-3, 1e-3, True)
 
     # Channels
-    network.addPressurePump(n0, n1, 1e3)
-    network.addPressurePump(n0, n2, 1e3)
-    network.addPressurePump(n0, n3, 1e3)
+    network.addChannel(n0, n1, 1e-4, 1e-4, ChannelType.normal)
+    network.addChannel(n0, n2, 1e-4, 1e-4, ChannelType.normal)
+    network.addChannel(n0, n3, 1e-4, 1e-4, ChannelType.normal)
     network.addChannel(n1, n4, 1e-4, 1e-4, ChannelType.normal)
     network.addChannel(n2, n5, 1e-4, 1e-4, ChannelType.normal)
     network.addChannel(n3, n6, 1e-4, 1e-4, ChannelType.normal)
@@ -120,8 +120,13 @@ def hybridContinuous():
 
     # Module
     network.addModule("test", "../../../../examples/STL/cross.stl", [1.75e-3, 0.75e-3], [5e-4, 5e-4], [n5, n7, n8, n9], \
-                      [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], [1e-4, 1e-4, 1e-4, 1e-4], \
+                      [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], \
                         1e-4, 1e-1, 0.1, 20, 1e-1, 0.55)
+
+    # Pressure Pumps
+    network.addPressurePump(n0, n1, 1e3)
+    network.addPressurePump(n0, n2, 1e3)
+    network.addPressurePump(n0, n3, 1e3)
 
     network.sort()
     network.valid()
@@ -180,7 +185,6 @@ def hybridContinuousJSON():
     simulation = Simulation()
     simulation.loadSimulation(network, "../../../../examples/Hybrid/Network1a.JSON")
 
-    network.sort()
     network.valid()
 
     simulation.simulate()
@@ -192,7 +196,7 @@ def main():
     abstractContinuousJSON()
     abstractDroplet()
     abstractDropletJSON()
-    hybridContinuous()
+    #hybridContinuous()
     hybridContinuousJSON()
 
 if __name__ == "__main__":

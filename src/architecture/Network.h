@@ -44,9 +44,9 @@ struct Group {
 
     int groupId;                    ///< Id of the group.
     bool initialized = false;       ///< Initialization of the group.
-    bool grounded;                  ///< Is this group connected to ground node(s)?
+    bool grounded = false;          ///< Is this group connected to ground node(s)?
     int groundNodeId = -1;          ///< The node with pressure = pMin at the initial timestep.
-    int groundChannelId;            ///< The channel that contains the ground node as node.
+    int groundChannelId = -1;       ///< The channel that contains the ground node as node.
     std::unordered_set<int> nodeIds;            ///< Ids of nodes in this group.
     std::unordered_set<int> channelIds;         ///< Ids of channels in this group.
     std::unordered_set<int> flowRatePumpIds;    ///< Ids of flow rate pumps in this group.
