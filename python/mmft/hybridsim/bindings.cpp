@@ -40,7 +40,7 @@ PYBIND11_MODULE(pyhybridsim, m) {
 			network.setSink(id);
 			return id;
 			}, "Add a new node to the network.")
-		.def("addChannel", [](arch::Network<T> &network, int nodeAId, int nodeBId, T height, T width, arch::ChannelType type) {
+		.def("addChannel", [](arch::Network<T> &network, int nodeAId, int nodeBId, T width, T height, arch::ChannelType type) {
 			return network.addChannel(nodeAId, nodeBId, height, width, type)->getId();
 			}, "Add a new channel to the network.")
 		.def("addFlowRatePump", [](arch::Network<T> &network, int nodeAId, int nodeBId, T flowRate) {
@@ -59,7 +59,6 @@ PYBIND11_MODULE(pyhybridsim, m) {
 								std::vector<int> nodes,
 								std::vector<std::vector<T>> normals,
 								std::vector<T> widths,
-								std::vector<T> heights,
 								T charPhysLength,
 								T charPhysVelocity,
 								T alpha,
@@ -71,13 +70,13 @@ PYBIND11_MODULE(pyhybridsim, m) {
 			std::unordered_map<int, arch::Opening<T>> openings;
 			
 			// ASSERT equal length for nodes, normals, widths and heights
-			if (nodes.size() != normals.size() || nodes.size() != widths.size() || nodes.size() != heights.size()) {
+			if (nodes.size() != normals.size() || nodes.size() != widths.size()) {
 				throw std::invalid_argument("There should be an equal amount of nodes, normals, widths and heights");
 			}
 
 			for (long unsigned int i=0; i<nodes.size(); ++i) {
 				newNodes.try_emplace(nodes[i], network.getNode(nodes[i]));
-				openings.try_emplace(nodes[i], arch::Opening<T>{network.getNode(nodes[i]), normals[i], widths[i], heights[i]});
+				openings.try_emplace(nodes[i], arch::Opening<T>{network.getNode(nodes[i]), normals[i], widths[i]});
 			}
 
 			return network.addModule(name, stlFile, position, size, newNodes, openings, charPhysLength, charPhysVelocity,

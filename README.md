@@ -10,20 +10,30 @@
   </picture>
 </p>
 
-A Hybrid Simulator for Microfluidic Devices developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the Munich MicroFluidic Toolkit (MMFT). This simulator exploits the Modified Nodal Analysis (which is a simulation method on a high level of abstraction) to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices. 
-
-For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/. 
-
-If you have any questions, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
+A Simulator for Microfluidic Devices developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the Munich MicroFluidic Toolkit (MMFT). The simulator includes microfluidic simulations for different microfluidic platforms on different levels of abstractions. The following simulations are supported:
 
 <div align="center">
 
 |               | Abstract      | Hybrid        |
 | :-----------  | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      |
-| Droplet       | &#x2705;      |   |
+| Droplet       | &#x2705;      |               |
 
 </div>
+
+###### Platforms
+* Continuous: 
+* Droplet:
+
+###### Abstraction Levels
+* Abstract:
+* Hybrid: The Hybrid exploits the Modified Nodal Analysis (which is a simulation method on a high level of abstraction) to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices. 
+
+
+
+For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/.  If you have any questions, or if you would like to suggest new features, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
+
+
 
 ## System Requirements
 

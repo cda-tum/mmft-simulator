@@ -24,7 +24,7 @@ TEST(Continuous, allResultValues) {
     auto node6 = network.addNode(2e-3, 0.0, false);
     auto node7 = network.addNode(3e-3, 1e-3, true);
 
-    // flowRate pump
+    // pressure pump
     auto pressure = 1e3;
     auto pump0 = network.addPressurePump(node0->getId(), node1->getId(), pressure);
     auto pump1 = network.addPressurePump(node0->getId(), node2->getId(), pressure);
@@ -70,14 +70,14 @@ TEST(Continuous, allResultValues) {
     ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node6->getId()), 833.333333, 5e-7);
     ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node7->getId()), 0.0, 5e-7);
 
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump0->getId()), -5.89653e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump0->getId()), -5.89653042e-10, 5e-17);
     ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump1->getId()), -1.17933205e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump2->getId()), -5.89679e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c1->getId()), 5.89679e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump2->getId()), -5.89679007e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c1->getId()), 5.89679007e-10, 5e-17);
     ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c2->getId()), 1.17935801e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c3->getId()), 5.89679e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c4->getId()), 5.89679e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c5->getId()), 5.89679e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c3->getId()), 5.89679007e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c4->getId()), 5.89679007e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c5->getId()), 5.89679007e-10, 5e-17);
     ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c6->getId()), 2.35871603e-09, 5e-17);
 
 }
@@ -109,14 +109,14 @@ TEST(Continuous, jsonDefinition) {
     ASSERT_NEAR(result->getStates().at(0)->getPressures().at(6), 833.333333, 5e-7);
     ASSERT_NEAR(result->getStates().at(0)->getPressures().at(7), 0.0, 5e-7);
 
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(0), -5.89653e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(0), -5.89653042e-10, 5e-17);
     ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(1), -1.17933205e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(2), -5.89679e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(3), 5.89679e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(2), -5.89679007e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(3), 5.89679007e-10, 5e-17);
     ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(4), 1.17935801e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(5), 5.89679e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(6), 5.89679e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(7), 5.89679e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(5), 5.89679007e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(6), 5.89679007e-10, 5e-17);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(7), 5.89679007e-10, 5e-17);
     ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(8), 2.35871603e-09, 5e-17);
 
 }
