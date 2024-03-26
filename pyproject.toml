@@ -8,13 +8,13 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mmft.hybridsim"
-description = "A hybrid simulator for closed channel-based microfluidic devices"
+name = "mmft.simulator"
+description = "A simulator for closed channel-based microfluidic devices"
 readme = "README.md"
 authors = [
     { name = "Michel Takken", email = "michel.takken@tum.de"}
 ]
-keywords = ["MMFT", "microfluidics", "design automation", "hybrid simulation"]
+keywords = ["MMFT", "microfluidics", "simulation", "design automation"]
 license = { file = "LICENSE" }
 
 classifiers=[
@@ -45,7 +45,7 @@ exclude = ["src*"]
 build = "cp3*"
 skip = "*-musllinux_*"
 archs = "auto64"
-test-command = "python -c \"from mmft import hybridsim\""
+test-command = "python -c \"from mmft import simulator\""
 build-frontend = "build"
 
 [tool.cibuildwheel.macos]

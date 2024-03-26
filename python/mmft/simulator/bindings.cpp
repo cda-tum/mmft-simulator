@@ -12,7 +12,7 @@ using T = double;
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-PYBIND11_MODULE(pyhybridsim, m) {
+PYBIND11_MODULE(pysimulator, m) {
 	m.doc() = "Python binding for the MMFT-Simulator.";
 
 	py::enum_<arch::ChannelType>(m, "ChannelType")

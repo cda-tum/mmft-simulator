@@ -1,4 +1,4 @@
-"""Setup script for the MMFT Hybrid Simulator package."""
+"""Setup script for the MMFT Simulator package."""
 
 import os
 import re
@@ -47,7 +47,7 @@ class CMakeBuild(build_ext):
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
-            f"-DHYBRIDSIM_VERSION_INFO={version}",
+            f"-DSIMULATOR_VERSION_INFO={version}",
             f"-DCMAKE_BUILD_TYPE={cfg}",
             "-DBINDINGS=ON",
         ]
@@ -100,6 +100,6 @@ class CMakeBuild(build_ext):
 
 
 setup(
-    ext_modules=[CMakeExtension("mmft.hybridsim.pyhybridsim")],
+    ext_modules=[CMakeExtension("mmft.simulator.pysimulator")],
     cmdclass={"build_ext": CMakeBuild},
 )

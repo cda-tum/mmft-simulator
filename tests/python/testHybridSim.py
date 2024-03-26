@@ -1,4 +1,4 @@
-from pyhybridsim import *
+from pysimulator import *
 
 # Continuous Abstract
 def abstractContinuous():

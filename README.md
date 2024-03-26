@@ -1,8 +1,8 @@
 # MMFT Simulator
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Ubuntu-build](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml)
-[![MacOS-build](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_macos.yml)
+[![Ubuntu-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml)
+[![MacOS-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml)
 
 <p align="center">
   <picture>
@@ -33,7 +33,7 @@ For more information about our work on Microfluidics, please visit https://www.c
 
 ## System Requirements
 
-The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.7 or newer. The package is currently tested for Linux distributions and MacOS.
+The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.8 or newer. The package is currently tested for Linux distributions and MacOS.
 
 ## Usage
 ### C++
@@ -61,7 +61,7 @@ Install the python package
 ```python
 pip install mmft.simulator
 ```
-and import the hybrid simulator in your code
+and import the MMFT simulator in your code
 ```python
 from mmft import simulator
 ```

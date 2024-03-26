@@ -1,6 +1,6 @@
-"""MMFT Hybrid Simulation Package"""
+"""MMFT Simulation Package"""
 
-from mmft.hybridsim.pyhybridsim import (
+from mmft.simulator.pysimulator import (
     Network,
     Fluid,
     ResistanceModel,
