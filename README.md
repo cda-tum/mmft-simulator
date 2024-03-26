@@ -10,7 +10,12 @@
   </picture>
 </p>
 
-A Simulator for Microfluidic Devices developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the Munich MicroFluidic Toolkit (MMFT). The simulator includes microfluidic simulations for different microfluidic platforms on different levels of abstractions. The following simulations are supported:
+The MMFT Simulator is a library that contains a collection of simulators for microfluidic devices on different levels of abstraction for different applications, and is currently distributed as a C++ library, as well as a [python package](https://pypi.org/project/mmft.simulator/). The MMFT Simulator is developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the [Munich MicroFluidic Toolkit (MMFT)](https://www.cda.cit.tum.de/research/microfluidics/munich-microfluidics-toolkit/). For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/.  If you have any questions, or if you would like to suggest new features, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
+
+
+## Simulators
+
+The MMFT Simulator supports simulations for different platforms of microfluidic devices, i.e., the means (physics) by which a microfluidic device operates in an application. These simulations can be further categorized into levels of abstraction, i.e., the grade at which the underlying physics have been simplified. Overall, this leads to a matrix of simulations for various platforms on different levels of abstraction. The following matrix illustrates the simulations that are currently supported by the MMFT Simulator:
 
 <div align="center">
 
@@ -29,7 +34,6 @@ A Simulator for Microfluidic Devices developed by the [Chair for Design Automati
 **Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based <br> pressure-driven microfluidic flow. <br>
 **BigDroplet**: In this platform, droplets are considered in addition to the continuous platform. Droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel.<sup>[[2]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
 
-For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/.  If you have any questions, or if you would like to suggest new features, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
 
 ## System Requirements
 
