@@ -1,15 +1,17 @@
 """MMFT Simulation Package"""
 
 from mmft.simulator.pysimulator import (
+    ChannelType,
     Network,
-    Fluid,
-    ResistanceModel,
-    Simulation
+    Platform,
+    Simulation,
+    Type
 )
 
 __all__ = [
+    'ChannelType',
     'Network',
-    'Fluid',
-    'ResistanceModel',
-    'Simulation'
+    'Platform',
+    'Simulation',
+    'Type'
 ]
