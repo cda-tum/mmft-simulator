@@ -297,7 +297,7 @@ void lbmModule<T>::writeVTK (int iT) {
 
 template<typename T>
 void lbmModule<T>::solve() {
-    // TODO: theta = 10
+    // theta = 10
     for (int iT = 0; iT < 10; ++iT){      
         this->setBoundaryValues(step);
         writeVTK(step);          

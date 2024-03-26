@@ -71,16 +71,11 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
         if (simType != sim::Type::Abstract) {
             throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
         }
-        //readDroplets<T>(jsonString, simulation);
         readDropletInjections<T>(jsonString, simulation, activeFixture);
     } else
     if (platform == sim::Platform::Mixing) {
         // NOT YET SUPPORTED
         throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
-        // Import Species for Mixing platform
-            // TODO
-        // Import bolus injections in fixture
-            // TODO
     } else {
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }
@@ -129,10 +124,6 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     if (platform == sim::Platform::Mixing) {
         // NOT YET SUPPORTED
         throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
-        // Import Species for Mixing platform
-            // TODO
-        // Import bolus injections in fixture
-            // TODO
     } else {
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }

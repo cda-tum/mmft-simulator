@@ -104,7 +104,7 @@ private:
 
     /**
      * @brief Moves all droplets according to the given time step.
-     * @param[in] timeStep to which the droplets should be moved to. TODO
+     * @param[in] timeStep to which the droplets should be moved to.
      */
     void moveDroplets(T timeStep);
 

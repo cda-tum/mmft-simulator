@@ -440,13 +440,6 @@ const std::unordered_map<int, std::unique_ptr<Group<T>>>& Network<T>::getGroups(
 }
 
 template<typename T>
-void Network<T>::toJson(std::string jsonString) const {
-    /** TODO
-     * 
-    */
-}
-
-template<typename T>
 void Network<T>::sortGroups() {
     std::vector<int> nodeVector;
     std::vector<Edge<T>*> edges;

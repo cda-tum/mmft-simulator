@@ -154,9 +154,7 @@ void readSimulators(json jsonString, arch::Network<T>* network) {
 template<typename T>
 void readBoundaryConditions(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("boundaryConditions")) {
-        /** TODO
-         * Set new default values for pressure/flowrate pump
-        */
+        throw std::invalid_argument("Setting boundary condition values in fixture is not yets supported.");
     }
 }
 

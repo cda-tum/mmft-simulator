@@ -428,7 +428,7 @@ namespace sim {
                                 fluids[continuousPhase]->getDensity());
             }
 
-            // TODO: this is boilerplate code, and can be done way more efficiently in a recursive manner
+            // This is boilerplate code, and can be done way more efficiently in a recursive manner
             for (auto& [modulekey, module] : network->getModules()) {
                 for (auto& [key, channel] : module->getNetwork()->getChannels()) {
                     //std::cout << "[Simulation] Channel " << channel->getId();
@@ -441,7 +441,7 @@ namespace sim {
                     //std::cout << " and a length of " << sqrt(dx*dx + dy*dy) <<std::endl;
                 }
             }
-            // TODO: Also boilerplate code that can be done more efficiently
+            // Also boilerplate code that can be done more efficiently
             for (auto& [modulekey, module] : network->getModules()) {
                 for (auto& [key, channel] : module->getNetwork()->getChannels()) {
                     T resistance = resistanceModel->getChannelResistance(channel.get());

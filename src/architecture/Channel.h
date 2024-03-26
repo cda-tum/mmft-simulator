@@ -35,6 +35,9 @@ enum class ChannelShape {
     CYLINDRICAL     ///< A channel with a circular cross-section
 };
 
+/**
+ * @brief A struct that defines a straight channel segment
+*/
 template<typename T, int DIM>
 struct Line_segment {
     std::vector<T> start;
@@ -49,6 +52,9 @@ struct Line_segment {
     T getLength();
 }; 
 
+/**
+ * @brief A struct that defines an arc channel segment
+*/
 template<typename T, int DIM>
 struct Arc {
     bool right;

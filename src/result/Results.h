@@ -72,25 +72,25 @@ struct State {
 
     /**
      * @brief Function to get pressure at a specific node.
-     * @return Pressures of this state in Pa.
+     * @returns Pressures of this state in Pa.
      */
     const std::unordered_map<int, T>& getPressures() const;
 
     /**
      * @brief Function to get flow rate at a specific channel.
-     * @return Flowrates of this state in m^3/s.
+     * @returns Flowrates of this state in m^3/s.
      */
     const std::unordered_map<int, T>& getFlowRates() const;
 
     /**
      * @brief Function to get flow rate at a specific channel.
-     * @return Flowrates of this state in m^3/s.
+     * @returns Flowrates of this state in m^3/s.
      */
     std::unordered_map<int, sim::DropletPosition<T>>& getDropletPositions();
 
     /**
      * @brief Function to get the time of a state.
-     * @return Time in s.
+     * @returns Time in s.
      */
     T getTime() const;
 
@@ -114,8 +114,17 @@ struct SimulationResult {
     T maximalAdaptiveTimeStep;     /// Value for the maximal adaptive time step that was used.
     int resistanceModel;                /// Id of the used resistance model.
 
+    /**
+     * @brief Constructs an uninitialized simulationResult object, which stores all results of a simulation.
+     */
     SimulationResult();
 
+    /**
+     * @brief Constructs a simulationResult object, which stores all results of a simulation.
+     * @param[in] network pointer to the network on which the simulation acts
+     * @param[in] fluids a pointer to the unordered map of fluids in the simulation
+     * @param[in] droplets a pointer to the unordered map of droplets in the simulation
+     */
     SimulationResult(   arch::Network<T>* network, 
                         std::unordered_map<int, sim::Fluid<T>>* fluids, 
                         std::unordered_map<int, sim::Droplet<T>>* droplets);
@@ -134,25 +143,25 @@ struct SimulationResult {
 
     /**
      * @brief Get the simulated pressures at the nodes.
-     * @return Vector of pressure values
+     * @returns Vector of pressure values
      */
     const std::unordered_map<int, T>& getFinalPressures() const;
 
     /**
      * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
+     * @returns Vector of flowrate values
      */
     const std::unordered_map<int, T>& getFinalFlowRates() const;
 
     /**
      * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
+     * @returns Vector of flowrate values
      */
     const std::unordered_map<int, T>& getFinalDropletPositions() const;
 
     /**
      * @brief Get the simulated states that were stored during simulation.
-     * @return Vector of states
+     * @returns Vector of states
      */
     const std::vector<std::unique_ptr<State<T>>>& getStates() const;
 
