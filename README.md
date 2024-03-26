@@ -1,4 +1,4 @@
-# MMFT Hybrid Simulator
+# MMFT Simulator
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ubuntu-build](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml)
@@ -17,7 +17,7 @@ A Simulator for Microfluidic Devices developed by the [Chair for Design Automati
 |               | Abstract      | Hybrid        |
 | :-----------  | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      |
-| Droplet       | &#x2705;      |               |
+| BigDroplet    | &#x2705;      |               |
 
 </div>
 
@@ -27,7 +27,7 @@ A Simulator for Microfluidic Devices developed by the [Chair for Design Automati
 
 ### Platforms
 **Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based <br> pressure-driven microfluidic flow. <br>
-**Droplet**: In this platform, droplets are considered in addition to the continuous platform. Droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase.<sup>[[2]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
+**BigDroplet**: In this platform, droplets are considered in addition to the continuous platform. Droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel.<sup>[[2]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
 
 For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/.  If you have any questions, or if you would like to suggest new features, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
 
@@ -71,7 +71,7 @@ from mmft import simulator
 Additional to defining a use case using the MMFT Simulator API, it is also possible to load and store use cases and results with the JSON file format. To simulate a case, the JSON definitions for the `Network` and `Simulation` are necessary. The results can be stored in a JSON file. 
 
 **Network Definition**<br>
-A network is defined as a set of `Nodes` and `Channels`. A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device. If the node is a ground node (i.e. the reference pressure p<sub>0</sub> acts on the node), `ground` must be set `true`. For the Droplet simulation platform, the sinks of the domain must additionally be defined. 
+A network is defined as a set of `Nodes` and `Channels`. A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device. If the node is a ground node (i.e. the reference pressure p<sub>0</sub> acts on the node), `ground` must be set `true`. For the BigDroplet simulation platform, the sinks of the domain must additionally be defined. 
 ```JSON
 {
     "x": 2e-3,
@@ -267,7 +267,7 @@ simulation.saveResult("/path/to/Result.JSON")
 ```
 
 ## References
-The MMFT Simulator is constituted by several academic contributions that are listed below. More details about the implementation and the mechanisms behind the simulatorcan be found in: 
+More details about the implementation and the mechanisms behind the MMFT Simulator can be found in: 
 
 [[1]](https://doi.org/10.3390/mi15010129) M. Takken, and R. Wille. Accelerated Computational Fluid Dynamics Simulations of Microfluidic Devices by Exploiting Higher Levels of Abstraction. MDPI Micromachines, 2024.
 
