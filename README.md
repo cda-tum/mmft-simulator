@@ -27,11 +27,11 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 </div>
 
 ### Abstraction Levels
-**Abstract**: This abstraction level highly abstracts the underlying physics to an extend that it can, in most cases, provide simulation results almost instantly. It uses a method that draws an analogy between the Hagen-Poiseuille law and Ohm's law, and applies analogous methods from electrical circuit engineering to channel-based microfluidic devices.<br>
+**Abstract**: This abstraction level highly abstracts the underlying physics to an extend that it can, in most cases, provide simulation results almost instantly. It uses a method that draws an analogy between the <br>Hagen-Poiseuille law and Ohm's law, and applies analogous methods from electrical circuit engineering to <br>channel-based microfluidic devices.<br>
 **Hybrid**: The Hybrid exploits simulation methods on a high level of abstraction to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices.<sup>[[1]](https://doi.org/10.3390/mi15010129)</sup>
 
 ### Platforms
-**Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based <br> pressure-driven microfluidic flow. <br>
+**Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based pressure-driven microfluidic flow. <br>
 **BigDroplet**: In this platform, droplets are considered in addition to the continuous platform. Droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel.<sup>[[2]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
 
 
