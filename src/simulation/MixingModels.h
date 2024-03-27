@@ -47,6 +47,7 @@ struct FlowSection {
     T sectionStart; // Start of the relevant section of this inflow (relative, 0.0-1.0)
     T sectionEnd;   // End of the relevant section of this inflow (relative, 0.0-1.0)
     T flowRate;
+    T width;
 };
 
 template<typename T>

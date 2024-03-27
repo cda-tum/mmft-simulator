@@ -440,11 +440,10 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                     std::cout << "Construcing flow section from " << channelInId << " into " << channelOutIDs[n_out] << std::endl;
                     std::cout << "Cut on the inflow side " << inflowCuts[n_in+1] << " cut on the outflow side " << outflowCuts[n_out+1]<< std::endl;
                     FlowSection<T> inFlowSection;
-                    inFlowSection.channelId = channelInId;
                     if (inflowCuts[n_in+1] <= outflowCuts[n_out+1]) {
                         // The cut is caused on the inflow side
                         T flowRate = (1.0 - start) * network->getChannel(channelInId)->getFlowRate();
-                        inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate};
+                        inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate, network->getChannel(channelInId)->getWidth()};
                         std::cout << "Add flowsection for channel " << channelOutIDs[n_out] << " with following parameters: \n" ;
                         std::cout << "Cut v1\n";
                         std::cout << " \t channel in " << channelInId << " \n ";
@@ -465,7 +464,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                         T flowRate = (outflowCuts[n_out + 1] - std::max(inflowCuts[n_in], outflowCuts[n_out]))*flowRateIn;
                         end = start + flowRate / network->getChannel(channelInId)->getFlowRate();
                         std::cout << "end: " << end << " = " << start << " + " << flowRate << "/" << network->getChannel(channelInId)->getFlowRate() <<"\n";
-                        inFlowSection = FlowSection<T> {channelInId, start, end, flowRate};
+                        inFlowSection = FlowSection<T> {channelInId, start, end, flowRate, network->getChannel(channelInId)->getWidth()};
                         std::cout << "Add flowsection for channel " << channelOutIDs[n_out] << " with following parameters: \n" ;
                         std::cout << "Cut v2\n";
                         std::cout << " \t channel in " << channelInId << " \n ";
@@ -502,30 +501,30 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             if (flow.at(0).inFlow) {
                 T ratio = (network->getChannel(counterClockWise.at(0).channelId)->getFlowRate() - 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate()) 
                             / network->getChannel(opposed.at(0).channelId)->getFlowRate();
-                FlowSection<T> flow1 {flow.at(0).channelId, 0.0, 0.5, 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow1 {flow.at(0).channelId, 0.0, 0.5, 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate(), network->getChannel(flow.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow1Vector = {flow1};
                 outflowDistributions.try_emplace(clockWise.at(0).channelId, newFlow1Vector);
-                FlowSection<T> flow2 {opposed.at(0).channelId, 0.0, ratio, ratio*network->getChannel(opposed.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow2 {opposed.at(0).channelId, 0.0, ratio, ratio*network->getChannel(opposed.at(0).channelId)->getFlowRate(), network->getChannel(opposed.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow2Vector = {flow2};
                 outflowDistributions.try_emplace(counterClockWise.at(0).channelId, newFlow2Vector);
-                FlowSection<T> flow3 {flow.at(0).channelId, 0.5, 1.0, 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow3 {flow.at(0).channelId, 0.5, 1.0, 0.5*network->getChannel(flow.at(0).channelId)->getFlowRate(), network->getChannel(flow.at(0).channelId)->getWidth()};
                 outflowDistributions.at(counterClockWise.at(0).channelId).push_back(flow3);
-                FlowSection<T> flow4 {opposed.at(0).channelId, ratio, 1.0, (1.0 - ratio)*network->getChannel(opposed.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow4 {opposed.at(0).channelId, ratio, 1.0, (1.0 - ratio)*network->getChannel(opposed.at(0).channelId)->getFlowRate(), network->getChannel(opposed.at(0).channelId)->getWidth()};
                 outflowDistributions.at(clockWise.at(0).channelId).push_back(flow4);
             } else {
                 T ratio = network->getChannel(clockWise.at(0).channelId)->getFlowRate() / 
                             (network->getChannel(clockWise.at(0).channelId)->getFlowRate() + network->getChannel(counterClockWise.at(0).channelId)->getFlowRate());
                 T ratio1 = (ratio*network->getChannel(flow.at(0).channelId)->getFlowRate())/(network->getChannel(clockWise.at(0).channelId)->getFlowRate());
                 T ratio2 = ((1.0-ratio)*network->getChannel(flow.at(0).channelId)->getFlowRate())/(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate());
-                FlowSection<T> flow1 {clockWise.at(0).channelId, 0.0, (1.0-ratio1), (1.0-ratio1)*network->getChannel(clockWise.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow1 {clockWise.at(0).channelId, 0.0, (1.0-ratio1), (1.0-ratio1)*network->getChannel(clockWise.at(0).channelId)->getFlowRate(), network->getChannel(clockWise.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow1Vector = {flow1};
                 outflowDistributions.try_emplace(opposed.at(0).channelId, newFlow1Vector);
-                FlowSection<T> flow2 {counterClockWise.at(0).channelId, 0.0, ratio2, ratio2*network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow2 {counterClockWise.at(0).channelId, 0.0, ratio2, ratio2*network->getChannel(counterClockWise.at(0).channelId)->getFlowRate(), network->getChannel(counterClockWise.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow2Vector = {flow2};
                 outflowDistributions.try_emplace(flow.at(0).channelId, newFlow2Vector);
-                FlowSection<T> flow3 {clockWise.at(0).channelId, (1.0-ratio1), 1.0, ratio1*network->getChannel(clockWise.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow3 {clockWise.at(0).channelId, (1.0-ratio1), 1.0, ratio1*network->getChannel(clockWise.at(0).channelId)->getFlowRate(), network->getChannel(clockWise.at(0).channelId)->getWidth()};
                 outflowDistributions.at(flow.at(0).channelId).push_back(flow3);
-                FlowSection<T> flow4 {counterClockWise.at(0).channelId, ratio2, 1.0, (1.0 - ratio2)*network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()};
+                FlowSection<T> flow4 {counterClockWise.at(0).channelId, ratio2, 1.0, (1.0 - ratio2)*network->getChannel(counterClockWise.at(0).channelId)->getFlowRate(), network->getChannel(counterClockWise.at(0).channelId)->getWidth()};
                 outflowDistributions.at(opposed.at(0).channelId).push_back(flow4);
             }
         } else {
@@ -570,6 +569,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
     std::vector<T> segmentedResult;
     T a_0 = 0.0;
     T a_n = 0.0;
+
+    // calculating segmented results
     for (const auto& parameter : parameters) {
         T a_0_old = parameter.a_0_old;
         T stretchFactor = parameter.stretchFactor;
@@ -597,25 +598,28 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
             segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
         }
     }
+    
+    // calculating a_0
+    std::cout << "Calculating a_0 in solutionFunction" << std::endl;
+    for (const auto& parameter : parameters) {
+        T a_0_old = parameter.a_0_old;
+        std::cout << "a_0_old is " << a_0_old << std::endl;
+        a_0 += a_0_old * (parameter.endWidth - parameter.startWidth); 
+        std::cout << "a_0 += " << a_0_old * (parameter.endWidth - parameter.startWidth) << std::endl;
+        for (int i = 0; i < parameter.segmentedResult.size(); i++) { 
+            T stretchFactor = parameter.stretchFactor;
+            T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
+            int oldN = (i % (resolution - 1)) + 1;
+            a_0 += 2 * parameter.segmentedResult[i] * stretchFactor/(oldN * M_PI) * 
+                (std::sin(oldN * M_PI * parameter.endWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit) 
+                - std::sin(oldN * M_PI * parameter.startWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit));
+        }
+    }     
+    std::cout << "a_0 is " << a_0 << std::endl;
 
-    auto f = [channelLength, channelWidth, resolution, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
+    auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
-        T a_0 = 0.0;
         T a_n = 0.0;
-
-        // calculating a_0
-        for (const auto& parameter : parameters) {
-            T a_0_old = parameter.a_0_old;
-            a_0 += a_0_old * (parameter.endWidth - parameter.startWidth); 
-            for (int i = 0; i < parameter.segmentedResult.size(); i++) { 
-                T stretchFactor = parameter.stretchFactor;
-                T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
-                int oldN = (i % (resolution - 1)) + 1;
-                a_0 += 2 * parameter.segmentedResult[i] * stretchFactor/(oldN * M_PI) * 
-                    (std::sin(oldN * M_PI * parameter.endWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit) 
-                    - std::sin(oldN * M_PI * parameter.startWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit));
-            }
-        }     
 
         // Calculating a_n
         for (const auto& parameter : parameters) {
@@ -666,8 +670,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         T startWidth = prevEndWidth;
         T endWidth = startWidth + ((flowSection.flowRate / currChannelFlowRate));
         prevEndWidth = endWidth;
-        T stretchFactor = (flowSection.flowRate/(flowSection.sectionEnd-flowSection.sectionStart)) / currChannelFlowRate;
-        //std::cout << "The stretch factor is: " << stretchFactor << std::endl;
+        T stretchFactor = ((flowSection.flowRate/currChannelFlowRate)/(flowSection.sectionEnd-flowSection.sectionStart)) * (channelWidth/flowSection.width);
+        std::cout << "The stretch factor is: " << stretchFactor << std::endl;
         T startWidthIfFunctionWasSplit = flowSection.sectionStart;
 
         if (!this->filledEdges.count(flowSection.channelId)){
@@ -675,16 +679,16 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
             std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
             std::vector<T> zeroSegmentedResult = {0};
             constantFlowSections.push_back({startWidth, endWidth, 1.0, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
-            // std::cout << "The filled edges do not contain " << flowSection.channelId << "\n";
-            // std::cout << "contantFlowSections pushed back: \n";
-            // std::cout << "\t startWidth: " << startWidth;
-            // std::cout << "\n\t endWidth: " << endWidth;
-            // std::cout << "\n\t stretchFactor: " << 1.0;
-            // std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
-            // std::cout << "\n\t concentration: " << concentration;
-            // std::cout << "\n";
+            std::cout << "The filled edges do not contain " << flowSection.channelId << "\n";
+            std::cout << "contantFlowSections pushed back: \n";
+            std::cout << "\t startWidth: " << startWidth;
+            std::cout << "\n\t endWidth: " << endWidth;
+            std::cout << "\n\t stretchFactor: " << 1.0;
+            std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
+            std::cout << "\n\t concentration: " << concentration;
+            std::cout << "\n";
         } else {
-            //std::cout << "The filled edges do contain " << flowSection.channelId << "\n";
+            std::cout << "The filled edges do contain " << flowSection.channelId << "\n";
             T mixtureId = this->filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
             DiffusiveMixture<T>* diffusiveMixture = diffusiveMixtures.at(mixtureId).get(); // Assuming diffusiveMixtures is passed
             if (diffusiveMixture->getSpecieConcentrations().find(speciesId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
@@ -692,25 +696,25 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
-                // std::cout << "contantFlowSections pushed back: \n";
-                // std::cout << "\t startWidth: " << startWidth;
-                // std::cout << "\n\t endWidth: " << endWidth;
-                // std::cout << "\n\t stretchFactor: " << 1.0;
-                // std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
-                // std::cout << "\n\t concentration: " << concentration;
-                // std::cout << "\n";
+                std::cout << "contantFlowSections pushed back: \n";
+                std::cout << "\t startWidth: " << startWidth;
+                std::cout << "\n\t endWidth: " << endWidth;
+                std::cout << "\n\t stretchFactor: " << 1.0;
+                std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
+                std::cout << "\n\t concentration: " << concentration;
+                std::cout << "\n";
             } else if (diffusiveMixture->getIsConstant()) { 
                 T concentration = diffusiveMixture->getConcentrationOfSpecie(speciesId); 
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, startWidthIfFunctionWasSplit, concentration, zeroFunction, zeroSegmentedResult, T(0.0)}); 
-                // std::cout << "contantFlowSections pushed back: \n";
-                // std::cout << "\t startWidth: " << startWidth;
-                // std::cout << "\n\t endWidth: " << endWidth;
-                // std::cout << "\n\t stretchFactor: " << 1.0;
-                // std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
-                // std::cout << "\n\t concentration: " << concentration;
-                // std::cout << "\n";
+                std::cout << "contantFlowSections pushed back: \n";
+                std::cout << "\t startWidth: " << startWidth;
+                std::cout << "\n\t endWidth: " << endWidth;
+                std::cout << "\n\t stretchFactor: " << 1.0;
+                std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
+                std::cout << "\n\t concentration: " << concentration;
+                std::cout << "\n";
             } else {
                 auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(speciesId);
                 // std::function<T(T)> concentrationFunction = specieDistribution.first;
@@ -720,14 +724,14 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
                 T a_0_old = std::get<2>(specieDistribution);
                 functionFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults, a_0_old});
-                // std::cout << "functionFlowSections pushed back: \n";
-                // std::cout << "\t startWidth: " << startWidth;
-                // std::cout << "\n\t endWidth: " << endWidth;
-                // std::cout << "\n\t stretchFactor: " << stretchFactor;
-                // std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
-                // std::cout << "\n\t concentration: " << 0.0;
-                // std::cout << "\n\t a_0_old: " << a_0_old;
-                // std::cout << "\n";
+                std::cout << "functionFlowSections pushed back: \n";
+                std::cout << "\t startWidth: " << startWidth;
+                std::cout << "\n\t endWidth: " << endWidth;
+                std::cout << "\n\t stretchFactor: " << stretchFactor;
+                std::cout << "\n\t startWidthIfFunctionWasSplit: " << startWidthIfFunctionWasSplit;
+                std::cout << "\n\t concentration: " << 0.0;
+                std::cout << "\n\t a_0_old: " << a_0_old;
+                std::cout << "\n";
             }
         }
     }
@@ -735,6 +739,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
     std::cout << "Peclet number is " << pecletNr << std::endl;
     auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalSolutionConstant(channelLength, channelWidth, 1000, pecletNr, constantFlowSections);
     auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalSolutionFunction(channelLength, channelWidth, 1000, pecletNr, functionFlowSections, fConstant);
+    std::cout << "a_0_Constant is " << a_0_Constant << std::endl;
+    std::cout << "a_0_Function is " << a_0_Function << std::endl;
 
     segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
 

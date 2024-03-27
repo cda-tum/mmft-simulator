@@ -31,7 +31,7 @@ int main(int argc, char const* argv []) {
     result::SimulationResult<T>* result = sim.getSimulationResults();
 
     std::cout << "Print last state" << std::endl;
-    result->printStates();
+    //result->printStates();
     std::cout << "Write diffusive mixtures" << std::endl;
     
     /**
