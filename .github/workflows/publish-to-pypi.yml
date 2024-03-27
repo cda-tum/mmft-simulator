@@ -15,21 +15,41 @@ concurrency:
 
 jobs:
   build_wheels:
-    name:    ${{ matrix.os }} wheels
-    runs-on: ${{ matrix.os }}
+    name:    ${{ matrix.runs-on.os }} ${{ matrix.python }} wheels
+    runs-on: ${{ matrix.runs-on.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        runs-on:
+          - { os: ubuntu-latest, shell: bash }
+          - { os: macos-11, shell: bash }
+          #- { os: windows-latest, shell: "msys2 {0}" }
+        python: ["cp38", "cp39", "cp310", "cp311", "cp312"]
+    defaults:
+      run:
+        shell: ${{ matrix.runs-on.shell }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules:  recursive
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.12.3
-      - uses: actions/upload-artifact@v3
+      - if: runner.os == 'Windows' 
+        uses: msys2/setup-msys2@v2
         with:
+          msystem: MINGW64
+          path-type: inherit
+          install: >-
+            mingw-w64-x86_64-gcc
+      - name: Build wheels
+        run: |
+          pipx run cibuildwheel
+        env:
+          CIBW_ARCHS_WINDOWS: auto64
+          CIBW_ENVIRONMENT_WINDOWS: CC=gcc CXX=g++
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: cibw-wheels-${{ runner.os }}-${{ matrix.python }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
   build_sdist:

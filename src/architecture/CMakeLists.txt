@@ -1,5 +1,6 @@
 set(SOURCE_LIST
     Channel.hh
+    ChannelPosition.hh
     lbmModule.hh
     Module.hh
     Network.hh
@@ -11,6 +12,7 @@ set(SOURCE_LIST
     
 set(HEADER_LIST
     Channel.h
+    ChannelPosition.h
     lbmModule.h
     Module.h
     Network.h

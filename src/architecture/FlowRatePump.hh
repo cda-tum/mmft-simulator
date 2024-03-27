@@ -1,8 +1,5 @@
 #include "FlowRatePump.h"
 
-#include "Edge.h"
-#include "Node.h"
-
 namespace arch {
 
 template<typename T>
