@@ -264,10 +264,6 @@
         {
             "species": [0],
             "concentrations": [1.0]
-        },
-        {
-            "species": [0],
-            "concentrations": [0.5]
         }
     ],
     "pumps": [
@@ -300,6 +296,11 @@
             "channel":18,
             "type": "PumpPressure",
             "deltaP": 1000
+        },
+        {
+            "channel":19,
+            "type": "PumpPressure",
+            "deltaP": 1000
         }
     ],
     "fixtures": [
@@ -308,18 +309,23 @@
             "phase": 0,
             "mixtureInjections": [
                 {
-                    "mixture": 1,
+                    "mixture": 0,
                     "channel": 1,
                     "t0": 0.0
                 },
                 {
-                    "mixture": 1,
+                    "mixture": 0,
                     "channel": 3,
                     "t0": 0.0
                 },
                 {
                     "mixture": 0,
-                    "channel": 11,
+                    "channel": 10,
+                    "t0": 0.0
+                },
+                {
+                    "mixture": 0,
+                    "channel": 12,
                     "t0": 0.0
                 }
             ]
