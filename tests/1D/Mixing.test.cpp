@@ -639,7 +639,7 @@ TEST(DiffusionMixing, case3) {
     // The constant flow sections that enter and flow through channels 3 and 5
     constantFlowSections0.push_back({0.0, 0.4375, 1.0, 0.222222, 0.0, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
     constantFlowSections0.push_back({0.4375, 1.0, 1.0, 0.0, 1.0, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
-    auto [fConstant0, segmentedResultConstant0, a_0_Constant0] = diffusionMixingModelTest.getAnalyticalSolutionConstant(2*cLength, cWidth, resolution, pecletNr3, constantFlowSections0);
+    auto [fConstant0, segmentedResultConstant0, a_0_Constant0] = diffusionMixingModelTest.getAnalyticalSolutionConstant(2*cLength, 2*cWidth, resolution, pecletNr3, constantFlowSections0);
 
     // The constant flow section of 0.0 concentration that enters through channels 2 and 4, this is ultimately just a function of 0.0 concentration
     constantFlowSections1.push_back({0.0, 1.0, 1.0, 0.0, 0.0, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
@@ -654,7 +654,7 @@ TEST(DiffusionMixing, case3) {
 
     // perform analytical solution for function input
     auto [fFunction1, segmentedResultFunction1, a_0_Function1] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr7, functionFlowSections1, zeroFunction);
-    auto [fFunction2, segmentedResultFunction2, a_0_Function2] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr6, functionFlowSections2, zeroFunction);
+    auto [fFunction2, segmentedResultFunction2, a_0_Function2] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, 2*cWidth, resolution, pecletNr6, functionFlowSections2, zeroFunction);
 
 
     // generate resulting csv files
@@ -694,6 +694,132 @@ TEST(DiffusionMixing, case3) {
 
 }
 
+/** Case3:
+ * 
+ * operation 5 four times
+*/
+TEST(DiffusionMixing, case3_1) {
+
+    // parameters
+    T cWidth = 100e-6;
+    T cHeight = 100e-6;
+    T cLength = sqrt(1e-3*1e-3 + 1e-3*1e-3);
+    T flowRate0 = 1.76777e-09;
+    T flowRate1 = 1.76777e-09;
+    T flowRate2 = 3.92837e-10;
+    T flowRate3 = 3.1427e-09;
+    T flowRate4 = 3.92837e-10;
+    T flowRate5 = 3.1427e-09;
+    T flowRate6 = 3.1427e-09;
+    T flowRate7 = 3.92837e-10;
+    T flowRate8 = 3.1427e-09;
+    T flowRate9 = 3.92837e-10;
+    T flowRate10 = 3.92837e-10;
+    T flowRate11 = 3.1427e-09;
+    T flowRate12 = 3.92837e-10;
+    T flowRate13 = 3.1427e-09;
+    T flowRate14 = 1.76777e-09;
+    T flowRate15 = 1.76777e-09;
+    T pecletNr2 = (flowRate2 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    T pecletNr3 = (flowRate3 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    T pecletNr6 = (flowRate6 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    T pecletNr7 = (flowRate7 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    T pecletNr15 = (flowRate15 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    int resolution = 1000;
+
+    // create necessary objects
+    std::vector<sim::FlowSectionInput<T>> constantFlowSections0;
+    std::vector<sim::FlowSectionInput<T>> constantFlowSections1;
+    std::vector<sim::FlowSectionInput<T>> functionFlowSections0;
+    std::vector<sim::FlowSectionInput<T>> functionFlowSections1;
+    std::vector<sim::FlowSectionInput<T>> functionFlowSections2;
+    std::vector<sim::FlowSectionInput<T>> functionFlowSections3;
+    std::vector<sim::FlowSectionInput<T>> functionFlowSections4;
+    std::vector<sim::FlowSectionInput<T>> functionFlowSections5;
+    std::unordered_map<int, std::unique_ptr<sim::DiffusiveMixture<T>>> diffusiveMixtures;
+
+    std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
+    std::vector<T> zeroSegmentedResult = {0};
+
+    sim::DiffusionMixingModel<T> diffusionMixingModelTest = sim::DiffusionMixingModel<T>();
+
+    // start outflowChannel, end outFlowchannel, stretchFactor, start inflowChannel, concentration
+    // The constant flow sections that enter and flow through channels 3 and 5
+    constantFlowSections0.push_back({0.0, 0.4375, 1.0, 0.222222, 0.0, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
+    constantFlowSections0.push_back({0.4375, 1.0, 1.0, 0.0, 1.0, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
+    auto [fConstant0, segmentedResultConstant0, a_0_Constant0] = diffusionMixingModelTest.getAnalyticalSolutionConstant(2*cLength, 2*cWidth, resolution, pecletNr3, constantFlowSections0);
+
+    // The constant flow section of 0.0 concentration that enters through channels 2 and 4, this is ultimately just a function of 0.0 concentration
+    constantFlowSections1.push_back({0.0, 1.0, 1.0, 0.0, 0.0, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
+    auto [fConstant1, segmentedResultConstant1, a_0_Constant1] = diffusionMixingModelTest.getAnalyticalSolutionConstant(2*cLength, cWidth, resolution, pecletNr2, constantFlowSections1);
+
+    // The top 0.125 part of channel 5 enters channel 7
+    functionFlowSections0.push_back({0.0, 1.0, 4.0, 0.875, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // channel 7
+    auto [fFunction0, segmentedResultFunction0, a_0_Function0] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, cWidth, resolution, pecletNr7, functionFlowSections0, zeroFunction);
+
+    // The flow from channel 4 and the bottom 0.875 part of channel 5 enter channel 6
+    functionFlowSections1.push_back({0.0, 0.125, 1.0, 0.0, T(0.0), fConstant1, segmentedResultConstant1, a_0_Constant1}); // channel 6
+    functionFlowSections1.push_back({0.125, 1.0, 1.0, 0.125, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
+    auto [fFunction1, segmentedResultFunction1, a_0_Function1] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, 2*cWidth, resolution, pecletNr6, functionFlowSections1, zeroFunction);
+
+    // Flow into channel 10 generated from channel 8
+    functionFlowSections2.push_back({0.0, 1.0, 4.0, 0.0, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
+    auto [fFunction2, segmentedResultFunction2, a_0_Function2] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, cWidth, resolution, pecletNr6, functionFlowSections2, zeroFunction);
+
+    // Flow into channel 11 generated from channel 8+9
+    functionFlowSections3.push_back({0.0, 0.875, 1.0, 0.125, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
+    functionFlowSections3.push_back({0.875, 1.0, 0.25, 0.0, T(0.0), fFunction0, segmentedResultFunction0, a_0_Function0});
+    auto [fFunction3, segmentedResultFunction3, a_0_Function3] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, 2*cWidth, resolution, pecletNr6, functionFlowSections3, zeroFunction);
+
+    // Flow into channel 14 generated from channel 12+13
+    functionFlowSections4.push_back({0.0, 1.0, 0.888889, 0.4375, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
+    auto [fFunction4, segmentedResultFunction4, a_0_Function4] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr15, functionFlowSections4, zeroFunction);
+
+    // Flow into channel 15 generated from channel 13
+    functionFlowSections5.push_back({0.0, 0.222222, 0.222222, 0.0, T(0.0), fFunction2, segmentedResultFunction2, a_0_Function2});
+    functionFlowSections5.push_back({0.222222, 1.0, 0.888889, 0.222222, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
+    auto [fFunction5, segmentedResultFunction5, a_0_Function5] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr15, functionFlowSections5, zeroFunction);
+
+    // perform analytical solution for function input
+
+
+    // generate resulting csv files
+    //std::ofstream outputFile0;
+    std::ofstream outputFile1;
+    std::ofstream outputFile2;
+
+    //outputFile0.open("Case3out0.csv");
+    outputFile1.open("Case4out1.csv");  // Channel 14 output
+    outputFile2.open("Case4out2.csv");  // Channel 15 output
+    
+    //outputFile0 << "x,f(x)\n";
+    outputFile1 << "x,f(x)\n";
+    outputFile2 << "x,f(x)\n";
+
+    int numValues = 101;
+    double xStart = 0.0, xEnd = 1.0;
+    double range = xEnd - xStart;
+    double step = range / (numValues - 1);
+
+    for (int i = 0; i < numValues; ++i) {
+        T x = xStart + i * step;
+        //T y0;
+        T y1;
+        T y2;
+        //y0 = fConstant0(x);
+        y1 = fFunction4(x);
+        y2 = fFunction5(x);
+        //outputFile0 << std::setprecision(4) << x << "," << y0 << "\n"; 
+        outputFile1 << std::setprecision(4) << x << "," << y1 << "\n"; 
+        outputFile2 << std::setprecision(4) << x << "," << y2 << "\n"; 
+    }
+    // Close the file
+    //outputFile0.close();
+    outputFile1.close();
+    outputFile2.close();
+
+}
 
 // TEST(Mixing, Case1) {
 //     // Define JSON files
