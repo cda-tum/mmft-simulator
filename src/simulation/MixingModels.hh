@@ -579,10 +579,13 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
             
             for (int i = 0; i < parameter.segmentedResult.size(); i++) {
                 T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
+
                 int oldN = (i % (resolution - 1)) + 1;
 
                 if (abs(oldN/stretchFactor - n) < 1e-8) { 
-                    a_n += 2 * (0.5 * parameter.endWidth - 0.5 * parameter.startWidth + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
+                    a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * startWidthIfFunctionWasSplit) 
+                        + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) 
+                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
                         * parameter.segmentedResult[i];
                 } else {
                     a_n += (1 / ((oldN * M_PI / stretchFactor) + n * M_PI)) *
@@ -633,7 +636,9 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                     int oldN = (i % (resolution - 1)) + 1;
 
                     if (abs(oldN/stretchFactor - n) < 1e-8) { 
-                        a_n += 2 * (0.5 * parameter.endWidth - 0.5 * parameter.startWidth + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
+                        a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * startWidthIfFunctionWasSplit) 
+                            + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) 
+                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
                             * parameter.segmentedResult[i];
                     } else {
                         a_n += (1 / ((oldN * M_PI / stretchFactor) + n * M_PI)) *
@@ -672,7 +677,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         prevEndWidth = endWidth;
         T stretchFactor = ((flowSection.flowRate/currChannelFlowRate)/(flowSection.sectionEnd-flowSection.sectionStart)) * (channelWidth/flowSection.width);
         std::cout << "The stretch factor is: " << stretchFactor << std::endl;
-        T startWidthIfFunctionWasSplit = flowSection.sectionStart;
+        T startWidthIfFunctionWasSplit = flowSection.sectionStart - startWidth;
 
         if (!this->filledEdges.count(flowSection.channelId)){
             T concentration = 0.0;

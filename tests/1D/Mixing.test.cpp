@@ -650,8 +650,8 @@ TEST(DiffusionMixing, case3) {
 
     // The flow from channel 4 and the bottom 0.875 part of channel 5 enter channel 6
     functionFlowSections2.push_back({0.0, 0.125, 1.0, 0.0, T(0.0), fConstant1, segmentedResultConstant1, a_0_Constant1}); // channel 6
-    functionFlowSections2.push_back({0.125, 1.0, 1.0, 0.125, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
-
+    functionFlowSections2.push_back({0.125, 1.0, 1.0, -0.125, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
+    
     // perform analytical solution for function input
     auto [fFunction1, segmentedResultFunction1, a_0_Function1] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr7, functionFlowSections1, zeroFunction);
     auto [fFunction2, segmentedResultFunction2, a_0_Function2] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, 2*cWidth, resolution, pecletNr6, functionFlowSections2, zeroFunction);
