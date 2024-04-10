@@ -7,43 +7,49 @@
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
-    format      ascii;
-    class       dictionary;
-    location    "system";
-    object      controlDict;
+    version 	2.0;
+	format      ascii;
+    class       volVectorField;
+	location 	"0";
+    object      U;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     foamRun;
+dimensions      [0 1 -1 0 0 0 0];
 
-solver          incompressibleFluid;
+internalField   uniform (0 0 0);
 
-startFrom       startTime;
+boundaryField
+{
+    walls
+    {
+        type            noSlip;
+    }
 
-startTime       0;
+    outlet_0
+    {
+        type            zeroGradient;
+    }
 
-stopAt          endTime;
+    outlet_1
+    {
+        type            zeroGradient;
+    }
 
-endTime         100000;
+    inlet_0
+    {
+        type            zeroGradient;
+    }
 
-deltaT          1;
+    inlet_1
+    {
+        type            zeroGradient;
+    }
 
-writeControl    timeStep;
-
-writeInterval   100;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  6;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
+    frontAndBack
+    {
+        type            empty;
+    }
+}
 
 // ************************************************************************* //
