@@ -10,12 +10,12 @@
   </picture>
 </p>
 
-The MMFT Simulator is a library that contains a collection of simulators for microfluidic devices on different levels of abstraction for different applications, and is currently distributed as a C++ library, as well as a [python package](https://pypi.org/project/mmft.simulator/). The MMFT Simulator is developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the [Munich MicroFluidic Toolkit (MMFT)](https://www.cda.cit.tum.de/research/microfluidics/munich-microfluidics-toolkit/). For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/.  If you have any questions, or if you would like to suggest new features, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
+The MMFT Simulator is a library that contains a collection of simulators for closed channel-based microfluidic devices on different levels of abstraction for different applications, and is currently distributed as a C++ library, as well as a [python package](https://pypi.org/project/mmft.simulator/). The MMFT Simulator is developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the [Munich Microfluidic Toolkit (MMFT)](https://www.cda.cit.tum.de/research/microfluidics/munich-microfluidics-toolkit/). For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/.  If you have any questions, or if you would like to suggest new features, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
 
 
 ## Simulators
 
-The MMFT Simulator supports simulations for different platforms of microfluidic devices, i.e., the means (physics) by which a microfluidic device operates in an application. These simulations can be further categorized into levels of abstraction, i.e., the grade at which the underlying physics have been simplified. Overall, this leads to a matrix of simulations for various platforms on different levels of abstraction. The following matrix illustrates the simulations that are currently supported by the MMFT Simulator:
+The MMFT Simulator supports simulations for different platforms of microfluidic devices, i.e., the means (physics) by which a microfluidic device operates in an application. These simulations can be further categorized into levels of abstraction, i.e., the grade at which the underlying physics have been simplified. More information regarding microfluidic simulations on different levels of abstraction are provided in the respective publication.<sup>[[1]](https://doi.org/10.3390/s22145392)</sup> Overall, this leads to a matrix of simulations for various platforms on different levels of abstraction. The matrix below illustrates the simulations that are currently supported by the MMFT Simulator. In this matrix, the rows describe the microfluidic platform and the columns the level of abstraction of the simulation.
 
 <div align="center">
 
@@ -28,11 +28,12 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 
 ### Abstraction Levels
 **Abstract**: This abstraction level highly abstracts the underlying physics to an extend that it can, in most cases, provide simulation results almost instantly. It uses a method that draws an analogy between the <br>Hagen-Poiseuille law and Ohm's law, and applies analogous methods from electrical circuit engineering to <br>channel-based microfluidic devices.<br>
-**Hybrid**: The Hybrid exploits simulation methods on a high level of abstraction to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices.<sup>[[1]](https://doi.org/10.3390/mi15010129)</sup>
+**Hybrid**: The Hybrid exploits simulation methods on a high level of abstraction to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices. More details can be found in the corresponding publication.<sup>[[2]](https://doi.org/10.3390/mi15010129)</sup>
 
 ### Platforms
-**Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based pressure-driven microfluidic flow. <br>
-**BigDroplet**: In this platform, droplets are considered in addition to the continuous platform. Droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel.<sup>[[2]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
+**Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based pressure-driven microfluidic flow. <sup>[[3]](https://doi.org/10.1039/C2LC20799K)</sup> <br>
+**BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[4]](https://doi.org/10.1145/3313867)</sup> <sup>[[5]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
+
 
 
 ## System Requirements
@@ -40,8 +41,11 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.8 or newer. The package is currently tested for Linux distributions and MacOS.
 
 ## Usage
+
+This library is currently supported for use in C++ and python projects. The respective usage is described below.
+
 ### C++
-To use this library, include the following code in your cmake file: 
+To use this library in c++, include the following code in your cmake file: 
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
@@ -61,7 +65,7 @@ and include the library API header in your project file:
 
 ### Python
 
-Install the python package
+To use this library in python, install the python package
 ```python
 pip install mmft.simulator
 ```
@@ -70,12 +74,72 @@ and import the MMFT simulator in your code
 from mmft import simulator
 ```
 
-## JSON Definitions
+## API
 
-Additional to defining a use case using the MMFT Simulator API, it is also possible to load and store use cases and results with the JSON file format. To simulate a case, the JSON definitions for the `Network` and `Simulation` are necessary. The results can be stored in a JSON file. 
+Simulations can be defined using the C++ and Python APIs. Additionally, simulations can also be defined using the JSON file format. Please see the `examples` folder of this repository for examples of various simulations using the C++ or Python API, or JSON files. The two code-snippets below show how the API can be used to load and store JSON files, and to simulate the cases in C++ and python. Afterwards, a more detailed description of the JSON file formats is given.
+
+### C++
+
+```cpp
+#include <iostream>
+
+#include <baseSimulator.h>
+#include <baseSimulator.hh>
+
+using T = double;
+
+int main(int argc, char const* argv []) {
+
+    std::string networkFile = "/path/to/Network.JSON";
+    std::string simulationFile = "/path/to/Simulation.JSON";
+    
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+
+    // Check validity
+    network.isNetworkValid();
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> simulation = porting::simulationFromJSON<T>(simulationFile, &network);
+    
+    // Simulate
+    simulation.simulate();
+
+    // Store results
+    porting::resultToJSON<T>("/path/to/Result.JSON", &simulation );
+}
+```
+
+### Python
+
+```python
+from mmft import simulator
+
+# Initialize Network object and load from JSON file
+network = simulator.Network()
+network.loadNetwork("/path/to/Network.JSON")
+
+# Check validity
+network.sort()
+network.valid()
+
+# Initialize Simulation object and load from JSON file
+simulation = simulator.Simulation()
+simulation.loadSimulation(network, "/path/to/Simulation.JSON")
+
+# Perform simulation 
+simulation.simulate()
+
+# Store results
+simulation.saveResult("/path/to/Result.JSON")
+```
+
+### JSON Definitions
+
+The JSON file formats provide an accessible way for loading and storing simulation cases and results. To simulate a case, the JSON definitions for the `Network` and `Simulation` are necessary. Once a simulation is finished, the `Result` can be stored in a JSON file (see code-snippets above). 
 
 **Network Definition**<br>
-A network is defined as a set of `Nodes` and `Channels`. A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device. If the node is a ground node (i.e. the reference pressure p<sub>0</sub> acts on the node), `ground` must be set `true`. For the BigDroplet simulation platform, the sinks of the domain must additionally be defined. 
+The geometry of a simulation case must be described as a network, which is here defined as a set of `Nodes` and `Channels`. A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device. If the node is a ground node (i.e. the reference pressure p<sub>0</sub> acts on the node), `ground` must be set `true`. For the BigDroplet simulation platform, the sinks of the domain must additionally be set at the nodes where a droplet can exit the domain. 
 ```JSON
 {
     "x": 2e-3,
@@ -92,7 +156,7 @@ A `Channel` connects two nodes (node1 and node2) and has a width and a height:
     "height": 1e-4
 }
 ```
-Examples of JSON definitions of networks can be found in the `examples` folder.
+Please, see the `examples` folder for examples of JSON definitions of networks for various simulations.
 
 **Simulation Definition**
 
@@ -141,7 +205,7 @@ A simulation requires a fluid that acts as continuous phase and pumps. The defin
     "activeFixture": 0,
 }   
 ```
-A CFD Module is defined with type "LBM" and contains paramaters for the LBM solver instance and information on the geometry of the CFD instance. The geometry of the CFD `Module` is described by a .STL file. The in-/outflow boundaries of the CFD `Module` are described by the `Openings`. Each opening is coupled to a single `Node` (located in the middle of the opening) of the Network, has a normal direction and a width.
+For simulations that are of `hybrid` type, at least one "CFD module" must be defined. This is the subset of the domain that will be simulated using CFD. A CFD Module is currently only supported for "LBM" type and contains paramaters for the LBM solver instance and information on the geometry of the CFD instance. The geometry of the CFD `Module` is described by a .STL file. The in-/outflow boundaries of the CFD `Module` are described by the `Openings`. Each opening is coupled to a single `Node` (located in the middle of the opening) of the Network, has a normal direction and a width.
 ```JSON
 {
     "settings": {
@@ -207,72 +271,20 @@ A CFD Module is defined with type "LBM" and contains paramaters for the LBM solv
     }
 }   
 ```
-
-Examples of JSON definitions of simulations can be found in the `examples` folder.
-
-## Examples
-
-For the C++ and python API, examples of simulations for different platforms on different levels of abstraction are provided in the `examples` folder of this repository. Examples of JSON definitions for various simulation cases can also be found in the `examples` folder. The two code-snippets below show how the API can be used to load and store JSON files, and to simulate the cases in C++ and python.
-
-### C++
-
-```cpp
-#include <iostream>
-
-#include <baseSimulator.h>
-#include <baseSimulator.hh>
-
-using T = double;
-
-int main(int argc, char const* argv []) {
-
-    std::string networkFile = "/path/to/Network.JSON";
-    std::string simulationFile = "/path/to/Simulation.JSON";
-    
-    // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
-
-    // Check validity
-    network.isNetworkValid();
-
-    // Load and set the simulation from a JSON file
-    sim::Simulation<T> simulation = porting::simulationFromJSON<T>(simulationFile, &network);
-    
-    // Simulate
-    simulation.simulate();
-
-    // Store results
-    porting::resultToJSON<T>("/path/to/Result.JSON", &simulation );
-}
-```
-
-### Python
-
-```python
-from mmft import simulator
-
-# Initialize Network object and load from JSON file
-network = simulator.Network()
-network.loadNetwork("/path/to/Network.JSON")
-
-# Check validity
-network.sort()
-network.valid()
-
-# Initialize Simulation object and load from JSON file
-simulation = simulator.Simulation()
-simulation.loadSimulation(network, "/path/to/Simulation.JSON")
-
-# Perform simulation 
-simulation.simulate()
-
-# Store results
-simulation.saveResult("/path/to/Result.JSON")
-```
+For examples of JSON definitions of simulations for various simulations and definitions of CFD modules, please see the `examples` folder.
 
 ## References
 More details about the implementation and the mechanisms behind the MMFT Simulator can be found in: 
 
-[[1]](https://doi.org/10.3390/mi15010129) M. Takken, and R. Wille. Accelerated Computational Fluid Dynamics Simulations of Microfluidic Devices by Exploiting Higher Levels of Abstraction. MDPI Micromachines, 2024.
+[[1]](https://doi.org/10.3390/s22145392) M. Takken, and R. Wille. Simulation of Pressure-Driven and Channel-based Microfluidics on Different Abstract Levels: A Case Study. MDPI Sensors, 2022.
 
-[[2]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
+[[2]](https://doi.org/10.3390/mi15010129) M. Takken, and R. Wille. Accelerated Computational Fluid Dynamics Simulations of Microfluidic Devices by Exploiting Higher Levels of Abstraction. MDPI Micromachines, 2024.
+
+[[3]](https://doi.org/10.1039/C2LC20799K) K. W. Oh, K. Lee, B. Ahn, and E. P. Furlani. Design of pressure-driven microfluidic networks using electric circuit analogy. Lab on a Chip 2012.
+
+[[4]](https://doi.org/10.1145/3313867) A. Grimmer, M. Hamidović, W. Haselmayr, and R. Wille. Advanced Simulation of Droplet Microfluidics. ACM Journal on Emerging Technologies in Computing Systems (JETC), 2019.
+
+[[5]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
+
+## How to cite
+If you use this library in your research, depending on which simulator you are using, we would appreciate it if you would cite the original work of the corresponding simulator in your work.
