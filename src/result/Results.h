@@ -111,6 +111,7 @@ struct SimulationResult {
     std::unordered_map<int, sim::Mixture<T>*> mixtures;
     std::unordered_map<int, sim::DiffusiveMixture<T>*> diffusiveMixtures;
     std::unordered_map<int, sim::Specie<T>>* species;
+    std::unordered_map<int, int> filledEdges;
     std::vector<std::unique_ptr<State<T>>> states;                  /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
 
     int continuousPhaseId;              /// Fluid id which served as the continuous phase.

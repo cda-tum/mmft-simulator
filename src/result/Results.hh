@@ -126,8 +126,16 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
 }
 
 template<typename T>
-void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges) {
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges_) {
     int id = states.size();
+    for ( auto& [channelId, deque] : mixturePositions ) {
+        if (filledEdges.count(channelId)) {
+            filledEdges.at(channelId) = deque.back().mixtureId;
+        } else {
+            //std::cout << "We are emplacing a filled Edge." << std::endl;
+            filledEdges.try_emplace(channelId, deque.back().mixtureId);
+        }
+    }
     std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions, filledEdges);
     states.push_back(std::move(newState));
 }

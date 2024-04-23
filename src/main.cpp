@@ -28,7 +28,7 @@ int main(int argc, char const* argv []) {
     auto n_25 = network.addNode(0, 0, false);
     auto n_26 = network.addNode(0, 0, false);
     auto n_27 = network.addNode(0, 0, false);
-
+/*
     auto n_31 = network.addNode(0, 0, false);
     auto n_32 = network.addNode(0, 0, false);
     auto n_33 = network.addNode(0, 0, false);
@@ -80,7 +80,7 @@ int main(int argc, char const* argv []) {
     auto n_613 = network.addNode(0, 0, false);
     auto n_614 = network.addNode(0, 0, false);
     auto n_615 = network.addNode(0, 0, false);
-
+*/
     auto n_71 = network.addNode(0, 0, false);
     auto n_72 = network.addNode(0, 0, false);
     auto n_73 = network.addNode(0, 0, false);
@@ -100,18 +100,18 @@ int main(int argc, char const* argv []) {
     auto cLength = 570e-6;  // Channel length
 
     auto c_01 = network.addChannel(n_01->getId(), n_11->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c_02 = network.addChannel(n_02->getId(), n_12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c_03 = network.addChannel(n_03->getId(), n_13->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_02 = network.addChannel(n_02->getId(), n_13->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_03 = network.addChannel(n_03->getId(), n_15->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     auto c_11 = network.addChannel(n_11->getId(), n_12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_12 = network.addChannel(n_12->getId(), n_13->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_13 = network.addChannel(n_13->getId(), n_14->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_14 = network.addChannel(n_14->getId(), n_15->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
-    auto c_21 = network.addChannel(n_11->getId(), n_21->getId(), cHeight, cWidth, cLength+mLength, arch::ChannelType::NORMAL);
-    auto c_22 = network.addChannel(n_12->getId(), n_23->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-    auto c_23 = network.addChannel(n_14->getId(), n_25->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-    auto c_24 = network.addChannel(n_15->getId(), n_27->getId(), cHeight, cWidth, cLength+mLength, arch::ChannelType::NORMAL);
+    auto c_21 = network.addChannel(n_11->getId(), n_21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_22 = network.addChannel(n_12->getId(), n_23->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_23 = network.addChannel(n_14->getId(), n_25->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_24 = network.addChannel(n_15->getId(), n_27->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     auto c_31 = network.addChannel(n_21->getId(), n_22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_32 = network.addChannel(n_22->getId(), n_23->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
@@ -120,6 +120,13 @@ int main(int argc, char const* argv []) {
     auto c_35 = network.addChannel(n_25->getId(), n_26->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_36 = network.addChannel(n_26->getId(), n_27->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
+    auto c_41 = network.addChannel(n_21->getId(), n_71->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
+    auto c_42 = network.addChannel(n_22->getId(), n_71->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
+    auto c_43 = network.addChannel(n_24->getId(), n_72->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
+    auto c_44 = network.addChannel(n_26->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
+    auto c_45 = network.addChannel(n_27->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
+
+/*
     auto c_41 = network.addChannel(n_21->getId(), n_31->getId(), cHeight, cWidth, cLength+mLength, arch::ChannelType::NORMAL);
     auto c_42 = network.addChannel(n_22->getId(), n_33->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
     auto c_43 = network.addChannel(n_24->getId(), n_35->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
@@ -207,12 +214,12 @@ int main(int argc, char const* argv []) {
     auto c_127 = network.addChannel(n_612->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
     auto c_128 = network.addChannel(n_614->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
     auto c_129 = network.addChannel(n_615->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-    
-    auto c_131 = network.addChannel(n_71->getId(), n_81->getId(), cHeight, 3*cWidth, 1e-6, arch::ChannelType::NORMAL);
-    auto c_132 = network.addChannel(n_72->getId(), n_81->getId(), cHeight, 3*cWidth, 1e-6, arch::ChannelType::NORMAL);
-    auto c_133 = network.addChannel(n_73->getId(), n_81->getId(), cHeight, 3*cWidth, 1e-6, arch::ChannelType::NORMAL);
+*/
+    auto c_131 = network.addChannel(n_71->getId(), n_81->getId(), cHeight, 2*cWidth, 1e-6, arch::ChannelType::NORMAL);
+    auto c_132 = network.addChannel(n_72->getId(), n_81->getId(), cHeight, cWidth, 1e-6, arch::ChannelType::NORMAL);
+    auto c_133 = network.addChannel(n_73->getId(), n_81->getId(), cHeight, 2*cWidth, 1e-6, arch::ChannelType::NORMAL);
 
-    auto c_141 = network.addChannel(n_81->getId(), n_91->getId(), cHeight, 900e-6, 500e-6, arch::ChannelType::NORMAL);
+    auto c_141 = network.addChannel(n_81->getId(), n_91->getId(), cHeight, 5*cWidth, 500e-6, arch::ChannelType::NORMAL);
 
     // flowRate pump
     auto flowRate = 5e-12;   // 1 mm/s
@@ -261,7 +268,10 @@ int main(int argc, char const* argv []) {
     result::SimulationResult<T>* result = sim.getSimulationResults();
     result->printLastState();
 
-    result->writeDiffusiveMixtures(565);
+    result->writeDiffusiveMixtures(12);
+    result->writeDiffusiveMixtures(14);
+    result->writeDiffusiveMixtures(16);
+    result->writeDiffusiveMixtures(17);
 
     return 0;
 }
