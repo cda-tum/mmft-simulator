@@ -607,7 +607,7 @@ namespace sim {
                 while(true) {
                     std::cout << "Current time: " << time << std::endl;
                     std::cout << "Current timestep: " << timestep << std::endl;
-                    if (iteration >= 100) {
+                    if (iteration >= 10000) {
                         throw std::invalid_argument("Max iterations exceeded.");
                         break;
                     }
@@ -695,7 +695,9 @@ namespace sim {
             auto& nodeB = network->getNodes().at(channel->getNodeB());
             T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
             T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-            channel->setLength(sqrt(dx*dx + dy*dy));
+            if (dx*dx + dy*dy > 0.0) {
+                channel->setLength(sqrt(dx*dx + dy*dy));
+            }
         }       
 
         // compute channel resistances
@@ -783,6 +785,7 @@ namespace sim {
         std::unordered_map<int, T> saveFlowRates;
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
         std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
+        std::unordered_map<int, int> filledEdges;
 
         // pressures
         for (auto& [id, node] : network->getNodes()) {
@@ -825,6 +828,7 @@ namespace sim {
         }
         
         if (platform == Platform::MIXING && instMixingModel != NULL) {
+            auto filledEdges = instMixingModel->getFilledEdges();
             for (auto& [channelId, mixingId] : instMixingModel->getFilledEdges()) {
                 std::deque<MixturePosition<T>> newDeque;
                 MixturePosition<T> newMixturePosition(mixingId, channelId, 0.0, 1.0);
@@ -846,6 +850,7 @@ namespace sim {
                 }
             }
         } else if (platform == Platform::MIXING && diffMixingModel != NULL) {
+            auto filledEdges = diffMixingModel->getFilledEdges();
             for (auto& [channelId, mixingId] : diffMixingModel->getFilledEdges()) {
                 std::cout << "Getting here 1.1" << std::endl;
                 std::deque<MixturePosition<T>> newDeque;
@@ -875,7 +880,7 @@ namespace sim {
         } else if (platform == Platform::DROPLET) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
         } else if (platform == Platform::MIXING) {
-            simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions);
+            simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions, filledEdges);
         }
         
     }

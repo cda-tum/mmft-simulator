@@ -26,7 +26,8 @@ struct State {
     std::unordered_map<int, T> flowRates;                               ///< Keys are the edgeIds (channels and pumps).
     std::unordered_map<int, sim::DropletPosition<T>> dropletPositions;  ///< Only contains the position of droplets that are currently inside the network (key is the droplet id).
     std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the mixture id).
-    
+    std::unordered_map<int, int> filledEdges;                           ///< Contains the mixture ids that fill the edges of the network <EdgeID, MixtureID>
+
     /**
      * @brief Constructs a state, which represent a time step during a simulation.
      * @param[in] id Id of the state
@@ -61,7 +62,7 @@ struct State {
      * @param[in] flowRates The flowRate values at the nodes at the current time step.
      * @param[in] mixturePositions The positions of the mixtures at the current time step.
      */
-    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
+    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
 
     /**
      * @brief Function to get pressure at a specific node.
@@ -138,7 +139,7 @@ struct SimulationResult {
      * @brief Adds a state to the simulation results.
      * @param[in] state
     */
-    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
 
     /**
      * @brief Get the simulated pressures at the nodes.

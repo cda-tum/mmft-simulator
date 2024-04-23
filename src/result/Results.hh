@@ -22,8 +22,8 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_) { }
 
 template<typename T>
-State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions_) 
-    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_) { }
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions_, std::unordered_map<int, int> filledEdges_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_), filledEdges(filledEdges_) { }
 
 template<typename T>
 const std::unordered_map<int, T>& State<T>::getPressures() const {
@@ -93,6 +93,13 @@ const void State<T>::printState() {
         }
         std::cout << "\n";
     }
+    // print the filled edges
+    if( !filledEdges.empty() ) {
+        for (auto& [edgeId, mixtureId] : filledEdges) {
+            std::cout << "\t[Result] Channel " << edgeId << " is filled with " << mixtureId << "\n";
+        }
+        std::cout << "\n";
+    }
 }
 
 template<typename T>
@@ -119,9 +126,9 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
 }
 
 template<typename T>
-void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions) {
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges) {
     int id = states.size();
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions);
+    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions, filledEdges);
     states.push_back(std::move(newState));
 }
 
