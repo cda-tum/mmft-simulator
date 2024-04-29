@@ -607,7 +607,7 @@ namespace sim {
                 while(true) {
                     std::cout << "Current time: " << time << std::endl;
                     std::cout << "Current timestep: " << timestep << std::endl;
-                    if (iteration >= 10000) {
+                    if (iteration >= 1000) {
                         throw std::invalid_argument("Max iterations exceeded.");
                         break;
                     }
@@ -695,7 +695,7 @@ namespace sim {
             auto& nodeB = network->getNodes().at(channel->getNodeB());
             T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
             T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-            if (dx*dx + dy*dy > 0.0) {
+            if (channel->getLength() <= 1e-15) {
                 channel->setLength(sqrt(dx*dx + dy*dy));
             }
         }       
@@ -938,9 +938,9 @@ namespace sim {
         } else if (diffusiveMixing) {
             // injection events
             for (auto& [key, injection] : mixtureInjections) {
-                std::cout << "Injecting mixture " << injection->getMixtureId() << std::endl;
                 double injectionTime = injection->getInjectionTime();
                 if (!injection->wasPerformed()) {
+                    std::cout << "Injecting mixture " << injection->getMixtureId() << std::endl;
                     events.push_back(std::make_unique<DiffusiveMixtureInjectionEvent<T>>(injectionTime - time, *injection, static_cast<DiffusionMixingModel<T>*>(diffMixingModel)));
                 }
             }

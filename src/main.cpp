@@ -11,83 +11,83 @@ int main(int argc, char const* argv []) {
     arch::Network<T> network;
 
     // nodes
-    auto n_01 = network.addNode(0, 0, false);
+    auto n_01 = network.addNode(-2, 0, false);
     auto n_02 = network.addNode(0, 0, false);
-    auto n_03 = network.addNode(0, 0, false);
+    auto n_03 = network.addNode(2, 0, false);
 
-    auto n_11 = network.addNode(0, 0, false);
-    auto n_12 = network.addNode(0, 0, false);
-    auto n_13 = network.addNode(0, 0, false);
-    auto n_14 = network.addNode(0, 0, false);
-    auto n_15 = network.addNode(0, 0, false);
+    auto n_11 = network.addNode(-2, -1, false);
+    auto n_12 = network.addNode(-1, -1, false);
+    auto n_13 = network.addNode(0, -1, false);
+    auto n_14 = network.addNode(1, -1, false);
+    auto n_15 = network.addNode(2, -1, false);
 
-    auto n_21 = network.addNode(0, 0, false);
-    auto n_22 = network.addNode(0, 0, false);
-    auto n_23 = network.addNode(0, 0, false);
-    auto n_24 = network.addNode(0, 0, false);
-    auto n_25 = network.addNode(0, 0, false);
-    auto n_26 = network.addNode(0, 0, false);
-    auto n_27 = network.addNode(0, 0, false);
-/*
-    auto n_31 = network.addNode(0, 0, false);
-    auto n_32 = network.addNode(0, 0, false);
-    auto n_33 = network.addNode(0, 0, false);
-    auto n_34 = network.addNode(0, 0, false);
-    auto n_35 = network.addNode(0, 0, false);
-    auto n_36 = network.addNode(0, 0, false);
-    auto n_37 = network.addNode(0, 0, false);
-    auto n_38 = network.addNode(0, 0, false);
-    auto n_39 = network.addNode(0, 0, false);
+    auto n_21 = network.addNode(-3, -2, false);
+    auto n_22 = network.addNode(-2, -2, false);
+    auto n_23 = network.addNode(-1, -2, false);
+    auto n_24 = network.addNode(0, -2, false);
+    auto n_25 = network.addNode(1, -2, false);
+    auto n_26 = network.addNode(2, -2, false);
+    auto n_27 = network.addNode(3, -2, false);
 
-    auto n_41 = network.addNode(0, 0, false);
-    auto n_42 = network.addNode(0, 0, false);
-    auto n_43 = network.addNode(0, 0, false);
-    auto n_44 = network.addNode(0, 0, false);
-    auto n_45 = network.addNode(0, 0, false);
-    auto n_46 = network.addNode(0, 0, false);
-    auto n_47 = network.addNode(0, 0, false);
-    auto n_48 = network.addNode(0, 0, false);
-    auto n_49 = network.addNode(0, 0, false);
-    auto n_410 = network.addNode(0, 0, false);
-    auto n_411 = network.addNode(0, 0, false);
+    auto n_31 = network.addNode(-4, -3, false);
+    auto n_32 = network.addNode(-3, -3, false);
+    auto n_33 = network.addNode(-2, -3, false);
+    auto n_34 = network.addNode(-1, -3, false);
+    auto n_35 = network.addNode(0, -3, false);
+    auto n_36 = network.addNode(1, -3, false);
+    auto n_37 = network.addNode(2, -3, false);
+    auto n_38 = network.addNode(3, -3, false);
+    auto n_39 = network.addNode(4, -3, false);
 
-    auto n_51 = network.addNode(0, 0, false);
-    auto n_52 = network.addNode(0, 0, false);
-    auto n_53 = network.addNode(0, 0, false);
-    auto n_54 = network.addNode(0, 0, false);
-    auto n_55 = network.addNode(0, 0, false);
-    auto n_56 = network.addNode(0, 0, false);
-    auto n_57 = network.addNode(0, 0, false);
-    auto n_58 = network.addNode(0, 0, false);
-    auto n_59 = network.addNode(0, 0, false);
-    auto n_510 = network.addNode(0, 0, false);
-    auto n_511 = network.addNode(0, 0, false);
-    auto n_512 = network.addNode(0, 0, false);
-    auto n_513 = network.addNode(0, 0, false);
+    auto n_41 = network.addNode(-5, -4, false);
+    auto n_42 = network.addNode(-4, -4, false);
+    auto n_43 = network.addNode(-3, -4, false);
+    auto n_44 = network.addNode(-2, -4, false);
+    auto n_45 = network.addNode(-1, -4, false);
+    auto n_46 = network.addNode(0, -4, false);
+    auto n_47 = network.addNode(1, -4, false);
+    auto n_48 = network.addNode(2, -4, false);
+    auto n_49 = network.addNode(3, -4, false);
+    auto n_410 = network.addNode(4, -4, false);
+    auto n_411 = network.addNode(5, -4, false);
+
+    auto n_51 = network.addNode(-6, -5, false);
+    auto n_52 = network.addNode(-5, -5, false);
+    auto n_53 = network.addNode(-4, -5, false);
+    auto n_54 = network.addNode(-3, -5, false);
+    auto n_55 = network.addNode(-2, -5, false);
+    auto n_56 = network.addNode(-1, -5, false);
+    auto n_57 = network.addNode(0, -5, false);
+    auto n_58 = network.addNode(1, -5, false);
+    auto n_59 = network.addNode(2, -5, false);
+    auto n_510 = network.addNode(3, -5, false);
+    auto n_511 = network.addNode(4, -5, false);
+    auto n_512 = network.addNode(5, -5, false);
+    auto n_513 = network.addNode(6, -5, false);
     
-    auto n_61 = network.addNode(0, 0, false);
-    auto n_62 = network.addNode(0, 0, false);
-    auto n_63 = network.addNode(0, 0, false);
-    auto n_64 = network.addNode(0, 0, false);
-    auto n_65 = network.addNode(0, 0, false);
-    auto n_66 = network.addNode(0, 0, false);
-    auto n_67 = network.addNode(0, 0, false);
-    auto n_68 = network.addNode(0, 0, false);
-    auto n_69 = network.addNode(0, 0, false);
-    auto n_610 = network.addNode(0, 0, false);
-    auto n_611 = network.addNode(0, 0, false);
-    auto n_612 = network.addNode(0, 0, false);
-    auto n_613 = network.addNode(0, 0, false);
-    auto n_614 = network.addNode(0, 0, false);
-    auto n_615 = network.addNode(0, 0, false);
-*/
-    auto n_71 = network.addNode(0, 0, false);
-    auto n_72 = network.addNode(0, 0, false);
-    auto n_73 = network.addNode(0, 0, false);
+    auto n_61 = network.addNode(-7, -6, false);
+    auto n_62 = network.addNode(-6, -6, false);
+    auto n_63 = network.addNode(-5, -6, false);
+    auto n_64 = network.addNode(-4, -6, false);
+    auto n_65 = network.addNode(-3, -6, false);
+    auto n_66 = network.addNode(-2, -6, false);
+    auto n_67 = network.addNode(-1, -6, false);
+    auto n_68 = network.addNode(0, -6, false);
+    auto n_69 = network.addNode(1, -6, false);
+    auto n_610 = network.addNode(2, -6, false);
+    auto n_611 = network.addNode(3, -6, false);
+    auto n_612 = network.addNode(4, -6, false);
+    auto n_613 = network.addNode(5, -6, false);
+    auto n_614 = network.addNode(6, -6, false);
+    auto n_615 = network.addNode(7, -6, false);
 
-    auto n_81 = network.addNode(0, 0, false);
+    auto n_71 = network.addNode(-1, -7, false);
+    auto n_72 = network.addNode(0, -7, false);
+    auto n_73 = network.addNode(1, -7, false);
 
-    auto n_91 = network.addNode(0, 0, true);
+    auto n_81 = network.addNode(0, -8, false);
+
+    auto n_91 = network.addNode(0, -9, true);
 
     auto n_1001 = network.addNode(0, 0, true);
     auto n_1002 = network.addNode(0, 0, true);
@@ -104,9 +104,9 @@ int main(int argc, char const* argv []) {
     auto c_03 = network.addChannel(n_03->getId(), n_15->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     auto c_11 = network.addChannel(n_11->getId(), n_12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c_12 = network.addChannel(n_12->getId(), n_13->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_12 = network.addChannel(n_13->getId(), n_12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_13 = network.addChannel(n_13->getId(), n_14->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c_14 = network.addChannel(n_14->getId(), n_15->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_14 = network.addChannel(n_15->getId(), n_14->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     auto c_21 = network.addChannel(n_11->getId(), n_21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_22 = network.addChannel(n_12->getId(), n_23->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
@@ -114,19 +114,12 @@ int main(int argc, char const* argv []) {
     auto c_24 = network.addChannel(n_15->getId(), n_27->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     auto c_31 = network.addChannel(n_21->getId(), n_22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c_32 = network.addChannel(n_22->getId(), n_23->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_32 = network.addChannel(n_23->getId(), n_22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_33 = network.addChannel(n_23->getId(), n_24->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c_34 = network.addChannel(n_24->getId(), n_25->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_34 = network.addChannel(n_25->getId(), n_24->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c_35 = network.addChannel(n_25->getId(), n_26->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c_36 = network.addChannel(n_26->getId(), n_27->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c_36 = network.addChannel(n_27->getId(), n_26->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
-    auto c_41 = network.addChannel(n_21->getId(), n_71->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-    auto c_42 = network.addChannel(n_22->getId(), n_71->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-    auto c_43 = network.addChannel(n_24->getId(), n_72->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-    auto c_44 = network.addChannel(n_26->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-    auto c_45 = network.addChannel(n_27->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-
-/*
     auto c_41 = network.addChannel(n_21->getId(), n_31->getId(), cHeight, cWidth, cLength+mLength, arch::ChannelType::NORMAL);
     auto c_42 = network.addChannel(n_22->getId(), n_33->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
     auto c_43 = network.addChannel(n_24->getId(), n_35->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
@@ -214,12 +207,12 @@ int main(int argc, char const* argv []) {
     auto c_127 = network.addChannel(n_612->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
     auto c_128 = network.addChannel(n_614->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
     auto c_129 = network.addChannel(n_615->getId(), n_73->getId(), cHeight, cWidth, mLength, arch::ChannelType::NORMAL);
-*/
-    auto c_131 = network.addChannel(n_71->getId(), n_81->getId(), cHeight, 2*cWidth, 1e-6, arch::ChannelType::NORMAL);
-    auto c_132 = network.addChannel(n_72->getId(), n_81->getId(), cHeight, cWidth, 1e-6, arch::ChannelType::NORMAL);
-    auto c_133 = network.addChannel(n_73->getId(), n_81->getId(), cHeight, 2*cWidth, 1e-6, arch::ChannelType::NORMAL);
 
-    auto c_141 = network.addChannel(n_81->getId(), n_91->getId(), cHeight, 5*cWidth, 500e-6, arch::ChannelType::NORMAL);
+    auto c_131 = network.addChannel(n_71->getId(), n_81->getId(), cHeight, cWidth, 1e-6, arch::ChannelType::NORMAL);
+    auto c_132 = network.addChannel(n_72->getId(), n_81->getId(), cHeight, cWidth, 1e-6, arch::ChannelType::NORMAL);
+    auto c_133 = network.addChannel(n_73->getId(), n_81->getId(), cHeight, cWidth, 1e-6, arch::ChannelType::NORMAL);
+
+    auto c_141 = network.addChannel(n_81->getId(), n_91->getId(), cHeight, cWidth, 1e-6, arch::ChannelType::NORMAL);
 
     // flowRate pump
     auto flowRate = 5e-12;   // 1 mm/s
@@ -242,7 +235,7 @@ int main(int argc, char const* argv []) {
     sim.setResistanceModel(&resistanceModel);
 
     // species
-    auto s_1 = sim.addSpecie(5e-9, 1.0);
+    auto s_1 = sim.addSpecie(5e-10, 1.0);
 
     // mixture and injection
     std::unordered_map<int, sim::Specie<T>*> species;
@@ -267,11 +260,57 @@ int main(int argc, char const* argv []) {
     // results
     result::SimulationResult<T>* result = sim.getSimulationResults();
     result->printLastState();
+/*
+    result->writeDiffusiveMixtures(3);
+    result->writeDiffusiveMixtures(4);
 
+    result->writeDiffusiveMixtures(9);
     result->writeDiffusiveMixtures(12);
-    result->writeDiffusiveMixtures(14);
-    result->writeDiffusiveMixtures(16);
-    result->writeDiffusiveMixtures(17);
+    result->writeDiffusiveMixtures(11);
 
+    result->writeDiffusiveMixtures(19);
+    result->writeDiffusiveMixtures(27);
+    result->writeDiffusiveMixtures(28);
+    result->writeDiffusiveMixtures(20);
+
+    result->writeDiffusiveMixtures(37);
+    result->writeDiffusiveMixtures(54);
+    result->writeDiffusiveMixtures(59);
+    result->writeDiffusiveMixtures(58);
+    result->writeDiffusiveMixtures(43);
+
+    result->writeDiffusiveMixtures(60);
+    result->writeDiffusiveMixtures(90);
+    result->writeDiffusiveMixtures(92);
+    result->writeDiffusiveMixtures(91);
+    result->writeDiffusiveMixtures(84);
+    result->writeDiffusiveMixtures(71);
+
+    result->writeDiffusiveMixtures(107);
+    result->writeDiffusiveMixtures(169);
+    result->writeDiffusiveMixtures(172);
+    result->writeDiffusiveMixtures(174);
+    result->writeDiffusiveMixtures(170);
+    result->writeDiffusiveMixtures(161);
+    result->writeDiffusiveMixtures(129);
+
+    result->writeDiffusiveMixtures(243);
+    result->writeDiffusiveMixtures(253);
+    result->writeDiffusiveMixtures(237);
+*/
+
+    result->writeDiffusiveMixtures(279);
+    result->writeDiffusiveMixtures(289);
+    result->writeDiffusiveMixtures(253);
+
+    result->writeDiffusiveMixtures(290);
+
+/*
+    result->writeDiffusiveMixtures(185);
+    result->writeDiffusiveMixtures(184);
+    result->writeDiffusiveMixtures(182);
+
+    result->writeDiffusiveMixtures(187);
+*/
     return 0;
 }
