@@ -190,12 +190,6 @@ TEST(Network, networkArchitectureDefinition) {
     arch::Network<T> bionetwork;
     auto node1 = bionetwork.addNode(0.0, 0.0, false);
     auto node2 = bionetwork.addNode(0.0, 0.0, false);
-<<<<<<< HEAD
-=======
-    auto node3 = bionetwork.addNode(0.0, 0.0, false);
-    auto node4 = bionetwork.addNode(0.0, 0.0, false);
-    auto node5 = bionetwork.addNode(0.0, 0.0, false);
->>>>>>> addMixing1D
     auto node0 = bionetwork.addNode(0.0, 0.0, true);
 
     // pressure pump (voltage sources)

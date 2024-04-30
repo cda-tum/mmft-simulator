@@ -1,8 +1,8 @@
 {	
 "_comment": "Network4",
 "simulation": {
-    "platform": "mixing",
-    "type": "1D",
+    "platform": "Mixing",
+    "type": "Abstract",
     "resistanceModel": "1D",
     "mixingModel": "Instantaneous",
     "fluids": [

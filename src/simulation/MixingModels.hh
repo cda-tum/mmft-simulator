@@ -20,7 +20,6 @@ T MixingModel<T>::getMinimalTimeStep() {
 template<typename T>
 void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
     this->minimalTimeStep = 0.0;
-    std::cout << "Still living here" << std::endl;
     for (auto& [channelId, deque] : mixturesInEdge) {
         T channelVolume = network->getChannel(channelId)->getVolume();
         T channelFlowRate = std::abs(network->getChannel(channelId)->getFlowRate());
@@ -33,7 +32,6 @@ void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
             }
         }
     }
-    std::cout << "The minimal timestep is now " << this->minimalTimeStep << std::endl;
 }
 
 template<typename T>

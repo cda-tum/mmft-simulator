@@ -122,15 +122,8 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
     int id = states.size();
     for ( auto& [channelId, deque] : mixturePositions ) {
         if (filledEdges.count(channelId)) {
-            std::cout << "We are replacing filled Edge " <<channelId<< " mixture " << filledEdges.at(channelId) <<" with "<< deque.front().mixtureId << std::endl;
             filledEdges.at(channelId) = deque.front().mixtureId;
-            std::cout << "The deque contains: ";
-            for (auto& mixture : deque) {
-                std::cout << mixture.mixtureId << ", ";
-            }
-            std::cout<<std::endl;
         } else {
-            std::cout << "We are emplacing a filled Edge." << std::endl;
             filledEdges.try_emplace(channelId, deque.back().mixtureId);
         }
     }

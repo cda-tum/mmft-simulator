@@ -47,6 +47,9 @@ public:
     */
     void updateMinimalTimeStep(arch::Network<T>* network);
 
+    virtual void updateNodeInflow(T timeStep, arch::Network<T>* network) = 0;
+
+    virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
 
     const std::deque<std::pair<int,T>>& getMixturesInEdge(int channelId) const;
 
@@ -54,7 +57,6 @@ public:
 
     const std::unordered_map<int, int>& getFilledEdges() const;
 
-    virtual bool getDiffusive() = 0;
 };
 
 template<typename T>
@@ -107,9 +109,6 @@ public:
 
     void printMixturesInNetwork();
 
-    bool getDiffusive() { return false; }
-
-//    void initialize(arch::Network<T>*);
 };
 
 
