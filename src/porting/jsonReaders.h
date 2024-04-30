@@ -85,6 +85,12 @@ void readFluids (json jsonString, sim::Simulation<T>& simulation);
 template<typename T>
 void readDroplets (json jsonString, sim::Simulation<T>& simulation);
 
+template<typename T>
+void readSpecies (json jsonString, sim::Simulation<T>& simulation);
+
+template<typename T>
+void readMixtures (json jsonString, sim::Simulation<T>& simulation);
+
 /**
  * @brief Construct and store the droplet injections in the simulation as defined by the json string
  * @param[in] jsonString json string
@@ -93,6 +99,9 @@ void readDroplets (json jsonString, sim::Simulation<T>& simulation);
 */
 template<typename T>
 void readDropletInjections (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
+
+template<typename T>
+void readMixtureInjections (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
 
 /**
  * @brief Set the boundary conditions of the simulation as defined by the json string
@@ -137,6 +146,9 @@ void readPumps (json jsonString, arch::Network<T>* network);
 */
 template<typename T>
 void readResistanceModel (json jsonString, sim::Simulation<T>& simulation);
+
+template<typename T>
+void readMixingModel (json jsonString, sim::Simulation<T>& simulation);
 
 /**
  * @brief Returns the id of the active fixture as defined in the json string

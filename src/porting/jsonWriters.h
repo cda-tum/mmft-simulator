@@ -57,6 +57,9 @@ auto writeFlowRates (result::State<T>* state);
 template<typename T>
 auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
 
+template<typename T>
+void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation);
+
 /**
  * @brief Write set of fluids of the simulation
  * @param[in] simulation pointer to the simulation of which the results are written

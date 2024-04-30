@@ -14,6 +14,10 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_) { }
 
 template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions_, std::unordered_map<int, int> filledEdges_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_), filledEdges(filledEdges_) { }
+
+template<typename T>
 const std::unordered_map<int, T>& State<T>::getPressures() const {
     return pressures;
 }
@@ -26,6 +30,11 @@ const std::unordered_map<int, T>& State<T>::getFlowRates() const {
 template<typename T>
 std::unordered_map<int, sim::DropletPosition<T>>& State<T>::getDropletPositions() {
     return dropletPositions;
+}
+
+template<typename T>
+std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& State<T>::getMixturePositions() {
+    return mixturePositions;
 }
 
 template<typename T>
@@ -65,6 +74,24 @@ const void State<T>::printState() {
             std::cout << std::endl;
         }
     }
+    // print the mixture positions
+    if ( !mixturePositions.empty() ) {
+        for (auto& [channelId, deque] : mixturePositions){
+            std::cout << "\t[Result] Channel " << channelId << " contains\n";
+            for (auto& mixturePosition : deque) {
+                std::cout << "\t\tMixture " << mixturePosition.mixtureId << " from position "
+                << mixturePosition.position1 << " to " << mixturePosition.position2 << "\n";
+            }
+        }
+        std::cout << "\n";
+    }
+    // print the filled edges
+    if( !filledEdges.empty() ) {
+        for (auto& [edgeId, mixtureId] : filledEdges) {
+            std::cout << "\t[Result] Channel " << edgeId << " is filled with " << mixtureId << "\n";
+        }
+        std::cout << "\n";
+    }
 }
 
 template<typename T>
@@ -91,6 +118,27 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
 }
 
 template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges_) {
+    int id = states.size();
+    for ( auto& [channelId, deque] : mixturePositions ) {
+        if (filledEdges.count(channelId)) {
+            std::cout << "We are replacing filled Edge " <<channelId<< " mixture " << filledEdges.at(channelId) <<" with "<< deque.front().mixtureId << std::endl;
+            filledEdges.at(channelId) = deque.front().mixtureId;
+            std::cout << "The deque contains: ";
+            for (auto& mixture : deque) {
+                std::cout << mixture.mixtureId << ", ";
+            }
+            std::cout<<std::endl;
+        } else {
+            std::cout << "We are emplacing a filled Edge." << std::endl;
+            filledEdges.try_emplace(channelId, deque.back().mixtureId);
+        }
+    }
+    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions, filledEdges);
+    states.push_back(std::move(newState));
+}
+
+template<typename T>
 const std::vector<std::unique_ptr<State<T>>>& SimulationResult<T>::getStates() const {
     return states;
 }
@@ -110,6 +158,32 @@ const void SimulationResult<T>::printLastState() const {
 template<typename T>
 const void SimulationResult<T>::printState(int key) const {
     states.at(key)->printState();
+}
+
+template<typename T>
+const void SimulationResult<T>::setMixtures(std::unordered_map<int, sim::Mixture<T>*> mixtures_) {
+    mixtures = mixtures_;
+}
+
+template<typename T>
+const std::unordered_map<int, sim::Mixture<T>*>& SimulationResult<T>::getMixtures() const {
+    return mixtures;
+}
+
+template<typename T>
+const void SimulationResult<T>::printMixtures() {
+
+    if (mixtures.empty()) {
+        throw std::invalid_argument("There are no mixture results stored.");
+    } else {
+        for (auto& [mixtureId, mixture] : mixtures) {
+            std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+            for (auto& [specieId, concentration] : mixture->getSpecieConcentrations()) {
+                std::cout << "\t\tSpecie " << specieId << " with concentration " << concentration << " kg/m^3\n";
+            }
+        }
+        std::cout << "\n";
+    }
 }
 
 }  // namespace droplet

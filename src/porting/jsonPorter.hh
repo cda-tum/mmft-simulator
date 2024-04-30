@@ -74,8 +74,13 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
         readDropletInjections<T>(jsonString, simulation, activeFixture);
     } else
     if (platform == sim::Platform::Mixing) {
-        // NOT YET SUPPORTED
-        throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
+        if (simType != sim::Type::_1D) {
+            throw std::invalid_argument("Mixing simulations are currently only supported for 1D simulations.");
+        }
+        readMixingModel<T>(jsonString, simulation);
+        readSpecies<T>(jsonString, simulation);
+        readMixtures<T>(jsonString, simulation);
+        readMixtureInjections<T>(jsonString, simulation, activeFixture);
     } else {
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }
@@ -121,10 +126,15 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
         //readDroplets<T>(jsonString, simulation);
         readDropletInjections<T>(jsonString, simulation, activeFixture);
     } else
-    if (platform == sim::Platform::Mixing) {
-        // NOT YET SUPPORTED
-        throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
-    } else {
+        if (platform == sim::Platform::Mixing) {
+            if (simType != sim::Type::_1D) {
+                throw std::invalid_argument("Mixing simulations are currently only supported for 1D simulations.");
+            }
+            readMixingModel<T>(jsonString, simulation);
+            readSpecies<T>(jsonString, simulation);
+            readMixtures<T>(jsonString, simulation);
+            readMixtureInjections<T>(jsonString, simulation, activeFixture);
+        }
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }
 

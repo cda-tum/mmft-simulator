@@ -103,6 +103,11 @@ private:
     std::vector<std::unique_ptr<Event<T>>> computeEvents();
 
     /**
+     * @brief Compute all possible next events for mixing simulation.
+     */
+    std::vector<std::unique_ptr<Event<T>>> computeMixingEvents();
+
+    /**
      * @brief Moves all droplets according to the given time step.
      * @param[in] timeStep to which the droplets should be moved to.
      */
@@ -124,6 +129,11 @@ private:
      * @brief Store the current simulation state in simulationResult.
     */
     void saveState();
+
+    /**
+     * @brief Store the mixtures in this simulation in simulationResult.
+    */
+    void saveMixtures();
 
 public:
     /**
@@ -149,6 +159,29 @@ public:
     Droplet<T>* addDroplet(int fluidId, T volume);
 
     /**
+     * @brief Create specie.
+     * @param[in] diffusivity Diffusivity of the specie in the carrier medium in m^2/s.
+     * @param[in] satConc Saturation concentration of the specie in the carrier medium in g/m^3.
+     * @return Pointer to created specie.
+     */
+    Specie<T>* addSpecie(T diffusivity, T satConc);
+
+    /**
+     * @brief Create mixture.
+     * @param[in] specieIds
+     * @param[in] specieConcentrations
+     * @return Pointer to created mixture.
+     */
+    Mixture<T>* addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+
+    /**
+     * @brief Create mixture.
+     * @param[in] specieConcentrations
+     * @return Pointer to created mixture.
+     */
+    Mixture<T>* addMixture(std::unordered_map<int, T> specieConcentrations);
+
+    /**
      * @brief Create injection.
      * @param[in] dropletId Id of the droplet that should be injected.
      * @param[in] injectionTime Time at which the droplet should be injected in s.
@@ -157,6 +190,15 @@ public:
      * @return Pointer to created injection.
      */
     DropletInjection<T>* addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition);
+
+    /**
+     * @brief Create bolus injection.
+     * @param[in] mixtureId Id of the mixture that should be injected.
+     * @param[in] channelId Id of the channel, where specie should be injected.
+     * @param[in] injectionTime Time at which the injection should be injected in s.
+     * @return Pointer to created injection.
+     */
+    MixtureInjection<T>* addMixtureInjection(int mixtureId, int channelId, T injectionTime);
 
     /**
      * @brief Set the platform of the simulation.
@@ -211,6 +253,19 @@ public:
      * @param[in] model The resistance model to be used.
      */
     void setResistanceModel(ResistanceModel<T>* model);
+
+    /**
+     * @brief Define which mixing model should be used for the concentrations.
+     * @param[in] model The mixing model to be used.
+     */
+    void setMixingModel(InstantaneousMixingModel<T>* model);
+
+    /**
+     * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
+     * 
+     * @param timeStep Time step in s for which the new mixtures state should be calculated.
+     */
+    void calculateNewMixtures(double timeStep);
 
     /**
      * @brief Get the platform of the simulation.
@@ -272,10 +327,31 @@ public:
     DropletInjection<T>* getDropletInjection(int injectionId);
 
     /**
+     * @brief Get injection
+     * @param injectionId The id of the injection
+     * @return Pointer to injection with the corresponding id.
+     */
+    MixtureInjection<T>* getMixtureInjection(int injectionId);
+
+    /**
      * @brief Get the continuous phase.
      * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
      */
     Fluid<T>* getContinuousPhase();
+
+    /**
+     * @brief Get mixture.
+     * @param mixtureId Id of the mixture
+     * @return Pointer to mixture with the correspondig id
+     */
+    Mixture<T>* getMixture(int mixtureId);
+
+    /**
+     * @brief Get mixture.
+     * @param mixtureId Id of the mixture
+     * @return Pointer to mixture with the correspondig id
+     */
+    Specie<T>* getSpecie(int specieId);
 
     /**
      * @brief Get the results of the simulation.

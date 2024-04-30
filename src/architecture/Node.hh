@@ -54,4 +54,24 @@ bool Node<T>::getSink() {
     return sink;
 }
 
+    template<typename T>
+    void Node<T>::setSink(bool sink_) {
+        sink = sink_;
+    }
+
+    template<typename T>
+    void Node<T>::setGround(bool ground_) {
+        ground = ground_;
+    }
+
+    template<typename T>
+    bool Node<T>::getGround() {
+        return ground;
+    }
+
+    template<typename T>
+    bool Node<T>::getSink() {
+        return sink;
+    }
+
 }   // namespace arch

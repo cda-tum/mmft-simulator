@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 #include "../src/baseSimulator.h"
+=======
+#include "../../src/baseSimulator.h"
+>>>>>>> addMixing1D
 
 #include "gtest/gtest.h"
 
 using T = double;
 
+<<<<<<< HEAD
 TEST(Continuous, Case1a) {
     // define simulation
     sim::Simulation<T> testSimulation;
@@ -106,6 +111,40 @@ TEST(Continuous, Case1a) {
     ASSERT_NEAR(network.getChannels().at(c6->getId())->getFlowRate(), 1.1732e-9, 1e-14);
     ASSERT_NEAR(network.getChannels().at(c7->getId())->getFlowRate(), 1.1732e-9, 1e-14);
     ASSERT_NEAR(network.getChannels().at(c8->getId())->getFlowRate(), 4.69188e-9, 1e-14);
+=======
+
+TEST(Hybrid, testCase1a) {
+    
+        std::string file = "../examples/Hybrid/Network1a.JSON";
+    
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(file);
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    
+    // Simulate
+    testSimulation.simulate();
+
+    ASSERT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(2)->getPressure(), 1000, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(3)->getPressure(), 1000, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(4)->getPressure(), 859.216, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(5)->getPressure(), 791.962, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(6)->getPressure(), 859.216, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(7)->getPressure(), 753.628, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(8)->getPressure(), 753.628, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(9)->getPressure(), 422.270, 1e-3);
+    ASSERT_NEAR(network.getNodes().at(10)->getPressure(), 0, 1e-3);
+
+    ASSERT_NEAR(network.getChannels().at(3)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(4)->getFlowRate(), 2.31153e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(5)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(6)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(7)->getFlowRate(), 1.1732e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 4.69188e-9, 1e-14);
+>>>>>>> addMixing1D
 
 }
 
@@ -148,16 +187,24 @@ TEST(Continuous, Case1a) {
 /*
 TEST(Hybrid, testCase2a) {
     
+<<<<<<< HEAD
 std::string file = "../examples/Hybrid/Network2a.JSON";
 
+=======
+        std::string file = "../examples/Hybrid/Network2a.JSON";
+    
+>>>>>>> addMixing1D
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
     
+<<<<<<< HEAD
     network.isNetworkValid();
 
+=======
+>>>>>>> addMixing1D
     // Simulate
     testSimulation.simulate();
 
@@ -175,10 +222,19 @@ std::string file = "../examples/Hybrid/Network2a.JSON";
 
     ASSERT_NEAR(network.getChannels().at(1)->getFlowRate(), 3.00073e-9, 1e-14);
     ASSERT_NEAR(network.getChannels().at(2)->getFlowRate(), -7.12409e-10, 1e-14);
+<<<<<<< HEAD
     ASSERT_NEAR(network.getChannels().at(3)->getFlowRate(), 7.12409e-10, 1e-14);
     ASSERT_NEAR(network.getChannels().at(4)->getFlowRate(), 2.2957e-9, 1e-14);
     ASSERT_NEAR(network.getChannels().at(5)->getFlowRate(), 7.12409e-10, 1e-14);
     ASSERT_NEAR(network.getChannels().at(6)->getFlowRate(), 3.00438e-9, 1e-14);
+=======
+    ASSERT_NEAR(network.getChannels().at(3)->getFlowRate(), 7.12409-10, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(4)->getFlowRate(), 2.2957-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(5)->getFlowRate(), 7.12409e-10, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(6)->getFlowRate(), 3.00438-9, 1e-14);
+
+}
+>>>>>>> addMixing1D
 
 }*/
 /*
@@ -192,8 +248,11 @@ TEST(Hybrid, testCase3a) {
     // Load and set the simulation from a JSON file
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
     
+<<<<<<< HEAD
     network.isNetworkValid();
 
+=======
+>>>>>>> addMixing1D
     // Simulate
     testSimulation.simulate();
 
@@ -236,8 +295,11 @@ TEST(Hybrid, testCase4a) {
     // Load and set the simulation from a JSON file
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
     
+<<<<<<< HEAD
     network.isNetworkValid();
 
+=======
+>>>>>>> addMixing1D
     // Simulate
     testSimulation.simulate();
 

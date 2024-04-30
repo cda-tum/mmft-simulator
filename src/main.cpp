@@ -1,7 +1,3 @@
-//#include <pybind11/pybind11.h>
-
-//namespace py = pybind11;
-
 #include <iostream>
 
 #include <baseSimulator.h>
@@ -24,15 +20,16 @@ int main(int argc, char const* argv []) {
     network.sortGroups();
     network.isNetworkValid();
 
-    std::cout << "[Main] Simulation..." << std::endl;
-    // Perform simulation and store results
-    testSimulation.simulate();
+    // Check if network is valid
+    network.isNetworkValid();
+    network.sortGroups();
 
-    std::cout << "[Main] Results..." << std::endl;
-    // Print the results
-    testSimulation.getSimulationResults()->printStates();
+    // simulate
+    sim.simulate();
 
-    porting::resultToJSON<T>("result.json", &testSimulation );
+    // results
+    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result->printLastState();
 
     return 0;
 }
