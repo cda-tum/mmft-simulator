@@ -175,7 +175,7 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
         auto jsonState = ordered_json::object();
         jsonState["time"] = state->getTime();
         jsonState["nodes"] = writePressures(state.get());
-        jsonState["channels"] = writeFlowRates(state.get());
+        jsonState["channels"] = writeChannels(state.get());
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
             jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
         }
@@ -186,6 +186,9 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
     jsonResult["type"] = writeSimType(simulation);
     jsonResult["platform"] = writeSimPlatform(simulation);
     jsonResult["fluids"] =  writeFluids(simulation);
+    if (simulation->getPlatform() == sim::Platform::Mixing && simulation->getType() == sim::Type::Abstract) {
+        jsonResult["mixtures"] = writeMixtures(simulation);
+    }
     jsonResult.push_back({"network", jsonStates});
 
     return jsonResult;

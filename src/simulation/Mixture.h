@@ -131,6 +131,8 @@ public:
      * @param concentrationChange The change of concentration that will be added to the current concentration of the fluid.
      */
     void changeFluidConcentration(int fluidId, T concentrationChange);
+
+    const std::unordered_map<int, Specie<T>*>& getSpecies() const;
 };
 
 }   /// namespace sim

@@ -85,13 +85,6 @@ const void State<T>::printState() {
         }
         std::cout << "\n";
     }
-    // print the filled edges
-    if( !filledEdges.empty() ) {
-        for (auto& [edgeId, mixtureId] : filledEdges) {
-            std::cout << "\t[Result] Channel " << edgeId << " is filled with " << mixtureId << "\n";
-        }
-        std::cout << "\n";
-    }
 }
 
 template<typename T>

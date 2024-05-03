@@ -44,7 +44,7 @@ struct State {
     std::unordered_map<int, T> pressures;                               ///< Keys are the nodeIds.
     std::unordered_map<int, T> flowRates;                               ///< Keys are the edgeIds (channels and pumps).
     std::unordered_map<int, sim::DropletPosition<T>> dropletPositions;  ///< Only contains the position of droplets that are currently inside the network (key is the droplet id).
-    std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the mixture id).
+    std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the channel id).
     std::unordered_map<int, int> filledEdges;                           ///< Contains the mixture ids that fill the edges of the network <EdgeID, MixtureID>
 
     /**

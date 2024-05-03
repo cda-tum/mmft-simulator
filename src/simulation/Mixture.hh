@@ -59,4 +59,9 @@ const std::unordered_map<int, T>& Mixture<T>::getSpecieConcentrations() const {
     return specieConcentrations;
 }
 
+template<typename T>
+const std::unordered_map<int, Specie<T>*>& Mixture<T>::getSpecies() const {
+    return species;
+}
+
 }   // namespace sim

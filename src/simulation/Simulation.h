@@ -351,6 +351,12 @@ public:
     Mixture<T>* getMixture(int mixtureId);
 
     /**
+     * @brief Get mixtures.
+     * @return Reference to the unordered map of mixtures
+     */
+    std::unordered_map<int, std::unique_ptr<Mixture<T>>>& getMixtures();
+
+    /**
      * @brief Get mixture.
      * @param mixtureId Id of the mixture
      * @return Pointer to mixture with the correspondig id

@@ -242,6 +242,11 @@ namespace sim {
     }
 
     template<typename T>
+    std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Simulation<T>::getMixtures() {
+        return mixtures;
+    }
+
+    template<typename T>
     Specie<T>* Simulation<T>::getSpecie(int specieId) {
         return species.at(specieId).get();
     }

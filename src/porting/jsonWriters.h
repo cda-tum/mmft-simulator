@@ -46,7 +46,7 @@ auto writePressures (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeFlowRates (result::State<T>* state);
+auto writeChannels (result::State<T>* state);
 
 /**
  * @brief Write the droplet positions at a state (timestamp) of the simulation
@@ -57,9 +57,6 @@ auto writeFlowRates (result::State<T>* state);
 template<typename T>
 auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
 
-template<typename T>
-void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation);
-
 /**
  * @brief Write set of fluids of the simulation
  * @param[in] simulation pointer to the simulation of which the results are written
@@ -67,6 +64,9 @@ void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T
 */
 template<typename T>
 auto writeFluids (sim::Simulation<T>* simulation);
+
+template<typename T>
+auto writeMixtures (sim::Simulation<T>* simulation);
 
 /**
  * @brief Return the simulation type of the simulation
