@@ -2,7 +2,6 @@ set(SOURCE_LIST
     Channel.hh
     ChannelPosition.hh
     lbmModule.hh
-    MixturePump.hh
     Module.hh
     Network.hh
     Edge.hh
@@ -15,7 +14,6 @@ set(HEADER_LIST
     Channel.h
     ChannelPosition.h
     lbmModule.h
-    MixturePump.h
     Module.h
     Network.h
     Edge.h

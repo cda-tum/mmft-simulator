@@ -10,8 +10,6 @@
 #include "../architecture/ChannelPosition.h"
 #include "Mixture.h"
 
-#include "../architecture/MixturePump.h"
-
 namespace sim {
 
 /**
