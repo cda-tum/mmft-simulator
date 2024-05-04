@@ -57,7 +57,7 @@ struct Opening {
 };
 
 /**
- * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
+ * @brief Class that defines the lbm module which is the interface between the abstract solver and OLB.
 */
 template<typename T>
 class lbmModule : public Module<T> {
@@ -82,7 +82,7 @@ private:
     
     std::shared_ptr<Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
     std::unordered_map<int, Opening<T>> moduleOpenings;             ///< Map of openings.
-    std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
+    std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the abstract solver.
 
     T charPhysLength;                       ///< Characteristic physical length (= width, usually).
     T charPhysVelocity;                     ///< Characteristic physical velocity (expected maximal velocity).
@@ -129,7 +129,7 @@ public:
      * @param[in] stlFile STL file that describes the geometry of the CFD domain.
      * @param[in] charPhysLength Characteristic physical length of the geometry of the module in _m_.
      * @param[in] charPhysVelocity Characteristic physical velocity of the flow in the module in _m/s_.
-     * @param[in] alpha Relaxation factor for the iterative updates between the 1D and CFD solvers.
+     * @param[in] alpha Relaxation factor for the iterative updates between the abstract and CFD solvers.
      * @param[in] resolution Resolution of the CFD mesh in gridpoints per charPhysLength.
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
@@ -190,7 +190,7 @@ public:
     void setFlowRates(std::unordered_map<int, T> flowRate);
 
     /**
-     * @brief Set the nodes of the module that communicate the pressure to the 1D solver.
+     * @brief Set the nodes of the module that communicate the pressure to the abstract solver.
      * @param[in] groundNodes Map of nodes.
      */
     void setGroundNodes(std::unordered_map<int, bool> groundNodes);

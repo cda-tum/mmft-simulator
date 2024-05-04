@@ -330,7 +330,7 @@ namespace sim {
         initialize();
         //printResults();
 
-        // 1D continuous simulation
+        // Abstract continuous simulation
         // ##########
         // * conduct nodal analysis
         // * save state
@@ -376,7 +376,7 @@ namespace sim {
             saveState();
         }
 
-        // 1D Droplet simulation
+        // Abstract Droplet simulation
         // ##########
         // Simulation Loop
         // ##########
@@ -457,7 +457,7 @@ namespace sim {
         }
 
         /**
-         * 1D Mixing Simulation Loop
+         * Abstract Mixing Simulation Loop
          * 
          * 1. Update pressure and flowrates
          * 2. Calculate next mixture event

@@ -1,4 +1,4 @@
-add_subdirectory(1D)
+add_subdirectory(abstract)
 add_subdirectory(hybrid)
 
 target_sources(${TARGET_NAME} PRIVATE ${SOURCE_LIST})

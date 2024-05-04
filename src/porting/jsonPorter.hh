@@ -75,7 +75,7 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
     } else
     if (platform == sim::Platform::Mixing) {
         if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Mixing simulations are currently only supported for 1D simulations.");
+            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
         }
         readMixingModel<T>(jsonString, simulation);
         readSpecies<T>(jsonString, simulation);
@@ -128,7 +128,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     } else
     if (platform == sim::Platform::Mixing) {
         if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Mixing simulations are currently only supported for 1D simulations.");
+            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
         }
         readMixingModel<T>(jsonString, simulation);
         readSpecies<T>(jsonString, simulation);

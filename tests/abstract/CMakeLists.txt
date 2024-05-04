@@ -2,6 +2,7 @@ set(SOURCE_LIST
     Architecture.test.cpp
     BigDroplet.test.cpp
     Continuous.test.cpp
+    Mixing.test.cpp
 )
 
 target_sources(${TARGET_NAME} PRIVATE ${SOURCE_LIST})

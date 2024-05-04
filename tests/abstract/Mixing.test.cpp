@@ -6,8 +6,8 @@ using T = double;
 
 TEST(Mixing, Case1) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network1.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case1.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network1.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case1.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -79,8 +79,8 @@ TEST(Mixing, Case1) {
 
 TEST(Mixing, Case2) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network1.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case2.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network1.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case2.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -214,8 +214,8 @@ TEST(Mixing, Case2) {
 
 TEST(Mixing, Case3) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network2.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case3.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network2.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case3.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -290,8 +290,8 @@ TEST(Mixing, Case3) {
 
 TEST(Mixing, Case4) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network2.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case4.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network2.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case4.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -426,8 +426,8 @@ TEST(Mixing, Case4) {
 
 TEST(Mixing, Case5) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network3.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case5.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network3.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case5.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -468,8 +468,8 @@ TEST(Mixing, Case5) {
 
 TEST(Mixing, Case6) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network3.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case6.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network3.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case6.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -518,8 +518,8 @@ TEST(Mixing, Case6) {
 
 TEST(Mixing, Case7) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network4.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case7.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network4.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case7.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -560,8 +560,8 @@ TEST(Mixing, Case7) {
 
 TEST(Mixing, Case8) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network4.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case8.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network4.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case8.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -625,8 +625,8 @@ TEST(Mixing, Case8) {
 
 TEST(Mixing, Case9) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network5.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case9.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network5.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case9.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -686,8 +686,8 @@ TEST(Mixing, Case9) {
 
 TEST(Mixing, Case10) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network5.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case10.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network5.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case10.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -759,8 +759,8 @@ TEST(Mixing, Case10) {
 
 TEST(Mixing, Case11) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network6.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case11.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network6.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case11.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
@@ -804,8 +804,8 @@ TEST(Mixing, Case11) {
 
 TEST(Mixing, Case12) {
     // Define JSON files
-    std::string networkFile = "../examples/1D/Mixing/Network6.JSON";
-    std::string simFile = "../examples/1D/Mixing/Case12.JSON";
+    std::string networkFile = "../examples/Abstract/Mixing/Network6.JSON";
+    std::string simFile = "../examples/Abstract/Mixing/Case12.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);

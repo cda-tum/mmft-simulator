@@ -83,7 +83,7 @@ TEST(Continuous, allResultValues) {
 }
 
 TEST(Continuous, jsonDefinition) {
-    std::string file = "../examples/1D/Continuous/Network1.JSON";
+    std::string file = "../examples/Abstract/Continuous/Network1.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(file);
