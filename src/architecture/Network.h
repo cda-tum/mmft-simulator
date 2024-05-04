@@ -171,7 +171,6 @@ public:
      */
     RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type);
 
-
     /**
      * @brief Adds a new channel to the chip.
      * @param[in] nodeAId Id of the node at one end of the channel.
@@ -232,11 +231,13 @@ public:
      * @param[in] nodes Map of nodes that are on the module boundary.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmModule<T> *addModule(std::string name, std::string stlFile,
+    essLbmModule<T> *addModule(std::string name, 
+                               std::string stlFile,
                                std::vector<T> position,
                                std::vector<T> size,
-                               std::unordered_map<int, std::shared_ptr<Node<T> > > nodes,
-                               std::unordered_map<int, Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
+                               std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
+                               std::unordered_map<int, Opening<T>> openings, 
+                               T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.

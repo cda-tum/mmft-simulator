@@ -26,10 +26,10 @@
 #include "architecture/FlowRatePump.h"
 #include "architecture/lbmModule.h"
 #include "architecture/Module.h"
+#include "architecture/ModuleOpening.h"
 #include "architecture/Network.h"
 #include "architecture/Node.h"
 #include "architecture/PressurePump.h"
-#include "ModuleOpening.h"
 
 #include "porting/jsonPorter.h"
 #include "porting/jsonReaders.h"

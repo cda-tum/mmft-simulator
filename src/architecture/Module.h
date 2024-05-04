@@ -15,7 +15,7 @@ template<typename T>
 class Node;
 
 template<typename T>
-class Opening;
+struct Opening;
 
 /**
  * @brief An enum to specify the type of module.
@@ -25,8 +25,8 @@ enum class ModuleType {
     MIXER,      ///< A mixer module that mixes the incoming fluids to a certain degree.
     HEATER,     ///< A heater module that heats the passing fluid to a certain degree.
     ORGAN,      ///< An organ module that models the functionality of an organ in the network.
-    LBM,         ///< A CFD module that maps the LBM simulation result on the 1D level.
-    ESS_LBM         ///< A CFD module that maps the LBM simulation result on the 1D level.
+    LBM,        ///< A CFD module that maps the LBM simulation result from an OLB solver on the 1D level.
+    ESS_LBM     ///< A CFD module that maps the LBM simulation result from an ESS solver on the 1D level.
 
 };
 
@@ -92,10 +92,7 @@ class Module {
 
     virtual void solve() {}
 
-    virtual std::shared_ptr<Network<T>> getNetwork() const
-    {
-        std::cout << "Not here!!!!!" << std::endl;
-    }
+    virtual std::shared_ptr<Network<T>> getNetwork() const {}
 
     virtual void prepareGeometry() {}
 

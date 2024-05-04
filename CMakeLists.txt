@@ -47,11 +47,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
-option(VERBOSE "VERBOSE" ON)
-if(VERBOSE)
-    add_definitions(-DVERBOSE)
-endif()
-
 option(USE_ESSLBM "USE_ESSLBM" OFF)
 if(USE_ESSLBM)
     find_package(ESSLbm REQUIRED)

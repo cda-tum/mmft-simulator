@@ -325,7 +325,7 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::simulate() {
-        #define VERBOSE
+
         // initialize the simulation
         initialize();
         //printResults();

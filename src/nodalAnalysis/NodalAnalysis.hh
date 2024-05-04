@@ -54,10 +54,12 @@ bool conductNodalAnalysis( const arch::Network<T>* network)
 
     // loop through modules
     for (const auto& [key, module] : network->getModules()) {
-        // TODO: remove assertion and adapt code for other module types.
         // For now only LBM modules implemented.
-        assert(module->getModuleType() == arch::ModuleType::LBM ||
-               module->getModuleType() == arch::ModuleType::ESS_LBM);
+        #ifndef USE_ESSLBM
+        assert(module->getModuleType() == arch::ModuleType::LBM);
+        #elif USE_ESSLBM
+        assert(module->getModuleType() == arch::ModuleType::ESS_LBM);
+        #endif
 
         // If module is not initialized (1st loop), loop over channels of fully connected graph
         if ( ! module->getInitialized() ) {

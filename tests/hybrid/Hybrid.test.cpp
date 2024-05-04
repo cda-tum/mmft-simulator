@@ -1,5 +1,7 @@
 #include "../src/baseSimulator.h"
-#include <mpi.h>
+#ifdef USE_ESSLBM
+    #include <mpi.h>
+#endif
 #include "gtest/gtest.h"
 
 using T = double;
@@ -107,11 +109,11 @@ TEST(Continuous, Case1a) {
     ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 4.69188e-9, 1e-14);
 
 }
-
+#ifdef USE_ESSLBM
 TEST(Hybrid, esstest) {
 
     MPI_Init(NULL, NULL);
-    std::string file = "../examples/Hybrid/Network1a.JSON";
+    std::string file = "../examples/Hybrid/Network1a_ESS.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<float> network = porting::networkFromJSON<float>(file);
@@ -145,6 +147,7 @@ TEST(Hybrid, esstest) {
 
     MPI_Finalize();
 }
+#endif
 
 // TEST(Continuous, Case1aJSON) {
     

@@ -1,5 +1,8 @@
-#ifndef MODULEOPENING_H
-#define MODULEOPENING_H
+/**
+ * @file ModuleOpening.h
+ */
+
+#pragma once
 
 namespace arch {
 
@@ -32,5 +35,4 @@ struct Opening {
         }
 };
 
-}
-#endif // MODULEOPENING_H
+}   // namespace arch
