@@ -161,7 +161,7 @@ void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int 
             auto injectionTest = simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
         }
     } else {
-        throw std::invalid_argument("Please define at least one bolus injection for the active fixture or choose a different platform.");
+        throw std::invalid_argument("Please define at least one mixture injection for the active fixture or choose a different platform.");
     }
 }
 
@@ -258,7 +258,7 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
-            throw std::invalid_argument("Invalid resistance model.");
+            throw std::invalid_argument("Invalid resistance model. Options are:\n1D\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
@@ -273,7 +273,7 @@ void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
             mixingModel = new sim::InstantaneousMixingModel<T>();
         } else {
-            throw std::invalid_argument("Invalid mixing model.");
+            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous");
         }
     } else {
         throw std::invalid_argument("No mixing model defined.");

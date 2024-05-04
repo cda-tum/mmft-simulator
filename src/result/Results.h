@@ -167,31 +167,7 @@ struct SimulationResult {
      * @brief Adds a state to the simulation results.
      * @param[in] state
     */
-    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
-
-    /**
-     * @brief Get the simulated pressures at the nodes.
-     * @return Vector of pressure values
-     */
-    const std::unordered_map<int, T>& getFinalPressures() const;
-
-    /**
-     * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
-     */
-    const std::unordered_map<int, T>& getFinalFlowRates() const;
-
-    /**
-     * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
-     */
-    const std::unordered_map<int, T>& getFinalDropletPositions() const;
-
-    /**
-     * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
-     */
-    const std::unordered_map<int, T>& getFinalMixturePositions() const;
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
      * @brief Get the simulated states that were stored during simulation.

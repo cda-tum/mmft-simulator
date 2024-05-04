@@ -19,7 +19,7 @@ template<typename T>
 class Droplet;
 
 /**
- * @brief Virtual class that describes the necessart functionality of resistance models.
+ * @brief Virtual class that describes the necessary functionality of resistance models.
 */
 template<typename T>
 class ResistanceModel {

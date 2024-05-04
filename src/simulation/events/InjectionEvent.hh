@@ -40,11 +40,11 @@ void DropletInjectionEvent<T>::print() {
 
 
 template<typename T>
-InstantaneousMixtureInjectionEvent<T>::InstantaneousMixtureInjectionEvent(T time, MixtureInjection<T>& injection, InstantaneousMixingModel<T>* mixingModel) : 
+MixtureInjectionEvent<T>::MixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel) : 
     Event<T>(time, 1), injection(injection), mixingModel(mixingModel) { }
 
 template<typename T>
-void InstantaneousMixtureInjectionEvent<T>::performEvent() {
+void MixtureInjectionEvent<T>::performEvent() {
 
     auto channel = injection.getInjectionChannel();
     auto mixture = injection.getMixtureId();
@@ -55,7 +55,7 @@ void InstantaneousMixtureInjectionEvent<T>::performEvent() {
 }
 
 template<typename T>
-void InstantaneousMixtureInjectionEvent<T>::print() {
+void MixtureInjectionEvent<T>::print() {
     std::cout << "\n Instantaneous Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 

@@ -44,10 +44,10 @@ class DropletInjectionEvent : public Event<T> {
  * @brief Class for an injection event that takes place when a mixture is injected into the network.
  */
 template<typename T>
-class InstantaneousMixtureInjectionEvent : public Event<T> {
+class MixtureInjectionEvent : public Event<T> {
   private:
-    MixtureInjection<T>& injection;  ///< Specifies if the injection event.
-    InstantaneousMixingModel<T>* mixingModel;
+    MixtureInjection<T>& injection;           ///< Specifies the mixture injection.
+    MixingModel<T>* mixingModel;              ///< Pointer to the active mixing model.
 
   public:
     /**
@@ -55,7 +55,7 @@ class InstantaneousMixtureInjectionEvent : public Event<T> {
      * @param[in] time The time at which the event should take place in s elapsed since the start of the simulation.
      * @param[in,out] injection A class containing all details necessary to conduct an injection event.
      */
-    InstantaneousMixtureInjectionEvent(T time, MixtureInjection<T>& injection, InstantaneousMixingModel<T>* mixingModel);
+    MixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel);
 
     /**
      * @brief Conducts the injection event.

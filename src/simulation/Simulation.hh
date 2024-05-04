@@ -252,6 +252,11 @@ namespace sim {
     }
 
     template<typename T>
+    std::unordered_map<int, std::unique_ptr<Specie<T>>>& Simulation<T>::getSpecies() {
+        return species;
+    }
+
+    template<typename T>
     result::SimulationResult<T>* Simulation<T>::getSimulationResults() {
         return simulationResult.get();
     }
@@ -471,7 +476,7 @@ namespace sim {
                 // compute nodal analysis
                 nodal::conductNodalAnalysis(network);
 
-                // Update and flow the mixtures 
+                // Update and propagate the mixtures 
                 calculateNewMixtures(timestep);
                 
                 // store simulation results of current state
@@ -549,9 +554,7 @@ namespace sim {
             auto& nodeB = network->getNodes().at(channel->getNodeB());
             T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
             T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-            if (channel->getLength() <= 1e-15) {
-                channel->setLength(sqrt(dx*dx + dy*dy));
-            }
+            channel->setLength(sqrt(dx*dx + dy*dy));
         }       
 
         // compute channel resistances
@@ -677,14 +680,16 @@ namespace sim {
             }
         }
         
+        // mixture positions
         if (platform == Platform::Mixing) {
-            auto filledEdges = mixingModel->getFilledEdges();
+            // Add a mixture position for all filled edges
             for (auto& [channelId, mixingId] : mixingModel->getFilledEdges()) {
                 std::deque<MixturePosition<T>> newDeque;
                 MixturePosition<T> newMixturePosition(mixingId, channelId, 0.0, 1.0);
                 newDeque.push_front(newMixturePosition);
                 saveMixturePositions.try_emplace(channelId, newDeque);
             }
+            // Add all mixture positions
             for (auto& [channelId, deque] : mixingModel->getMixturesInEdges()) {
                 for (auto& pair : deque) {
                     if (!saveMixturePositions.count(channelId)) {
@@ -707,7 +712,7 @@ namespace sim {
         } else if (platform == Platform::BigDroplet) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
         } else if (platform == Platform::Mixing) {
-            simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions, filledEdges);
+            simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions);
         }
         
     }
@@ -749,7 +754,7 @@ namespace sim {
         for (auto& [key, injection] : mixtureInjections) {
             double injectionTime = injection->getInjectionTime();
             if (!injection->wasPerformed()) {
-                events.push_back(std::make_unique<InstantaneousMixtureInjectionEvent<T>>(injectionTime - time, *injection, static_cast<InstantaneousMixingModel<T>*>(mixingModel)));
+                events.push_back(std::make_unique<MixtureInjectionEvent<T>>(injectionTime - time, *injection, mixingModel));
             }
         }
         minimalTimeStep = mixingModel->getMinimalTimeStep();

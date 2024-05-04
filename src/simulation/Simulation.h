@@ -47,6 +47,12 @@ template<typename T>
 class Fluid;
 
 template<typename T>
+class MixingModel;
+
+template<typename T>
+class Mixture;
+
+template<typename T>
 class ResistanceModel;
 
 enum class Type {
@@ -77,8 +83,8 @@ private:
     std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
     std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
-    ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for te simulation.
-    MixingModel<T>* mixingModel;
+    ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
+    MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
     int maxIterations = 1e5;
@@ -164,7 +170,7 @@ public:
 
     /**
      * @brief Create specie.
-     * @param[in] diffusivity Diffusivity of the specie in the carrier medium in m^2/s.
+     * @param[in] diffusivity Diffusion coefficient of the specie in the carrier medium in m^2/s.
      * @param[in] satConc Saturation concentration of the specie in the carrier medium in g/m^3.
      * @return Pointer to created specie.
      */
@@ -172,15 +178,15 @@ public:
 
     /**
      * @brief Create mixture.
-     * @param[in] specieIds
-     * @param[in] specieConcentrations
+     * @param[in] species Unordered map of specie ids and pointer to that specie.
+     * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
      * @return Pointer to created mixture.
      */
     Mixture<T>* addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
 
     /**
      * @brief Create mixture.
-     * @param[in] specieConcentrations
+     * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
      * @return Pointer to created mixture.
      */
     Mixture<T>* addMixture(std::unordered_map<int, T> specieConcentrations);
@@ -196,7 +202,7 @@ public:
     DropletInjection<T>* addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition);
 
     /**
-     * @brief Create bolus injection.
+     * @brief Create mixture injection. The injection is always performed at the beginning (position 0.0) of the channel.
      * @param[in] mixtureId Id of the mixture that should be injected.
      * @param[in] channelId Id of the channel, where specie should be injected.
      * @param[in] injectionTime Time at which the injection should be injected in s.
@@ -357,11 +363,18 @@ public:
     std::unordered_map<int, std::unique_ptr<Mixture<T>>>& getMixtures();
 
     /**
+     * @brief Get specie.
+     * @param specieId Id of the specie.
+     * @return Pointer to specie with the correspondig id
+     */
+    Specie<T>* getSpecie(int specieId);
+
+    /**
      * @brief Get mixture.
      * @param mixtureId Id of the mixture
      * @return Pointer to mixture with the correspondig id
      */
-    Specie<T>* getSpecie(int specieId);
+    std::unordered_map<int, std::unique_ptr<Specie<T>>>& getSpecies();
 
     /**
      * @brief Get the results of the simulation.
