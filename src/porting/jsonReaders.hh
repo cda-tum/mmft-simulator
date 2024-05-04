@@ -97,6 +97,43 @@ void readDroplets(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
+void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
+    for (auto& specie : jsonString["simulation"]["species"]) {
+        if (specie.contains("diffusivity") && specie.contains("saturationConcentration")) {
+            T diffusivity = specie["diffusivity"];
+            T satConc = specie["saturationConcentration"];
+            simulation.addSpecie(diffusivity, satConc);
+        } else {
+            throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
+        }
+    }
+}
+
+template<typename T>
+void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
+    for (auto& mixture : jsonString["simulation"]["mixtures"]) {
+        if (mixture.contains("species") && mixture.contains("concentrations")) {
+            if (mixture["species"].size() == mixture["concentrations"].size()) {
+                int counter = 0;
+                std::unordered_map<int, sim::Specie<T>*> species;
+                std::unordered_map<int, T> concentrations;
+                for (auto& specie : mixture["species"]) {
+                    auto specie_ptr = simulation.getSpecie(specie);
+                    species.try_emplace(specie, specie_ptr);
+                    concentrations.try_emplace(specie, mixture["concentrations"][counter]);
+                    counter++;
+                }
+                simulation.addMixture(species, concentrations);
+            } else {
+                throw std::invalid_argument("Wrongly defined mixture. Please provide as many concentrations as species.");
+            }
+        } else {
+            throw std::invalid_argument("Wrongly defined mixture. Please provide species and corresponding concentrations in this mixture.");
+        }
+    }
+}
+
+template<typename T>
 void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("bigDropletInjections")) {
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
@@ -111,6 +148,20 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
         }
     } else {
         throw std::invalid_argument("Please define at least one droplet injection or choose a different platform.");
+    }
+}
+
+template<typename T>
+void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+    if (jsonString["simulation"]["fixtures"][activeFixture].contains("mixtureInjections")) {
+        for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["mixtureInjections"]) {
+            int mixtureId = injection["mixture"];
+            int channelId = injection["channel"];
+            T injectionTime = injection["t0"];
+            auto injectionTest = simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
+        }
+    } else {
+        throw std::invalid_argument("Please define at least one mixture injection for the active fixture or choose a different platform.");
     }
 }
 
@@ -207,12 +258,27 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
-            throw std::invalid_argument("Invalid resistance model.");
+            throw std::invalid_argument("Invalid resistance model. Options are:\n1D\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
     }
     simulation.setResistanceModel(resistanceModel);
+}
+
+template<typename T>
+void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
+    sim::MixingModel<T>* mixingModel;
+    if (jsonString["simulation"].contains("mixingModel")) {
+        if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
+            mixingModel = new sim::InstantaneousMixingModel<T>();
+        } else {
+            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous");
+        }
+    } else {
+        throw std::invalid_argument("No mixing model defined.");
+    }
+    simulation.setMixingModel(mixingModel);
 }
 
 template<typename T>

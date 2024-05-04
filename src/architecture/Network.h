@@ -37,7 +37,7 @@ template<typename T>
 class RectangularChannel;
 
 /**
- * @brief A struct that defines an group, which is a detached 1D network, neighbouring the ground node(s) and/or CFD domains.
+ * @brief A struct that defines an group, which is a detached abstract network, neighbouring the ground node(s) and/or CFD domains.
 */
 template<typename T>
 struct Group {
@@ -87,7 +87,7 @@ private:
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
     std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
-    std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
+    std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) abstract parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
     std::unordered_map<int, lbmModule<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
@@ -350,7 +350,7 @@ public:
     void toJson(std::string jsonString) const;
 
     /**
-     * @brief Sorts the nodes and channels into detached 1D domain groups
+     * @brief Sorts the nodes and channels into detached abstract domain groups
     */
     void sortGroups();
 

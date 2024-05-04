@@ -38,4 +38,25 @@ void DropletInjectionEvent<T>::print() {
     std::cout << "\n Droplet Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 
+
+template<typename T>
+MixtureInjectionEvent<T>::MixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel) : 
+    Event<T>(time, 1), injection(injection), mixingModel(mixingModel) { }
+
+template<typename T>
+void MixtureInjectionEvent<T>::performEvent() {
+
+    auto channel = injection.getInjectionChannel();
+    auto mixture = injection.getMixtureId();
+
+    mixingModel->injectMixtureInEdge(mixture, channel->getId());
+
+    injection.setPerformed(true);
+}
+
+template<typename T>
+void MixtureInjectionEvent<T>::print() {
+    std::cout << "\n Instantaneous Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+}
+
 }  // namespace sim

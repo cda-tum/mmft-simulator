@@ -74,8 +74,13 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
         readDropletInjections<T>(jsonString, simulation, activeFixture);
     } else
     if (platform == sim::Platform::Mixing) {
-        // NOT YET SUPPORTED
-        throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
+        if (simType != sim::Type::Abstract) {
+            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
+        }
+        readMixingModel<T>(jsonString, simulation);
+        readSpecies<T>(jsonString, simulation);
+        readMixtures<T>(jsonString, simulation);
+        readMixtureInjections<T>(jsonString, simulation, activeFixture);
     } else {
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }
@@ -122,8 +127,13 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
         readDropletInjections<T>(jsonString, simulation, activeFixture);
     } else
     if (platform == sim::Platform::Mixing) {
-        // NOT YET SUPPORTED
-        throw std::invalid_argument("Mixing simulations are not yet supported in the simulator.");
+        if (simType != sim::Type::Abstract) {
+            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
+        }
+        readMixingModel<T>(jsonString, simulation);
+        readSpecies<T>(jsonString, simulation);
+        readMixtures<T>(jsonString, simulation);
+        readMixtureInjections<T>(jsonString, simulation, activeFixture);
     } else {
         throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
     }
@@ -165,7 +175,7 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
         auto jsonState = ordered_json::object();
         jsonState["time"] = state->getTime();
         jsonState["nodes"] = writePressures(state.get());
-        jsonState["channels"] = writeFlowRates(state.get());
+        jsonState["channels"] = writeChannels(state.get());
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
             jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
         }
@@ -176,6 +186,9 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
     jsonResult["type"] = writeSimType(simulation);
     jsonResult["platform"] = writeSimPlatform(simulation);
     jsonResult["fluids"] =  writeFluids(simulation);
+    if (simulation->getPlatform() == sim::Platform::Mixing && simulation->getType() == sim::Type::Abstract) {
+        jsonResult["mixtures"] = writeMixtures(simulation);
+    }
     jsonResult.push_back({"network", jsonStates});
 
     return jsonResult;

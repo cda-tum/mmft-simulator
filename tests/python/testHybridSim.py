@@ -150,13 +150,13 @@ def hybridContinuous():
 def abstractContinuousJSON():
     
     network = Network()
-    network.loadNetwork("../../../../examples/1D/Continuous/Network1.JSON")
+    network.loadNetwork("../../../../examples/Abstract/Continuous/Network1.JSON")
 
     network.sort()
     network.valid()
 
     simulation = Simulation()
-    simulation.loadSimulation(network, "../../../../examples/1D/Continuous/Network1.JSON")
+    simulation.loadSimulation(network, "../../../../examples/Abstract/Continuous/Network1.JSON")
 
     simulation.simulate()
 
@@ -165,13 +165,13 @@ def abstractContinuousJSON():
 def abstractDropletJSON():
 
     network = Network()
-    network.loadNetwork("../../../../examples/1D/Droplet/Network1.JSON")
+    network.loadNetwork("../../../../examples/Abstract/Droplet/Network1.JSON")
 
     network.sort()
     network.valid()
 
     simulation = Simulation()
-    simulation.loadSimulation(network, "../../../../examples/1D/Droplet/Network1.JSON")
+    simulation.loadSimulation(network, "../../../../examples/Abstract/Droplet/Network1.JSON")
 
     simulation.simulate()
 

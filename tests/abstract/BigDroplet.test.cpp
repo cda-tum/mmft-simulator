@@ -704,7 +704,7 @@ TEST(BigDroplet, mixedDirectionChannels) {
 }
 
 TEST(BigDroplet, jsonDefinition) {
-    std::string file = "../examples/1D/Droplet/Network1.JSON";
+    std::string file = "../examples/Abstract/Droplet/Network1.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(file);

@@ -13,11 +13,29 @@ auto writePressures(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeFlowRates(result::State<T>* state) {      
+auto writeChannels(result::State<T>* state) {      
     auto channels = ordered_json::array();
     auto const& flowRates = state->getFlowRates();
-    for (long unsigned int i=0; i<flowRates.size(); ++i) {
-        channels.push_back({{"flowRate", flowRates.at(i)}});
+    if (state->getMixturePositions().empty()) {
+        for (long unsigned int i=0; i<flowRates.size(); ++i) {
+            channels.push_back({{"flowRate", flowRates.at(i)}});
+        }
+    } else if ( !state->getMixturePositions().empty() ) {
+        for (long unsigned int i=0; i<flowRates.size(); ++i) {
+            auto channel = ordered_json::object();
+            channel["flowRate"] = flowRates.at(i);
+            if ( state->getMixturePositions().count(i) ) {
+                channel["mixturePositions"] = ordered_json::array();
+                for (auto& position : state->getMixturePositions().at(i)) {
+                    channel["mixturePositions"].push_back({
+                        {"mixture", position.mixtureId},
+                        {"start", position.position1},
+                        {"end", position.position2}
+                    });
+                }
+            }
+            channels.push_back(channel);
+        }
     }
     return channels;
 }
@@ -71,6 +89,22 @@ auto writeFluids(sim::Simulation<T>* simulation) {
         Fluids.push_back(Fluid);
     }
     return Fluids;
+}
+
+template<typename T>
+auto writeMixtures (sim::Simulation<T>* simulation) {
+    auto Mixtures = ordered_json::array();
+    auto const& simMixtures = simulation->getMixtures();
+    for (long unsigned int i=0; i<simMixtures.size(); ++i) {
+        auto Mixture = ordered_json::object();
+        auto& simMixture = simMixtures.at(i);
+        for(auto& [key, specie] : simMixture->getSpecies()) {
+            Mixture["species"].push_back(specie->getId());
+            Mixture["concentrations"].push_back(simMixture->getConcentrationOfSpecie(specie->getId()));
+        }
+        Mixtures.push_back(Mixture);
+    }
+    return Mixtures;
 }
 
 template<typename T>
