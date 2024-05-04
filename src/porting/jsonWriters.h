@@ -32,17 +32,6 @@ class State;
 
 namespace porting {
 
-<<<<<<< HEAD
-template<typename T>
-auto writePressures (result::State<T>* state);
-
-template<typename T>
-auto writeFlowRates (result::State<T>* state);
-
-template<typename T>
-auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
-
-=======
 /**
  * @brief Write the pressures at the nodes in a network at a state (timestamp) of the simulation
  * @param[in] state the state (timestamp) of the simulation that should be written
@@ -73,15 +62,10 @@ auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
  * @param[in] simulation pointer to the simulation of which the results are written
  * @return The json string containing the result
 */
->>>>>>> main
 template<typename T>
 auto writeFluids (sim::Simulation<T>* simulation);
 
 template<typename T>
-<<<<<<< HEAD
-std::string writeSimType (sim::Simulation<T>* simulation);
-
-=======
 auto writeMixtures (sim::Simulation<T>* simulation);
 
 /**
@@ -97,7 +81,6 @@ std::string writeSimType (sim::Simulation<T>* simulation);
  * @param[in] simulation pointer to the simulation of which the results are written
  * @return String of the platform
 */
->>>>>>> main
 template<typename T>
 std::string writeSimPlatform (sim::Simulation<T>* simulation);
 
