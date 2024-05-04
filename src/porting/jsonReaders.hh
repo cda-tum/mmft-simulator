@@ -205,9 +205,13 @@ void readSimulators(json jsonString, arch::Network<T>* network) {
             }
             else if(module["Type"] == "ESS_LBM")
             {
+                #ifdef USE_ESSLBM
                 auto mod = network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
                                             resolution, epsilon, tau);
                 mod->setVtkFolder(vtkFolder);
+                #else
+                throw std::invalid_argument("The simulator was not build using the ESS library.");
+                #endif
             }
         }
 }

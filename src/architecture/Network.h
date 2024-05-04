@@ -24,7 +24,7 @@ class FlowRatePump;
 template<typename T>
 class lbmModule;
 template<typename T>
-class essModule;
+class essLbmModule;
 template<typename T>
 class Module;
 template<typename T>

@@ -8,14 +8,17 @@
 #include <baseSimulator.hh>
 #include <nlohmann/json.hpp>
 
-#include <mpi.h>
+#ifdef USE_ESSLBM
+    #include <mpi.h>
+#endif
 
 using T = float;
 
 int main(int argc, char const* argv []) {
 
+#ifdef USE_ESSLBM
     MPI_Init(NULL,NULL);
-
+#endif
     std::string file = argv[1];
 
     std::cout << "[Main] Create simulation object..." << std::endl;
@@ -39,7 +42,9 @@ int main(int argc, char const* argv []) {
 
     porting::resultToJSON<T>("result.json", &testSimulation );
 
+#ifdef USE_ESSLBM
     MPI_Finalize();
+#endif
 
     return 0;
 }

@@ -52,7 +52,7 @@ if(VERBOSE)
     add_definitions(-DVERBOSE)
 endif()
 
-option(USE_ESSLBM "USE_ESSLBM" ON)
+option(USE_ESSLBM "USE_ESSLBM" OFF)
 if(USE_ESSLBM)
     find_package(ESSLbm REQUIRED)
     find_package(OpenMP REQUIRED)
@@ -117,7 +117,9 @@ add_library(${TARGET_NAME})
 # add sources
 add_subdirectory(src)
 
-target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
+if(USE_ESSLBM)
+    target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
+endif()
 
 # create executable and tests (if build as main project)
 

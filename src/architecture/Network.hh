@@ -317,6 +317,7 @@ essLbmModule<T>* Network<T>::addModule(std::string name,
                                     std::unordered_map<int, Opening<T>> openings,
                                     T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
 {
+    #ifdef USE_ESSLBM
     // create module
     auto id = modules.size();
     auto addModule = new essLbmModule(id, name, stlFile, position, size, nodes, openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
@@ -330,6 +331,9 @@ essLbmModule<T>* Network<T>::addModule(std::string name,
     modules.try_emplace(id, addModule);
 
     return addModule;
+    #else
+    throw std::invalid_argument("The simulator was not build using the ESS library.");
+    #endif
 }
 
 template<typename T>
