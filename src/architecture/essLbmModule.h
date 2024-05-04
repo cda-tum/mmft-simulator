@@ -28,6 +28,7 @@ namespace arch {
             int maxIter = 1e7;                      ///< Maximum total iterations.
             int theta = 10;                         ///< Number of OLB iterations per communication iteration.
 
+            std::string vtkFolder = "./tmp/";       ///< Folder in which vtk files will be saved.
             std::string name;                       ///< Name of the module.
             std::string stlFile;                    ///< The STL file of the CFD domain.
 
@@ -160,8 +161,9 @@ namespace arch {
              * @brief Set the initialized status for this module.
              * @param[in] initialization Boolean for initialization status.
             */
-
             void setInitialized(bool initialization) override;
+
+            void setVtkFolder(std::string vtkFolder);
 
             /**
              * @brief Get the fully connected graph of this module, that is used for the initial approximation.

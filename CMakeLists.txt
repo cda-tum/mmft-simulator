@@ -127,7 +127,7 @@ target_sources(MMFTSim PUBLIC src/main.cpp)
 target_link_libraries(MMFTSim PUBLIC ${TARGET_NAME})
 
 if(USE_ESSLBM)
-    target_link_libraries(hybridSim PUBLIC ESS::ESSLbm)
+    target_link_libraries(MMFTSim PUBLIC ESS::ESSLbm)
 endif()
 
 # add Python binding code

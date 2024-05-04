@@ -199,15 +199,16 @@ void readSimulators(json jsonString, arch::Network<T>* network) {
 
             if(module["Type"] == "LBM")
             {
-                network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
-                                   alpha, resolution, epsilon, tau);
+                auto mod = network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
+                                             alpha, resolution, epsilon, tau);
+                mod->setVtkFolder(vtkFolder);
             }
             else if(module["Type"] == "ESS_LBM")
             {
-                network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
-                                   resolution, epsilon, tau);
+                auto mod = network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
+                                            resolution, epsilon, tau);
+                mod->setVtkFolder(vtkFolder);
             }
-            module->setVtkFolder(vtkFolder);
         }
 }
 

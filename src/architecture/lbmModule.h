@@ -47,6 +47,7 @@ private:
     int theta = 10;                         ///< Number of OLB iterations per communication iteration.
     std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes.
     std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes.
+    std::string vtkFolder = "./tmp/";       ///< Folder in which vtk files will be saved.
     std::string name;                       ///< Name of the module.
     std::string stlFile;                    ///< The STL file of the CFD domain.
     bool initialized = false;               ///< Is the module initialized?

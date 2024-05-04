@@ -147,6 +147,8 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
+        this->mixingModel = model_;
+    }
     
     template<typename T>
     void Simulation<T>::calculateNewMixtures(double timestep_) {
@@ -156,6 +158,7 @@ namespace sim {
     template<typename T>
     Platform Simulation<T>::getPlatform() {
         return this->platform;
+    }
 
     template<typename T>
     Type Simulation<T>::getType() {

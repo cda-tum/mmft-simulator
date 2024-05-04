@@ -154,4 +154,10 @@ namespace arch{
     {
         return moduleOpenings;
     }
+
+    template<typename T>
+    void essLbmModule<T>::setVtkFolder(std::string vtkFolder_) {
+        this->vtkFolder = vtkFolder_;
+    }
+
 }   // namespace arch
