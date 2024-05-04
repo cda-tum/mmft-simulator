@@ -162,7 +162,7 @@ public:
     void setFlowRates(std::unordered_map<int, T> flowRate);
 
     /**
-     * @brief Set the nodes of the module that communicate the pressure to the 1D solver.
+     * @brief Set the nodes of the module that communicate the pressure to the abstract solver.
      * @param[in] groundNodes Map of nodes.
      */
     void setGroundNodes(std::unordered_map<int, bool> groundNodes);
@@ -230,6 +230,8 @@ public:
 
     void setInitialized(bool initialization);
 
+    void setVtkFolder(std::string vtkFolder);
+
     /**
      * @brief Get the fully connected graph of this module, that is used for the initial approximation.
      * @return Network of the fully connected graph.
@@ -278,4 +280,5 @@ public:
         return epsilon; 
     };
 };
-}
+
+}   // namespace arch

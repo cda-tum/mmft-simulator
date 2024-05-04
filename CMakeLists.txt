@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.21.0)
 
-project(hybrid-simulator
-    DESCRIPTION "Hybrid simulator for closed channel-based microfluidic devices."
-    HOMEPAGE_URL "https://github.com/cda-tum/mmft-hybrid-simulator.git"
+project(MMFT-simulator
+    DESCRIPTION "Simulator for closed channel-based microfluidic devices."
+    HOMEPAGE_URL "https://github.com/cda-tum/mmft-simulator.git"
     LANGUAGES CXX C
 )
 
@@ -106,12 +106,12 @@ set(EXTERNAL_SOURCE_LIST
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
 
 target_include_directories(
-    lbmLib PUBLIC ${lbm_SOURCE_DIR}/src 
+    lbmLib PUBLIC ${lbm_SOURCE_DIR}/src
     ${lbm_SOURCE_DIR}/external/tinyxml
     ${lbm_SOURCE_DIR}/external/zlib
 )
 # add library
-set(TARGET_NAME hybridLib)
+set(TARGET_NAME simLib)
 add_library(${TARGET_NAME})
 
 # add sources
@@ -122,9 +122,9 @@ target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
 # create executable and tests (if build as main project)
 
 # main executable
-add_executable(hybridSim)
-target_sources(hybridSim PUBLIC src/main.cpp)
-target_link_libraries(hybridSim PUBLIC ${TARGET_NAME})
+add_executable(MMFTSim)
+target_sources(MMFTSim PUBLIC src/main.cpp)
+target_link_libraries(MMFTSim PUBLIC ${TARGET_NAME})
 
 if(USE_ESSLBM)
     target_link_libraries(hybridSim PUBLIC ESS::ESSLbm)
@@ -133,19 +133,22 @@ endif()
 # add Python binding code
 option(BINDINGS "Configure for building Python bindings")
 if(BINDINGS)
-	add_subdirectory(python/mmft/hybridsim)
+	add_subdirectory(python/mmft/simulator)
 endif()
 
 # create tests
-enable_testing()
-include(GoogleTest)
-set(TARGET_NAME testLib)
-add_library(${TARGET_NAME})
-add_subdirectory(tests)
-add_executable(simulatorTest)
-target_sources(simulatorTest PUBLIC tests/test.cpp)
-target_link_libraries(simulatorTest PUBLIC gtest gtest_main)
-target_link_libraries(simulatorTest PUBLIC gtest lbmLib)
-target_link_libraries(simulatorTest PUBLIC gtest hybridLib)
-target_link_libraries(simulatorTest PUBLIC gtest testLib)
-gtest_discover_tests(simulatorTest)
+option(TEST "Configure for building test cases")
+if(TEST)
+    enable_testing()
+    include(GoogleTest)
+    set(TARGET_NAME testLib)
+    add_library(${TARGET_NAME})
+    add_subdirectory(tests)
+    add_executable(simulatorTest)
+    target_sources(simulatorTest PUBLIC tests/test.cpp)
+    target_link_libraries(simulatorTest PUBLIC gtest gtest_main)
+    target_link_libraries(simulatorTest PUBLIC gtest lbmLib)
+    target_link_libraries(simulatorTest PUBLIC gtest simLib)
+    target_link_libraries(simulatorTest PUBLIC gtest testLib)
+    gtest_discover_tests(simulatorTest)
+endif()

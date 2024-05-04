@@ -32,6 +32,7 @@ class State;
 
 namespace porting {
 
+<<<<<<< HEAD
 template<typename T>
 auto writePressures (result::State<T>* state);
 
@@ -41,12 +42,62 @@ auto writeFlowRates (result::State<T>* state);
 template<typename T>
 auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
 
+=======
+/**
+ * @brief Write the pressures at the nodes in a network at a state (timestamp) of the simulation
+ * @param[in] state the state (timestamp) of the simulation that should be written
+ * @return The json string containing the result
+*/
+template<typename T>
+auto writePressures (result::State<T>* state);
+
+/**
+ * @brief Write the flow rates in the channels of a network at a state (timestamp) of the simulation
+ * @param[in] state the state (timestamp) of the simulation that should be written
+ * @return The json string containing the result
+*/
+template<typename T>
+auto writeChannels (result::State<T>* state);
+
+/**
+ * @brief Write the droplet positions at a state (timestamp) of the simulation
+ * @param[in] state the state (timestamp) of the simulation that should be written
+ * @param[in] simulation pointer to the simulation of which the results are written
+ * @return The json string containing the result
+*/
+template<typename T>
+auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
+
+/**
+ * @brief Write set of fluids of the simulation
+ * @param[in] simulation pointer to the simulation of which the results are written
+ * @return The json string containing the result
+*/
+>>>>>>> main
 template<typename T>
 auto writeFluids (sim::Simulation<T>* simulation);
 
 template<typename T>
+<<<<<<< HEAD
 std::string writeSimType (sim::Simulation<T>* simulation);
 
+=======
+auto writeMixtures (sim::Simulation<T>* simulation);
+
+/**
+ * @brief Return the simulation type of the simulation
+ * @param[in] simulation pointer to the simulation of which the results are written
+ * @return String of the simulation type
+*/
+template<typename T>
+std::string writeSimType (sim::Simulation<T>* simulation);
+
+/**
+ * @brief Return the platform of the simulation
+ * @param[in] simulation pointer to the simulation of which the results are written
+ * @return String of the platform
+*/
+>>>>>>> main
 template<typename T>
 std::string writeSimPlatform (sim::Simulation<T>* simulation);
 

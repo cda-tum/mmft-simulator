@@ -13,6 +13,7 @@ namespace arch {
 // Forward declared dependencies
 template<typename T>
 class Node;
+
 template<typename T>
 class Opening;
 

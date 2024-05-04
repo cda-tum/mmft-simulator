@@ -22,7 +22,7 @@ enum class ChannelType;
 template<typename T>
 class FlowRatePump;
 template<typename T>
-class Module;
+class lbmModule;
 template<typename T>
 class essModule;
 template<typename T>
@@ -39,16 +39,16 @@ template<typename T>
 class RectangularChannel;
 
 /**
- * @brief A struct that defines an group, which is a detached 1D network, neighbouring the ground node(s) and/or CFD domains.
+ * @brief A struct that defines an group, which is a detached abstract network, neighbouring the ground node(s) and/or CFD domains.
 */
 template<typename T>
 struct Group {
 
     int groupId;                    ///< Id of the group.
     bool initialized = false;       ///< Initialization of the group.
-    bool grounded;                  ///< Is this group connected to ground node(s)?
+    bool grounded = false;          ///< Is this group connected to ground node(s)?
     int groundNodeId = -1;          ///< The node with pressure = pMin at the initial timestep.
-    int groundChannelId;            ///< The channel that contains the ground node as node.
+    int groundChannelId = -1;       ///< The channel that contains the ground node as node.
     std::unordered_set<int> nodeIds;            ///< Ids of nodes in this group.
     std::unordered_set<int> channelIds;         ///< Ids of channels in this group.
     std::unordered_set<int> flowRatePumpIds;    ///< Ids of flow rate pumps in this group.
@@ -372,7 +372,7 @@ public:
     void toJson(std::string jsonString) const;
 
     /**
-     * @brief Sorts the nodes and channels into detached 1D domain groups
+     * @brief Sorts the nodes and channels into detached abstract domain groups
     */
     void sortGroups();
 

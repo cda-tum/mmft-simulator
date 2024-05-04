@@ -13,11 +13,29 @@ auto writePressures(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeFlowRates(result::State<T>* state) {      
+auto writeChannels(result::State<T>* state) {      
     auto channels = ordered_json::array();
     auto const& flowRates = state->getFlowRates();
-    for (long unsigned int i=0; i<flowRates.size(); ++i) {
-        channels.push_back({{"flowRate", flowRates.at(i)}});
+    if (state->getMixturePositions().empty()) {
+        for (long unsigned int i=0; i<flowRates.size(); ++i) {
+            channels.push_back({{"flowRate", flowRates.at(i)}});
+        }
+    } else if ( !state->getMixturePositions().empty() ) {
+        for (long unsigned int i=0; i<flowRates.size(); ++i) {
+            auto channel = ordered_json::object();
+            channel["flowRate"] = flowRates.at(i);
+            if ( state->getMixturePositions().count(i) ) {
+                channel["mixturePositions"] = ordered_json::array();
+                for (auto& position : state->getMixturePositions().at(i)) {
+                    channel["mixturePositions"].push_back({
+                        {"mixture", position.mixtureId},
+                        {"start", position.position1},
+                        {"end", position.position2}
+                    });
+                }
+            }
+            channels.push_back(channel);
+        }
     }
     return channels;
 }
@@ -25,16 +43,14 @@ auto writeFlowRates(result::State<T>* state) {
 template<typename T>
 auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {      
     auto BigDroplets = ordered_json::array();
-    auto& dropletPositions = state->getDropletPositions();
-    for (long unsigned int i=0; i<dropletPositions.size(); ++i) {
+    for (auto& [key, dropletPosition] : state->getDropletPositions()) {
         //dropletPosition
         auto BigDroplet = ordered_json::object();
-        auto& dropletPosition = dropletPositions.at(i);
 
         //state
-        BigDroplet["id"] = i;
-        BigDroplet["fluid"] = simulation->getDroplet(i)->getFluid()->getId();
-        BigDroplet["volume"] = simulation->getDroplet(i)->getVolume();
+        BigDroplet["id"] = key;
+        BigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
+        BigDroplet["volume"] = simulation->getDroplet(key)->getVolume();
 
         //boundaries
         BigDroplet["boundaries"] = ordered_json::array();
@@ -42,7 +58,7 @@ auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {
             BigDroplet["boundaries"].push_back({
                 {"volumeTowards1", boundary.isVolumeTowardsNodeA()},
                 {"position", {
-                    {"channelId", boundary.getChannelPosition().getChannel()->getId()},
+                    {"channel", boundary.getChannelPosition().getChannel()->getId()},
                     {"position", boundary.getChannelPosition().getPosition()}}
                 }
             });
@@ -73,6 +89,22 @@ auto writeFluids(sim::Simulation<T>* simulation) {
         Fluids.push_back(Fluid);
     }
     return Fluids;
+}
+
+template<typename T>
+auto writeMixtures (sim::Simulation<T>* simulation) {
+    auto Mixtures = ordered_json::array();
+    auto const& simMixtures = simulation->getMixtures();
+    for (long unsigned int i=0; i<simMixtures.size(); ++i) {
+        auto Mixture = ordered_json::object();
+        auto& simMixture = simMixtures.at(i);
+        for(auto& [key, specie] : simMixture->getSpecies()) {
+            Mixture["species"].push_back(specie->getId());
+            Mixture["concentrations"].push_back(simMixture->getConcentrationOfSpecie(specie->getId()));
+        }
+        Mixtures.push_back(Mixture);
+    }
+    return Mixtures;
 }
 
 template<typename T>

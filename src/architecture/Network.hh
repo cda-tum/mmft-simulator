@@ -464,13 +464,6 @@ const std::unordered_map<int, std::unique_ptr<Group<T>>>& Network<T>::getGroups(
 }
 
 template<typename T>
-void Network<T>::toJson(std::string jsonString) const {
-    /** TODO
-     *
-    */
-}
-
-template<typename T>
 void Network<T>::sortGroups() {
     std::vector<int> nodeVector;
     std::vector<Edge<T>*> edges;
@@ -516,7 +509,6 @@ void Network<T>::sortGroups() {
                 }
             }
         }
-
         while(!connectedNodes.empty()) {
             auto q = nodeIds.insert(connectedNodes.front());
             if (q.second) {
@@ -545,7 +537,7 @@ void Network<T>::sortGroups() {
 
         Group<T>* addGroup = new Group<T>(groupId, nodeIds, edgeIds, this);
         groups.try_emplace(groupId, addGroup);
-
+        
         groupId++;
     }
 }
@@ -646,7 +638,7 @@ bool Network<T>::isNetworkValid() {
     }
 
     if (errorNodes.length() != 0 || errorEdges.length() != 0 || errorModules.length() != 0) {
-        throw std::invalid_argument("Network is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: "
+        throw std::invalid_argument("Network is invalid. The following nodes are not connected to ground: " + errorNodes + ". The following edges are not connected to ground: " 
             + errorEdges + ". The following modules are not connected to ground: " + errorModules);
         return false;
     }
