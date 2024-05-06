@@ -1,7 +1,6 @@
 set(SOURCE_LIST
     Channel.hh
     ChannelPosition.hh
-    lbmModule.hh
     Module.hh
     Network.hh
     Edge.hh
@@ -13,8 +12,8 @@ set(SOURCE_LIST
 set(HEADER_LIST
     Channel.h
     ChannelPosition.h
-    lbmModule.h
     Module.h
+    ModuleOpening.h
     Network.h
     Edge.h
     FlowRatePump.h
@@ -23,8 +22,5 @@ set(HEADER_LIST
 )
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})
-if(USE_ESSLBM)
-    target_sources(${TARGET_NAME} PUBLIC essLbmModule.hh essLbmModule.h)
-endif()
 target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(${TARGET_NAME} PUBLIC nlohmann_json::nlohmann_json)

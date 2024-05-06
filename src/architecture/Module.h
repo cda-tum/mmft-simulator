@@ -87,36 +87,6 @@ class Module {
      * @returns What type the channel has.
      */
     ModuleType getModuleType() const;
-
-    virtual void lbmInit(T dynViscosity, T density) {}
-
-    virtual void solve() {}
-
-    virtual std::shared_ptr<Network<T>> getNetwork() const {}
-
-    virtual void prepareGeometry() {}
-
-    virtual void prepareLattice() {}
-
-    virtual bool getInitialized() const {}
-
-    virtual void setInitialized(bool initialization) {}
-
-    virtual std::unordered_map<int, T> getPressures() const {}
-
-    virtual std::unordered_map<int, T> getFlowRates() const {}
-
-    virtual void setPressures(std::unordered_map<int, T> pressure) {}
-
-    virtual void setFlowRates(std::unordered_map<int, T> flowRate) {}
-
-    virtual bool hasConverged() const {}
-
-    virtual T getAlpha() { return (T)1.0; }
-
-    virtual std::unordered_map<int, Opening<T>> getOpenings() const {}
-
-    virtual void setGroundNodes(std::unordered_map<int, bool> groundNodes) {}
 };
 
 }   // namespace arch

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 
-namespace arch{
+namespace sim{
 
     template<typename T>
     essLbmModule<T>::essLbmModule(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,

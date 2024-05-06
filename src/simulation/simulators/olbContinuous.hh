@@ -1,15 +1,15 @@
-#include "lbmModule.h"
+#include "olbContinuous.h"
 #include <filesystem>
 
-namespace arch{
+namespace sim{
 
 #define VERBOSE
 
 template<typename T>
 lbmModule<T>::lbmModule (
-    int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, 
-    std::unordered_map<int, Opening<T>> openings_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
-        Module<T>(id_, pos_, size_, nodes_), 
+    int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<arch::Node<T>>> nodes_, 
+    std::unordered_map<int, arch::Opening<T>> openings_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
+        CFDSimulator<T>(), 
         name(name_), stlFile(stlFile_), moduleOpenings(openings_), charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_),
             alpha(alpha_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_)
     { 
@@ -149,7 +149,7 @@ void lbmModule<T>::prepareLattice () {
 }
 
 template<typename T>
-void lbmModule<T>::setBoundaryValues (int iT) {
+void lbmModule<T>::setBoundaryValues () {
 
     T pressureLow = -1.0;       
     for (auto& [key, pressure] : pressures) {
@@ -307,30 +307,5 @@ void lbmModule<T>::solve() {
     getResults(step);
 }
 
-
-template<typename T>
-void lbmModule<T>::setPressures(std::unordered_map<int, T> pressure_) {
-    this->pressures = pressure_;
-}
-
-template<typename T>
-void lbmModule<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
-    this->flowRates = flowRate_;
-}
-
-template<typename T>
-void lbmModule<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_){
-    this->groundNodes = groundNodes_;
-}
-
-template<typename T>
-void lbmModule<T>::setInitialized(bool initialization_) {
-    this->initialized = initialization_;
-}
-
-template<typename T>
-void lbmModule<T>::setVtkFolder(std::string vtkFolder_) {
-    this->vtkFolder = vtkFolder_;
-}
 
 }   // namespace arch

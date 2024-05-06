@@ -1,5 +1,5 @@
 /**
- * @file lbmModule.h
+ * @file olbContinuous.h
  */
 
 #pragma once
@@ -29,11 +29,15 @@ class Node;
 template<typename T>
 class Opening;
 
+}
+
+namespace sim {
+
 /**
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmModule : public Module<T> {
+class lbmModule : public CFDSimulator<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
@@ -47,19 +51,12 @@ private:
     int theta = 10;                         ///< Number of OLB iterations per communication iteration.
     std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes.
     std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes.
-    std::string vtkFolder = "./tmp/";       ///< Folder in which vtk files will be saved.
-    std::string name;                       ///< Name of the module.
-    std::string stlFile;                    ///< The STL file of the CFD domain.
-    bool initialized = false;               ///< Is the module initialized?
+    
     bool isConverged = false;               ///< Has the module converged?
     
-    std::shared_ptr<Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
-    std::unordered_map<int, Opening<T>> moduleOpenings;             ///< Map of openings.
-    std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
-
     T charPhysLength;                       ///< Characteristic physical length (= width, usually).
     T charPhysVelocity;                     ///< Characteristic physical velocity (expected maximal velocity).
-    T alpha;                                ///< Relaxation factor.
+
     T resolution;                           ///< Resolution of the CFD domain. Gridpoints in charPhysLength.
     T epsilon;                              ///< Convergence criterion.
     T relaxationTime;                       ///< Relaxation time (tau) for the OLB solver.
@@ -107,25 +104,25 @@ public:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmModule(int id, std::string name, std::string stlFile, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-        std::unordered_map<int, Opening<T>> openings, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
+    lbmModule(int id, std::string name, std::string stlFile, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<arch::Node<T>>> nodes, 
+        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
      * @brief Initialize an instance of the LBM solver for this module.
      * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
      * @param[in] density Density of the simulated fluid in _kg / m^3_.
     */
-    void lbmInit(T dynViscosity, T density);
+    void lbmInit(T dynViscosity, T density) override;
 
     /**
      * @brief Prepare the LBM geometry of this instance.
     */
-    void prepareGeometry();
+    void prepareGeometry() override;
 
     /**
      * @brief Prepare the LBM lattice on the LBM geometry.
     */
-    void prepareLattice();
+    void prepareLattice() override;
 
     /**
      * @brief Set the boundary values on the lattice at the module nodes.
@@ -163,12 +160,6 @@ public:
     void setFlowRates(std::unordered_map<int, T> flowRate);
 
     /**
-     * @brief Set the nodes of the module that communicate the pressure to the abstract solver.
-     * @param[in] groundNodes Map of nodes.
-     */
-    void setGroundNodes(std::unordered_map<int, bool> groundNodes);
-
-    /**
      * @brief Get the pressures at the boundary nodes.
      * @returns Pressures in Pa.
      */
@@ -185,35 +176,11 @@ public:
     };
 
     /**
-     * @brief Get the openings of the module.
-     * @returns Module openings.
-     */
-    std::unordered_map<int, Opening<T>> getOpenings() const {
-        return moduleOpenings;
-        };
-
-    /**
-     * @brief Get the ground nodes of the module.
-     * @returns Ground nodes.
-    */
-    std::unordered_map<int, bool> getGroundNodes() {
-        return groundNodes;
-    }
-
-    /**
      * @brief Get the number of iterations for the value tracer.
      * @returns Number of iterations for the value tracer.
     */
     int getStepIter() const {
         return stepIter;
-    };
-
-    /**
-     * @brief Returns whether the module is initialized or not.
-     * @returns Boolean for initialization.
-    */
-    bool getInitialized() const { 
-        return initialized; 
     };
 
     /**
@@ -223,23 +190,6 @@ public:
     bool hasConverged() const {
         return converge->hasConverged();
     };
-
-    /**
-     * @brief Set the initialized status for this module.
-     * @param[in] initialization Boolean for initialization status.
-    */
-
-    void setInitialized(bool initialization);
-
-    void setVtkFolder(std::string vtkFolder);
-
-    /**
-     * @brief Get the fully connected graph of this module, that is used for the initial approximation.
-     * @return Network of the fully connected graph.
-    */
-    std::shared_ptr<Network<T>> getNetwork() const {
-        return moduleNetwork;
-    }
 
     /**
      * @brief Get the characteristic physical length.
@@ -255,14 +205,6 @@ public:
     */
     T getCharPhysVelocity() const { 
         return charPhysVelocity; 
-    };
-
-    /**
-     * @brief Get the relaxation factor alpha.
-     * @returns alpha.
-    */
-    T getAlpha() const { 
-        return alpha; 
     };
 
     /**

@@ -1,3 +1,7 @@
+/**
+ * @file essContinuous.h
+*/
+
 #pragma once
 
 #define M_PI 3.14159265358979323846
@@ -15,13 +19,13 @@
 
 #include <ESSLbmSolver.h>
 
-namespace arch {
+namespace sim {
 
     /**
      * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
     */
     template<typename T>
-    class essLbmModule : public Module<T> {
+    class essLbmModule : public CFDSimulator<T> {
         private:
             int step = 0;                           ///< Iteration step of this module.
             int stepIter = 1000;                    ///< Number of iterations for the value tracer.
