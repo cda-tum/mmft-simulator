@@ -21,6 +21,8 @@
 #include "architecture/Edge.h"
 #include "architecture/FlowRatePump.h"
 #include "architecture/essLbmModule.h"
+#include "architecture/essLbmDropletModule.h"
+#include "architecture/essLbmMixingModule.h"
 #include "architecture/lbmModule.h"
 #include "architecture/Module.h"
 #include "architecture/Network.h"

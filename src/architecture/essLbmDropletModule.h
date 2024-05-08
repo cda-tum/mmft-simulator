@@ -35,7 +35,7 @@ namespace arch {
         private:
 
             std::vector<int, T> bufferZones;    ///< For each opening we need a buffer zone to generate droplet <nodeId, bufferLength>
-            std::unordered_map<int, Droplet<T>*> lbmDroplets;          ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
+            std::unordered_map<int, sim::Droplet<T>*> lbmDroplets;          ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
 
 
         public:
@@ -48,14 +48,14 @@ namespace arch {
              * @brief Generate a droplet in the LBM solver
              * @return Id of the generated droplet
              */
-            int generateDroplet(Droplet<T>* droplet, Node<T>* entrypoint, T volume) {
+            int generateDroplet(sim::Droplet<T>* droplet, Node<T>* entrypoint) {
                 int dropletId = 1;
                 std::vector<T> nodePosition = (0.0, 0.0, 0.0);
-                density = 1.0;
-                viscosity = 1.0;
-                volume = 1.0;
-                solver_->generateDroplet(dropletId, nodePosition, density, viscosity, volume);
-                droplet->setDropletState(DropletState::IDLE);
+                T density = 1.0;
+                T viscosity = 1.0;
+                T volume = 1.0;
+                this->solver_->generateDroplet(dropletId, nodePosition, density, viscosity, volume);
+                droplet->setDropletState(sim::DropletState::IDLE);
                 lbmDroplets.try_emplace(dropletId, nullptr);
             }
 
@@ -64,9 +64,9 @@ namespace arch {
              * @return Opening id, where the droplet exits LBM domain.
              */
             int purgeDroplet(int dropletId) {
-                int dropletId = 1;
-                assert(lbmDroplet.count(dropletId));
-                lbmDroplet.at(dropletId)->setDropletState(DropletState::NETWORK);
+                dropletId = 1;
+                assert(lbmDroplets.count(dropletId));
+                lbmDroplets.at(dropletId)->setDropletState(sim::DropletState::NETWORK);
                 lbmDroplets.erase(dropletId);
             }
 
@@ -88,7 +88,7 @@ namespace arch {
              * @brief Removes a droplet in the 1D solver, that got consumed in a merge operation
              */
             void removeDroplet(int dropletId) {
-                assert(lbmDroplet.count(dropletId));
+                assert(lbmDroplets.count(dropletId));
                 // TODO: Remove droplet from droplet map in simulation object
                 lbmDroplets.erase(dropletId);
             }

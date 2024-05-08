@@ -16,6 +16,8 @@ set(HEADER_LIST
     ChannelPosition.h
     lbmModule.h
     essLbmModule.h
+    essLbmDropletModule.h
+    essLbmMixingModule.h
     Module.h
     Network.h
     Edge.h

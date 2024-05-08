@@ -39,10 +39,10 @@ namespace arch {
              * @param[in] concentrations Map of concentrations and node ids.
              */
             void setConcentrations(std::unordered_map<int, T> concentrations_) {
-                for(auto& [key, value] : flowRate_) {
+                for(auto& [key, value] : this->flowRate_) {
                     concentrations.try_emplace(key, 1.0);
                 }
-                solver_->setConcentrations(concentrations);
+                this->solver_->setConcentrations(concentrations);
             }
 
             // TODO: Agree on concentration unit, mol/l ok?
