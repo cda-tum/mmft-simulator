@@ -45,8 +45,9 @@ class ResistanceModel;
 enum class DropletState {
     INJECTION,  ///< Droplet planned to be injected but currently not yet in the network.
     NETWORK,    ///< Droplet currently flows through the network.
+    IDLE,       ///< Droplet currently in CFD domain.
     TRAPPED,    ///< Droplet is trapped in the network.
-    SINK        ///< Droplet has left the network (is in the sink).
+    SINK,        ///< Droplet has left the network (is in the sink).
 };
 
 /**
