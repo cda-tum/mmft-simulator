@@ -228,13 +228,13 @@
     "pumps": [
         {	
             "channel":16,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         },
         {
             "channel":17,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         }
     ],
     "fixtures": [

@@ -269,38 +269,38 @@
     "pumps": [
         {	
             "channel":13,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         },
         {
             "channel":14,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         },
         {
             "channel":15,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         },
         {	
             "channel":16,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         },
         {
             "channel":17,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         },
         {
             "channel":18,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         },
         {
             "channel":19,
-            "type": "PumpPressure",
-            "deltaP": 1000
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
         }
     ],
     "fixtures": [
