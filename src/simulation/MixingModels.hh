@@ -479,13 +479,16 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                     if (inflowCuts[n_in+1] <= outflowCuts[n_out+1] + 1e-15) {   ///< 1e-16 to account for machine precision. TODO: improve algorithm
                         // The cut is caused on the inflow side
                         T flowRate = (1.0 - start) * std::abs(network->getChannel(channelInId)->getFlowRate());
-                        inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate, network->getChannel(channelInId)->getWidth()};
+                        T stretchFactor = (network->getChannel(channelInId)->getFlowRate()/network->getChannel(channelOutIDs[n_out])->getFlowRate())
+                                            * (network->getChannel(channelOutIDs[n_out])->getWidth()/network->getChannel(channelInId)->getWidth());
+                        inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate, network->getChannel(channelInId)->getWidth(), stretchFactor};
                         std::cout << "Add flowsection for channel " << channelOutIDs[n_out] << " with following parameters: \n" ;
                         std::cout << "Cut v1\n";
                         std::cout << " \t channel in " << channelInId << " \n ";
                         std::cout << " \t section start " << start << " \n ";
                         std::cout << " \t section end " << 1.0 << " \n ";
                         std::cout << " \t flowrate " << flowRate << " \n ";
+                        std::cout << " \t stretchFactor " << stretchFactor << " \n";
                         if (outflowDistributions.count(channelOutIDs[n_out])) {
                             outflowDistributions.at(channelOutIDs[n_out]).push_back(inFlowSection);
                         } else {
@@ -499,15 +502,18 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                     } else {
                         // The cut is caused on the outflow side
                         T flowRate = (outflowCuts[n_out + 1] - std::max(inflowCuts[n_in], outflowCuts[n_out]))*flowRateIn;
+                        T stretchFactor = (network->getChannel(channelInId)->getFlowRate()/network->getChannel(channelOutIDs[n_out])->getFlowRate())
+                                            * (network->getChannel(channelOutIDs[n_out])->getWidth()/network->getChannel(channelInId)->getWidth());
                         end = start + flowRate / std::abs(network->getChannel(channelInId)->getFlowRate());
                         std::cout << "end: " << end << " = " << start << " + " << flowRate << "/" << std::abs(network->getChannel(channelInId)->getFlowRate()) <<"\n";
-                        inFlowSection = FlowSection<T> {channelInId, start, end, flowRate, network->getChannel(channelInId)->getWidth()};
+                        inFlowSection = FlowSection<T> {channelInId, start, end, flowRate, network->getChannel(channelInId)->getWidth(), stretchFactor};
                         std::cout << "Add flowsection for channel " << channelOutIDs[n_out] << " with following parameters: \n" ;
                         std::cout << "Cut v2\n";
                         std::cout << " \t channel in " << channelInId << " \n ";
                         std::cout << " \t section start " << start << " \n ";
                         std::cout << " \t section end " << end << " \n ";
                         std::cout << " \t flowrate " << flowRate << " \n ";
+                        std::cout << " \t stretchFactor " << stretchFactor << " \n";
                         if (outflowDistributions.count(channelOutIDs[n_out])) {
                             outflowDistributions.at(channelOutIDs[n_out]).push_back(inFlowSection);
                         } else {
@@ -713,10 +719,13 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         T startWidth = prevEndWidth;
         T endWidth = startWidth + ((flowSection.flowRate / currChannelFlowRate));
         prevEndWidth = endWidth;
-        T stretchFactor = ((flowSection.flowRate/currChannelFlowRate)/(flowSection.sectionEnd-flowSection.sectionStart)) * (channelWidth/flowSection.width);
-        std::cout << "The stretch factor is: " << stretchFactor << std::endl;
-        T startWidthIfFunctionWasSplit = flowSection.sectionStart - startWidth;
-        assert(startWidthIfFunctionWasSplit >= (-1.0 - 1e-16) && startWidthIfFunctionWasSplit <= (1.0 + 1e-16));
+        T stretchFactor = flowSection.stretchFactor;
+        //T stretchFactor = ((flowSection.flowRate/currChannelFlowRate)/(flowSection.sectionEnd-flowSection.sectionStart)) * (channelWidth/flowSection.width);
+        //T stretchFactor = channelWidth/((flowSection.flowRate/currChannelFlowRate)*flowSection.width);
+        std::cout << "The stretch factor is: " << stretchFactor << " = " << channelWidth << "/((" << flowSection.flowRate << "/" << currChannelFlowRate << ")*" 
+                << flowSection.width << ")" << std::endl;
+        T startWidthIfFunctionWasSplit = flowSection.sectionStart*stretchFactor - startWidth;
+        assert(flowSection.sectionStart-startWidth >= (-1.0 - 1e-16) && flowSection.sectionStart-startWidth <= (1.0 + 1e-16));
 
         if (!this->filledEdges.count(flowSection.channelId)){
             T concentration = 0.0;
@@ -767,7 +776,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                 std::vector<T> segmentedResults = std::get<1>(specieDistribution);
 
                 T a_0_old = std::get<2>(specieDistribution);
-                functionFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults, a_0_old});
+                functionFlowSections.push_back({startWidth, endWidth, stretchFactor * (flowSection.width/channelWidth), startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults, a_0_old});
                 std::cout << "functionFlowSections pushed back: \n";
                 std::cout << "\t startWidth: " << startWidth;
                 std::cout << "\n\t endWidth: " << endWidth;

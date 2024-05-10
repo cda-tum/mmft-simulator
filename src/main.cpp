@@ -12,7 +12,7 @@ using T = double;
 int main(int argc, char const* argv []) {
 
     // Define JSON files
-    std::string file = "../examples/1D/Mixing/DiffusionCase2.JSON";
+    std::string file = "../examples/1D/Mixing/DiffusionCase3.JSON";
 
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(file);
@@ -37,7 +37,7 @@ int main(int argc, char const* argv []) {
     /**
      * Case 2
     */
-    // result->writeDiffusiveMixtures(6);
+    // result->writeDiffusiveMixtures(3);
     // result->writeDiffusiveMixtures(9);
     // result->writeDiffusiveMixtures(8);
     // result->writeDiffusiveMixtures(7);
@@ -45,24 +45,24 @@ int main(int argc, char const* argv []) {
     /**
      * Case 3
     */
-    // result->writeDiffusiveMixtures(9);
-    // result->writeDiffusiveMixtures(3);
-    // result->writeDiffusiveMixtures(19);
-    // result->writeDiffusiveMixtures(28);
-    // result->writeDiffusiveMixtures(39);
-    // result->writeDiffusiveMixtures(34);
-    // result->writeDiffusiveMixtures(41);
-    // result->writeDiffusiveMixtures(40);
+    result->writeDiffusiveMixtures(4);
+    result->writeDiffusiveMixtures(3);
+    result->writeDiffusiveMixtures(13);
+    result->writeDiffusiveMixtures(23);
+    result->writeDiffusiveMixtures(38);
+    result->writeDiffusiveMixtures(35);
+    result->writeDiffusiveMixtures(42);
+    result->writeDiffusiveMixtures(41);
 
     /**
      * Case 4
     */
-    result->writeDiffusiveMixtures(2);
-    result->writeDiffusiveMixtures(1);
-    result->writeDiffusiveMixtures(7);
-    result->writeDiffusiveMixtures(3);
-    result->writeDiffusiveMixtures(10);
-    result->writeDiffusiveMixtures(11);
+    // result->writeDiffusiveMixtures(2);
+    // result->writeDiffusiveMixtures(1);
+    // result->writeDiffusiveMixtures(7);
+    // result->writeDiffusiveMixtures(3);
+    // result->writeDiffusiveMixtures(10);
+    // result->writeDiffusiveMixtures(11);
     
     /**
      * Case 1
