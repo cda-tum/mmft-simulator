@@ -1210,144 +1210,176 @@ TEST(DiffusionMixing, case3_1) {
  * 
  * operation 5 four times
 */
-// TEST(DiffusionMixing, caseJeonEtAl) {
+TEST(DiffusionMixing, caseJeonEtAl) {
 
-//     //   0 1 2  3 4 5  6 7 8
-//     //   | | |  | | |  | | |
-//     //    \|/    \|/    \|/
-//     //     9      10     11
-//     //      \     |     /
-//     //        \   |   /
-//     //          \ | /
-//     //            12
-//     //            |
-
-
-//     // parameters
-//     auto cWidth = 50e-6;
-//     auto cHeight = 100e-6;
-//     auto cLength = 570e-10;  // Channel length
-
-//     // Concentrations (from Jeon et al. read out from simulations)
-//     T c0 = 0.0;
-//     T c1 = 0.2051;
-//     T c2 = 0.4068;
-//     T c3 = 0.5582;
-//     T c4 = 0.6145;
-//     T c5 = 0.5594;
-//     T c6 = 0.4107;
-//     T c7 = 0.206;
-//     T c8 = 0.0;
-
-//     T diffusivity = 5e-10; // m^2/s
-
-//     // Flowrates (calculated using 1D simulation)
-//     T flowRate0 = 1.63103e-12; // channel 87
-//     T flowRate1 = 1.61903e-12; // channel 88
-//     T flowRate2 = 1.6734e-12; // channel 89
-//     T flowRate3 = 1.70522e-12; // channel 90
-//     T flowRate4 = 1.71676e-12; // channel 91
-//     T flowRate5 = 1.709e-12; // channel 92
-//     T flowRate6 = 1.67998e-12; // channel 93
-//     T flowRate7 = 1.62658e-12; // channel 94
-//     T flowRate8 = 1.63899e-12; // channel 95
-
-//     T flowRate9 = 4.92346e-12; // channel 96
-//     T flowRate10 = 5.13098e-12; // channel 97
-//     T flowRate11 = 4.94555e-12; // channel 98
-//     T flowRate12 = 1.5e-11; // channel 99
+    //   0 1 2  3 4 5  6 7 8
+    //   | | |  | | |  | | |
+    //    \|/    \|/    \|/
+    //     9      10     11
+    //      \     |     /
+    //        \   |   /
+    //          \ | /
+    //            12
+    //            |
 
 
-//     T pecletNr9 = (flowRate9 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
-//     T pecletNr10 = (flowRate10 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
-//     T pecletNr11 = (flowRate11 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
-//     T pecletNr12 = (flowRate12 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
-//     // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
-//     int resolution = 1000;
+    // parameters
+    auto cWidth = 50e-6;
+    auto cHeight = 100e-6;
+    auto cLength = 570e-10;  // Channel length
 
-//     // create necessary objects
-//     std::vector<sim::FlowSectionInput<T>> constantFlowSections9;
-//     std::vector<sim::FlowSectionInput<T>> constantFlowSections10;
-//     std::vector<sim::FlowSectionInput<T>> constantFlowSections11;
+    // Concentrations (from Jeon et al. read out from simulations)
+    T c0 = 0.0;
+    T c1 = 0.1784;
+    T c2 = 0.3991;
+    T c3 = 0.5778;
+    T c4 = 0.6459;
+    T c5 = 0.5778;
+    T c6 = 0.3991;
+    T c7 = 0.1784;
+    T c8 = 0.0;
 
-//     std::vector<sim::FlowSectionInput<T>> functionFlowSections12;
+    /**
+     * 1 mm/s
+    */
+    // T c0 = 0.0;
+    // T c1 = 0.2167;
+    // T c2 = 0.4115;
+    // T c3 = 0.5513;
+    // T c4 = 0.6021;
+    // T c5 = 0.5513;
+    // T c6 = 0.4115;
+    // T c7 = 0.2267;
+    // T c8 = 0.0;
 
-//     std::unordered_map<int, std::unique_ptr<sim::DiffusiveMixture<T>>> diffusiveMixtures;
+    T diffusivity = 5e-10; // m^2/s
 
-//     std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
-//     std::vector<T> zeroSegmentedResult = {0};
+    // Flowrates (calculated using 1D simulation)
 
-//     sim::DiffusionMixingModel<T> diffusionMixingModelTest = sim::DiffusionMixingModel<T>();
+    T flowRate0 = 5.44862e-12; // channel 87
+    T flowRate1 = 5.4081e-12; // channel 88
+    T flowRate2 = 5.58838e-12; // channel 89
+    T flowRate3 = 5.69198e-12; // channel 90
+    T flowRate4 = 5.72583e-12; // channel 91
+    T flowRate5 = 5.69198e-12; // channel 92
+    T flowRate6 = 5.58838e-12; // channel 93
+    T flowRate7 = 5.4081e-12; // channel 94
+    T flowRate8 = 5.44862e-12; // channel 95
 
-//     // inflow into channel 9 (aq. to channel 96 in main.cpp)
-//     constantFlowSections9.push_back({0.0, 0.331277, 1.0, 0, c0, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
-//     constantFlowSections9.push_back({0.331277, 0.660117, 0.328839, -0.331277, c1, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
-//     constantFlowSections9.push_back({0.660117, 1.0, 1.0, -0.660117, c2, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
-//     // inflow into channel 10 (aq. to channel 97 in main.cpp)
-//     constantFlowSections10.push_back({0.0, 0.332338, 0.332338, 0.0, c3, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
-//     constantFlowSections10.push_back({0.332338, 0.666925, 0.334588, -0.332338, c4, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
-//     constantFlowSections10.push_back({0.666925, 1.0, 0.333075, -0.666925, c5, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
-//     // inflow into channel 11 (aq. to channel 98 in main.cpp)
-//     constantFlowSections11.push_back({0.0, 0.339695, 1.0, 0.0, c6, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
-//     constantFlowSections11.push_back({0.339695, 0.668593, 0.328898, -0.339695, c7, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
-//     constantFlowSections11.push_back({0.668593, 1.0, 1.0, -0.668593, c8, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
+    T flowRate9 = 4.93353e-11; // channel 96
+    T flowRate10 = 5.13294e-11; // channel 97
+    T flowRate11 = 4.93353e-11; // channel 98
+    T flowRate12 = 1.5e-10; // channel 99
+
+    /**
+     * 1mm/s
+    */
+    // T flowRate0 = 5.44862e-13; // channel 87
+    // T flowRate1 = 5.4081e-13; // channel 88
+    // T flowRate2 = 5.58838e-13; // channel 89
+    // T flowRate3 = 5.69198e-13; // channel 90
+    // T flowRate4 = 5.72583e-13; // channel 91
+    // T flowRate5 = 5.69198e-13; // channel 92
+    // T flowRate6 = 5.58838e-13; // channel 93
+    // T flowRate7 = 5.4081e-13; // channel 94
+    // T flowRate8 = 5.44862e-13; // channel 95
+
+    // T flowRate9 = 1.64451e-12; // channel 96
+    // T flowRate10 = 1.71098e-12; // channel 97
+    // T flowRate11 = 1.64451e-12; // channel 98
+    // T flowRate12 = 5e-12; // channel 99
+
+
+    T pecletNr9 = (flowRate9 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
+    T pecletNr10 = (flowRate10 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
+    T pecletNr11 = (flowRate11 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
+    T pecletNr12 = (flowRate12 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
+    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    int resolution = 1000;
+
+    // create necessary objects
+    std::vector<sim::FlowSectionInput<T>> constantFlowSections9;
+    std::vector<sim::FlowSectionInput<T>> constantFlowSections10;
+    std::vector<sim::FlowSectionInput<T>> constantFlowSections11;
+
+    std::vector<sim::FlowSectionInput<T>> functionFlowSections12;
+
+    std::unordered_map<int, std::unique_ptr<sim::DiffusiveMixture<T>>> diffusiveMixtures;
+
+    std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
+    std::vector<T> zeroSegmentedResult = {0};
+
+    sim::DiffusionMixingModel<T> diffusionMixingModelTest = sim::DiffusionMixingModel<T>();
+
+    // inflow into channel 9 (aq. to channel 96 in main.cpp)
+    constantFlowSections9.push_back({0.0, 0.331277, 1.0, 0, c0, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
+    constantFlowSections9.push_back({0.331277, 0.660117, 0.328839, -0.331277, c1, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
+    constantFlowSections9.push_back({0.660117, 1.0, 1.0, -0.660117, c2, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
+    // inflow into channel 10 (aq. to channel 97 in main.cpp)
+    constantFlowSections10.push_back({0.0, 0.332338, 0.332338, 0.0, c3, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
+    constantFlowSections10.push_back({0.332338, 0.666925, 0.334588, -0.332338, c4, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
+    constantFlowSections10.push_back({0.666925, 1.0, 0.333075, -0.666925, c5, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
+    // inflow into channel 11 (aq. to channel 98 in main.cpp)
+    constantFlowSections11.push_back({0.0, 0.339695, 1.0, 0.0, c6, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
+    constantFlowSections11.push_back({0.339695, 0.668593, 0.328898, -0.339695, c7, zeroFunction, zeroSegmentedResult, T(0.0)}); // middle inflow channel
+    constantFlowSections11.push_back({0.668593, 1.0, 1.0, -0.668593, c8, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom inflow channel
     
-//     auto [fConstant9, segmentedResultConstant9, a_0_Constant9] = diffusionMixingModelTest.getAnalyticalSolutionConstant(cLength, 3*cWidth, resolution, pecletNr9, constantFlowSections9);
-//     auto [fConstant10, segmentedResultConstant10, a_0_Constant10] = diffusionMixingModelTest.getAnalyticalSolutionConstant(cLength, 3*cWidth, resolution, pecletNr10, constantFlowSections10);
-//     auto [fConstant11, segmentedResultConstant11, a_0_Constant11] = diffusionMixingModelTest.getAnalyticalSolutionConstant(cLength, 3*cWidth, resolution, pecletNr11, constantFlowSections11);
+    auto [fConstant9, segmentedResultConstant9, a_0_Constant9] = diffusionMixingModelTest.getAnalyticalSolutionConstant(0.0, 3*cWidth, resolution, pecletNr9, constantFlowSections9);
+    auto [fConstant10, segmentedResultConstant10, a_0_Constant10] = diffusionMixingModelTest.getAnalyticalSolutionConstant(0.0, 3*cWidth, resolution, pecletNr10, constantFlowSections10);
+    auto [fConstant11, segmentedResultConstant11, a_0_Constant11] = diffusionMixingModelTest.getAnalyticalSolutionConstant(0.0, 3*cWidth, resolution, pecletNr11, constantFlowSections11);
 
-//     // Flow into channel 10 generated from channel 8
-//     functionFlowSections12.push_back({0.0, 0.328231, 0.328231, 0.0, T(0.0), fConstant9, segmentedResultConstant9, a_0_Constant9});
-//     functionFlowSections12.push_back({0.328231, 0.670296, 0.342066, -0.328231, T(0.0), fConstant10, segmentedResultConstant10, a_0_Constant10});
-//     functionFlowSections12.push_back({0.670296, 1.0,  0.329704, -0.670296, T(0.0), fConstant11, segmentedResultConstant11, a_0_Constant11});
+    // Flow into channel 10 generated from channel 8
+    functionFlowSections12.push_back({0.0, 0.328231, 0.328231, 0.0, T(0.0), fConstant9, segmentedResultConstant9, a_0_Constant9});
+    functionFlowSections12.push_back({0.328231, 0.670296, 0.342066, -0.328231, T(0.0), fConstant10, segmentedResultConstant10, a_0_Constant10});
+    functionFlowSections12.push_back({0.670296, 1.0,  0.329704, -0.670296, T(0.0), fConstant11, segmentedResultConstant11, a_0_Constant11});
         
-//     auto [fFunction12, segmentedResultFunction12, a_0_Function12] = diffusionMixingModelTest.getAnalyticalSolutionFunction(500e-6, 18*cWidth, resolution, pecletNr12, functionFlowSections12, zeroFunction);
+    auto [fFunction12, segmentedResultFunction12, a_0_Function12] = diffusionMixingModelTest.getAnalyticalSolutionFunction(500e-6, 18*cWidth, resolution, pecletNr12, functionFlowSections12, zeroFunction);
 
-//     // perform analytical solution for function input
+    // perform analytical solution for function input
 
-//     // generate resulting csv files
-//     std::ofstream outputFile0;
-//     std::ofstream outputFile1;
-//     std::ofstream outputFile2;
-//     std::ofstream outputFile3;
+    // generate resulting csv files
+    std::ofstream outputFile0;
+    std::ofstream outputFile1;
+    std::ofstream outputFile2;
+    std::ofstream outputFile3;
 
 
-//     //
-//     outputFile0.open("Jeon_out0.csv");  // Channel 9 output
-//     outputFile1.open("Jeon_out1.csv");  // Channel 10 output
-//     outputFile2.open("Jeon_out2.csv");  // Channel 11 output
-//     outputFile3.open("Jeon_out3.csv");  // Channel 12 output
+    //
+    outputFile0.open("Jeon_out0.csv");  // Channel 9 output
+    outputFile1.open("Jeon_out1.csv");  // Channel 10 output
+    outputFile2.open("Jeon_out2.csv");  // Channel 11 output
+    outputFile3.open("Jeon_out3.csv");  // Channel 12 output
 
     
-//     outputFile0 << "x,f(x)\n";
-//     outputFile1 << "x,f(x)\n";
-//     outputFile2 << "x,f(x)\n";
-//     outputFile3 << "x,f(x)\n";
+    outputFile0 << "x,f(x)\n";
+    outputFile1 << "x,f(x)\n";
+    outputFile2 << "x,f(x)\n";
+    outputFile3 << "x,f(x)\n";
 
-//     int numValues = 101;
-//     double xStart = 0.0, xEnd = 1.0;
-//     double range = xEnd - xStart;
-//     double step = range / (numValues - 1);
+    int numValues = 101;
+    double xStart = 0.0, xEnd = 1.0;
+    double range = xEnd - xStart;
+    double step = range / (numValues - 1);
 
-//     for (int i = 0; i < numValues; ++i) {
-//         T x = xStart + i * step;
-//         //y0 = fConstant0(x);
-//         T y0 = fConstant9(x);
-//         T y1 = fConstant10(x);
-//         T y2 = fConstant11(x);
-//         T y3 = fFunction12(x);
-//         outputFile0 << std::setprecision(4) << x << "," << y0 << "\n"; 
-//         outputFile1 << std::setprecision(4) << x << "," << y1 << "\n"; 
-//         outputFile2 << std::setprecision(4) << x << "," << y2 << "\n"; 
-//         outputFile3 << std::setprecision(4) << x << "," << y3 << "\n";
-//     }
-//     // Close the file
-//     outputFile0.close();
-//     outputFile1.close();
-//     outputFile2.close();
-//     outputFile3.close();
+    for (int i = 0; i < numValues; ++i) {
+        T x = xStart + i * step;
+        //y0 = fConstant0(x);
+        T y0 = fConstant9(x);
+        T y1 = fConstant10(x);
+        T y2 = fConstant11(x);
+        T y3 = fFunction12(x);
+        outputFile0 << std::setprecision(4) << x << "," << y0 << "\n"; 
+        outputFile1 << std::setprecision(4) << x << "," << y1 << "\n"; 
+        outputFile2 << std::setprecision(4) << x << "," << y2 << "\n"; 
+        outputFile3 << std::setprecision(4) << x << "," << y3 << "\n";
+    }
+    // Close the file
+    outputFile0.close();
+    outputFile1.close();
+    outputFile2.close();
+    outputFile3.close();
 
-// }
+}
 
 // TEST(DiffusionMixing, caseJeonEtAlFAKE) { // test with normalized values
 
