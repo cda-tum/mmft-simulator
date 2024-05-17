@@ -3,6 +3,26 @@
 namespace sim{ 
 
 template <typename T>
+CFDSimulator<T>::CFDSimulator (std::string name_, std::string stlFile_, std::unordered_map<int, arch::Opening<T>> openings_, T alpha_) :
+    name(name_), stlFile(stlFile_), moduleOpenings(openings_), alpha(alpha_) { }
+
+template <typename T>
+void CFDSimulator<T>::setModuleTypeLBM() {
+    // TODO
+}
+
+template <typename T>
+std::shared_ptr<arch::Module<T>> CFDSimulator<T>::getModule() const {
+    return cfdModule;
+};
+
+template <typename T>
+std::shared_ptr<arch::Network<T>> CFDSimulator<T>::getNetwork() const {
+    return moduleNetwork;
+}
+
+
+template <typename T>
 bool CFDSimulator<T>::getInitialized() const {
     return initialized;
 }

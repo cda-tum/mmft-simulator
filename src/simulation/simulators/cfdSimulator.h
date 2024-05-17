@@ -12,6 +12,9 @@ namespace arch {
 
 // Forward declared dependencies
 template<typename T>
+class Module;
+
+template<typename T>
 class Network;
 
 template<typename T>
@@ -35,14 +38,22 @@ protected:
     T alpha;                                ///< Relaxation factor for convergence between 1D and CFD simulation.
     std::string stlFile;                    ///< The STL file of the CFD domain.
 
+    std::shared_ptr<arch::Module<T>> cfdModule;
     std::shared_ptr<arch::Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
     std::unordered_map<int, arch::Opening<T>> moduleOpenings;             ///< Map of openings.
     std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
+    void setModuleTypeLBM();
 
 public:
 
-    CFDSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::unordered_map<int, std::shared_ptr<arch::Node<T>>> nodes);
+    CFDSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, T alpha);
+
+    /**
+     * @brief Get the fully connected graph of this module, that is used for the initial approximation.
+     * @return Network of the fully connected graph.
+    */
+    std::shared_ptr<arch::Module<T>> getModule() const;
 
     /**
      * @brief Get the fully connected graph of this module, that is used for the initial approximation.

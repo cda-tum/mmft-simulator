@@ -7,13 +7,13 @@ namespace sim{
 
 template<typename T>
 lbmModule<T>::lbmModule (
-    int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<arch::Node<T>>> nodes_, 
-    std::unordered_map<int, arch::Opening<T>> openings_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
-        CFDSimulator<T>(), 
-        name(name_), stlFile(stlFile_), moduleOpenings(openings_), charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_),
-            alpha(alpha_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_)
+    int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, arch::Opening<T>> openings_, 
+    T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
+        CFDSimulator<T>(name_, stlFile_, openings_, alpha_), 
+        charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
+        epsilon(epsilon_), relaxationTime(relaxationTime_)
     { 
-        this->moduleType = ModuleType::LBM;
+        this->setModuleTypeLBM();
     } 
 
 template<typename T>
@@ -21,14 +21,14 @@ void lbmModule<T>::prepareGeometry () {
 
     bool print = false;
 
-    stlReader = std::make_shared<olb::STLreader<T>>(stlFile, converter->getConversionFactorLength());
+    stlReader = std::make_shared<olb::STLreader<T>>(this->stlFile, converter->getConversionFactorLength());
     #ifdef VERBOSE
         print = true;
-        std::cout << "[lbmModule] reading STL file " << name << "... OK" << std::endl;
+        std::cout << "[lbmModule] reading STL file " << this->name << "... OK" << std::endl;
     #endif
     stl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*stlReader);
     #ifdef VERBOSE
-        std::cout << "[lbmModule] create 2D indicator " << name << "... OK" << std::endl;
+        std::cout << "[lbmModule] create 2D indicator " << this->name << "... OK" << std::endl;
     #endif
 
     olb::Vector<T,2> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
@@ -41,17 +41,17 @@ void lbmModule<T>::prepareGeometry () {
         *loadBalancer);
 
     #ifdef VERBOSE
-        std::cout << "[lbmModule] generate geometry " << name << "... OK" << std::endl;   
+        std::cout << "[lbmModule] generate geometry " << this->name << "... OK" << std::endl;   
     #endif 
 
     this->geometry->rename(0, 2);
     this->geometry->rename(2, 1, *stl2Dindicator);
 
     #ifdef VERBOSE
-        std::cout << "[lbmModule] generate 2D geometry from STL  " << name << "... OK" << std::endl;
+        std::cout << "[lbmModule] generate 2D geometry from STL  " << this->name << "... OK" << std::endl;
     #endif
 
-    for (auto& [key, Opening] : moduleOpenings ) {
+    for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
         T x_origin =    Opening.node->getPosition()[0] - this->getPosition()[0]
                         - 0.5*Opening.width*Opening.tangent[0];
@@ -82,7 +82,7 @@ void lbmModule<T>::prepareGeometry () {
     this->geometry->checkForErrors(print);
 
     #ifdef VERBOSE
-        std::cout << "[lbmModule] prepare geometry " << name << "... OK" << std::endl;
+        std::cout << "[lbmModule] prepare geometry " << this->name << "... OK" << std::endl;
     #endif
 }
 
@@ -107,8 +107,8 @@ void lbmModule<T>::prepareLattice () {
     lattice->iniEquilibrium(getGeometry(), 1, rhoF, uF);
 
     // Set lattice dynamics and initial condition for in- and outlets
-    for (auto& [key, Opening] : moduleOpenings) {
-        if (groundNodes.at(key)) {
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
             setInterpolatedVelocityBoundary(getLattice(), omega, getGeometry(), key+3);
         } else {
             setInterpolatedPressureBoundary(getLattice(), omega, getGeometry(), key+3);
@@ -116,7 +116,7 @@ void lbmModule<T>::prepareLattice () {
     }
 
     // Initialize the integral fluxes for the in- and outlets
-    for (auto& [key, Opening] : moduleOpenings) {
+    for (auto& [key, Opening] : this->moduleOpenings) {
 
         T posX =  Opening.node->getPosition()[0] - this->getPosition()[0];
         T posY =  Opening.node->getPosition()[1] - this->getPosition()[1];          
@@ -124,7 +124,7 @@ void lbmModule<T>::prepareLattice () {
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
 
-        if (groundNodes.at(key)) {
+        if (this->groundNodes.at(key)) {
             std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> meanPressure;
             meanPressure = std::make_shared< olb::SuperPlaneIntegralFluxPressure2D<T>> (getLattice(), getConverter(), getGeometry(),
             position, Opening.tangent, materials);
@@ -144,12 +144,12 @@ void lbmModule<T>::prepareLattice () {
     lattice->initialize();
 
     #ifdef VERBOSE
-        std::cout << "[lbmModule] prepare lattice " << name << "... OK" << std::endl;
+        std::cout << "[lbmModule] prepare lattice " << this->name << "... OK" << std::endl;
     #endif
 }
 
 template<typename T>
-void lbmModule<T>::setBoundaryValues () {
+void lbmModule<T>::setBoundaryValues (int iT) {
 
     T pressureLow = -1.0;       
     for (auto& [key, pressure] : pressures) {
@@ -161,8 +161,8 @@ void lbmModule<T>::setBoundaryValues () {
         }
     }
 
-    for (auto& [key, Opening] : moduleOpenings) {
-        if (groundNodes.at(key)) {
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
             T maxVelocity = (3./2.)*(flowRates[key]/(Opening.width));
             T distance2Wall = getConverter().getConversionFactorLength()/2.;
             this->flowProfiles.at(key) = std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
@@ -181,8 +181,8 @@ void lbmModule<T>::getResults (int iT) {
     int input[1] = { };
     T output[3];
     
-    for (auto& [key, Opening] : moduleOpenings) {
-        if (groundNodes.at(key)) {
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
             meanPressures.at(key)->operator()(output, input);
             T newPressure =  output[0]/output[1];
             pressures.at(key) = newPressure;
@@ -208,15 +208,15 @@ void lbmModule<T>::lbmInit (T dynViscosity,
                             T density) {
     // Create network with fully connected graph and set initial resistances
 
-    if (!std::filesystem::is_directory(vtkFolder) || !std::filesystem::exists(vtkFolder)) {
-        std::filesystem::create_directory(vtkFolder);
+    if (!std::filesystem::is_directory(this->vtkFolder) || !std::filesystem::exists(this->vtkFolder)) {
+        std::filesystem::create_directory(this->vtkFolder);
     }
 
     olb::singleton::directories().setOutputDir( this->vtkFolder+"/" );  // set output directory     
 
     T kinViscosity = dynViscosity/density;
 
-    this->moduleNetwork = std::make_shared<Network<T>> (this->boundaryNodes);
+    this->moduleNetwork = std::make_shared<arch::Network<T>> (this->boundaryNodes);
 
     // There must be more than 1 node to have meaningful flow in the module domain
     assert(this->boundaryNodes.size() > 1);
@@ -246,7 +246,7 @@ void lbmModule<T>::lbmInit (T dynViscosity,
     this->converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, epsilon);
 
     #ifdef VERBOSE
-        std::cout << "[lbmModule] lbmInit " << name << "... OK" << std::endl;
+        std::cout << "[lbmModule] lbmInit " << this->name << "... OK" << std::endl;
     #endif
 }
 
@@ -258,7 +258,7 @@ void lbmModule<T>::writeVTK (int iT) {
         print = true;
     #endif
 
-    olb::SuperVTMwriter2D<T> vtmWriter( name );
+    olb::SuperVTMwriter2D<T> vtmWriter( this->name );
     // Writes geometry to file system
     if (iT == 0) {
         olb::SuperLatticeGeometry2D<T,DESCRIPTOR> writeGeometry (getLattice(), getGeometry());
@@ -281,7 +281,7 @@ void lbmModule<T>::writeVTK (int iT) {
     }
     if (iT %1000 == 0) {
         #ifdef VERBOSE
-            std::cout << "[writeVTK] " << name << " currently at timestep " << iT << std::endl;
+            std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
         #endif
     }
 

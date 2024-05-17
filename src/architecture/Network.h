@@ -201,43 +201,14 @@ public:
 
     /**
      * @brief Adds a new module to the network.
-     * @param[in] name Name of the module.
-     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
      * @param[in] size Absolute size of the module in m.
      * @param[in] nodes Map of nodes that are on the module boundary.
-     * @param[in] openings Map of openings corresponding to the nodes.
-     * @param[in] charPhysLength Characteristic physical length of this simulator.
-     * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
-     * @param[in] alpha Relaxation parameter for this simulator.
-     * @param[in] resolution Resolution of this simulator.
-     * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
-     * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmModule<T>* addModule(std::string name,
-                            std::string stlFile,
-                            std::vector<T> position,
-                            std::vector<T> size,
-                            std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
-                            std::unordered_map<int, Opening<T>> openings,
-                            T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
-
-    /**
-     * @brief Adds a new module to the network.
-     * @param[in] name Name of the module.
-     * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
-     * @param[in] size Absolute size of the module in m.
-     * @param[in] nodes Map of nodes that are on the module boundary.
-     * @param[in] openings Map of openings corresponding to the nodes.
-    */
-    essLbmModule<T> *addModule(std::string name, 
-                               std::string stlFile,
-                               std::vector<T> position,
-                               std::vector<T> size,
-                               std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
-                               std::unordered_map<int, Opening<T>> openings, 
-                               T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
+    Module<T>* addModule(std::vector<T> position,
+                         std::vector<T> size,
+                         std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
 
     /**
      * @brief Adds a new module to the network.

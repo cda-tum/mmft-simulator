@@ -27,6 +27,14 @@ void readChannels(json jsonString, arch::Network<T>& network) {
 }
 
 template<typename T>
+void readModules(json jsonString, arch::Network<T>& network) {
+    for (auto& module : jsonString["network"]["modules"]) {
+        arch::ModuleType type = arch::ModuleType::NORMAL;
+        network.addModule(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
+    }
+}
+
+template<typename T>
 sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {

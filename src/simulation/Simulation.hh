@@ -350,7 +350,7 @@ namespace sim {
 
                 // Initialization of CFD domains
                 while (! allConverged) {
-                    allConverged = conductCFDSimulation(this->network, 1);
+                    allConverged = conductCFDSimulation(cfdSimulators, 1);
                 }
 
                 while (! allConverged || !pressureConverged) {
@@ -358,11 +358,11 @@ namespace sim {
 
                     // conduct CFD simulations
                     //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                    allConverged = conductCFDSimulation(this->network, 10);
+                    allConverged = conductCFDSimulation(cfdSimulators, 10);
                 
                     // compute nodal analysis again
                     //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodal::conductNodalAnalysis(this->network);
+                    pressureConverged = nodal::conductNodalAnalysis(this->network, cfdSimulators);
 
                 }
 
@@ -569,14 +569,14 @@ namespace sim {
 
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             
-            for (auto& [key, module] : network->getModules()) {
-                module->lbmInit(fluids[continuousPhase]->getViscosity(),
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
                                 fluids[continuousPhase]->getDensity());
             }
 
             // This is boilerplate code, and can be done way more efficiently in a recursive manner
-            for (auto& [modulekey, module] : network->getModules()) {
-                for (auto& [key, channel] : module->getNetwork()->getChannels()) {
+            for (auto& [modulekey, cfdSimulator] : cfdSimulators) {
+                for (auto& [key, channel] : cfdSimulator->getNetwork()->getChannels()) {
                     //std::cout << "[Simulation] Channel " << channel->getId();
                     auto& nodeA = network->getNodes().at(channel->getNodeA());
                     auto& nodeB = network->getNodes().at(channel->getNodeB());
@@ -588,8 +588,8 @@ namespace sim {
                 }
             }
             // Also boilerplate code that can be done more efficiently
-            for (auto& [modulekey, module] : network->getModules()) {
-                for (auto& [key, channel] : module->getNetwork()->getChannels()) {
+            for (auto& [modulekey, cfdSimulator] : cfdSimulators) {
+                for (auto& [key, channel] : cfdSimulator->getNetwork()->getChannels()) {
                     T resistance = resistanceModel->getChannelResistance(channel.get());
                     channel->setResistance(resistance);
                 }
@@ -606,9 +606,9 @@ namespace sim {
                 std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
             #endif
 
-            for (auto& [key, module] : network->getModules()) {
-                module->prepareGeometry();
-                module->prepareLattice();
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
             }
         }
     }
