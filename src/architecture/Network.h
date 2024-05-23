@@ -88,7 +88,7 @@ private:
     std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
-    std::unordered_map<int, std::unique_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
+    std::unordered_map<int, std::shared_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
     std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
@@ -324,13 +324,13 @@ public:
     /**
      * @brief Get a pointer to the module with the specidic id.
     */
-    Module<T>* getModule(int moduleId) const;
+    std::shared_ptr<Module<T>> getModule(int moduleId) const;
 
     /**
      * @brief Get the modules of the network.
      * @returns Modules.
     */
-    const std::unordered_map<int, std::unique_ptr<Module<T>>>& getModules() const;
+    const std::unordered_map<int, std::shared_ptr<Module<T>>>& getModules() const;
 
     /**
      * @brief Get the groups in the network.

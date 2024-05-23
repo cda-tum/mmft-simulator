@@ -37,7 +37,7 @@ namespace sim {
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmModule : public CFDSimulator<T> {
+class lbmSimulator : public CFDSimulator<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
@@ -104,7 +104,7 @@ public:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmModule(int id, std::string name, std::string stlFile, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, arch::Opening<T>> openings, 
+    lbmSimulator(int id, std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, 
         T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
@@ -128,7 +128,7 @@ public:
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
-    void setBoundaryValues(int iT);
+    void setBoundaryValues(int iT) override;
 
     /**
      * @brief Conducts the collide and stream operations of the lattice.

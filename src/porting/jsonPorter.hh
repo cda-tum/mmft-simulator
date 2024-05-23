@@ -139,7 +139,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     }
 
     if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, network_);
+        readSimulators<T>(jsonString, simulation, network_);
         network_->sortGroups();
     }
 

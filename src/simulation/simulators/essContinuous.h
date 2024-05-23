@@ -25,7 +25,7 @@ namespace sim {
      * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
     */
     template<typename T>
-    class essLbmModule : public CFDSimulator<T> {
+    class essLbmSimulator : public CFDSimulator<T> {
         private:
             int step = 0;                           ///< Iteration step of this module.
             int stepIter = 1000;                    ///< Number of iterations for the value tracer.
@@ -65,7 +65,7 @@ namespace sim {
              * @param[in] nodes Map of nodes that are on the boundary of the module.
              * @param[in] openings Map of the in-/outlets of the module.
             */
-            essLbmModule(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,
+            essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::unordered_map<int, Opening<T>> openings_,
                          T charPhysLenth_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_);
             /**
              * @brief Initialize an instance of the LBM solver for this module.
@@ -78,7 +78,7 @@ namespace sim {
              * @brief Set the boundary values on the lattice at the module nodes.
              * @param[in] iT Iteration step.
             */
-            void setBoundaryValues();
+            void setBoundaryValues(int iT);
 
             /**
              * @brief Conducts the collide and stream operations of the lattice.

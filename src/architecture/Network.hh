@@ -285,42 +285,13 @@ PressurePump<T>* Network<T>::addPressurePump(int nodeAId, int nodeBId, T pressur
 }
 
 template<typename T>
-lbmModule<T>* Network<T>::addModule(std::string name,
-                                    std::string stlFile,
-                                    std::vector<T> position,
-                                    std::vector<T> size,
-                                    std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
-                                    std::unordered_map<int, Opening<T>> openings,
-                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau) {
-    // create module
-    auto id = modules.size();
-    auto addModule = new lbmModule<T>(id, name, stlFile, position, size, nodes, openings, charPhysLength, charPhysVelocity,
-                                        alpha, resolution, epsilon, tau);
-
-    // add this module to the reach of each node
-    for (auto& [k, node] : nodes) {
-        modularReach.try_emplace(node->getId(), addModule);
-    }
-
-    // add module
-    modules.try_emplace(id, addModule);
-
-    return addModule;
-}
-
-template<typename T>
-essLbmModule<T>* Network<T>::addModule(std::string name,
-                                    std::string stlFile,
-                                    std::vector<T> position,
-                                    std::vector<T> size,
-                                    std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
-                                    std::unordered_map<int, Opening<T>> openings,
-                                    T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+Module<T>* Network<T>::addModule(std::vector<T> position,
+                                 std::vector<T> size,
+                                 std::unordered_map<int, std::shared_ptr<Node<T>>> nodes) 
 {
-    #ifdef USE_ESSLBM
     // create module
     auto id = modules.size();
-    auto addModule = new essLbmModule(id, name, stlFile, position, size, nodes, openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+    auto addModule = new Module<T>(id, position, size, nodes);
 
     // add this module to the reach of each node
     for (auto& [k, node] : nodes) {
@@ -331,9 +302,6 @@ essLbmModule<T>* Network<T>::addModule(std::string name,
     modules.try_emplace(id, addModule);
 
     return addModule;
-    #else
-    throw std::invalid_argument("The simulator was not build using the ESS library.");
-    #endif
 }
 
 template<typename T>
@@ -453,12 +421,12 @@ const std::unordered_map<int, std::unique_ptr<PressurePump<T>>>& Network<T>::get
 }
 
 template<typename T>
-Module<T>* Network<T>::getModule(int moduleId) const {
-    return std::get<0>(modules.at(moduleId));
+std::shared_ptr<Module<T>> Network<T>::getModule(int moduleId) const {
+    return modules.at(moduleId);
 }
 
 template<typename T>
-const std::unordered_map<int, std::unique_ptr<Module<T>>>& Network<T>::getModules() const {
+const std::unordered_map<int, std::shared_ptr<Module<T>>>& Network<T>::getModules() const {
     return modules;
 }
 

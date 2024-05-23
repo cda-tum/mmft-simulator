@@ -47,7 +47,7 @@ protected:
 
 public:
 
-    CFDSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, T alpha);
+    CFDSimulator(int id, std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, T alpha);
 
     /**
      * @brief Get the fully connected graph of this module, that is used for the initial approximation.
@@ -119,7 +119,7 @@ public:
 
     virtual std::unordered_map<int, T> getFlowRates() const = 0;
 
-    virtual void setBoundaryValues() = 0;
+    virtual void setBoundaryValues(int iT) = 0;
 
     // virtual functions
     

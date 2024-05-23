@@ -19,7 +19,13 @@ template<typename T>
 class ChannelPosition;
 
 template<typename T>
+class Module;
+
+template<typename T>
 class Network;
+
+template<typename T>
+class Opening;
 
 }
 
@@ -48,6 +54,12 @@ class Event;
 
 template<typename T>
 class Fluid;
+
+template<typename T>
+class lbmSimulator;
+
+template<typename T>
+class essLbmSimulator;
 
 template<typename T>
 class MixingModel;
@@ -228,7 +240,7 @@ public:
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmModule<T>* addLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
+    lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
                                     T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
@@ -237,7 +249,7 @@ public:
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmModule<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
+    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
                                     T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**

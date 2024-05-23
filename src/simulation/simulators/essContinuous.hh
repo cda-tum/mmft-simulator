@@ -7,7 +7,17 @@
 namespace sim{
 
     template<typename T>
-    essLbmModule<T>::essLbmModule(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,
+    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
+        this->pressures = pressure_;
+    }
+
+    template<typename T>
+    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
+        this->flowRates = flowRate_;
+    }
+
+    template<typename T>
+    essLbmSimulator<T>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,
                                T charPhysLenth_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_)
             : Module<T>(id_, pos_, size_, nodes_),  name(name_), stlFile(stlFile_), moduleOpenings(openings_),
               charPhysLength(charPhysLenth_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_)
@@ -16,14 +26,14 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmModule<T>::setBoundaryValues()
+    void essLbmSimulator<T>::setBoundaryValues(int iT)
     {
         solver_->setFlowRates(flowRates);
         solver_->setPressures(pressures);
     }
 
     template<typename T>
-    void essLbmModule<T>::getResults()
+    void essLbmSimulator<T>::getResults()
     {
         for(auto& [key,value] : solver_->getPressures())
             pressures[key] = value;
@@ -32,7 +42,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmModule<T>::lbmInit(T dynViscosity, T density)
+    void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
     {
         moduleNetwork = std::make_shared<Network<T>> (this->boundaryNodes);
 
@@ -82,14 +92,14 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmModule<T>::solve()
+    void essLbmSimulator<T>::solve()
     {
         solver_->solve(10, 10, 10);
         getResults();
     }
 
     template<typename T>
-    void essLbmModule<T>::setPressures(std::unordered_map<int, T> pressure_)
+    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : pressure_)
@@ -99,7 +109,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmModule<T>::setFlowRates(std::unordered_map<int, T> flowRate_)
+    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : flowRate_)
@@ -109,54 +119,54 @@ namespace sim{
     }
 
     template<typename T>
-    std::unordered_map<int, T> essLbmModule<T>::getPressures() const {
+    std::unordered_map<int, T> essLbmSimulator<T>::getPressures() const {
         return pressures;
     }
 
 
     template<typename T>
-    std::unordered_map<int, T> essLbmModule<T>::getFlowRates() const {
+    std::unordered_map<int, T> essLbmSimulator<T>::getFlowRates() const {
         return flowRates;
     }
 
     template<typename T>
-    void essLbmModule<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_)
+    void essLbmSimulator<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_)
     {
         groundNodes = groundNodes_;
     }
 
     template<typename T>
-    void essLbmModule<T>::setInitialized(bool initialization_)
+    void essLbmSimulator<T>::setInitialized(bool initialization_)
     {
         initialized = initialization_;
     }
 
     template<typename T>
-    std::shared_ptr<Network<T>> essLbmModule<T>::getNetwork() const
+    std::shared_ptr<Network<T>> essLbmSimulator<T>::getNetwork() const
     {
         return moduleNetwork;
     }
 
     template<typename T>
-    bool essLbmModule<T>::hasConverged() const
+    bool essLbmSimulator<T>::hasConverged() const
     {
         return solver_->hasConverged();
     }
 
     template<typename T>
-    bool essLbmModule<T>::getInitialized() const
+    bool essLbmSimulator<T>::getInitialized() const
     {
         return initialized;
     }
 
     template<typename T>
-    std::unordered_map<int, Opening<T>>  essLbmModule<T>::getOpenings() const
+    std::unordered_map<int, Opening<T>> essLbmSimulator<T>::getOpenings() const
     {
         return moduleOpenings;
     }
 
     template<typename T>
-    void essLbmModule<T>::setVtkFolder(std::string vtkFolder_) {
+    void essLbmSimulator<T>::setVtkFolder(std::string vtkFolder_) {
         this->vtkFolder = vtkFolder_;
     }
 

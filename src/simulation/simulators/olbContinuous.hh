@@ -6,10 +6,20 @@ namespace sim{
 #define VERBOSE
 
 template<typename T>
-lbmModule<T>::lbmModule (
-    int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, arch::Opening<T>> openings_, 
+void lbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
+    this->pressures = pressure_;
+}
+
+template<typename T>
+void lbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
+    this->flowRates = flowRate_;
+}
+
+template<typename T>
+lbmSimulator<T>::lbmSimulator (
+    int id_, std::string name_, std::string stlFile_, std::unordered_map<int, arch::Opening<T>> openings_, 
     T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
-        CFDSimulator<T>(name_, stlFile_, openings_, alpha_), 
+        CFDSimulator<T>(id_, name_, stlFile_, openings_, alpha_), 
         charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
         epsilon(epsilon_), relaxationTime(relaxationTime_)
     { 
@@ -17,7 +27,7 @@ lbmModule<T>::lbmModule (
     } 
 
 template<typename T>
-void lbmModule<T>::prepareGeometry () {
+void lbmSimulator<T>::prepareGeometry () {
 
     bool print = false;
 
@@ -87,7 +97,7 @@ void lbmModule<T>::prepareGeometry () {
 }
 
 template<typename T>
-void lbmModule<T>::prepareLattice () {
+void lbmSimulator<T>::prepareLattice () {
     const T omega = converter->getLatticeRelaxationFrequency();
 
     lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(getGeometry());
@@ -149,7 +159,7 @@ void lbmModule<T>::prepareLattice () {
 }
 
 template<typename T>
-void lbmModule<T>::setBoundaryValues (int iT) {
+void lbmSimulator<T>::setBoundaryValues (int iT) {
 
     T pressureLow = -1.0;       
     for (auto& [key, pressure] : pressures) {
@@ -177,7 +187,7 @@ void lbmModule<T>::setBoundaryValues (int iT) {
 }
 
 template<typename T>
-void lbmModule<T>::getResults (int iT) {
+void lbmSimulator<T>::getResults (int iT) {
     int input[1] = { };
     T output[3];
     
@@ -204,7 +214,7 @@ void lbmModule<T>::getResults (int iT) {
 }
 
 template<typename T>
-void lbmModule<T>::lbmInit (T dynViscosity, 
+void lbmSimulator<T>::lbmInit (T dynViscosity, 
                             T density) {
     // Create network with fully connected graph and set initial resistances
 
@@ -251,7 +261,7 @@ void lbmModule<T>::lbmInit (T dynViscosity,
 }
 
 template<typename T>
-void lbmModule<T>::writeVTK (int iT) {
+void lbmSimulator<T>::writeVTK (int iT) {
 
     bool print = false;
     #ifdef VERBOSE
@@ -296,7 +306,7 @@ void lbmModule<T>::writeVTK (int iT) {
 }
 
 template<typename T>
-void lbmModule<T>::solve() {
+void lbmSimulator<T>::solve() {
     // theta = 10
     for (int iT = 0; iT < 10; ++iT){      
         this->setBoundaryValues(step);

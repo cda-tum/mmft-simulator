@@ -28,6 +28,12 @@ namespace sim {
 enum class Platform;
 
 template<typename T>
+class lbmSimulator;
+
+template<typename T>
+class essLbmSimulator;
+
+template<typename T>
 class Simulation;
 
 enum class Type;
@@ -128,7 +134,7 @@ void readContinuousPhase (json jsonString, sim::Simulation<T>& simulation, int a
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readSimulators (json jsonString, arch::Network<T>* network);
+void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network);
 
 /**
  * @brief Sets channels in the network to pressure or flow rate pump, as defined by the json string

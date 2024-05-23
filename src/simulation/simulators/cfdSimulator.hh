@@ -3,8 +3,8 @@
 namespace sim{ 
 
 template <typename T>
-CFDSimulator<T>::CFDSimulator (std::string name_, std::string stlFile_, std::unordered_map<int, arch::Opening<T>> openings_, T alpha_) :
-    name(name_), stlFile(stlFile_), moduleOpenings(openings_), alpha(alpha_) { }
+CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::unordered_map<int, arch::Opening<T>> openings_, T alpha_) :
+    id(id_), name(name_), stlFile(stlFile_), moduleOpenings(openings_), alpha(alpha_) { }
 
 template <typename T>
 void CFDSimulator<T>::setModuleTypeLBM() {
@@ -50,16 +50,6 @@ std::unordered_map<int, arch::Opening<T>> CFDSimulator<T>::getOpenings() const {
 template<typename T>
 std::unordered_map<int, bool> CFDSimulator<T>::getGroundNodes(){
     return groundNodes;
-}
-
-template<typename T>
-void CFDSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
-    this->pressures = pressure_;
-}
-
-template<typename T>
-void CFDSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
-    this->flowRates = flowRate_;
 }
 
 } // namespace sim
