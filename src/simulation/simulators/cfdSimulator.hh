@@ -37,6 +37,11 @@ void CFDSimulator<T>::setVtkFolder(std::string vtkFolder_) {
     this->vtkFolder = vtkFolder_;
 }
 
+template <typename T>
+T CFDSimulator<T>::getAlpha() {
+    return alpha;
+}
+
 template<typename T>
 void CFDSimulator<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_){
     this->groundNodes = groundNodes_;

@@ -42,7 +42,7 @@ void lbmSimulator<T>::prepareGeometry () {
     #endif
 
     olb::Vector<T,2> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
-    olb::Vector<T,2> extend(this->size[0] + converter->getConversionFactorLength(), this->size[1] + converter->getConversionFactorLength());
+    olb::Vector<T,2> extend(this->cfdModule->getSize()[0] + converter->getConversionFactorLength(), this->cfdModule->getSize()[1] + converter->getConversionFactorLength());
     olb::IndicatorCuboid2D<T> cuboid(extend, origin);
     cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, converter->getConversionFactorLength(), 1);
     loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*cuboidGeometry);
@@ -63,9 +63,9 @@ void lbmSimulator<T>::prepareGeometry () {
 
     for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
-        T x_origin =    Opening.node->getPosition()[0] - this->getPosition()[0]
+        T x_origin =    Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0]
                         - 0.5*Opening.width*Opening.tangent[0];
-        T y_origin =   Opening.node->getPosition()[1] - this->getPosition()[1]
+        T y_origin =   Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1]
                         - 0.5*Opening.width*Opening.tangent[1];
         
         // The unit vector pointing to the extend
@@ -128,8 +128,8 @@ void lbmSimulator<T>::prepareLattice () {
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - this->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->getPosition()[1];          
+        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
+        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
@@ -226,12 +226,12 @@ void lbmSimulator<T>::lbmInit (T dynViscosity,
 
     T kinViscosity = dynViscosity/density;
 
-    this->moduleNetwork = std::make_shared<arch::Network<T>> (this->boundaryNodes);
+    this->moduleNetwork = std::make_shared<arch::Network<T>> (this->cfdModule->getNodes());
 
     // There must be more than 1 node to have meaningful flow in the module domain
-    assert(this->boundaryNodes.size() > 1);
+    assert(this->moduleOpenings.size() > 1);
     // We must have exactly one opening assigned to each boundaryNode
-    assert(this->moduleOpenings.size() == this->boundaryNodes.size());
+    assert(this->moduleOpenings.size() == this->cfdModule->getNodes().size());
     
     this->converter = std::make_shared<const olb::UnitConverterFromResolutionAndRelaxationTime<T,DESCRIPTOR>>(
         resolution,
@@ -247,7 +247,7 @@ void lbmSimulator<T>::lbmInit (T dynViscosity,
     #endif
 
     // Initialize pressure, flowRate and resistance value-containers
-    for (auto& [key, node] : this->boundaryNodes) {
+    for (auto& [key, node] : this->moduleOpenings) {
         pressures.try_emplace(key, (T) 0.0);
         flowRates.try_emplace(key, (T) 0.0);
     }
