@@ -102,34 +102,39 @@ namespace sim {
 
     template<typename T>
     lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
-                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+                                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
-        // create Simulator
-        auto id = cfdSimulators.size();
-        auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
-        // add Simulator
-        cfdSimulators.try_emplace(id, addCfdSimulator);
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
 
-        return addCfdSimulator;
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
     }
 
     template<typename T>
     essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
-                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+                                                        T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {
         #ifdef USE_ESSLBM
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new essLbmModule<T>(id, name, stlFile, openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
-        // create Simulator
-        auto id = cfdSimulators.size();
-        auto addCfdSimulator = new essLbmModule<T>(id, name, stlFile, openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
 
-
-        // add Simulator
-        cfdSimulators.try_emplace(id, addCfdSimulator);
-
-        return addCfdSimulator;
-
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
         #else
         throw std::invalid_argument("MMFT Simulator was not built using the ESS library.");
         #endif

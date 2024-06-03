@@ -241,7 +241,7 @@ public:
      * @return Pointer to the newly created module.
     */
     lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
-                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.
@@ -250,7 +250,7 @@ public:
      * @param[in] openings Map of openings corresponding to the nodes.
     */
     essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
-                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
+                                        T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Set the platform of the simulation.
