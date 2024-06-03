@@ -101,12 +101,12 @@ namespace sim {
     }
 
     template<typename T>
-    lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
-                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
         // create Simulator
         auto id = cfdSimulators.size();
-        auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+        auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
         // add Simulator
         cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -115,8 +115,8 @@ namespace sim {
     }
 
     template<typename T>
-    essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
-                                    T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+    essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {
         #ifdef USE_ESSLBM
 
@@ -270,6 +270,11 @@ namespace sim {
     template<typename T>
     Fluid<T>* Simulation<T>::getContinuousPhase() {
         return fluids[continuousPhase].get();
+    }
+
+    template<typename T>
+    ResistanceModel<T>* Simulation<T>::getResistanceModel() {
+        return resistanceModel;
     }
 
     template<typename T>
@@ -581,6 +586,7 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::initialize() {
+        #define VERBOSE
         // compute and set channel lengths
         #ifdef VERBOSE
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
@@ -605,37 +611,21 @@ namespace sim {
 
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
+
+            // Initialize the CFD simulators
             for (auto& [key, cfdSimulator] : cfdSimulators) {
                 cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
                                 fluids[continuousPhase]->getDensity());
-            }
-
-            // This is boilerplate code, and can be done way more efficiently in a recursive manner
-            for (auto& [modulekey, cfdSimulator] : cfdSimulators) {
-                for (auto& [key, channel] : cfdSimulator->getNetwork()->getChannels()) {
-                    //std::cout << "[Simulation] Channel " << channel->getId();
-                    auto& nodeA = network->getNodes().at(channel->getNodeA());
-                    auto& nodeB = network->getNodes().at(channel->getNodeB());
-                    //std::cout << " has nodes " << nodeA->getId() << " and " << nodeB->getId();
-                    T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
-                    T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-                    channel->setLength(sqrt(dx*dx + dy*dy));
-                    //std::cout << " and a length of " << sqrt(dx*dx + dy*dy) <<std::endl;
-                }
-            }
-            // Also boilerplate code that can be done more efficiently
-            for (auto& [modulekey, cfdSimulator] : cfdSimulators) {
-                for (auto& [key, channel] : cfdSimulator->getNetwork()->getChannels()) {
-                    T resistance = resistanceModel->getChannelResistance(channel.get());
-                    channel->setResistance(resistance);
-                }
             }
 
             // compute nodal analysis
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodal::conductNodalAnalysis(this->network);
+            nodal::conductNodalAnalysis(this->network, cfdSimulators);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE
@@ -643,7 +633,9 @@ namespace sim {
             #endif
 
             for (auto& [key, cfdSimulator] : cfdSimulators) {
+                std::cout << "[Simulation] Prepare CFD geometry..." << key << std::endl;
                 cfdSimulator->prepareGeometry();
+                std::cout << "[Simulation] Prepare CFD lattice..." << key << std::endl;
                 cfdSimulator->prepareLattice();
             }
         }

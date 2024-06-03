@@ -5,6 +5,9 @@ namespace porting {
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
     for (auto& node : jsonString["network"]["nodes"]) {
+        if (!node.contains("x") || !node.contains("y")) {
+            throw std::invalid_argument("Node is ill-defined. Please define:\nx\ny");
+        }
         bool ground = false;
         if(node.contains("ground")) {
             ground = node["ground"];
@@ -21,6 +24,9 @@ void readNodes(json jsonString, arch::Network<T>& network) {
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
     for (auto& channel : jsonString["network"]["channels"]) {
+        if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
+            throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+        }
         arch::ChannelType type = arch::ChannelType::NORMAL;
         network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
     }
@@ -29,15 +35,17 @@ void readChannels(json jsonString, arch::Network<T>& network) {
 template<typename T>
 void readModules(json jsonString, arch::Network<T>& network) {
     for (auto& module : jsonString["network"]["modules"]) {
-        arch::ModuleType type = arch::ModuleType::NORMAL;
-        std::vector<T> position = { module["posX"], module["posY"] };
-        std::vector<T> size = { module["sizeX"], module["sizeY"] };
-        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
-        for (auto& opening : module["Openings"]) {
-            int nodeId = opening["node"];
-            Nodes.try_emplace(nodeId, network->getNode(nodeId));
+        if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
+            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
         }
-        network.addModule(module["position"], module["size"], module["nodes"]);
+        arch::ModuleType type = arch::ModuleType::NORMAL;
+        std::vector<T> position = { module["position"][0], module["position"][1] };
+        std::vector<T> size = { module["size"][0], module["size"][1] };
+        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
+        for (auto& nodeId : module["nodes"]) {
+            Nodes.try_emplace(nodeId, network.getNode(nodeId));
+        }
+        network.addModule(position, size, std::move(Nodes));
     }
 }
 
@@ -211,15 +219,15 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
 
             if(simulator["Type"] == "LBM")
             {
-                auto simulator = simulation.addLbmSimulator(name, stlFile, Openings, network->getModule(moduleId), charPhysLength, charPhysVelocity,
-                                             alpha, resolution, epsilon, tau);
+                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, simulation.getResistanceModel(),
+                                                            charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
-                auto simulator = simulation.addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
-                                            resolution, epsilon, tau);
+                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, simulation.getResistanceModel(),
+                                                               charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
                 #else
                 throw std::invalid_argument("The simulator was not build using the ESS library.");

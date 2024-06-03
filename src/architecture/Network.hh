@@ -360,7 +360,11 @@ bool Network<T>::isGround(int nodeId_) const {
 
 template<typename T>
 std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
-    return nodes.at(nodeId);
+    if (nodes.count(nodeId)) {
+        return nodes.at(nodeId);
+    } else {
+        throw std::invalid_argument("Network does not contain node " + std::to_string(nodeId) + ".");
+    }
 };
 
 template<typename T>

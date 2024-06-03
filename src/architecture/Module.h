@@ -86,6 +86,18 @@ class Module {
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */
+    void setModuleTypeLbm();
+
+    /**
+     * @brief Returns the type of the module.
+     * @returns What type the channel has.
+     */
+    void setModuleTypeEssLbm();
+
+    /**
+     * @brief Returns the type of the module.
+     * @returns What type the channel has.
+     */
     ModuleType getModuleType() const;
 };
 

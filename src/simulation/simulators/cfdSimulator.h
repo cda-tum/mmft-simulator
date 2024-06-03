@@ -35,7 +35,6 @@ protected:
     std::string name;                       ///< Name of the module.
     std::string vtkFolder = "./tmp/";       ///< Folder in which vtk files will be saved.
     bool initialized = false;               ///< Is the module initialized?
-    T alpha;                                ///< Relaxation factor for convergence between 1D and CFD simulation.
     std::string stlFile;                    ///< The STL file of the CFD domain.
 
     std::shared_ptr<arch::Module<T>> cfdModule;
@@ -43,11 +42,13 @@ protected:
     std::unordered_map<int, arch::Opening<T>> moduleOpenings;             ///< Map of openings.
     std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
+    T alpha;                                ///< Relaxation factor for convergence between 1D and CFD simulation.
+
     void setModuleTypeLBM();
 
 public:
 
-    CFDSimulator(int id, std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, T alpha);
+    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, T alpha, ResistanceModel<T>* ResistanceModel);
 
     /**
      * @brief Get the fully connected graph of this module, that is used for the initial approximation.

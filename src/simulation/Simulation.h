@@ -240,8 +240,8 @@ public:
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
-                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+    lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.
@@ -249,8 +249,8 @@ public:
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<arch::Module<T>> module, 
-                                    T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
+    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Set the platform of the simulation.
@@ -390,6 +390,12 @@ public:
      * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
      */
     Fluid<T>* getContinuousPhase();
+
+    /**
+     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
+     * @param[in] model The resistance model to be used.
+     */
+    ResistanceModel<T>* getResistanceModel();
 
     /**
      * @brief Get mixture.

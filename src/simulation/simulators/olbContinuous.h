@@ -104,8 +104,8 @@ public:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmSimulator(int id, std::string name, std::string stlFile, std::unordered_map<int, arch::Opening<T>> openings, 
-        T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
+    lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
+        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
      * @brief Initialize an instance of the LBM solver for this module.

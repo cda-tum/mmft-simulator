@@ -118,6 +118,7 @@ endif()
 
 # create executable and tests (if build as main project)
 
+option(VERBOSE "VERBOSE" OFF)
 # main executable
 add_executable(MMFTSim)
 target_sources(MMFTSim PUBLIC src/main.cpp)

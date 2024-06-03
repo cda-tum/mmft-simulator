@@ -58,6 +58,14 @@ template<typename T>
 void readChannels (json jsonString, arch::Network<T>& network);
 
 /**
+ * @brief Construct and store the modules in the network as defined by the json string
+ * @param[in] jsonString json string
+ * @param[in] network network object
+*/
+template<typename T>
+void readModules (json jsonString, arch::Network<T>& network);
+
+/**
  * @brief Set the platform of the simulation as defined by the json string
  * @param[in] jsonString json string
  * @param[in] simulation simulation object

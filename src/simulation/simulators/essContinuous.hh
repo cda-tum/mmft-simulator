@@ -22,7 +22,7 @@ namespace sim{
             : Module<T>(id_, pos_, size_, nodes_),  name(name_), stlFile(stlFile_), moduleOpenings(openings_),
               charPhysLength(charPhysLenth_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_)
     {
-        this->moduleType = ModuleType::ESS_LBM;
+        this->cfdModule->setModuleTypeEssLbm();
     }
 
     template<typename T>
