@@ -586,7 +586,6 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::initialize() {
-        #define VERBOSE
         // compute and set channel lengths
         #ifdef VERBOSE
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
@@ -633,9 +632,7 @@ namespace sim {
             #endif
 
             for (auto& [key, cfdSimulator] : cfdSimulators) {
-                std::cout << "[Simulation] Prepare CFD geometry..." << key << std::endl;
                 cfdSimulator->prepareGeometry();
-                std::cout << "[Simulation] Prepare CFD lattice..." << key << std::endl;
                 cfdSimulator->prepareLattice();
             }
         }

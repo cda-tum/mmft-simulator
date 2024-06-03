@@ -3,8 +3,6 @@
 
 namespace sim{
 
-#define VERBOSE
-
 template<typename T>
 void lbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
     this->pressures = pressure_;
@@ -85,7 +83,7 @@ void lbmSimulator<T>::prepareGeometry () {
         olb::Vector<T,2> originO (x_origin, y_origin);
         olb::Vector<T,2> extendO (x_extend, y_extend);
         olb::IndicatorCuboid2D<T> opening(extendO, originO);
-        std::cout << "[Geometry] we add key " << key+3 << " to the geometry for the opening" << std::endl;
+        
         this->geometry->rename(2, key+3, 1, opening);
     }
 
@@ -99,12 +97,9 @@ void lbmSimulator<T>::prepareGeometry () {
 
 template<typename T>
 void lbmSimulator<T>::prepareLattice () {
-    std::cout << "We're performing the derived class" << std::endl;
     const T omega = converter->getLatticeRelaxationFrequency();
 
     lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(getGeometry());
-
-    std::cout << "Getting here 1..." << std::endl;
 
     // Initial conditions
     std::vector<T> velocity(T(0), T(0));
@@ -116,30 +111,18 @@ void lbmSimulator<T>::prepareLattice () {
     lattice->template defineDynamics<BGKdynamics>(getGeometry(), 1);
     lattice->template defineDynamics<BounceBack>(getGeometry(), 2);
 
-    std::cout << "Getting here 2..." << std::endl;
-
     // Set initial conditions
     lattice->defineRhoU(getGeometry(), 1, rhoF, uF);
     lattice->iniEquilibrium(getGeometry(), 1, rhoF, uF);
 
-    std::cout << "Getting here 3..." << std::endl;
-
     // Set lattice dynamics and initial condition for in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
-        std::cout << "[Lattice] we are trying to acces region with key " << key+3 << std::endl;
-        std::cout << "Groundnodes contains: ";
-        for (auto& [nodeId, bl] : this->groundNodes) {
-            std::cout << nodeId << " ";
-        }
-        std::cout << std::endl;
         if (this->groundNodes.at(key)) {
             setInterpolatedVelocityBoundary(getLattice(), omega, getGeometry(), key+3);
         } else {
             setInterpolatedPressureBoundary(getLattice(), omega, getGeometry(), key+3);
         }
     }
-
-    std::cout << "Getting here 4..." << std::endl;
 
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
@@ -164,8 +147,6 @@ void lbmSimulator<T>::prepareLattice () {
             densities.try_emplace(key, std::make_shared<olb::AnalyticalConst2D<T,T>>((T) 0.0));
         }
     }
-
-    std::cout << "Getting here 5..." << std::endl;
 
     // Initialize lattice with relaxation frequency omega
     lattice->template setParameter<olb::descriptors::OMEGA>(omega);

@@ -11,8 +11,6 @@
     #include <mpi.h>
 #endif
 
-#define VERBOSE
-
 using T = double;
 
 int main(int argc, char const* argv []) {
@@ -30,9 +28,6 @@ int main(int argc, char const* argv []) {
     // Load and set the simulation from a JSON file
     std::cout << "[Main] Create simulation object..." << std::endl;
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
-   
-    //network.sortGroups();
-    //network.isNetworkValid();
 
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results

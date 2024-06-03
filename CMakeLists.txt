@@ -49,6 +49,7 @@ FetchContent_MakeAvailable(eigen googletest json lbm)
 
 option(USE_ESSLBM "USE_ESSLBM" OFF)
 if(USE_ESSLBM)
+    ADD_DEFINITIONS(-DUSE_ESSLBM)
     find_package(ESSLbm REQUIRED)
     find_package(OpenMP REQUIRED)
     find_package(MPI REQUIRED)
@@ -97,6 +98,10 @@ set(EXTERNAL_SOURCE_LIST
     ${EXTERNAL_DIR}/zlib/zutil.c
 )
 
+option(VERBOSE "Verbose" ON)
+IF(VERBOSE)
+    ADD_DEFINITIONS(-DVERBOSE)
+ENDIF()
 
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
 
@@ -118,7 +123,6 @@ endif()
 
 # create executable and tests (if build as main project)
 
-option(VERBOSE "VERBOSE" OFF)
 # main executable
 add_executable(MMFTSim)
 target_sources(MMFTSim PUBLIC src/main.cpp)
