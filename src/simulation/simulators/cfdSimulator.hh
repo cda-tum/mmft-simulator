@@ -23,6 +23,11 @@ CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_,
         }
     }
 
+template<typename T>
+int CFDSimulator<T>::getId() const {
+    return id;
+}
+
 template <typename T>
 void CFDSimulator<T>::setModuleTypeLBM() {
     // TODO

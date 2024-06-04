@@ -88,7 +88,7 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
     }
 
     if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, network_);
+        readSimulators<T>(jsonString, simulation, network_);
         network_->sortGroups();
     }
 

@@ -51,6 +51,12 @@ public:
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, T alpha, ResistanceModel<T>* ResistanceModel);
 
     /**
+     * @brief Get id of the simulator.
+     * @returns id.
+    */
+    int getId() const;
+
+    /**
      * @brief Get the fully connected graph of this module, that is used for the initial approximation.
      * @return Network of the fully connected graph.
     */
