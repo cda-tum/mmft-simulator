@@ -39,7 +39,24 @@ enum class ChannelShape {
  * @brief A struct that defines a straight channel segment
 */
 template<typename T, int DIM>
-struct Line_segment {
+struct Line_segment { };
+
+template<typename T>
+struct Line_segment<T, 2> {
+    std::vector<T> start;
+    std::vector<T> end;
+
+    Line_segment(std::vector<T> start, std::vector<T> end);
+    
+    /**
+     * @brief Returns the length of this line segment.
+     * @returns Length of line segment in m.
+    */
+    T getLength();
+}; 
+
+template<typename T>
+struct Line_segment<T, 3> {
     std::vector<T> start;
     std::vector<T> end;
 
@@ -56,7 +73,29 @@ struct Line_segment {
  * @brief A struct that defines an arc channel segment
 */
 template<typename T, int DIM>
-struct Arc {
+struct Arc { };
+
+template<typename T>
+struct Arc<T, 2> {
+    bool right;
+    std::vector<T> start;
+    std::vector<T> end;
+    std::vector<T> center;
+
+    Arc(bool right, std::vector<T> start, std::vector<T> end, std::vector<T> center);
+
+    /**
+     * @brief Returns the length of this arc.
+     * @returns Length of arc in m.
+    */
+    T getLength();
+};
+
+/**
+ * @brief A struct that defines an arc channel segment
+*/
+template<typename T>
+struct Arc<T, 3> {
     bool right;
     std::vector<T> start;
     std::vector<T> end;

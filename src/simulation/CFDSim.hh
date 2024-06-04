@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators, int iteration) {
+    bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T, DIMENSION>>>& cfdSimulators, int iteration) {
 
         bool allConverge = true;
 

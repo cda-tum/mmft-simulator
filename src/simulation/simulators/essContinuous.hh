@@ -6,34 +6,40 @@
 
 namespace sim{
 
-    template<typename T>
-    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setPressures(std::unordered_map<int, T> pressure_) {
         this->pressures = pressure_;
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setFlowRates(std::unordered_map<int, T> flowRate_) {
         this->flowRates = flowRate_;
     }
 
-    template<typename T>
-    essLbmSimulator<T>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,
+    template<typename T, int DIM>
+    essLbmSimulator<T, int DIM>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,
                                T charPhysLenth_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_)
             : Module<T>(id_, pos_, size_, nodes_),  name(name_), stlFile(stlFile_), moduleOpenings(openings_),
               charPhysLength(charPhysLenth_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_)
     {
+        // Assert correct dimension for CFD region
+        if (DIM == 2) {
+            throw std::invalid_argument("The ESS LBM solver does not support 2-dimensional CFD regions.");
+        }
+        assert(DIM == 3);
+
         this->cfdModule->setModuleTypeEssLbm();
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::setBoundaryValues(int iT)
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setBoundaryValues(int iT)
     {
         solver_->setFlowRates(flowRates);
         solver_->setPressures(pressures);
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::getResults()
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::getResults()
     {
         for(auto& [key,value] : solver_->getPressures())
             pressures[key] = value;
@@ -41,8 +47,8 @@ namespace sim{
             flowRates[key] = value;
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::lbmInit(T dynViscosity, T density)
     {
         moduleNetwork = std::make_shared<Network<T>> (this->boundaryNodes);
 
@@ -91,15 +97,15 @@ namespace sim{
         #endif
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::solve()
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::solve()
     {
         solver_->solve(10, 10, 10);
         getResults();
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_)
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setPressures(std::unordered_map<int, T> pressure_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : pressure_)
@@ -108,8 +114,8 @@ namespace sim{
         solver_->setPressures(interface);
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_)
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setFlowRates(std::unordered_map<int, T> flowRate_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : flowRate_)
@@ -118,55 +124,55 @@ namespace sim{
         solver_->setFlowRates(interface);
     }
 
-    template<typename T>
-    std::unordered_map<int, T> essLbmSimulator<T>::getPressures() const {
+    template<typename T, int DIM>
+    std::unordered_map<int, T> essLbmSimulator<T, int DIM>::getPressures() const {
         return pressures;
     }
 
 
-    template<typename T>
-    std::unordered_map<int, T> essLbmSimulator<T>::getFlowRates() const {
+    template<typename T, int DIM>
+    std::unordered_map<int, T> essLbmSimulator<T, int DIM>::getFlowRates() const {
         return flowRates;
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_)
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setGroundNodes(std::unordered_map<int, bool> groundNodes_)
     {
         groundNodes = groundNodes_;
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::setInitialized(bool initialization_)
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setInitialized(bool initialization_)
     {
         initialized = initialization_;
     }
 
-    template<typename T>
-    std::shared_ptr<Network<T>> essLbmSimulator<T>::getNetwork() const
+    template<typename T, int DIM>
+    std::shared_ptr<Network<T>> essLbmSimulator<T, int DIM>::getNetwork() const
     {
         return moduleNetwork;
     }
 
-    template<typename T>
-    bool essLbmSimulator<T>::hasConverged() const
+    template<typename T, int DIM>
+    bool essLbmSimulator<T, int DIM>::hasConverged() const
     {
         return solver_->hasConverged();
     }
 
-    template<typename T>
-    bool essLbmSimulator<T>::getInitialized() const
+    template<typename T, int DIM>
+    bool essLbmSimulator<T, int DIM>::getInitialized() const
     {
         return initialized;
     }
 
-    template<typename T>
-    std::unordered_map<int, Opening<T>> essLbmSimulator<T>::getOpenings() const
+    template<typename T, int DIM>
+    std::unordered_map<int, Opening<T>> essLbmSimulator<T, int DIM>::getOpenings() const
     {
         return moduleOpenings;
     }
 
-    template<typename T>
-    void essLbmSimulator<T>::setVtkFolder(std::string vtkFolder_) {
+    template<typename T, int DIM>
+    void essLbmSimulator<T, int DIM>::setVtkFolder(std::string vtkFolder_) {
         this->vtkFolder = vtkFolder_;
     }
 

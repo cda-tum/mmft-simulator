@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#define DIMENSION 2
+
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
 

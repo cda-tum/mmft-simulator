@@ -27,10 +27,10 @@ namespace sim {
 // Forward declared dependencies
 enum class Platform;
 
-template<typename T>
+template<typename T, int DIM>
 class lbmSimulator;
 
-template<typename T>
+template<typename T, int DIM>
 class essLbmSimulator;
 
 template<typename T>

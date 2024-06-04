@@ -27,7 +27,7 @@ namespace sim {
 /**
  * @brief Class to specify a module, which is a functional component in a network.
 */
-template<typename T>
+template<typename T, int DIM>
 class CFDSimulator {
 protected:
     int const id;                   ///< Id of the simulator.

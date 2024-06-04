@@ -23,7 +23,7 @@ class Network;
 namespace sim {
 
 // Forward declared dependencies
-template<typename T>
+template<typename T, int DIM>
 class CFDSimulator;
 
 }   // namespace sim
@@ -52,7 +52,7 @@ void conductNodalAnalysis( const arch::Network<T>* network);
  * @param[in] flowRatePumps List of flowrate pumps.
  */
 template<typename T>
-bool conductNodalAnalysis( const arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+bool conductNodalAnalysis( const arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T,2>>>& cfdSimulators);
 
 bool contains( const std::unordered_set<int>& set, int key);
 bool contains( const std::unordered_map<int,int>& map, int key);

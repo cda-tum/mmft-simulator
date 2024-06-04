@@ -8,18 +8,30 @@ namespace arch {
     //================================  Line_segment  =====================================
     //=====================================================================================
 
-    template<typename T, int DIM>
-    Line_segment<T,DIM>::Line_segment(std::vector<T> start_, std::vector<T> end_) :
-        start(start_), end(end_) { }
+    template<typename T>
+    Line_segment<T,2>::Line_segment(std::vector<T> start_, std::vector<T> end_) :
+        start(start_), end(end_) {
+    }
 
-    template<typename T, int DIM>
-    T Line_segment<T,DIM>::getLength() {
+    template<typename T>
+    T Line_segment<T,2>::getLength() {
         T dx = start[0] - end[0];
         T dy = start[1] - end[1];
-        T dz = 0.0;
-        if (DIM == 3) {
-            dz = start[2] - end[2];
-        }
+        T length = sqrt(dx*dx + dy*dy);
+
+        return length;
+    }
+
+    template<typename T>
+    Line_segment<T,3>::Line_segment(std::vector<T> start_, std::vector<T> end_) :
+        start(start_), end(end_) {
+    }
+
+    template<typename T>
+    T Line_segment<T,3>::getLength() {
+        T dx = start[0] - end[0];
+        T dy = start[1] - end[1];
+        T dz = start[2] - end[2];
         T length = sqrt(dx*dx + dy*dy + dz*dz);
 
         return length;
@@ -29,24 +41,40 @@ namespace arch {
     //================================  Arc ===============================================
     //=====================================================================================
 
-    template<typename T, int DIM>
-    Arc<T,DIM>::Arc(bool right_, std::vector<T> start_, std::vector<T> end_, std::vector<T> center_) :
-        right(right_), start(start_), end(end_), center(center_) { }
+    template<typename T>
+    Arc<T,2>::Arc(bool right_, std::vector<T> start_, std::vector<T> end_, std::vector<T> center_) :
+        right(right_), start(start_), end(end_), center(center_) {
+    }
 
-    template<typename T, int DIM>
-    T Arc<T,DIM>::getLength() {
+
+    template<typename T>
+    T Arc<T,2>::getLength() {
         T dx1 = start[0] - center[0];
         T dy1 = start[1] - center[1];
-        T dz1 = 0.0;
-        if (DIM == 3) {
-            dz1 = start[2] - center[2];
-        }
         T dx2 = start[0] - end[0];
         T dy2 = start[1] - end[1];
-        T dz2 = 0.0;
-        if (DIM == 3) {
-            dz2 = start[2] - end[2];
-        }
+
+        T radius = sqrt(dx1*dx1 + dy1*dy1);
+        T chord = sqrt(dx2*dx2 + dy2*dy2);
+        T theta = 2*asin(chord/(2*radius));
+        T length = theta*radius;
+
+        return length;
+    } 
+
+    template<typename T>
+    Arc<T,3>::Arc(bool right_, std::vector<T> start_, std::vector<T> end_, std::vector<T> center_) :
+        right(right_), start(start_), end(end_), center(center_) {
+    }
+
+    template<typename T>
+    T Arc<T,3>::getLength() {
+        T dx1 = start[0] - center[0];
+        T dy1 = start[1] - center[1];
+        T dz1 = start[2] - center[2];
+        T dx2 = start[0] - end[0];
+        T dy2 = start[1] - end[1];
+        T dz2 = start[2] - end[2];
 
         T radius = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1);
         T chord = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2);

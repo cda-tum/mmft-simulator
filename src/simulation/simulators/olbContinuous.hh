@@ -3,29 +3,29 @@
 
 namespace sim{
 
-template<typename T>
-void lbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::setPressures(std::unordered_map<int, T> pressure_) {
     this->pressures = pressure_;
 }
 
-template<typename T>
-void lbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::setFlowRates(std::unordered_map<int, T> flowRate_) {
     this->flowRates = flowRate_;
 }
 
-template<typename T>
-lbmSimulator<T>::lbmSimulator (
+template<typename T, int DIM>
+lbmSimulator<T,DIM>::lbmSimulator (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
     ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
-        CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, alpha_, resistanceModel_), 
+        CFDSimulator<T,DIM>(id_, name_, stlFile_, cfdModule_, openings_, alpha_, resistanceModel_), 
         charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
         epsilon(epsilon_), relaxationTime(relaxationTime_)
     { 
         this->cfdModule->setModuleTypeLbm();
     } 
 
-template<typename T>
-void lbmSimulator<T>::prepareGeometry () {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::prepareGeometry () {
 
     bool print = false;
 
@@ -39,12 +39,12 @@ void lbmSimulator<T>::prepareGeometry () {
         std::cout << "[lbmModule] create 2D indicator " << this->name << "... OK" << std::endl;
     #endif
 
-    olb::Vector<T,2> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
-    olb::Vector<T,2> extend(this->cfdModule->getSize()[0] + converter->getConversionFactorLength(), this->cfdModule->getSize()[1] + converter->getConversionFactorLength());
+    olb::Vector<T,DIM> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
+    olb::Vector<T,DIM> extend(this->cfdModule->getSize()[0] + converter->getConversionFactorLength(), this->cfdModule->getSize()[1] + converter->getConversionFactorLength());
     olb::IndicatorCuboid2D<T> cuboid(extend, origin);
     cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, converter->getConversionFactorLength(), 1);
     loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*cuboidGeometry);
-    geometry = std::make_shared<olb::SuperGeometry<T,2>> (
+    geometry = std::make_shared<olb::SuperGeometry<T,DIM>> (
         *cuboidGeometry, 
         *loadBalancer);
 
@@ -80,8 +80,8 @@ void lbmSimulator<T>::prepareGeometry () {
             y_origin -= y_extend;
         }
 
-        olb::Vector<T,2> originO (x_origin, y_origin);
-        olb::Vector<T,2> extendO (x_extend, y_extend);
+        olb::Vector<T,DIM> originO (x_origin, y_origin);
+        olb::Vector<T,DIM> extendO (x_extend, y_extend);
         olb::IndicatorCuboid2D<T> opening(extendO, originO);
         
         this->geometry->rename(2, key+3, 1, opening);
@@ -95,8 +95,8 @@ void lbmSimulator<T>::prepareGeometry () {
     #endif
 }
 
-template<typename T>
-void lbmSimulator<T>::prepareLattice () {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::prepareLattice () {
     const T omega = converter->getLatticeRelaxationFrequency();
 
     lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(getGeometry());
@@ -157,8 +157,8 @@ void lbmSimulator<T>::prepareLattice () {
     #endif
 }
 
-template<typename T>
-void lbmSimulator<T>::setBoundaryValues (int iT) {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::setBoundaryValues (int iT) {
 
     T pressureLow = -1.0;       
     for (auto& [key, pressure] : pressures) {
@@ -185,8 +185,8 @@ void lbmSimulator<T>::setBoundaryValues (int iT) {
 
 }
 
-template<typename T>
-void lbmSimulator<T>::getResults (int iT) {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::getResults (int iT) {
     int input[1] = { };
     T output[3];
     
@@ -212,8 +212,8 @@ void lbmSimulator<T>::getResults (int iT) {
     }
 }
 
-template<typename T>
-void lbmSimulator<T>::lbmInit (T dynViscosity, 
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::lbmInit (T dynViscosity, 
                             T density) {
     // Create network with fully connected graph and set initial resistances
 
@@ -257,8 +257,8 @@ void lbmSimulator<T>::lbmInit (T dynViscosity,
     #endif
 }
 
-template<typename T>
-void lbmSimulator<T>::writeVTK (int iT) {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::writeVTK (int iT) {
 
     bool print = false;
     #ifdef VERBOSE
@@ -302,8 +302,8 @@ void lbmSimulator<T>::writeVTK (int iT) {
 
 }
 
-template<typename T>
-void lbmSimulator<T>::solve() {
+template<typename T, int DIM>
+void lbmSimulator<T,DIM>::solve() {
     // theta = 10
     for (int iT = 0; iT < 10; ++iT){      
         this->setBoundaryValues(step);
