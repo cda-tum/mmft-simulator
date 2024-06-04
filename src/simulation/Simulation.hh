@@ -539,7 +539,6 @@ namespace sim {
                     }
                     return a->getTime() < b->getTime();  // ascending order
                 });
-                int test_size = events.size();
 
                 #ifdef VERBOSE  
                 for (auto& event : events) {

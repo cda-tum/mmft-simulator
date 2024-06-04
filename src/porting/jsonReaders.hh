@@ -38,7 +38,6 @@ void readModules(json jsonString, arch::Network<T>& network) {
         if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
             throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
         }
-        arch::ModuleType type = arch::ModuleType::NORMAL;
         std::vector<T> position = { module["position"][0], module["position"][1] };
         std::vector<T> size = { module["size"][0], module["size"][1] };
         std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
@@ -181,7 +180,7 @@ void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int 
             int mixtureId = injection["mixture"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
-            auto injectionTest = simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
+            simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
         }
     } else {
         throw std::invalid_argument("Please define at least one mixture injection for the active fixture or choose a different platform.");
