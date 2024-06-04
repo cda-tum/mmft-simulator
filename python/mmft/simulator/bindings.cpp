@@ -4,7 +4,7 @@
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
 
-#define STRINGIFY(x)
+#define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 using T = double;
