@@ -624,6 +624,7 @@ TEST(DiffusionMixing, case2) {
     T cHeight = 100e-6;
     T cLength = 2000e-6;
     T cLength2 = sqrt(5e-6);
+    // T cLength2 = 1e-6;
     T flowRate3 = 4e-10;
     T flowRate4 = 3.16267e-10;
     T flowRate5 = 4.41997e-11;
@@ -655,9 +656,13 @@ TEST(DiffusionMixing, case2) {
     // perform analytical solution for constant input
     auto [fConstant0, segmentedResultConstant0, a_0_Constant0] = diffusionMixingModelTest.getAnalyticalSolutionConstant(cLength, cWidth, resolution, pecletNr3, constantFlowSections);
 
-    functionFlowSections3.push_back({0.0, 1.0, 11.1317, 0.901167*11.1317, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // top outflow channel
-    functionFlowSections2.push_back({0.0, 1.0, 9.04984, 0.790667*9.04984, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // middle outflow channel
-    functionFlowSections1.push_back({0.0, 1.0, 0.5*2.52951, 0.0, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // bottom outflow channel
+    // functionFlowSections3.push_back({0.0, 1.0, 11.1317, 0.901167*11.1317, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // top outflow channel
+    // functionFlowSections2.push_back({0.0, 1.0, 9.04984, 0.790667*9.04984, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // middle outflow channel
+    // functionFlowSections1.push_back({0.0, 1.0, 0.5*2.52951, 0.0, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // bottom outflow channel
+
+    functionFlowSections3.push_back({0.0, 1.0, 1.0/0.1, 0.901167, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // top outflow channel
+    functionFlowSections2.push_back({0.0, 1.0, 1.0/0.11, 0.790667, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // middle outflow channel
+    functionFlowSections1.push_back({0.0, 1.0, 1.0/0.79, 0.0, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // bottom outflow channel
 
     // perform analytical solution for function input
     auto [fFunctionC, segmentedResultFunctionC, a_0_FunctionC] = diffusionMixingModelTest.getAnalyticalSolutionFunction(0.0, 2*cWidth, resolution, pecletNr4, functionFlowSections1, zeroFunction);
@@ -906,45 +911,45 @@ TEST(DiffusionMixing, case3_1) {
      * E
     */
     // The flow from channel 4 and the bottom 0.875 part of channel 5 enter channel 6
-    functionFlowSectionsE.push_back({0.0, 0.125, 0.25, 0.0, T(0.0), fConstant1, segmentedResultConstant1, a_0_Constant1}); // channel 6
-    functionFlowSectionsE.push_back({0.125, 1.0, 1.0, -0.125, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
+    functionFlowSectionsE.push_back({0.0, 0.125, 0.125/1, 0.0, T(0.0), fConstant1, segmentedResultConstant1, a_0_Constant1}); // channel 6
+    functionFlowSectionsE.push_back({0.125, 1.0, 0.875/0.875, -0.125, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
     auto [fFunctionE, segmentedResultFunctionE, a_0_FunctionE] = diffusionMixingModelTest.getAnalyticalSolutionFunction(0.0, 2*cWidth, resolution, pecletNr6, functionFlowSectionsE, zeroFunction);
 
     /**
      * F
     */
     // The top 0.125 part of channel 5 enters channel 7
-    functionFlowSectionsF.push_back({0.0, 1.0, 4.0*2, 0.875*8, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // channel 7
+    functionFlowSectionsF.push_back({0.0, 1.0, 1/0.125, 0.875, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // channel 7
     auto [fFunctionF, segmentedResultFunctionF, a_0_FunctionF] = diffusionMixingModelTest.getAnalyticalSolutionFunction(0.0, cWidth, resolution, pecletNr7, functionFlowSectionsF, zeroFunction);
 
     /**
      * G
     */
     // The flow from channel 4 and the bottom 0.875 part of channel 5 enter channel 6
-    functionFlowSections1.push_back({0.0, 0.125, 0.25, 0.0, T(0.0), fConstant1, segmentedResultConstant1, a_0_Constant1}); // channel 6
-    functionFlowSections1.push_back({0.125, 1.0, 1.0, -0.125, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
+    functionFlowSections1.push_back({0.0, 0.125, 0.125/1, 0.0, T(0.0), fConstant1, segmentedResultConstant1, a_0_Constant1}); // channel 6
+    functionFlowSections1.push_back({0.125, 1.0, 0.875/0.875, -0.125, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0});
     auto [fFunction1, segmentedResultFunction1, a_0_Function1] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, 2*cWidth, resolution, pecletNr6, functionFlowSections1, zeroFunction);
 
     /**
      * H
     */
     // The top 0.125 part of channel 5 enters channel 7
-    functionFlowSections0.push_back({0.0, 1.0, 4.0*2, 0.875*8, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // channel 7
+    functionFlowSections0.push_back({0.0, 1.0, 1.0/0.125, 0.875, T(0.0), fConstant0, segmentedResultConstant0, a_0_Constant0}); // channel 7
     auto [fFunction0, segmentedResultFunction0, a_0_Function0] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, cWidth, resolution, pecletNr7, functionFlowSections0, zeroFunction);
 
     /**
      * I
     */
     // Flow into channel 10 generated from channel 8
-    functionFlowSectionsI.push_back({0.0, 1.0, 4.0*2, 0.0, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
+    functionFlowSectionsI.push_back({0.0, 1.0, 1.0/0.125, 0.0, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
     auto [fFunctionI, segmentedResultFunctionI, a_0_FunctionI] = diffusionMixingModelTest.getAnalyticalSolutionFunction(0.0, cWidth, resolution, pecletNr6, functionFlowSectionsI, zeroFunction);
 
     /**
      * J
     */
     // Flow into channel 11 generated from channel 8+9
-    functionFlowSectionsJ.push_back({0.0, 0.875, 1.0, 0.125, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
-    functionFlowSectionsJ.push_back({0.875, 1.0, 0.125, 0.0, T(0.0), fFunction0, segmentedResultFunction0, a_0_Function0});
+    functionFlowSectionsJ.push_back({0.0, 0.875, 0.875/0.875, 0.125, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
+    functionFlowSectionsJ.push_back({0.875, 1.0, 0.125/1.0, 0.0, T(0.0), fFunction0, segmentedResultFunction0, a_0_Function0});
     auto [fFunctionJ, segmentedResultFunctionJ, a_0_FunctionJ] = diffusionMixingModelTest.getAnalyticalSolutionFunction(0.0, 2*cWidth, resolution, pecletNr6, functionFlowSectionsJ, zeroFunction);
 
 
@@ -952,45 +957,45 @@ TEST(DiffusionMixing, case3_1) {
      * K
     */
     // Flow into channel 10 generated from channel 8
-    functionFlowSections2.push_back({0.0, 1.0, 4.0*2, 0.0, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
+    functionFlowSections2.push_back({0.0, 1.0, 1.0/0.125, 0.0, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
     auto [fFunction2, segmentedResultFunction2, a_0_Function2] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, cWidth, resolution, pecletNr6, functionFlowSections2, zeroFunction);
 
     /**
      * L
     */
     // Flow into channel 11 generated from channel 8+9
-    functionFlowSections3.push_back({0.0, 0.875, 1.0, 0.125, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
-    functionFlowSections3.push_back({0.875, 1.0, 0.25, 0.0, T(0.0), fFunction0, segmentedResultFunction0, a_0_Function0});
+    functionFlowSections3.push_back({0.0, 0.875, 0.875/0.875, 0.125, T(0.0), fFunction1, segmentedResultFunction1, a_0_Function1});
+    functionFlowSections3.push_back({0.875, 1.0, 0.125/1.0, 0.0, T(0.0), fFunction0, segmentedResultFunction0, a_0_Function0});
     auto [fFunction3, segmentedResultFunction3, a_0_Function3] = diffusionMixingModelTest.getAnalyticalSolutionFunction(2*cLength, 2*cWidth, resolution, pecletNr6, functionFlowSections3, zeroFunction);
 
     /**
-     * M
+     * M, I think M and N need to be switched?? or at least 14 and 15
     */
     // Flow into channel 15 generated from channel 12+13
-    functionFlowSectionsN.push_back({0.0, 0.222222, 0.222222, 0.0, T(0.0), fFunction2, segmentedResultFunction2, a_0_Function2});
-    functionFlowSectionsN.push_back({0.222222, 1.0, 0.888889*2, 0.0, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
+    functionFlowSectionsN.push_back({0.0, 0.222222, 0.222222/1.0, 0.0, T(0.0), fFunction2, segmentedResultFunction2, a_0_Function2});
+    functionFlowSectionsN.push_back({0.222222, 1.0, 0.888887/0.4375, 0.0, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
     auto [fFunctionN, segmentedResultFunctionN, a_0_FunctionN] = diffusionMixingModelTest.getAnalyticalSolutionFunction(0.0, cWidth, resolution, pecletNr15, functionFlowSectionsN, zeroFunction);
 
     /**
      * N
     */
     // Flow into channel 14 generated from channel 13
-    functionFlowSectionsM.push_back({0.0, 1.0, 0.888889*2, 0.4375*2, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
+    functionFlowSectionsM.push_back({0.0, 1.0, 1.0/0.4375, 0.4375, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
     auto [fFunctionM, segmentedResultFunctionM, a_0_FunctionM] = diffusionMixingModelTest.getAnalyticalSolutionFunction(0.0, cWidth, resolution, pecletNr15, functionFlowSectionsM, zeroFunction);
 
     /**
      * O
     */
     // Flow into channel 14 generated from channel 12+13
-    functionFlowSections4.push_back({0.0, 1.0, 0.888889*2, 0.4375*2, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
+    functionFlowSections4.push_back({0.0, 1.0, 1.0/0.4375, 0.4375, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
     auto [fFunction4, segmentedResultFunction4, a_0_Function4] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr15, functionFlowSections4, zeroFunction);
 
     /**
      * P
     */
     // Flow into channel 15 generated from channel 13
-    functionFlowSections5.push_back({0.0, 0.222222, 0.222222, 0.0, T(0.0), fFunction2, segmentedResultFunction2, a_0_Function2});
-    functionFlowSections5.push_back({0.222222, 1.0, 0.888889*2, 0.0, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
+    functionFlowSections5.push_back({0.0, 0.222222, 0.222222/1.0, 0.0, T(0.0), fFunction2, segmentedResultFunction2, a_0_Function2});
+    functionFlowSections5.push_back({0.222222, 1.0, 0.888887/0.4375, 0.0, T(0.0), fFunction3, segmentedResultFunction3, a_0_Function3});
     auto [fFunction5, segmentedResultFunction5, a_0_Function5] = diffusionMixingModelTest.getAnalyticalSolutionFunction(cLength, cWidth, resolution, pecletNr15, functionFlowSections5, zeroFunction);
 
     // perform analytical solution for function input

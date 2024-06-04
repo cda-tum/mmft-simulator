@@ -479,8 +479,9 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                     if (inflowCuts[n_in+1] <= outflowCuts[n_out+1] + 1e-15) {   ///< 1e-16 to account for machine precision. TODO: improve algorithm
                         // The cut is caused on the inflow side
                         T flowRate = (1.0 - start) * std::abs(network->getChannel(channelInId)->getFlowRate());
-                        T stretchFactor = (network->getChannel(channelInId)->getFlowRate()/network->getChannel(channelOutIDs[n_out])->getFlowRate())
-                                            * (network->getChannel(channelOutIDs[n_out])->getWidth()/network->getChannel(channelInId)->getWidth());
+                        // T stretchFactor = (network->getChannel(channelInId)->getFlowRate()/network->getChannel(channelOutIDs[n_out])->getFlowRate())
+                        //                     * (network->getChannel(channelOutIDs[n_out])->getWidth()/network->getChannel(channelInId)->getWidth());
+                        T stretchFactor = (network->getChannel(channelOutIDs[n_out])->getFlowRate()/network->getChannel(channelInId)->getFlowRate()); // TODO double check this
                         inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate, network->getChannel(channelInId)->getWidth(), stretchFactor};
                         std::cout << "Add flowsection for channel " << channelOutIDs[n_out] << " with following parameters: \n" ;
                         std::cout << "Cut v1\n";
@@ -627,18 +628,18 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                 int oldN = (i % (resolution - 1)) + 1;
 
                 if (abs(oldN/stretchFactor - n) < 1e-8) { 
-                    a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor ) 
-                        + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) 
-                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
+                    a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * startWidthIfFunctionWasSplit) 
+                        + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) 
+                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
                         * parameter.segmentedResult[i];
                 } else {
                     a_n += (1 / ((oldN * M_PI / stretchFactor) + n * M_PI)) *
-                        (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + parameter.endWidth * (oldN * M_PI / stretchFactor) + parameter.endWidth * (n * M_PI))
-                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + parameter.startWidth * (oldN * M_PI / stretchFactor) + parameter.startWidth * (n * M_PI)))
+                        (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.endWidth * (oldN * M_PI / stretchFactor + n * M_PI))
+                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.startWidth * (oldN * M_PI / stretchFactor + n * M_PI)))
                         * parameter.segmentedResult[i];
                     a_n += (1 / ((oldN * M_PI / stretchFactor) - n * M_PI)) * 
-                        (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + parameter.endWidth * (oldN * M_PI / stretchFactor) - parameter.endWidth * (n * M_PI)) 
-                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + parameter.startWidth * (oldN * M_PI / stretchFactor) - parameter.startWidth * (n * M_PI)))
+                        (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.endWidth * (oldN * M_PI / stretchFactor - n * M_PI))
+                        - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.startWidth * (oldN * M_PI / stretchFactor - n * M_PI)))
                         * parameter.segmentedResult[i];
                 }
             }
@@ -658,8 +659,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
             T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
             int oldN = (i % (resolution - 1)) + 1;
             a_0 += 2 * parameter.segmentedResult[i] * stretchFactor/(oldN * M_PI) * 
-                (std::sin(oldN * M_PI * parameter.endWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor ) 
-                - std::sin(oldN * M_PI * parameter.startWidth/stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor ));
+                (std::sin(oldN * M_PI * parameter.endWidth / stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit) 
+                - std::sin(oldN * M_PI * parameter.startWidth / stretchFactor + oldN * M_PI * startWidthIfFunctionWasSplit));
         }
     }     
     std::cout << "a_0 is " << a_0 << std::endl;
@@ -679,19 +680,19 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                     T startWidthIfFunctionWasSplit = parameter.startWidthIfFunctionWasSplit;
                     int oldN = (i % (resolution - 1)) + 1;
 
-                    if (abs(oldN/stretchFactor - n) < 1e-8) { 
-                        a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor ) 
-                            + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) 
-                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
+                    if (abs(oldN/stretchFactor - n) < 1e-12) { 
+                        a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * startWidthIfFunctionWasSplit ) 
+                            + std::sin(oldN * M_PI * startWidthIfFunctionWasSplit  + 2 * n * M_PI * parameter.endWidth) / (4 * n * M_PI) 
+                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit  + 2 * n * M_PI * parameter.startWidth) / (4 * n * M_PI)) 
                             * parameter.segmentedResult[i];
                     } else {
                         a_n += (1 / ((oldN * M_PI / stretchFactor) + n * M_PI)) *
-                            (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + parameter.endWidth * (oldN * M_PI / stretchFactor) + parameter.endWidth * (n * M_PI))
-                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor + parameter.startWidth * (oldN * M_PI / stretchFactor) + parameter.startWidth * (n * M_PI)))
+                            (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit  + parameter.endWidth * (oldN * M_PI / stretchFactor + n * M_PI))
+                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit + parameter.startWidth * (oldN * M_PI / stretchFactor + n * M_PI)))
                             * parameter.segmentedResult[i];
                         a_n += (1 / ((oldN * M_PI / stretchFactor) - n * M_PI)) * 
-                            (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + parameter.endWidth * (oldN * M_PI / stretchFactor) - parameter.endWidth * (n * M_PI)) 
-                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit / stretchFactor  + parameter.startWidth * (oldN * M_PI / stretchFactor) - parameter.startWidth * (n * M_PI)))
+                            (std::sin(oldN * M_PI * startWidthIfFunctionWasSplit  + parameter.endWidth * (oldN * M_PI / stretchFactor - n * M_PI)) 
+                            - std::sin(oldN * M_PI * startWidthIfFunctionWasSplit  + parameter.startWidth * (oldN * M_PI / stretchFactor - n * M_PI)))
                             * parameter.segmentedResult[i];
                     }
                 }
@@ -719,12 +720,10 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         T startWidth = prevEndWidth;
         T endWidth = startWidth + ((flowSection.flowRate / currChannelFlowRate));
         prevEndWidth = endWidth;
-        T stretchFactor = flowSection.stretchFactor;
-        //T stretchFactor = ((flowSection.flowRate/currChannelFlowRate)/(flowSection.sectionEnd-flowSection.sectionStart)) * (channelWidth/flowSection.width);
-        //T stretchFactor = channelWidth/((flowSection.flowRate/currChannelFlowRate)*flowSection.width);
+        T stretchFactor = (endWidth - startWidth) / (flowSection.sectionEnd - flowSection.sectionStart);
         std::cout << "The stretch factor is: " << stretchFactor << " = " << channelWidth << "/((" << flowSection.flowRate << "/" << currChannelFlowRate << ")*" 
                 << flowSection.width << ")" << std::endl;
-        T startWidthIfFunctionWasSplit = flowSection.sectionStart*stretchFactor - startWidth;
+        T startWidthIfFunctionWasSplit = flowSection.sectionStart - startWidth / stretchFactor;
         assert(flowSection.sectionStart-startWidth >= (-1.0 - 1e-16) && flowSection.sectionStart-startWidth <= (1.0 + 1e-16));
 
         if (!this->filledEdges.count(flowSection.channelId)){
@@ -776,7 +775,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                 std::vector<T> segmentedResults = std::get<1>(specieDistribution);
 
                 T a_0_old = std::get<2>(specieDistribution);
-                functionFlowSections.push_back({startWidth, endWidth, stretchFactor * (flowSection.width/channelWidth), startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults, a_0_old});
+                // functionFlowSections.push_back({startWidth, endWidth, stretchFactor * (flowSection.width/channelWidth), startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults, a_0_old});
+                functionFlowSections.push_back({startWidth, endWidth, stretchFactor, startWidthIfFunctionWasSplit, T(0.0), concentrationFunction, segmentedResults, a_0_old});
                 std::cout << "functionFlowSections pushed back: \n";
                 std::cout << "\t startWidth: " << startWidth;
                 std::cout << "\n\t endWidth: " << endWidth;
