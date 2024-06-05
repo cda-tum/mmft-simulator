@@ -48,27 +48,18 @@ struct FlowSection {
     T sectionEnd;   // End of the relevant section of this inflow (relative, 0.0-1.0)
     T flowRate;
     T width;
-    T stretchFactor;
 };
 
 template<typename T>
 struct FlowSectionInput {
     T startWidth;
     T endWidth;
-    T stretchFactor; // this is technically redundant for constant flow sections
-    T startWidthIfFunctionWasSplit;
+    T scaleFactor; // this is technically redundant for constant flow sections
+    T translateFactor;
     T concentrationAtChannelEnd; // concentration if it is a constant flow section
     std::function<T(T)> concentrationAtChannelEndFunction;
     std::vector<T> segmentedResult; // this is technically redundant for constant flow sections
     T a_0_old;
-
-    // T getA_0() {
-    //     return a_0_old;
-    // }
-
-    // void setA_0(T a_0_old) {
-    //     this->a_0_old = a_0_old;
-    // }
 };
 
 template<typename T>
