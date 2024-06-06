@@ -1,3 +1,5 @@
+#define DIMENSION 2
+
 #include "../src/baseSimulator.h"
 #include "../src/baseSimulator.hh"
 
