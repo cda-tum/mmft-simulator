@@ -84,7 +84,7 @@ void lbmSimulator<T,DIM>::prepareGeometry () {
         olb::Vector<T,DIM> extendO (x_extend, y_extend);
         olb::IndicatorCuboid2D<T> opening(extendO, originO);
         
-        this->geometry->rename(2, key+3, 1, opening);
+        this->geometry->rename(2, key+3, opening);
     }
 
     this->geometry->clean(print);
