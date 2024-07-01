@@ -103,6 +103,18 @@
             "width": 1e-4,
             "height": 1e-4
         }
+    ],
+    "modules": [
+        {
+            "position": [2.75e-3, -0.05e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [3, 6, 7]
+        },
+        {
+            "position": [4.75e-3, -0.05e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [5, 8, 9]
+        }
     ]
 },
 "simulation": {
@@ -143,10 +155,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 2.75e-3,
-                "posY": -0.05e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 0,
                 "Openings": [
                     {
                         "node": 3,
@@ -190,10 +199,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 4.75e-3,
-                "posY": -0.05e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 1,
                 "Openings":
                 [
                     {

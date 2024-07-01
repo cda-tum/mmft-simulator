@@ -30,16 +30,13 @@ def hybridContinuous():
     network.addChannel(n9, n10, 1e-4, 1e-4, ChannelType.normal)
 
     # Module
-    network.addModule("1a", "../STL/cross.stl", [1.75e-3, 0.75e-3], [5e-4, 5e-4], [n5, n7, n8, n9], \
-                      [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], \
-                        1e-4, 1e-1, 0.1, 20, 1e-1, 0.55)
+    m0 = network.addModule( [1.75e-3, 0.75e-3], [5e-4, 5e-4], [n5, n7, n8, n9])
 
     # Pressure Pumps
     network.addPressurePump(n0, n1, 1e3)
     network.addPressurePump(n0, n2, 1e3)
     network.addPressurePump(n0, n3, 1e3)
 
-    network.sort()
     network.valid()
 
     simulation = Simulation()
@@ -53,6 +50,12 @@ def hybridContinuous():
     f0 = simulation.addFluid(1e3, 1e-3, 1.0)
     simulation.setContinuousPhase(f0)
     simulation.setPoiseuilleResistanceModel()
+
+    simulation.addLbmSimulator("1a", "../STL/cross.stl", m0, [n5, n7, n8, n9], \
+                               [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], \
+                                1e-4, 1e-1, 0.1, 20, 1e-1, 0.55)
+
+    network.sort()
 
     simulation.simulate()
 

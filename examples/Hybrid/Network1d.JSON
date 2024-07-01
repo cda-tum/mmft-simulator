@@ -114,6 +114,13 @@
             "width": 1e-4,
             "height": 1e-4
         }
+    ],
+    "modules": [
+        {
+            "position": [4.75e-3, 3.75e-3],
+            "size": [5e-4, 5e-4],
+            "nodes": [5, 7, 8, 9]
+        }
     ]
 },
 "simulation": {
@@ -164,10 +171,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 4.75e-3,
-                "posY": 3.75e-3,
-                "sizeX": 5e-4,
-                "sizeY": 5e-4,
+                "moduleId": 0,
                 "Openings": [
                     {	
                         "node": 5,

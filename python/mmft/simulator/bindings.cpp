@@ -51,41 +51,23 @@ PYBIND11_MODULE(pysimulator, m) {
 			return network.addPressurePump(nodeAId, nodeBId, pressure)->getId();
 			}, "Add a new pressure pump to the network.")
 		.def("setPressurePump", &arch::Network<T>::setPressurePump, "Turn a channel into a pressure pump with given pressure.")
-		.def("addModule", [](arch::Network<T> &network, 
-								std::string name,
-								std::string stlFile,
+		.def("addModule", [](arch::Network<T> &network,
 								std::vector<T> position,
 								std::vector<T> size,
-								std::vector<int> nodes,
-								std::vector<std::vector<T>> normals,
-								std::vector<T> widths,
-								T charPhysLength,
-								T charPhysVelocity,
-								T alpha,
-								T resolution,
-								T epsilon,
-								T tau) {
+								std::vector<int> nodes) {
 
 			std::unordered_map<int, std::shared_ptr<arch::Node<T>>> newNodes;
-			std::unordered_map<int, arch::Opening<T>> openings;
-			
-			// ASSERT equal length for nodes, normals, widths and heights
-			if (nodes.size() != normals.size() || nodes.size() != widths.size()) {
-				throw std::invalid_argument("There should be an equal amount of nodes, normals, widths and heights");
-			}
 
 			for (long unsigned int i=0; i<nodes.size(); ++i) {
 				newNodes.try_emplace(nodes[i], network.getNode(nodes[i]));
-				openings.try_emplace(nodes[i], arch::Opening<T>{network.getNode(nodes[i]), normals[i], widths[i]});
 			}
 
-			return network.addModule(name, stlFile, position, size, newNodes, openings, charPhysLength, charPhysVelocity,
-									alpha, resolution, epsilon, tau)->getId();
+			return network.addModule(position, size, newNodes)->getId();
 
-			}, "Add a new node to the network.")
-			.def("loadNetwork", [](arch::Network<T> &network, std::string file) { 
-				porting::networkFromJSON(file, network);
-			});
+			}, "Add a new module to the network.")
+		.def("loadNetwork", [](arch::Network<T> &network, std::string file) { 
+			porting::networkFromJSON(file, network);
+		});
 
 	py::class_<sim::Simulation<T>>(m, "Simulation")
 		.def(py::init<>())
@@ -98,6 +80,40 @@ PYBIND11_MODULE(pysimulator, m) {
 		.def("addDroplet", [](sim::Simulation<T> &simulation, int fluidId, T volume) {
 				return simulation.addDroplet(fluidId, volume)->getId();
 			})
+		.def("addLbmSimulator", [](	sim::Simulation<T> &simulation, 
+									std::string name,
+									std::string stlFile,
+									int moduleId,
+									std::vector<int> nodes,
+									std::vector<std::vector<T>> normals,
+									std::vector<T> widths,
+									T charPhysLength,
+									T charPhysVelocity,
+									T alpha,
+									T resolution,
+									T epsilon,
+									T tau) {
+
+			std::unordered_map<int, arch::Opening<T>> openings;
+
+			// ASSERT equal length for nodes, normals, widths and heights
+			if (nodes.size() != normals.size() || nodes.size() != widths.size()) {
+				throw std::invalid_argument("There should be an equal amount of nodes, normals, and widths");
+			}
+
+			// ASSERT equal length for nodes, normals, widths and heights
+			if (nodes.size() != simulation.getNetwork()->getModule(moduleId)->getNodes().size()) {
+				throw std::invalid_argument("There should be an equal amount of nodes passed as in the provided module.");
+			}
+
+			for (long unsigned int i=0; i<nodes.size(); ++i) {
+				openings.try_emplace(nodes[i], arch::Opening<T>{simulation.getNetwork()->getNode(nodes[i]), normals[i], widths[i]});
+			}
+			
+			return simulation.addLbmSimulator(	name, stlFile, simulation.getNetwork()->getModule(moduleId), openings, charPhysLength,
+												charPhysVelocity, alpha, resolution, epsilon, tau)->getId();
+
+			}, "Add a LBM simulator to the simulation.")
 		.def("injectDroplet", [](sim::Simulation<T> &simulation, int dropletId, T injectionTime, int channelId, T injectionPosition) {
 				simulation.addDropletInjection(dropletId, injectionTime, channelId, injectionPosition);
 			})

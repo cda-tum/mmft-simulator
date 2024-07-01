@@ -1,5 +1,5 @@
 /**
- * @file lbmModule.h
+ * @file olbContinuous.h
  */
 
 #pragma once
@@ -26,41 +26,18 @@ template<typename T>
 class Network;
 template<typename T>
 class Node;
+template<typename T>
+class Opening;
+
+}
+
+namespace sim {
 
 /**
- * @brief Struct that defines an opening, which is an in-/outlet of the CFD domain.
+ * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-struct Opening {
-    std::shared_ptr<Node<T>> node;
-    std::vector<T> normal;
-    std::vector<T> tangent;
-    T width;
-    T height;
-
-    /**
-     * @brief Constructor of an opening.
-     * @param[in] node The module node in the network that corresponds to this opening.
-     * @param[in] normal The normal direction of the opening, pointing into the CFD domain.
-     * @param[in] width The width of the opening.
-     * @param[in] height The height of the opening.
-    */
-    Opening(std::shared_ptr<Node<T>> node_, std::vector<T> normal_, T width_, T height_=1e-4) :
-        node(node_), normal(normal_), width(width_), height(height_) {
-
-            // Rotate the normal vector 90 degrees counterclockwise to get the tangent
-            T theta = 0.5*M_PI;
-            tangent = { cos(theta)*normal_[0] - sin(theta)*normal_[1],
-                        sin(theta)*normal_[0] + cos(theta)*normal_[1]};
-
-        }
-};
-
-/**
- * @brief Class that defines the lbm module which is the interface between the abstract solver and OLB.
-*/
-template<typename T>
-class lbmModule : public Module<T> {
+class lbmSimulator : public CFDSimulator<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
@@ -74,19 +51,12 @@ private:
     int theta = 10;                         ///< Number of OLB iterations per communication iteration.
     std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes.
     std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes.
-    std::string vtkFolder = "./tmp/";
-    std::string name;                       ///< Name of the module.
-    std::string stlFile;                    ///< The STL file of the CFD domain.
-    bool initialized = false;               ///< Is the module initialized?
+    
     bool isConverged = false;               ///< Has the module converged?
     
-    std::shared_ptr<Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
-    std::unordered_map<int, Opening<T>> moduleOpenings;             ///< Map of openings.
-    std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the abstract solver.
-
     T charPhysLength;                       ///< Characteristic physical length (= width, usually).
     T charPhysVelocity;                     ///< Characteristic physical velocity (expected maximal velocity).
-    T alpha;                                ///< Relaxation factor.
+
     T resolution;                           ///< Resolution of the CFD domain. Gridpoints in charPhysLength.
     T epsilon;                              ///< Convergence criterion.
     T relaxationTime;                       ///< Relaxation time (tau) for the OLB solver.
@@ -129,36 +99,36 @@ public:
      * @param[in] stlFile STL file that describes the geometry of the CFD domain.
      * @param[in] charPhysLength Characteristic physical length of the geometry of the module in _m_.
      * @param[in] charPhysVelocity Characteristic physical velocity of the flow in the module in _m/s_.
-     * @param[in] alpha Relaxation factor for the iterative updates between the abstract and CFD solvers.
+     * @param[in] alpha Relaxation factor for the iterative updates between the 1D and CFD solvers.
      * @param[in] resolution Resolution of the CFD mesh in gridpoints per charPhysLength.
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmModule(int id, std::string name, std::string stlFile, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-        std::unordered_map<int, Opening<T>> openings, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
+    lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
+        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
      * @brief Initialize an instance of the LBM solver for this module.
      * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
      * @param[in] density Density of the simulated fluid in _kg / m^3_.
     */
-    void lbmInit(T dynViscosity, T density);
+    void lbmInit(T dynViscosity, T density) override;
 
     /**
      * @brief Prepare the LBM geometry of this instance.
     */
-    void prepareGeometry();
+    void prepareGeometry() override;
 
     /**
      * @brief Prepare the LBM lattice on the LBM geometry.
     */
-    void prepareLattice();
+    void prepareLattice() override;
 
     /**
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
-    void setBoundaryValues(int iT);
+    void setBoundaryValues(int iT) override;
 
     /**
      * @brief Conducts the collide and stream operations of the lattice.
@@ -190,12 +160,6 @@ public:
     void setFlowRates(std::unordered_map<int, T> flowRate);
 
     /**
-     * @brief Set the nodes of the module that communicate the pressure to the abstract solver.
-     * @param[in] groundNodes Map of nodes.
-     */
-    void setGroundNodes(std::unordered_map<int, bool> groundNodes);
-
-    /**
      * @brief Get the pressures at the boundary nodes.
      * @returns Pressures in Pa.
      */
@@ -212,35 +176,11 @@ public:
     };
 
     /**
-     * @brief Get the openings of the module.
-     * @returns Module openings.
-     */
-    std::unordered_map<int, Opening<T>> getOpenings() const {
-        return moduleOpenings;
-        };
-
-    /**
-     * @brief Get the ground nodes of the module.
-     * @returns Ground nodes.
-    */
-    std::unordered_map<int, bool> getGroundNodes() {
-        return groundNodes;
-    }
-
-    /**
      * @brief Get the number of iterations for the value tracer.
      * @returns Number of iterations for the value tracer.
     */
     int getStepIter() const {
         return stepIter;
-    };
-
-    /**
-     * @brief Returns whether the module is initialized or not.
-     * @returns Boolean for initialization.
-    */
-    bool getInitialized() const { 
-        return initialized; 
     };
 
     /**
@@ -250,23 +190,6 @@ public:
     bool hasConverged() const {
         return converge->hasConverged();
     };
-
-    /**
-     * @brief Set the initialized status for this module.
-     * @param[in] initialization Boolean for initialization status.
-    */
-
-    void setInitialized(bool initialization);
-
-    void setVtkFolder(std::string vtkFolder);
-
-    /**
-     * @brief Get the fully connected graph of this module, that is used for the initial approximation.
-     * @return Network of the fully connected graph.
-    */
-    std::shared_ptr<Network<T>> getNetwork() const {
-        return moduleNetwork;
-    }
 
     /**
      * @brief Get the characteristic physical length.
@@ -285,14 +208,6 @@ public:
     };
 
     /**
-     * @brief Get the relaxation factor alpha.
-     * @returns alpha.
-    */
-    T getAlpha() const { 
-        return alpha; 
-    };
-
-    /**
      * @brief Get the resolution.
      * @returns resolution.
     */
@@ -308,4 +223,5 @@ public:
         return epsilon; 
     };
 };
-}
+
+}   // namespace arch

@@ -1,0 +1,95 @@
+{	
+"network": {
+    "nodes": [
+        {   
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 1e-3,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 0.0,
+            "y": 1e-3,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 1e-3,
+            "y": 1e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 0.0,
+            "y": 2e-3,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 1e-3,
+            "y": 2e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 3e-3,
+            "y": 1e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 4e-3,
+            "y": 1e-3,
+            "z": 0.0,
+            "ground": true,
+            "sink": true
+        }
+    ],
+    "channels": [
+        {	
+            "node1": 0,
+            "node2": 1,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 2,
+            "node2": 3,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 4,
+            "node2": 5,
+            "width": 1e-4,
+            "height": 1e-4
+        },             
+        {	
+            "node1": 1,
+            "node2": 6,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 3,
+            "node2": 6,
+            "width": 1e-4,
+            "height": 1e-4
+        },          
+        {	
+            "node1": 5,
+            "node2": 6,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 6,
+            "node2": 7,
+            "width": 1e-4,
+            "height": 1e-4
+        }
+    ]
+}
+}

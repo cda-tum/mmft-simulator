@@ -84,7 +84,7 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                 }
                 if (this->mixturesInEdge.count(channel->getId())){
                     for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
-                        T newEndPos = std::min(endPos + movedDistance, 1.0);
+                        T newEndPos = std::min(endPos + movedDistance, (T) 1.0);
                         endPos = newEndPos;
                         if (newEndPos == 1.0) {
                             // if the mixture front left the channel, it's fully filled

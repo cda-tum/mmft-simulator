@@ -47,6 +47,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
+option(USE_ESSLBM "USE_ESSLBM" OFF)
+if(USE_ESSLBM)
+    ADD_DEFINITIONS(-DUSE_ESSLBM)
+    find_package(ESSLbm REQUIRED)
+    find_package(OpenMP REQUIRED)
+    find_package(MPI REQUIRED)
+    find_package(CUDAToolkit REQUIRED)
+endif()
+
 add_library(lbmLib)
 
 set(EXTERNAL_DIR ${lbm_SOURCE_DIR}/external)
@@ -89,6 +98,10 @@ set(EXTERNAL_SOURCE_LIST
     ${EXTERNAL_DIR}/zlib/zutil.c
 )
 
+option(VERBOSE "Verbose" ON)
+IF(VERBOSE)
+    ADD_DEFINITIONS(-DVERBOSE)
+ENDIF()
 
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
 
@@ -104,12 +117,20 @@ add_library(${TARGET_NAME})
 # add sources
 add_subdirectory(src)
 
+if(USE_ESSLBM)
+    target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
+endif()
+
 # create executable and tests (if build as main project)
 
 # main executable
 add_executable(MMFTSim)
 target_sources(MMFTSim PUBLIC src/main.cpp)
 target_link_libraries(MMFTSim PUBLIC ${TARGET_NAME})
+
+if(USE_ESSLBM)
+    target_link_libraries(MMFTSim PUBLIC ESS::ESSLbm)
+endif()
 
 # add Python binding code
 option(BINDINGS "Configure for building Python bindings")

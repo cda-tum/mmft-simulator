@@ -156,6 +156,23 @@
             "width": 1e-4,
             "height": 1e-4
         }
+    ],
+    "modules": [
+        {
+            "position": [1.75e-3, 0.95e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [3, 9, 10]
+        },
+        {
+            "position": [2.75e-3, 0.75e-3],
+            "size": [5e-4, 5e-4],
+            "nodes": [5, 11, 12, 13]
+        },
+        {
+            "position": [3.75e-3, -0.05e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [8, 14, 15]
+        }
     ]
 },
 "simulation": {
@@ -196,10 +213,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 1.75e-3,
-                "posY": 0.95e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 0,
                 "Openings":
                 [
                     {
@@ -244,10 +258,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 2.75e-3,
-                "posY": 0.75e-3,
-                "sizeX": 5e-4,
-                "sizeY": 5e-4,
+                "moduleId": 1,
                 "Openings":
                 [
                     {
@@ -302,10 +313,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 3.75e-3,
-                "posY": -0.05e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 2,
                 "Openings":
                 [
                     {

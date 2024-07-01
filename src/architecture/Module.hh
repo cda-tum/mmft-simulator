@@ -32,6 +32,16 @@ std::unordered_map<int, std::shared_ptr<Node<T>>> Module<T>::getNodes() const {
 }
 
 template<typename T>
+void Module<T>::setModuleTypeLbm() {
+    moduleType = ModuleType::LBM;
+}
+
+template<typename T>
+void Module<T>::setModuleTypeEssLbm() {
+    moduleType = ModuleType::ESS_LBM;
+}
+
+template<typename T>
 ModuleType Module<T>::getModuleType() const {
     return moduleType;
 }
