@@ -29,11 +29,6 @@ int CFDSimulator<T>::getId() const {
 }
 
 template <typename T>
-void CFDSimulator<T>::setModuleTypeLBM() {
-    // TODO
-}
-
-template <typename T>
 std::shared_ptr<arch::Module<T>> CFDSimulator<T>::getModule() const {
     return cfdModule;
 };

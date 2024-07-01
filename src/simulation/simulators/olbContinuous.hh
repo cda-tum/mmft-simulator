@@ -215,7 +215,6 @@ void lbmSimulator<T>::getResults (int iT) {
 template<typename T>
 void lbmSimulator<T>::lbmInit (T dynViscosity, 
                             T density) {
-    // Create network with fully connected graph and set initial resistances
 
     if (!std::filesystem::is_directory(this->vtkFolder) || !std::filesystem::exists(this->vtkFolder)) {
         std::filesystem::create_directory(this->vtkFolder);

@@ -11,7 +11,7 @@
     #include <mpi.h>
 #endif
 
-using T = double;
+using T = float;
 
 int main(int argc, char const* argv []) {
 

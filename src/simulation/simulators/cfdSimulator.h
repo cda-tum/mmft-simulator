@@ -44,8 +44,6 @@ protected:
 
     T alpha;                                ///< Relaxation factor for convergence between 1D and CFD simulation.
 
-    void setModuleTypeLBM();
-
 public:
 
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, T alpha, ResistanceModel<T>* ResistanceModel);

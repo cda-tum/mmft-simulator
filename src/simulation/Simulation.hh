@@ -120,13 +120,13 @@ namespace sim {
 
     template<typename T>
     essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
-                                                        T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+                                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
         #ifdef USE_ESSLBM
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new essLbmModule<T>(id, name, stlFile, openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);

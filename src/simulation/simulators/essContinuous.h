@@ -19,6 +19,20 @@
 
 #include <ESSLbmSolver.h>
 
+namespace arch {
+
+// Forward declared dependencies
+template<typename T>
+class Module;
+template<typename T>
+class Network;
+template<typename T>
+class Node;
+template<typename T>
+class Opening;
+
+}
+
 namespace sim {
 
     /**
@@ -39,8 +53,8 @@ namespace sim {
             bool initialized = false;               ///< Is the module initialized?
             bool isConverged = false;               ///< Has the module converged?
             
-            std::shared_ptr<Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
-            std::unordered_map<int, Opening<T>> moduleOpenings;             ///< Map of openings.
+            std::shared_ptr<arch::Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
+            std::unordered_map<int, arch::Opening<T>> moduleOpenings;             ///< Map of openings.
             std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
             T charPhysLength;                       ///< Characteristic physical length (= width, usually).
@@ -65,8 +79,8 @@ namespace sim {
              * @param[in] nodes Map of nodes that are on the boundary of the module.
              * @param[in] openings Map of the in-/outlets of the module.
             */
-            essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::unordered_map<int, Opening<T>> openings_,
-                         T charPhysLenth_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_);
+            essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule,  std::unordered_map<int, arch::Opening<T>> openings_,
+                            ResistanceModel<T>* resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
             /**
              * @brief Initialize an instance of the LBM solver for this module.
              * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
@@ -92,12 +106,6 @@ namespace sim {
             void getResults();
 
             /**
-             * @brief Write the vtk file with results of the CFD simulation to file system.
-             * @param[in] iT Iteration step.
-            */
-            void writeVTK(int iT);
-
-            /**
              * @brief Set the pressures at the nodes on the module boundary.
              * @param[in] pressure Map of pressures and node ids.
              */
@@ -110,12 +118,6 @@ namespace sim {
             void setFlowRates(std::unordered_map<int, T> flowRate) override;
 
             /**
-             * @brief Set the nodes of the module that communicate the pressure to the 1D solver.
-             * @param[in] groundNodes Map of nodes.
-             */
-            void setGroundNodes(std::unordered_map<int, bool> groundNodes) override;
-
-            /**
              * @brief Get the pressures at the boundary nodes.
              * @returns Pressures in Pa.
              */
@@ -126,12 +128,6 @@ namespace sim {
              * @returns Flow rates in m^3/s.
              */
             std::unordered_map<int, T> getFlowRates() const override;
-
-            /**
-             * @brief Get the openings of the module.
-             * @returns Module openings.
-             */
-            std::unordered_map<int, Opening<T>> getOpenings() const override;
 
             /**
              * @brief Get the ground nodes of the module.
@@ -150,30 +146,12 @@ namespace sim {
             }
 
             /**
-             * @brief Returns whether the module is initialized or not.
-             * @returns Boolean for initialization.
-            */
-            bool getInitialized() const override;
-
-            /**
              * @brief Returns whether the module has converged or not.
              * @returns Boolean for module convergence.
             */
             bool hasConverged() const override;
 
-            /**
-             * @brief Set the initialized status for this module.
-             * @param[in] initialization Boolean for initialization status.
-            */
-            void setInitialized(bool initialization) override;
-
             void setVtkFolder(std::string vtkFolder);
-
-            /**
-             * @brief Get the fully connected graph of this module, that is used for the initial approximation.
-             * @return Network of the fully connected graph.
-            */
-            std::shared_ptr<Network<T>> getNetwork() const override;
 
     };
 }

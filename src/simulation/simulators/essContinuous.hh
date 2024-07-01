@@ -1,4 +1,4 @@
-#include "essLbmModule.h"
+#include "essContinuous.h"
 #include <mpi.h>
 
 #include <iostream>
@@ -7,20 +7,11 @@
 namespace sim{
 
     template<typename T>
-    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
-        this->pressures = pressure_;
-    }
-
-    template<typename T>
-    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
-        this->flowRates = flowRate_;
-    }
-
-    template<typename T>
-    essLbmSimulator<T>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::vector<T> pos_, std::vector<T> size_, std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_, std::unordered_map<int, Opening<T>> openings_,
-                               T charPhysLenth_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_)
-            : Module<T>(id_, pos_, size_, nodes_),  name(name_), stlFile(stlFile_), moduleOpenings(openings_),
-              charPhysLength(charPhysLenth_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_)
+    essLbmSimulator<T>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_,  std::unordered_map<int, arch::Opening<T>> openings_,
+                                ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) :
+            CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, alpha_, resistanceModel_), 
+            charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
+            epsilon(epsilon_), relaxationTime(relaxationTime_)
     {
         this->cfdModule->setModuleTypeEssLbm();
     }
@@ -44,9 +35,8 @@ namespace sim{
     template<typename T>
     void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
     {
-        moduleNetwork = std::make_shared<Network<T>> (this->boundaryNodes);
 
-        std::string work_dir = "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/build/";
+        std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
         const auto& allNodes = moduleNetwork->getNodes();
         std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
@@ -71,13 +61,13 @@ namespace sim{
         solver_->prepareLattice();
 
         // There must be more than 1 node to have meaningful flow in the module domain
-        assert(this->boundaryNodes.size() > 1);
+        assert(this->moduleOpenings.size() > 1);
         // We must have exactly one opening assigned to each boundaryNode
-        assert(this->moduleOpenings.size() == this->boundaryNodes.size());
+        assert(this->moduleOpenings.size() == this->cfdModule->getNodes().size());
         
 
         // Initialize pressure, flowRate and resistance value-containers
-        for (auto& [key, node] : this->boundaryNodes)
+        for (auto& [key, node] : this->moduleOpenings)
         {
             pressures.try_emplace(key, 0.0f);
             flowRates.try_emplace(key, 0.0f);
@@ -130,39 +120,9 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_)
-    {
-        groundNodes = groundNodes_;
-    }
-
-    template<typename T>
-    void essLbmSimulator<T>::setInitialized(bool initialization_)
-    {
-        initialized = initialization_;
-    }
-
-    template<typename T>
-    std::shared_ptr<Network<T>> essLbmSimulator<T>::getNetwork() const
-    {
-        return moduleNetwork;
-    }
-
-    template<typename T>
     bool essLbmSimulator<T>::hasConverged() const
     {
         return solver_->hasConverged();
-    }
-
-    template<typename T>
-    bool essLbmSimulator<T>::getInitialized() const
-    {
-        return initialized;
-    }
-
-    template<typename T>
-    std::unordered_map<int, Opening<T>> essLbmSimulator<T>::getOpenings() const
-    {
-        return moduleOpenings;
     }
 
     template<typename T>
