@@ -4,20 +4,22 @@
 
 #pragma once
 
-#include "Fluid.h"
+namespace arch {
 
-#include "architecture/Channel.h"
-#include "architecture/lbmModule.h"
-#include "Droplet.h"
+// Forward declared dependencies
+template<typename T>
+class RectangularChannel;
+
+}   // namespace arch
 
 namespace sim {
 
-  // Forward declared dependencies
-  template<typename T>
-  class Droplet;
+// Forward declared dependencies
+template<typename T>
+class Droplet;
 
 /**
- * @brief Virtual class that describes the necessart functionality of resistance models.
+ * @brief Virtual class that describes the necessary functionality of resistance models.
 */
 template<typename T>
 class ResistanceModel {

@@ -8,11 +8,12 @@
 #include "simulation/Fluid.h"
 #include "simulation/Injection.h"
 #include "simulation/Mixture.h"
-#include "simulation/MixtureDistribution.h"
 #include "simulation/MixtureInjection.h"
 #include "simulation/MixingModels.h"
 #include "simulation/ResistanceModels.h"
 #include "simulation/Simulation.h"
+#include "simulation/simulators/cfdSimulator.h"
+#include "simulation/simulators/olbContinuous.h"
 #include "simulation/Specie.h"
 #include "simulation/events/BoundaryEvent.h"
 #include "simulation/events/Event.h"
@@ -25,9 +26,8 @@
 #include "architecture/ChannelPosition.h"
 #include "architecture/Edge.h"
 #include "architecture/FlowRatePump.h"
-#include "architecture/lbmModule.h"
-#include "architecture/MixturePump.h"
 #include "architecture/Module.h"
+#include "architecture/ModuleOpening.h"
 #include "architecture/Network.h"
 #include "architecture/Node.h"
 #include "architecture/PressurePump.h"
@@ -37,3 +37,7 @@
 #include "porting/jsonWriters.h"
 
 #include "result/Results.h"
+
+#ifdef USE_ESSLBM
+    #include "simulation/simulators/essContinuous.h"
+#endif

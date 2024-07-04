@@ -4,20 +4,20 @@
 
 #pragma once
 
-#include <olb2D.h>
-#include <olb2D.hh>
-
-#include "../architecture/Network.h"
-#include "../architecture/Module.h"
-#include "../architecture/lbmModule.h"
+#include <memory>
+#include <unordered_map>
 
 namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class CFDSimulator;
 
     /**
      * @brief Conduct theta iterations of the CFD simulation on the network.
      * @param[in] network The network on which the CFD simulations are conducted.
      */
     template<typename T>
-    bool conductCFDSimulation(const arch::Network<T>* network);
+    bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators, int iteration);
 
 }   // namespace sim

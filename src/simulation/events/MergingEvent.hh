@@ -1,14 +1,10 @@
 #include "MergingEvent.h"
 
-#include "../Droplet.h"
-#include "Event.h"
-#include "../Simulation.h"
-
 namespace sim {
 
 template<typename T>
-MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, Droplet<T>& droplet0, DropletBoundary<T>& boundary0, Droplet<T>& droplet1, Simulation<T>& simulation) : 
-    Event<T>(time, 0), droplet0(droplet0), boundary0(boundary0), droplet1(droplet1), simulation(simulation) { }
+MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, Simulation<T>& simulation) : 
+    Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), simulation(simulation) { }
 
 template<typename T>
 void MergeBifurcationEvent<T>::performEvent() {
@@ -57,8 +53,8 @@ void MergeBifurcationEvent<T>::print() {
 }
 
 template<typename T>
-MergeChannelEvent<T>::MergeChannelEvent(T time, Droplet<T>& droplet0, DropletBoundary<T>& boundary0, Droplet<T>& droplet1, DropletBoundary<T>& boundary1, Simulation<T>& simulation) : 
-    Event<T>(time, 0), droplet0(droplet0), boundary0(boundary0), droplet1(droplet1), boundary1(boundary1), simulation(simulation) {}
+MergeChannelEvent<T>::MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, Simulation<T>& simulation) : 
+    Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), boundary1(boundary1), simulation(simulation) {}
 
 template<typename T>
 void MergeChannelEvent<T>::performEvent() {
