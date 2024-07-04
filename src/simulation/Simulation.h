@@ -68,7 +68,13 @@ template<typename T>
 class Mixture;
 
 template<typename T>
+class MixtureInjection;
+
+template<typename T>
 class ResistanceModel;
+
+template<typename T>
+class Specie;
 
 enum class Type {
     Abstract,       ///< A simulation in the 1D abstraction level
