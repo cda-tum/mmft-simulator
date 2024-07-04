@@ -275,21 +275,6 @@ public:
     bool isGround(int nodeId) const;
 
     /**
-     * @brief Checks and returns if an edge is a channel
-    */
-    bool isChannel(int edgeId) const;
-
-    /**
-     * @brief Checks and returns if an edge is a pressure pump
-    */
-    bool isPressurePump(int edgeId) const;
-
-    /**
-     * @brief Checks and returns if an edge is a flowRate pump
-    */
-    bool isFlowRatePump(int edgeId) const;
-
-    /**
      * @brief Get a pointer to the node with the specific id.
     */
     std::shared_ptr<Node<T>>& getNode(int nodeId);
@@ -316,16 +301,6 @@ public:
      * @brief Get a pointer to the channel with the specific id.
     */
     RectangularChannel<T>* getChannel(int channelId) const;
-
-    /**
-     * @brief Get a pointer to the pressure pump with the specific id.
-    */
-    PressurePump<T>* getPressurePump(int pumpId) const;
-
-    /**
-     * @brief Get a pointer to the flowrate pump with the specific id.
-    */
-    FlowRatePump<T>* getFlowRatePump(int pumpId) const;
 
     /**
      * @brief Get the channels of the network.

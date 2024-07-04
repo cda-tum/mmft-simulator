@@ -363,21 +363,6 @@ bool Network<T>::isGround(int nodeId_) const {
 }
 
 template<typename T>
-bool Network<T>::isChannel(int edgeId_) const {
-    return channels.count(edgeId_);
-}
-
-template<typename T>
-bool Network<T>::isPressurePump(int edgeId_) const {
-    return pressurePumps.count(edgeId_);
-}
-
-template<typename T>
-bool Network<T>::isFlowRatePump(int edgeId_) const {
-    return flowRatePumps.count(edgeId_);
-}
-
-template<typename T>
 std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
     return nodes.at(nodeId);
 };
@@ -409,16 +394,6 @@ std::set<Node<T>*> Network<T>::getGroundNodes() const {
 template<typename T>
 RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
     return channels.at(channelId_).get();
-}
-
-template<typename T>
-PressurePump<T>* Network<T>::getPressurePump(int pumpId_) const {
-    return pressurePumps.at(pumpId_).get();
-}
-
-template<typename T>
-FlowRatePump<T>* Network<T>::getFlowRatePump(int pumpId_) const {
-    return flowRatePumps.at(pumpId_).get();
 }
 
 template<typename T>
