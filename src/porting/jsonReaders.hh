@@ -253,7 +253,7 @@ template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     sim::ResistanceModel<T>* resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
-        if (jsonString["simulation"]["resistanceModel"] == "1D") {
+        if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
