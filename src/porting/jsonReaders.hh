@@ -5,18 +5,14 @@ namespace porting {
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
     for (auto& node : jsonString["network"]["nodes"]) {
-        if (node.contains("virtual") && node["virtual"]) {
-            continue;
-        } else {
-            bool ground = false;
-            if(node.contains("ground")) {
-                ground = node["ground"];
-            }
-            auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
-            if(node.contains("sink")) {
-                if (node["sink"]) {
-                    network.setSink(addedNode->getId());
-                }
+        bool ground = false;
+        if(node.contains("ground")) {
+            ground = node["ground"];
+        }
+        auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
+        if(node.contains("sink")) {
+            if (node["sink"]) {
+                network.setSink(addedNode->getId());
             }
         }
     }
@@ -25,12 +21,8 @@ void readNodes(json jsonString, arch::Network<T>& network) {
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
     for (auto& channel : jsonString["network"]["channels"]) {
-        if (channel.contains("virtual") && channel["virtual"]) {
-            continue;
-        } else {
-            arch::ChannelType type = arch::ChannelType::NORMAL;
-            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
-        }
+        arch::ChannelType type = arch::ChannelType::NORMAL;
+        network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
     }
 }
 
@@ -261,12 +253,12 @@ template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     sim::ResistanceModel<T>* resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
-        if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
+        if (jsonString["simulation"]["resistanceModel"] == "1D") {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
-            throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
+            throw std::invalid_argument("Invalid resistance model. Options are:\n1D\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
