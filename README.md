@@ -1,8 +1,8 @@
-# MMFT Hybrid Simulator
+# MMFT Simulator
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Ubuntu-build](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_ubuntu.yml)
-[![MacOS-build](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-hybrid-simulator/actions/workflows/cmake_macos.yml)
+[![Ubuntu-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml)
+[![MacOS-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml)
 
 <p align="center">
   <picture>
@@ -10,29 +10,52 @@
   </picture>
 </p>
 
-A Hybrid Simulator for Microfluidic Devices developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the Munich MicroFluidic Toolkit (MMFT). This simulator exploits the Modified Nodal Analysis (which is a simulation method on a high level of abstraction) to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices. 
+The MMFT Simulator is a library that contains a collection of simulators for closed channel-based microfluidic devices on different levels of abstraction for different applications, and is currently distributed as a C++ library, as well as a [python package](https://pypi.org/project/mmft.simulator/). The MMFT Simulator is developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) as part of the [Munich Microfluidic Toolkit (MMFT)](https://www.cda.cit.tum.de/research/microfluidics/munich-microfluidics-toolkit/). For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/.  If you have any questions, or if you would like to suggest new features, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
 
-For more information about our work on Microfluidics, please visit https://www.cda.cit.tum.de/research/microfluidics/. 
 
-If you have any questions, feel free to contact us via microfluidics.cda@xcit.tum.de or by creating an issue on GitHub. 
+## Simulators
+
+The MMFT Simulator supports simulations for different platforms of microfluidic devices, i.e., the means (physics) by which a microfluidic device operates in an application. These simulations can be further categorized into levels of abstraction, i.e., the grade at which the underlying physics have been simplified. More information regarding microfluidic simulations on different levels of abstraction are provided in the respective publication.<sup>[[1]](https://doi.org/10.3390/s22145392)</sup> Overall, this leads to a matrix of simulations for various platforms on different levels of abstraction. The matrix below illustrates the simulations that are currently supported by the MMFT Simulator. In this matrix, the rows describe the microfluidic platform and the columns the level of abstraction of the simulation.
+
+<div align="center">
+
+|               | Abstract      | Hybrid        |
+| :-----------  | :-----------: | :-----------: |
+| Continuous    | &#x2705;      | &#x2705;      |
+| BigDroplet    | &#x2705;      |               |
+
+</div>
+
+### Abstraction Levels
+**Abstract**: This abstraction level highly abstracts the underlying physics to an extend that it can, in most cases, provide simulation results almost instantly. It uses a method that draws an analogy between the <br>Hagen-Poiseuille law and Ohm's law, and applies analogous methods from electrical circuit engineering to <br>channel-based microfluidic devices.<br>
+**Hybrid**: The Hybrid exploits simulation methods on a high level of abstraction to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices. More details can be found in the corresponding publication.<sup>[[2]](https://doi.org/10.3390/mi15010129)</sup>
+
+### Platforms
+**Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based pressure-driven microfluidic flow. <sup>[[3]](https://doi.org/10.1039/C2LC20799K)</sup> <br>
+**BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[4]](https://doi.org/10.1145/3313867)</sup> <sup>[[5]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
+
+
 
 ## System Requirements
 
-The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.7 or newer. The package is currently tested for Linux distributions.
+The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.8 or newer. The package is currently tested for Linux distributions and MacOS.
 
 ## Usage
+
+This library is currently supported for use in C++ and python projects. The respective usage is described below.
+
 ### C++
-To use this library, include the following code in your cmake file: 
+To use this library in c++, include the following code in your cmake file: 
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
-    hybridsim
-    GIT_REPOSITORY https://github.com/cda-tum/mmft-hybrid-simulator.git
+    mmftsim
+    GIT_REPOSITORY https://github.com/cda-tum/mmft-simulator.git
     GIT_TAG master
 )
-FetchContent_MakeAvailable(hybridsim)
+FetchContent_MakeAvailable(mmftsim)
 
-target_link_libraries(${TARGET} PRIVATE hybridsim)
+target_link_libraries(${TARGET} PRIVATE mmftsim)
 ```
 and include the library API header in your project file:
 ```cpp
@@ -42,92 +65,20 @@ and include the library API header in your project file:
 
 ### Python
 
-Install the python package
+To use this library in python, install the python package
 ```python
-pip install mmft.hybridsim
+pip install mmft.simulator
 ```
-and import the hybrid simulator in your code
+and import the MMFT simulator in your code
 ```python
-from mmft import hybridsim
+from mmft import simulator
 ```
 
-## Example
+## API
 
-To use the hybrid simulator, the network must be defined in a Network.JSON file. 
-A network is defined as a set of `Nodes`, `Channels` and CFD `Modules`. 
-
-A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device:
-```JSON
-{
-    "iD": 1,
-    "x": 2e-3,
-    "y": 1e-3
-}
-```
-A `Channel` connects two nodes (nA and nB) and has a width and a height:
-```JSON
-{
-    "iD": 1,
-    "nA": 1,
-    "nB": 2,
-    "width": 1e-4,
-    "height": 1e-4
-}
-```
-
-A CFD `Module` is defined with type `"LBM"` and contains paramaters for the LBM solver instance and information on the geometry of the CFD instance:
-```JSON
-{
-    "iD": 0,
-    "Type":"LBM",
-    "name": "Test1-cross-0",
-    "stlFile": "/path/to/cross.stl",
-    "charPhysLength": 1e-4,
-    "charPhysVelocity": 1e-2,
-    "alpha": 0.01,
-    "resolution": 20,
-    "epsilon": 1e-1,
-    "tau": 0.55,
-    "posX": 3.75e-3,
-    "posY": 0.75e-3,
-    "sizeX": 5e-4,
-    "sizeY": 5e-4,
-    "Openings":
-    [
-        {
-            "nodeId": 4,
-            "normalX": 1.0,
-            "normalY": 0.0,
-            "width": 1e-4
-        },
-        {
-            "nodeId": 8,
-            "normalX": 0.0,
-            "normalY": -1.0,
-            "width": 1e-4
-        },
-        {
-            "nodeId": 9,
-            "normalX": 0.0,
-            "normalY": 1.0,
-            "width": 1e-4
-        },
-        {
-            "nodeId": 10,
-            "normalX": -1.0,
-            "normalY": 0.0,
-            "width": 1e-4
-        }
-    ]
-}
-```
-Most importantly, the geometry of the CFD `Module` is described by a .STL file. The in-/outflow boundaries of the CFD `Module` are described by the `Openings`. Each opening is coupled to a single `Node` (located in the middle of the opening), has a normal direction and a width.
-
-Examples of networks can be found in the `examples` folder.
+Simulations can be defined using the C++ and Python APIs. Additionally, simulations can also be defined using the JSON file format. Please see the `examples` folder of this repository for examples of various simulations using the C++ or Python API, or JSON files. The two code-snippets below show how the API can be used to load and store JSON files, and to simulate the cases in C++ and python. Afterwards, a more detailed description of the JSON file formats is given.
 
 ### C++
-
-The simulation case is defined in `main.cpp`. An example of a simulation case in c++ is given here:
 
 ```cpp
 #include <iostream>
@@ -139,71 +90,201 @@ using T = double;
 
 int main(int argc, char const* argv []) {
 
-    // New simulation object
-    std::cout << "[Main] Create simulation object..." << std::endl;
-    sim::Simulation<T> simulation = sim::Simulation<T>();
-
+    std::string networkFile = "/path/to/Network.JSON";
+    std::string simulationFile = "/path/to/Simulation.JSON";
+    
     // Load and set the network from a JSON file
-    std::cout << "[Main] Load the JSON network..." << std::endl;
-    std::string file = "/path/to/Network.JSON";
-    arch::Network<T>* network = new arch::Network<T>(file);
-    simulation.setNetwork(network);
+    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
-    // Add Pressure and/or Flow Rate Pumps
-    std::cout << "[Main] Add pressure and Flow rate pumps..." << std::endl;
-    network->setPressurePump(0, T(1e3));
+    // Check validity
+    network.isNetworkValid();
 
-    // Define and set the continuous phase fluid
-    std::cout << "[Main] Set the continuous phase fluid..." << std::endl;
-    sim::Fluid<T>* fluid = new sim::Fluid<T>(0, T(1000), T(1e-3));
-    fluid->setName("Water");
-    simulation.setContinuousPhase(fluid);
-
-    // Define and set the resistance model
-    std::cout << "[Main] Set the resistance model..." << std::endl;
-    sim::ResistanceModel1D<T>* resistanceModel = new sim::ResistanceModel1D<T>(fluid->getViscosity());
-    simulation.setResistanceModel(resistanceModel);
-
-    // Perform simulation and store results
-    std::cout << "[Main] Simulation..." << std::endl;
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> simulation = porting::simulationFromJSON<T>(simulationFile, &network);
+    
+    // Simulate
     simulation.simulate();
 
-    // Print the results
-    std::cout << "[Main] Results..." << std::endl;
-    simulation.printResults();
-
-    return 0;
+    // Store results
+    porting::resultToJSON<T>("/path/to/Result.JSON", &simulation );
 }
 ```
 
 ### Python
 
-The simulation case can be defined once the `mmft.hybridsim` package is installed. An example for a simulation case in python is given here:
-
 ```python
-from mmft import hybridsim
+from mmft import simulator
 
-# New simulation object
-simulation = hybridsim.Simulation()
+# Initialize Network object and load from JSON file
+network = simulator.Network()
+network.loadNetwork("/path/to/Network.JSON")
 
-# Load and set the network from a JSON file
-network = hybridsim.Network("/path/to/Network.JSON")
-simulation.setNetwork(network)
+# Check validity
+network.sort()
+network.valid()
 
-# Add Pressure and/or Flow Rate Pumps
-network.setPressurePump(0, 1e3)
+# Initialize Simulation object and load from JSON file
+simulation = simulator.Simulation()
+simulation.loadSimulation(network, "/path/to/Simulation.JSON")
 
-# Define and set the continuous phase fluid
-fluid = hybridsim.Fluid(0, 1000, 1e-3)
-simulation.setContinuousPhase(fluid)
-
-# Define and set the resistance model
-resistanceModel = hybridsim.ResistanceModel(fluid.getViscosity())
-simulation.setResistanceModel(resistanceModel)
-
-# Perform simulation and store results
+# Perform simulation 
 simulation.simulate()
 
-# Print the results
-simulation.print()
+# Store results
+simulation.saveResult("/path/to/Result.JSON")
 ```
+
+### JSON Definitions
+
+The JSON file formats provide an accessible way for loading and storing simulation cases and results. To simulate a case, the JSON definitions for the `Network` and `Simulation` are necessary. Once a simulation is finished, the `Result` can be stored in a JSON file (see code-snippets above). 
+
+**Network Definition**<br>
+The geometry of a simulation case must be described as a network, which is here defined as a set of `Nodes` and `Channels`. A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device. If the node is a ground node (i.e. the reference pressure p<sub>0</sub> acts on the node), `ground` must be set `true`. For the BigDroplet simulation platform, the sinks of the domain must additionally be set at the nodes where a droplet can exit the domain. 
+```JSON
+{
+    "x": 2e-3,
+    "y": 1e-3,
+    "ground": true
+}
+```
+A `Channel` connects two nodes (node1 and node2) and has a width and a height:
+```JSON
+{
+    "node1": 1,
+    "node2": 2,
+    "width": 1e-4,
+    "height": 1e-4
+}
+```
+Please, see the `examples` folder for examples of JSON definitions of networks for various simulations.
+
+**Simulation Definition**
+
+To define a simulation, the simulation platform, simulation type and the resistance model must be set. The supported platforms are `Continuous` and `BigDroplet`, and the supported simulation types are `Abstract` and `Hybrid`. The `resistanceModel` should be set to `1D` for the `abstract` simulation type, and to `Poiseuille` for the `Hybrid` simulation type.
+```JSON
+{
+    "platform": "Continuous",
+    "type": "Abstract",
+    "resistanceModel": "Rectangular",
+}   
+```
+A simulation requires a fluid that acts as continuous phase and pumps. The definition of a `fluid` is given below, and the continuous phase is set in `fixtures`. Pumps can be either a pressure pump (`PumpPressure`) with a pressure difference `deltaP`, or a flow rate pump (`PumpFlowRate`) with a flow rate value `flowRate`. A pump is set on a channel of the network, which are indexed sequentially.
+```JSON
+{
+    "fluids": [
+        {	
+            "name": "Water",
+            "concentration": 1,
+            "density": 1000,           
+            "viscosity": 0.001
+        }
+    ],
+    "pumps": [
+        {	
+            "channel": 0,
+            "type": "PumpPressure",
+            "deltaP": 1000
+        },
+        {	
+            "channel": 1,
+            "type": "PumpPressure",
+            "deltaP": 1000
+        },
+        {	
+            "channel": 2,
+            "type": "PumpPressure",
+            "deltaP": 1000
+        }
+    ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0
+        }
+    ],
+    "activeFixture": 0,
+}   
+```
+For simulations that are of `hybrid` type, at least one "CFD module" must be defined. This is the subset of the domain that will be simulated using CFD. A CFD Module is currently only supported for "LBM" type and contains paramaters for the LBM solver instance and information on the geometry of the CFD instance. The geometry of the CFD `Module` is described by a .STL file. The in-/outflow boundaries of the CFD `Module` are described by the `Openings`. Each opening is coupled to a single `Node` (located in the middle of the opening) of the Network, has a normal direction and a width.
+```JSON
+{
+    "settings": {
+        "simulators": [
+            {	
+                "Type": "LBM",
+                "name": "Test1-cross-0",
+                "stlFile": "/path/to/cross.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.1,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "posX": 1.75e-3,
+                "posY": 0.75e-3,
+                "sizeX": 5e-4,
+                "sizeY": 5e-4,
+                "Openings": [
+                    {	
+                        "node": 5,
+                        "normal": {
+                            "x": 1.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    },
+                    {	
+                        "node": 7,
+                        "normal": {
+                            "x": 0.0,
+                            "y": -1.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    },
+                    {	
+                        "node": 8,
+                        "normal": {
+                            "x": 0.0,
+                            "y": 1.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    },
+                    {	
+                        "node": 9,
+                        "normal": {
+                            "x": -1.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}   
+```
+For examples of JSON definitions of simulations for various simulations and definitions of CFD modules, please see the `examples` folder.
+
+## References
+More details about the implementation and the mechanisms behind the MMFT Simulator can be found in: 
+
+[[1]](https://doi.org/10.3390/s22145392) M. Takken, and R. Wille. Simulation of Pressure-Driven and Channel-based Microfluidics on Different Abstract Levels: A Case Study. MDPI Sensors, 2022.
+
+[[2]](https://doi.org/10.3390/mi15010129) M. Takken, and R. Wille. Accelerated Computational Fluid Dynamics Simulations of Microfluidic Devices by Exploiting Higher Levels of Abstraction. MDPI Micromachines, 2024.
+
+[[3]](https://doi.org/10.1039/C2LC20799K) K. W. Oh, K. Lee, B. Ahn, and E. P. Furlani. Design of pressure-driven microfluidic networks using electric circuit analogy. Lab on a Chip 2012.
+
+[[4]](https://doi.org/10.1145/3313867) A. Grimmer, M. Hamidović, W. Haselmayr, and R. Wille. Advanced Simulation of Droplet Microfluidics. ACM Journal on Emerging Technologies in Computing Systems (JETC), 2019.
+
+[[5]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
+
+## How to cite
+If you use this library in your research, depending on which simulator you are using, we would appreciate it if you would cite the original work of the corresponding simulator in your work.

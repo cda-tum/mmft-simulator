@@ -80,9 +80,9 @@
     ]
 },
 "simulation": {
-    "platform": "bigDroplet",
-    "type": "1D",
-    "resistanceModel": "1D",
+    "platform": "BigDroplet",
+    "type": "Abstract",
+    "resistanceModel": "Rectangular",
     "fluids": [
         {	
             "name": "Water",
@@ -95,12 +95,6 @@
             "concentration": 1,
             "density": 1e3,           
             "viscosity": 3e-3        
-        }
-    ],
-    "droplets": [
-        {
-            "fluid": 1,
-            "volume": 4.5e-13
         }
     ],
     "pumps": [
@@ -116,7 +110,8 @@
             "phase": 0,
             "bigDropletInjections": [
                 {
-                    "droplet": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
                     "channel": 0,
                     "pos": 0.5,
                     "t0": 0,

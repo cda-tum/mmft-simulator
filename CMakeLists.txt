@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.21.0)
 
-project(hybrid-simulator
-    DESCRIPTION "Hybrid simulator for closed channel-based microfluidic devices."
-    HOMEPAGE_URL "https://github.com/cda-tum/mmft-hybrid-simulator.git"
+project(MMFT-simulator
+    DESCRIPTION "Simulator for closed channel-based microfluidic devices."
+    HOMEPAGE_URL "https://github.com/cda-tum/mmft-simulator.git"
     LANGUAGES CXX C
 )
 
@@ -13,6 +13,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions(PLATFORM_CPU_SISD)
 set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
+
+IF (WIN32)
+    set(patch_file ${CMAKE_CURRENT_BINARY_DIR}/_deps/lbm-src/src/core/singleton.h)
+    set(lbm_patch sed -i -f ${CMAKE_CURRENT_SOURCE_DIR}/script.sed ${patch_file})
+ELSE()
+    set(lbm_patch )
+ENDIF()
 
 # download external libraries
 include(FetchContent)
@@ -34,10 +41,20 @@ FetchContent_Declare(
 FetchContent_Declare(
     lbm
     URL https://www.openlb.net/wp-content/uploads/2022/04/olb-1.5r0.tgz
+    PATCH_COMMAND ${lbm_patch}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
+
+option(USE_ESSLBM "USE_ESSLBM" OFF)
+if(USE_ESSLBM)
+    ADD_DEFINITIONS(-DUSE_ESSLBM)
+    find_package(ESSLbm REQUIRED)
+    find_package(OpenMP REQUIRED)
+    find_package(MPI REQUIRED)
+    find_package(CUDAToolkit REQUIRED)
+endif()
 
 add_library(lbmLib)
 
@@ -81,6 +98,10 @@ set(EXTERNAL_SOURCE_LIST
     ${EXTERNAL_DIR}/zlib/zutil.c
 )
 
+option(VERBOSE "Verbose" ON)
+IF(VERBOSE)
+    ADD_DEFINITIONS(-DVERBOSE)
+ENDIF()
 
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
 
@@ -90,35 +111,46 @@ target_include_directories(
     ${lbm_SOURCE_DIR}/external/zlib
 )
 # add library
-set(TARGET_NAME hybridLib)
+set(TARGET_NAME simLib)
 add_library(${TARGET_NAME})
 
 # add sources
 add_subdirectory(src)
 
+if(USE_ESSLBM)
+    target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
+endif()
+
 # create executable and tests (if build as main project)
 
 # main executable
-add_executable(hybridSim)
-target_sources(hybridSim PUBLIC src/main.cpp)
-target_link_libraries(hybridSim PUBLIC ${TARGET_NAME})
+add_executable(MMFTSim)
+target_sources(MMFTSim PUBLIC src/main.cpp)
+target_link_libraries(MMFTSim PUBLIC ${TARGET_NAME})
+
+if(USE_ESSLBM)
+    target_link_libraries(MMFTSim PUBLIC ESS::ESSLbm)
+endif()
 
 # add Python binding code
 option(BINDINGS "Configure for building Python bindings")
 if(BINDINGS)
-	add_subdirectory(python/mmft/hybridsim)
+	add_subdirectory(python/mmft/simulator)
 endif()
 
 # create tests
-enable_testing()
-include(GoogleTest)
-set(TARGET_NAME testLib)
-add_library(${TARGET_NAME})
-add_subdirectory(tests)
-add_executable(simulatorTest)
-target_sources(simulatorTest PUBLIC tests/test.cpp)
-target_link_libraries(simulatorTest PUBLIC gtest gtest_main)
-target_link_libraries(simulatorTest PUBLIC gtest lbmLib)
-target_link_libraries(simulatorTest PUBLIC gtest hybridLib)
-target_link_libraries(simulatorTest PUBLIC gtest testLib)
-gtest_discover_tests(simulatorTest)
+option(TEST "Configure for building test cases")
+if(TEST)
+    enable_testing()
+    include(GoogleTest)
+    set(TARGET_NAME testLib)
+    add_library(${TARGET_NAME})
+    add_subdirectory(tests)
+    add_executable(simulatorTest)
+    target_sources(simulatorTest PUBLIC tests/test.cpp)
+    target_link_libraries(simulatorTest PUBLIC gtest gtest_main)
+    target_link_libraries(simulatorTest PUBLIC gtest lbmLib)
+    target_link_libraries(simulatorTest PUBLIC gtest simLib)
+    target_link_libraries(simulatorTest PUBLIC gtest testLib)
+    gtest_discover_tests(simulatorTest)
+endif()

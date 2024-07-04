@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "Channel.h"
-
 namespace arch {
+
+// Forward declared dependencies
+template<typename T>
+class RectangularChannel;
 
 /**
  * @brief Class to specify the boundary position of one end of a droplet.

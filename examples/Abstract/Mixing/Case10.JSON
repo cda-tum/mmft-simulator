@@ -1,0 +1,88 @@
+{	
+"_comment": "Network5",
+"simulation": {
+    "platform": "Mixing",
+    "type": "Abstract",
+    "resistanceModel": "Rectangular",
+    "mixingModel": "Instantaneous",
+    "fluids": [
+        {	
+            "name": "Water",
+            "concentration": 1,
+            "density": 1e3,           
+            "viscosity": 1e-3
+        }
+    ],
+    "species": [
+        {
+            "name": "Oxygen",
+            "diffusivity": 2.3e-9,
+            "saturationConcentration": 8.3,
+            "molecularSize": 0.0
+        },
+        {
+            "name": "Glucose",
+            "diffusivity": 3.0e-8,
+            "saturationConcentration": 109,
+            "molecularSize": 0.0
+        }
+    ],
+    "mixtures": [
+        {
+            "species": [0],
+            "concentrations": [4.0]
+        },
+        {
+            "species": [0, 1],
+            "concentrations": [2.0, 18.0]
+        },
+        {
+            "species": [1],
+            "concentrations": [8.0]
+        }
+    ],
+    "pumps": [
+        {	
+            "channel":0,
+            "type": "PumpFlowrate",
+            "flowRate": 3e-11
+        },
+        {
+            "channel":1,
+            "type": "PumpFlowrate",
+            "flowRate": 3e-11
+        },
+        {	
+            "channel":2,
+            "type": "PumpFlowrate",
+            "flowRate": 3e-11
+        }
+    ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0,
+            "mixtureInjections": [
+                {
+                    "mixture": 0,
+                    "channel": 3,
+                    "t0": 0.0
+                },
+                {
+                    "mixture": 1,
+                    "channel": 4,
+                    "t0": 0.5
+                },
+                {
+                    "mixture": 2,
+                    "channel": 5,
+                    "t0": 2.0
+                }
+            ]
+        }
+    ],
+    "activeFixture": 0,
+    "settings": {
+    }
+}
+}
