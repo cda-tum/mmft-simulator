@@ -102,19 +102,15 @@ namespace sim {
         } else if (network->isPressurePump(edgeId)) {
             auto pump = network->getPressurePump(edgeId);
             for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
-                auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+                mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
-            return nullptr;
-
         } else if (network->isFlowRatePump(edgeId)) {
             auto pump = network->getFlowRatePump(edgeId);
             for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
-                auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+                mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
-            return nullptr;
         }
-
-
+        return nullptr;
     }
 
     template<typename T>

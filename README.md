@@ -165,7 +165,7 @@ To define a simulation, the simulation platform, simulation type and the resista
 {
     "platform": "Continuous",
     "type": "Abstract",
-    "resistanceModel": "1D",
+    "resistanceModel": "Rectangular",
 }   
 ```
 A simulation requires a fluid that acts as continuous phase and pumps. The definition of a `fluid` is given below, and the continuous phase is set in `fixtures`. Pumps can be either a pressure pump (`PumpPressure`) with a pressure difference `deltaP`, or a flow rate pump (`PumpFlowRate`) with a flow rate value `flowRate`. A pump is set on a channel of the network, which are indexed sequentially.

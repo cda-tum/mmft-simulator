@@ -41,7 +41,7 @@ void readChannels(json jsonString, arch::Network<T>& network) {
                 throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
-            auto addedChannel = network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
             channelId++;
         }
     }
