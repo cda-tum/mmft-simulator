@@ -4,32 +4,38 @@ namespace porting {
 
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
+    int nodeId = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
         if (node.contains("virtual") && node["virtual"]) {
+            nodeId++;
             continue;
         } else {
             bool ground = false;
             if(node.contains("ground")) {
                 ground = node["ground"];
             }
-            auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
+            auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
             if(node.contains("sink")) {
                 if (node["sink"]) {
                     network.setSink(addedNode->getId());
                 }
             }
+            nodeId++;
         }
     }
 }
 
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
+    int channelId = 0;
     for (auto& channel : jsonString["network"]["channels"]) {
         if (channel.contains("virtual") && channel["virtual"]) {
+            channelId++;
             continue;
         } else {
             arch::ChannelType type = arch::ChannelType::NORMAL;
-            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
+            auto addedChannel = network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            channelId++;
         }
     }
 }

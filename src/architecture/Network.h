@@ -147,6 +147,11 @@ public:
     Node<T>* addNode(T x, T y, bool ground=false);
 
     /**
+     * @brief Adds a new node to the network.
+    */
+    Node<T>* addNode(int nodeId, T x, T y, bool ground=false);
+
+    /**
      * @brief Adds a new channel to the chip.
      * @param[in] nodeAId Id of the node at one end of the channel.
      * @param[in] nodeBId Id of the node at the other end of the channel.
@@ -168,6 +173,17 @@ public:
      * @return Id of the newly created channel.
      */
     RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type);
+
+    /**
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @return Id of the newly created channel.
+     */
+    RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, int channelId);
 
     /**
      * @brief Adds a new channel to the chip.
