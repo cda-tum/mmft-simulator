@@ -91,13 +91,30 @@ namespace sim {
     }
 
     template<typename T>
-    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int channelId, T injectionTime) {
+    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
         auto id = mixtureInjections.size();
-        auto channel = network->getChannel(channelId);
 
-        auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+        if (network->isChannel(edgeId)) {
+            auto channel = network->getChannel(edgeId);
+            auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            return result.first->second.get();
+            
+        } else if (network->isPressurePump(edgeId)) {
+            auto pump = network->getPressurePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+            return nullptr;
 
-        return result.first->second.get();
+        } else if (network->isFlowRatePump(edgeId)) {
+            auto pump = network->getFlowRatePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+            return nullptr;
+        }
+
+
     }
 
     template<typename T>

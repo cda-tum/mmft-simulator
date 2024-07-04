@@ -63,6 +63,7 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
     simulation.setNetwork(network_);
 
     readFluids<T>(jsonString, simulation);
+    readPumps<T>(jsonString, network_);
 
     if (platform == sim::Platform::Continuous) {
         if (simType == sim::Type::CFD) {
@@ -99,7 +100,6 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
 
     readBoundaryConditions<T>(jsonString, simulation, activeFixture);
     readContinuousPhase<T>(jsonString, simulation, activeFixture);
-    readPumps<T>(jsonString, network_);
     readResistanceModel<T>(jsonString, simulation);
 }
 

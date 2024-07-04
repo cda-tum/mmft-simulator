@@ -4,31 +4,46 @@ namespace porting {
 
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
+    int nodeId = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
-        if (!node.contains("x") || !node.contains("y")) {
-            throw std::invalid_argument("Node is ill-defined. Please define:\nx\ny");
-        }
-        bool ground = false;
-        if(node.contains("ground")) {
-            ground = node["ground"];
-        }
-        auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
-        if(node.contains("sink")) {
-            if (node["sink"]) {
-                network.setSink(addedNode->getId());
+        
+        if (node.contains("virtual") && node["virtual"]) {
+            nodeId++;
+            continue;
+        } else {
+            if (!node.contains("x") || !node.contains("y")) {
+                throw std::invalid_argument("Node is ill-defined. Please define:\nx\ny");
             }
+            bool ground = false;
+            if(node.contains("ground")) {
+                ground = node["ground"];
+            }
+            auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
+            if(node.contains("sink")) {
+                if (node["sink"]) {
+                    network.setSink(addedNode->getId());
+                }
+            }
+            nodeId++;
         }
     }
 }
 
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
+    int channelId = 0;
     for (auto& channel : jsonString["network"]["channels"]) {
-        if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
-            throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+        if (channel.contains("virtual") && channel["virtual"]) {
+            channelId++;
+            continue;
+        } else {
+            if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
+                throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+            }
+            arch::ChannelType type = arch::ChannelType::NORMAL;
+            auto addedChannel = network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            channelId++;
         }
-        arch::ChannelType type = arch::ChannelType::NORMAL;
-        network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
     }
 }
 
@@ -286,12 +301,12 @@ template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     sim::ResistanceModel<T>* resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
-        if (jsonString["simulation"]["resistanceModel"] == "1D") {
+        if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
-            throw std::invalid_argument("Invalid resistance model. Options are:\n1D\nPoiseuille");
+            throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
