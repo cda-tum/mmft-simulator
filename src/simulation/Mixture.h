@@ -138,7 +138,9 @@ public:
     */
     const std::unordered_map<int, Specie<T>*>& getSpecies() const;
 
-    virtual const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const { };
+    virtual const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const {
+        throw std::invalid_argument("Tried to access species distribution for non-diffusive mixture.");
+    };
 
 };
 
@@ -146,9 +148,9 @@ template<typename T>
 class DiffusiveMixture : public Mixture<T> {
 private:
 
-    bool isConstant = true;
-    int resolution;
     std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
+    int resolution;
+    bool isConstant = true;
 
 public:
 

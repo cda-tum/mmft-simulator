@@ -236,7 +236,6 @@ template<typename T>
 void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network) {
     mixingNodes.clear();
     for (auto& [nodeId, node] : network->getNodes()) {
-        bool generateInflow = false;
         for (auto& [channelId, channel] : network->getChannels()) {
             // If the channel flows into this node
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
@@ -254,7 +253,6 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
                             if (this->filledEdges.count(channel->getId())) {
                                 this->filledEdges.at(channel->getId()) = mixtureId;
                             } else {
-                                //std::cout << "We are emplacing a filled Edge." << std::endl;
                                 this->filledEdges.try_emplace(channel->getId(), mixtureId);
                             }
                             // We must generate the outflow of this node, i.e., the inflow of the channels that flow out of the node
@@ -354,7 +352,9 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             arch::Node<T>* nodeB = network->getNode(channel->getNodeB()).get();
             T dx = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[0]-nodeA->getPosition()[0] : nodeA->getPosition()[0]-nodeB->getPosition()[0];
             T dy = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[1]-nodeA->getPosition()[1] : nodeA->getPosition()[1]-nodeB->getPosition()[1];
+            #ifdef DEBUG
             assert((dx*dx+dy*dy) > 1e-12);
+            #endif
             T angle = atan2(dy,dx);
             angle = std::fmod(atan2(dy,dx)+2*M_PI,2*M_PI);
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
@@ -460,8 +460,8 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                 std::cout << "Channel " << channelOut.channelId << " cuts at " << std::min(newCut, 1.0) << " with outflow of " << std::abs(network->getChannel(channelOut.channelId)->getFlowRate()) << std::endl;
             }
 
-            int n_in = 0;
-            int n_out = 0;
+            long unsigned int n_in = 0;
+            long unsigned int n_out = 0;
             T start = 0.0;
             T end = 0.0;
             for (auto& channelInId : channelInIDs) {
@@ -486,7 +486,9 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                             std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
                             outflowDistributions.try_emplace(channelOutIDs[n_out], newFlowSectionVector);
                         }
+                        #ifdef DEBUG
                         assert(n_out < channelOutIDs.size());
+                        #endif
                         n_in++;
                         start = 0.0;
                         filled = true;
@@ -508,7 +510,9 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                             std::vector<FlowSection<T>> newFlowSectionVector = {inFlowSection};
                             outflowDistributions.try_emplace(channelOutIDs[n_out], newFlowSectionVector);
                         }
+                        #ifdef DEBUG
                         assert(n_out < channelOutIDs.size());
+                        #endif
                         n_out++;
                         start = end;
                     }
@@ -609,7 +613,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         for (int n = 1; n < resolution; n++) {
             a_n = a_0_old / (M_PI * n) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
             
-            for (int i = 0; i < parameter.segmentedResult.size(); i++) {
+            for (long unsigned int i = 0; i < parameter.segmentedResult.size(); i++) {
                 T translateFactor = parameter.translateFactor;
 
                 int oldN = (i % (resolution - 1)) + 1;
@@ -641,7 +645,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         std::cout << "a_0_old is " << a_0_old << std::endl;
         a_0 += a_0_old * (parameter.endWidth - parameter.startWidth); 
         std::cout << "a_0 += " << a_0_old * (parameter.endWidth - parameter.startWidth) << std::endl;
-        for (int i = 0; i < parameter.segmentedResult.size(); i++) { 
+        for (long unsigned int i = 0; i < parameter.segmentedResult.size(); i++) { 
             T scaleFactor = parameter.scaleFactor;
             T translateFactor = parameter.translateFactor;
             int oldN = (i % (resolution - 1)) + 1;
@@ -663,7 +667,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
             for (int n = 1; n < resolution; n++) {
                 a_n = a_0_old / (M_PI * n) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
                 
-                for (int i = 0; i < parameter.segmentedResult.size(); i++) {
+                for (long unsigned int i = 0; i < parameter.segmentedResult.size(); i++) {
                     T translateFactor = parameter.translateFactor;
                     int oldN = (i % (resolution - 1)) + 1;
 
@@ -710,7 +714,9 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         T scaleFactor = (endWidth - startWidth) / (flowSection.sectionEnd - flowSection.sectionStart);
         std::cout << "The scale factor is: " << scaleFactor << " = (" << (endWidth - startWidth) << ")/(" << (flowSection.sectionEnd - flowSection.sectionStart) << ")" << std::endl;
         T translateFactor = flowSection.sectionStart - startWidth / scaleFactor;
+        #ifdef DEBUG
         assert(flowSection.sectionStart-startWidth >= (-1.0 - 1e-16) && flowSection.sectionStart-startWidth <= (1.0 + 1e-16));
+        #endif
 
         if (!this->filledEdges.count(flowSection.channelId)){
             T concentration = 0.0;

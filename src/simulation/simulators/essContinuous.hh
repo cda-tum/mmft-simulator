@@ -60,11 +60,12 @@ namespace sim{
         solver_ = std::make_shared<ess::lbmSolver>(work_dir, stlFile, openings, nodes, charPhysLength, charPhysVelocity, 1.0f / resolution, epsilon, relaxationTime, density, dynViscosity);
         solver_->prepareLattice();
 
+        #ifdef DEBUG
         // There must be more than 1 node to have meaningful flow in the module domain
         assert(this->moduleOpenings.size() > 1);
         // We must have exactly one opening assigned to each boundaryNode
         assert(this->moduleOpenings.size() == this->cfdModule->getNodes().size());
-        
+        #endif
 
         // Initialize pressure, flowRate and resistance value-containers
         for (auto& [key, node] : this->moduleOpenings)

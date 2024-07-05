@@ -224,10 +224,12 @@ void lbmSimulator<T>::lbmInit (T dynViscosity,
 
     T kinViscosity = dynViscosity/density;
 
+    #ifdef DEBUG
     // There must be more than 1 node to have meaningful flow in the module domain
     assert(this->moduleOpenings.size() > 1);
     // We must have exactly one opening assigned to each boundaryNode
     assert(this->moduleOpenings.size() == this->cfdModule->getNodes().size());
+    #endif
 
     this->converter = std::make_shared<const olb::UnitConverterFromResolutionAndRelaxationTime<T,DESCRIPTOR>>(
         resolution,
