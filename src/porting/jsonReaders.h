@@ -28,6 +28,12 @@ namespace sim {
 enum class Platform;
 
 template<typename T>
+class lbmSimulator;
+
+template<typename T>
+class essLbmSimulator;
+
+template<typename T>
 class Simulation;
 
 enum class Type;
@@ -50,6 +56,14 @@ void readNodes (json jsonString, arch::Network<T>& network);
 */
 template<typename T>
 void readChannels (json jsonString, arch::Network<T>& network);
+
+/**
+ * @brief Construct and store the modules in the network as defined by the json string
+ * @param[in] jsonString json string
+ * @param[in] network network object
+*/
+template<typename T>
+void readModules (json jsonString, arch::Network<T>& network);
 
 /**
  * @brief Set the platform of the simulation as defined by the json string
@@ -128,7 +142,7 @@ void readContinuousPhase (json jsonString, sim::Simulation<T>& simulation, int a
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readSimulators (json jsonString, arch::Network<T>* network);
+void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network);
 
 /**
  * @brief Sets channels in the network to pressure or flow rate pump, as defined by the json string

@@ -1,0 +1,638 @@
+{
+    "fixture": 0,
+    "type": "Abstract",
+    "platform": "BigDroplet",
+    "fluids": [
+        {
+            "id": 0,
+            "name": "",
+            "concentration": 1.0,
+            "density": 1000.0,
+            "viscosity": 0.001
+        },
+        {
+            "id": 1,
+            "name": "",
+            "concentration": 1.0,
+            "density": 1000.0,
+            "viscosity": 0.003
+        }
+    ],
+    "network": [
+        {
+            "time": 0.0,
+            "nodes": [
+                {
+                    "pressure": 602.2375366296347
+                },
+                {
+                    "pressure": 437.9909357306051
+                },
+                {
+                    "pressure": 273.74433483157554
+                },
+                {
+                    "pressure": 218.99546786530246
+                },
+                {
+                    "pressure": 164.24660089902946
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 3e-11
+                },
+                {
+                    "flowRate": 2.999999999999998e-11
+                },
+                {
+                    "flowRate": 1.0000000000025627e-11
+                },
+                {
+                    "flowRate": 1.9999999999974363e-11
+                },
+                {
+                    "flowRate": 1.0000000000025613e-11
+                },
+                {
+                    "flowRate": 2.999999999999996e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.0,
+            "nodes": [
+                {
+                    "pressure": 676.1485070341982
+                },
+                {
+                    "pressure": 437.99093573060526
+                },
+                {
+                    "pressure": 273.74433483157577
+                },
+                {
+                    "pressure": 218.99546786530277
+                },
+                {
+                    "pressure": 164.2466008990297
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 2.9999999999999993e-11
+                },
+                {
+                    "flowRate": 2.999999999999997e-11
+                },
+                {
+                    "flowRate": 1.0000000000025613e-11
+                },
+                {
+                    "flowRate": 1.9999999999974363e-11
+                },
+                {
+                    "flowRate": 1.0000000000025627e-11
+                },
+                {
+                    "flowRate": 3.0000000000000006e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 0,
+                                "position": 0.42500000000000004
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 0,
+                                "position": 0.575
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.033203125000000014,
+            "nodes": [
+                {
+                    "pressure": 676.1485070341978
+                },
+                {
+                    "pressure": 437.990935730605
+                },
+                {
+                    "pressure": 273.74433483157554
+                },
+                {
+                    "pressure": 218.99546786530254
+                },
+                {
+                    "pressure": 164.24660089902957
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 2.999999999999998e-11
+                },
+                {
+                    "flowRate": 2.9999999999999955e-11
+                },
+                {
+                    "flowRate": 1.0000000000025613e-11
+                },
+                {
+                    "flowRate": 1.9999999999974343e-11
+                },
+                {
+                    "flowRate": 1.0000000000025608e-11
+                },
+                {
+                    "flowRate": 2.999999999999998e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 0,
+                                "position": 0.8500000000000001
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 1,
+                                "position": 0.0
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.04492187500000002,
+            "nodes": [
+                {
+                    "pressure": 676.1485070341976
+                },
+                {
+                    "pressure": 511.90190613516813
+                },
+                {
+                    "pressure": 273.74433483157543
+                },
+                {
+                    "pressure": 218.99546786530237
+                },
+                {
+                    "pressure": 164.24660089902937
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 2.9999999999999955e-11
+                },
+                {
+                    "flowRate": 2.999999999999996e-11
+                },
+                {
+                    "flowRate": 1.0000000000025623e-11
+                },
+                {
+                    "flowRate": 1.9999999999974356e-11
+                },
+                {
+                    "flowRate": 1.0000000000025613e-11
+                },
+                {
+                    "flowRate": 2.999999999999995e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 1,
+                                "position": 0.0
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 1,
+                                "position": 0.1499999999999999
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.11132812500000011,
+            "nodes": [
+                {
+                    "pressure": 676.1485070341989
+                },
+                {
+                    "pressure": 511.90190613516927
+                },
+                {
+                    "pressure": 273.74433483157634
+                },
+                {
+                    "pressure": 218.99546786530323
+                },
+                {
+                    "pressure": 164.24660089903003
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 3e-11
+                },
+                {
+                    "flowRate": 2.9999999999999993e-11
+                },
+                {
+                    "flowRate": 1.0000000000025634e-11
+                },
+                {
+                    "flowRate": 1.9999999999974405e-11
+                },
+                {
+                    "flowRate": 1.0000000000025648e-11
+                },
+                {
+                    "flowRate": 3.0000000000000064e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 1,
+                                "position": 0.8500000000000001
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 3,
+                                "position": 0.0
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.1253906250000073,
+            "nodes": [
+                {
+                    "pressure": 630.8021628728617
+                },
+                {
+                    "pressure": 466.555561973832
+                },
+                {
+                    "pressure": 302.3089610748024
+                },
+                {
+                    "pressure": 233.2777809869159
+                },
+                {
+                    "pressure": 164.24660089902954
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 3e-11
+                },
+                {
+                    "flowRate": 2.999999999999999e-11
+                },
+                {
+                    "flowRate": 1.2608695652202023e-11
+                },
+                {
+                    "flowRate": 1.7391304347797986e-11
+                },
+                {
+                    "flowRate": 1.2608695652201992e-11
+                },
+                {
+                    "flowRate": 2.999999999999998e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 3,
+                                "position": 0.0
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 3,
+                                "position": 0.1499999999999999
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.23994140625019242,
+            "nodes": [
+                {
+                    "pressure": 630.8021628728618
+                },
+                {
+                    "pressure": 466.555561973832
+                },
+                {
+                    "pressure": 302.3089610748026
+                },
+                {
+                    "pressure": 233.2777809869162
+                },
+                {
+                    "pressure": 164.24660089902977
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 3.000000000000002e-11
+                },
+                {
+                    "flowRate": 2.9999999999999955e-11
+                },
+                {
+                    "flowRate": 1.2608695652201997e-11
+                },
+                {
+                    "flowRate": 1.7391304347797983e-11
+                },
+                {
+                    "flowRate": 1.2608695652202007e-11
+                },
+                {
+                    "flowRate": 3.000000000000002e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 3,
+                                "position": 0.8500000000000001
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 5,
+                                "position": 0.0
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.25477798881900854,
+            "nodes": [
+                {
+                    "pressure": 676.1485070341995
+                },
+                {
+                    "pressure": 511.90190613516955
+                },
+                {
+                    "pressure": 347.65530523613967
+                },
+                {
+                    "pressure": 292.9064382698665
+                },
+                {
+                    "pressure": 238.1575713035933
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 3.000000000000005e-11
+                },
+                {
+                    "flowRate": 3.000000000000004e-11
+                },
+                {
+                    "flowRate": 1.0000000000025644e-11
+                },
+                {
+                    "flowRate": 1.9999999999974414e-11
+                },
+                {
+                    "flowRate": 1.0000000000025648e-11
+                },
+                {
+                    "flowRate": 3.000000000000003e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 5,
+                                "position": 0.0
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 5,
+                                "position": 0.1499999999999999
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        },
+        {
+            "time": 0.3211842388190085,
+            "nodes": [
+                {
+                    "pressure": 602.2375366296347
+                },
+                {
+                    "pressure": 437.9909357306051
+                },
+                {
+                    "pressure": 273.74433483157554
+                },
+                {
+                    "pressure": 218.99546786530246
+                },
+                {
+                    "pressure": 164.24660089902946
+                },
+                {
+                    "pressure": 0.0
+                }
+            ],
+            "channels": [
+                {
+                    "flowRate": 3e-11
+                },
+                {
+                    "flowRate": 2.999999999999998e-11
+                },
+                {
+                    "flowRate": 1.0000000000025627e-11
+                },
+                {
+                    "flowRate": 1.9999999999974363e-11
+                },
+                {
+                    "flowRate": 1.0000000000025613e-11
+                },
+                {
+                    "flowRate": 2.999999999999996e-11
+                },
+                {
+                    "flowRate": 3e-11
+                }
+            ],
+            "bigDroplets": [
+                {
+                    "id": 0,
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "boundaries": [
+                        {
+                            "volumeTowards1": false,
+                            "position": {
+                                "channel": 5,
+                                "position": 0.8500000000000001
+                            }
+                        },
+                        {
+                            "volumeTowards1": true,
+                            "position": {
+                                "channel": 5,
+                                "position": 1.0
+                            }
+                        }
+                    ],
+                    "channels": []
+                }
+            ]
+        }
+    ]
+}

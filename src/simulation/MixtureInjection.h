@@ -33,9 +33,9 @@ class MixtureInjection {
   private:
     const int id;               ///< Unique identifier of an injection.
     std::string name = "";      ///< Name of the injection.
-    T injectionTime;            ///< Time at which the injection should start in s elapsed since the start of the simulation.
     int mixtureId;              ///< Id of mixture to be injected.
     arch::RectangularChannel<T>* injectionChannel;  ///< Channel at which the fluid is injected.
+    T injectionTime;            ///< Time at which the injection should start in s elapsed since the start of the simulation.
     bool performed = false;     ///< Information if the change of the input mixture was already performed or not.
 
   public:

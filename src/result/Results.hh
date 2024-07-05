@@ -85,6 +85,13 @@ const void State<T>::printState() {
         }
         std::cout << "\n";
     }
+    // print the filled edges
+    if( !filledEdges.empty() ) {
+        for (auto& [edgeId, mixtureId] : filledEdges) {
+            std::cout << "\t[Result] Channel " << edgeId << " is filled with " << mixtureId << "\n";
+        }
+        std::cout << "\n";
+    }
 }
 
 template<typename T>
@@ -172,4 +179,51 @@ const void SimulationResult<T>::printMixtures() {
     }
 }
 
-}  // namespace droplet
+template<typename T>
+const void SimulationResult<T>::writeMixture(int mixtureId) {
+    // TODO Maria, CSV Writer here
+    // TODO get a channel pointer
+    int numValues = 101; // Number of points to calculate
+
+    std::cout << "Generating CSV files" << std::endl;
+
+    T step = 1.0 / (numValues-1);
+
+    auto mixture = this->mixtures.at(mixtureId);
+
+    try {
+        for (auto& [specieId, tuple] : mixture->getSpecieDistributions()) {
+            std::cout << "Mixture " << mixtureId << " contains species " << specieId <<std::endl;
+        }
+
+        // std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
+        std::cout << "Mixture " << mixtureId << std::endl;
+        for (auto& [specieId, tuple] : mixture->getSpecieDistributions()) {
+            std::cout << "Specie " << specieId << std::endl;
+            std::string outputFileName = "function_mixture"+std::to_string(mixtureId)+"_species"+std::to_string(specieId)+".csv";
+            std::cout << "Generating CSV file: " << outputFileName << std::endl;
+            // Open a file in write mode.
+            std::ofstream outputFile;
+            outputFile.open(outputFileName); // TODO maybe define this inside of the loop
+            // Write the header to the CSV file TODO adapt this to fit the specific mixture
+            outputFile << "x,f(x)\n";
+            // Calculate and write the values to the file
+            for (int i = 0; i < numValues; ++i) {
+                T x = i * step;
+                T y;
+                // y = tuple.first(x);
+                y = std::get<0>(tuple)(x);
+                outputFile << std::setprecision(4) << x << "," << y << "\n"; 
+            }
+            // Close the file
+            outputFile.close();
+        }
+    }
+    catch(...) {
+        throw std::invalid_argument("Tried to access a mixture without specie distributions.");
+    }
+    
+    std::cout << "CSV file has been generated " << std::endl;
+}
+
+}  // namespace result

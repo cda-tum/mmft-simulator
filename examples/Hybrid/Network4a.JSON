@@ -150,6 +150,28 @@
             "width": 1e-4,
             "height": 1e-4
         }
+    ],
+    "modules": [
+        {
+            "position": [1.75e-3, 0.75e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [2, 8, 9]
+        },
+        {
+            "position": [2.75e-3, 0.75e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [4, 10, 11]
+        },
+        {
+            "position": [2.75e-3, -0.05e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [5, 12, 13]
+        },
+        {
+            "position": [3.75e-3, -0.05e-3],
+            "size": [5e-4, 3e-4],
+            "nodes": [7, 14, 15]
+        }
     ]
 },
 "simulation": {
@@ -190,10 +212,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 1.75e-3,
-                "posY": 0.75e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 0,
                 "Openings": [
                     {
                         "node": 2,
@@ -237,10 +256,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 2.75e-3,
-                "posY": 0.75e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 1,
                 "Openings":
                 [
                     {
@@ -285,10 +301,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 2.75e-3,
-                "posY": -0.05e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 2,
                 "Openings":
                 [
                     {
@@ -333,10 +346,7 @@
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 3.75e-3,
-                "posY": -0.05e-3,
-                "sizeX": 5e-4,
-                "sizeY": 3e-4,
+                "moduleId": 3,
                 "Openings":
                 [
                     {

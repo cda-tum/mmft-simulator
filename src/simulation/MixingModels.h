@@ -5,7 +5,9 @@
 #pragma once
 
 #include <deque>
+#include <functional>
 #include <memory>
+#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -39,6 +41,34 @@ struct MixtureInFlow {
     int mixtureId;
     T inflowVolume;
 
+};
+
+template<typename T>
+struct RadialPosition {
+    T radialAngle;
+    int channelId;
+    bool inFlow;
+};
+
+template<typename T>
+struct FlowSection {
+    int channelId;  // Channel of this flow coming into the node
+    T sectionStart; // Start of the relevant section of this inflow (relative, 0.0-1.0)
+    T sectionEnd;   // End of the relevant section of this inflow (relative, 0.0-1.0)
+    T flowRate;
+    T width;
+};
+
+template<typename T>
+struct FlowSectionInput {
+    T startWidth;
+    T endWidth;
+    T scaleFactor; // this is technically redundant for constant flow sections
+    T translateFactor;
+    T concentrationAtChannelEnd; // concentration if it is a constant flow section
+    std::function<T(T)> concentrationAtChannelEndFunction;
+    std::vector<T> segmentedResult; // this is technically redundant for constant flow sections
+    T a_0_old;
 };
 
 /**
@@ -91,6 +121,13 @@ public:
     const std::unordered_map<int, int>& getFilledEdges() const;
 
     /**
+     * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
+     * @param[in] mixtureId Id of the mixture.
+     * @param[in] channelId Id of the channel.
+    */
+    void injectMixtureInEdge(int mixtureId, int channelId);
+
+    /**
      * @brief Update the position of all mixtures in the network and update the inflow into all nodes.
      * @param[in] timeStep the current timestep size.
      * @param[in] network pointer to the network.
@@ -106,12 +143,9 @@ public:
     */
     virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
 
-    /**
-     * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
-     * @param[in] mixtureId Id of the mixture.
-     * @param[in] channelId Id of the channel.
-    */
-    virtual void injectMixtureInEdge(int mixtureId, int channelId) = 0;
+    virtual bool isInstantaneous() = 0;
+
+    virtual bool isDiffusive() = 0;
 };
 
 /**
@@ -143,14 +177,14 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
 
     /**
      * @brief Calculate and store the mixtures flowing into all nodes
      * @param[in] timeStep The timeStep size of the current iteration.
      * @param[in] network Pointer to the network.
     */
-    void updateNodeInflow(T timeStep, arch::Network<T>* network);
+    void updateNodeInflow(T timeStep, arch::Network<T>* network) override;
 
     /**
      * @brief Calculate the mixture outflow at each node from all inflows and, when necessary, create new mixtures.
@@ -174,18 +208,73 @@ public:
     void clean(arch::Network<T>* network);
 
     /**
-     * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
-     * @param[in] mixtureId Id of the mixture.
-     * @param[in] channelId Id of the channel.
-    */
-    void injectMixtureInEdge(int mixtureId, int channelId);
-
-    /**
      * @brief Print all mixtures and their positions in the network.
     */
     void printMixturesInNetwork();
 
+    bool isInstantaneous() override { return 1; };
+
+    bool isDiffusive() override { return 0; };
+
 };
 
+template<typename T>
+class DiffusionMixingModel : public MixingModel<T> {
+
+private:
+    int resolution = 10;
+    std::set<int> mixingNodes;
+    std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
+    std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
+    std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
+    void generateInflows();
+
+public:
+
+    DiffusionMixingModel();
+
+    /**
+     * @brief Create and/or propagate mixtures into channels downstream.
+     * @param[in] timeStep the current timestep size.
+     * @param[in] network pointer to the network.
+     * @param[in] sim pointer to the simulation.
+     * @param[in] mixtures reference to the unordered map of mixtures.
+    */
+    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
+
+    /**
+     * @brief Propagate the mixtures and check if a mixtures reaches channel end.
+    */
+    void updateNodeInflow(T timeStep, arch::Network<T>* network) override;
+
+    /**
+     * @brief Generate a new inflow in case a mixture has reached channel end. Invoked by updateNodeInflow.
+    */
+    void generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+
+    void topologyAnalysis(arch::Network<T>* network, int nodeId);
+    
+    void printTopology();
+
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
+
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
+        const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
+
+    void clean(arch::Network<T>* network);
+
+    void printMixturesInNetwork();
+
+    std::vector<std::vector<RadialPosition<T>>>& getConcatenatedFlows() { return concatenatedFlows; }
+
+    std::unordered_map<int, std::vector<FlowSection<T>>>& getOutflowDistributions() { return outflowDistributions; }
+
+    bool isInstantaneous() override { return 0; };
+
+    bool isDiffusive() override { return 1; };
+
+};
 
 }   // namespace sim

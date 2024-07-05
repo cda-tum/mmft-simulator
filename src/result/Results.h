@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <memory>
+#include <fstream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -170,6 +171,12 @@ struct SimulationResult {
     void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
+     * @brief Get the simulated flowrates in the channels.
+     * @return Vector of flowrate values
+     */
+    const std::unordered_map<int, T>& getFinalMixturePositions() const;
+
+    /**
      * @brief Get the simulated states that were stored during simulation.
      * @return Vector of states
      */
@@ -196,6 +203,8 @@ struct SimulationResult {
     const std::unordered_map<int, sim::Mixture<T>*>& getMixtures() const;
 
     const void printMixtures();
+
+    const void writeMixture(int mixtureId);
 };
 
 }   // namespace results

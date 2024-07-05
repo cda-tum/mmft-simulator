@@ -7,20 +7,28 @@
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
 
+#ifdef USE_ESSLBM
+    #include <mpi.h>
+#endif
+
 using T = double;
 
 int main(int argc, char const* argv []) {
 
+    #ifdef USE_ESSLBM
+    MPI_Init(NULL,NULL);
+    #endif
+
     std::string file = argv[1];
 
-    std::cout << "[Main] Create simulation object..." << std::endl;
-
     // Load and set the network from a JSON file
+    std::cout << "[Main] Create network object..." << std::endl;
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
+    std::cout << "[Main] Create simulation object..." << std::endl;
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
-   
+
     network.sortGroups();
     network.isNetworkValid();
 
@@ -32,7 +40,12 @@ int main(int argc, char const* argv []) {
     // Print the results
     testSimulation.getSimulationResults()->printStates();
 
-    porting::resultToJSON<T>("result.json", &testSimulation );
+    //std::cout << "Write diffusive mixtures" << std::endl;
+    //testSimulation.getSimulationResults()->writeMixture(1);
+
+    #ifdef USE_ESSLBM
+    MPI_Finalize();
+    #endif
 
     return 0;
 }

@@ -24,6 +24,8 @@ class FlowRatePump;
 template<typename T>
 class lbmModule;
 template<typename T>
+class essLbmModule;
+template<typename T>
 class Module;
 template<typename T>
 class Network;
@@ -86,10 +88,10 @@ private:
     std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
-    std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
-    std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) abstract parts of the network
+    std::unordered_map<int, std::shared_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
+    std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
-    std::unordered_map<int, lbmModule<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
+    std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
@@ -112,7 +114,7 @@ public:
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
             std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
-            std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
+            std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
 
     /**
      * @brief Constructor of the Network
@@ -215,27 +217,19 @@ public:
 
     /**
      * @brief Adds a new module to the network.
-     * @param[in] name Name of the module.
-     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
      * @param[in] size Absolute size of the module in m.
      * @param[in] nodes Map of nodes that are on the module boundary.
-     * @param[in] openings Map of openings corresponding to the nodes.
-     * @param[in] charPhysLength Characteristic physical length of this simulator.
-     * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
-     * @param[in] alpha Relaxation parameter for this simulator.
-     * @param[in] resolution Resolution of this simulator.
-     * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
-     * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmModule<T>* addModule(std::string name,
-                            std::string stlFile,
-                            std::vector<T> position,
-                            std::vector<T> size,
-                            std::unordered_map<int, std::shared_ptr<Node<T>>> nodes,
-                            std::unordered_map<int, Opening<T>> openings,
-                            T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+    Module<T>* addModule(std::vector<T> position,
+                         std::vector<T> size,
+                         std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
+
+    /**
+     * @brief Adds a new module to the network.
+    */
+    int addModule();
 
     /**
      * @brief Checks if a node with the specified id exists in the network.
@@ -274,7 +268,7 @@ public:
      * @brief Set the modules of the network for a hybrid simulation.
      * @param[in] modules The modules that handle the CFD simulations.
     */
-    void setModules(std::unordered_map<int, std::unique_ptr<lbmModule<T>>> modules);
+    void setModules(std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
 
     /**
      * @brief Checks and returns if a node is a sink.
@@ -371,13 +365,13 @@ public:
     /**
      * @brief Get a pointer to the module with the specidic id.
     */
-    Module<T>* getModule(int moduleId) const;
+    std::shared_ptr<Module<T>> getModule(int moduleId) const;
 
     /**
      * @brief Get the modules of the network.
      * @returns Modules.
     */
-    const std::unordered_map<int, std::unique_ptr<lbmModule<T>>>& getModules() const;
+    const std::unordered_map<int, std::shared_ptr<Module<T>>>& getModules() const;
 
     /**
      * @brief Get the groups in the network.

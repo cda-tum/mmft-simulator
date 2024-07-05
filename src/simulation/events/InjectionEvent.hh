@@ -56,7 +56,7 @@ void MixtureInjectionEvent<T>::performEvent() {
 
 template<typename T>
 void MixtureInjectionEvent<T>::print() {
-    std::cout << "\n Instantaneous Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+    std::cout << "\n Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 
 }  // namespace sim
