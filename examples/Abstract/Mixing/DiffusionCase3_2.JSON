@@ -120,8 +120,8 @@
     ]
 },
 "simulation": {
-    "platform": "mixing",
-    "type": "1D",
+    "platform": "Mixing",
+    "type": "Abstract",
     "resistanceModel": "Poiseuille",
     "mixingModel": "Diffusion",
     "fluids": [

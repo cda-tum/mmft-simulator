@@ -367,6 +367,11 @@ namespace sim {
     }
 
     template<typename T>
+    MixingModel<T>* Simulation<T>::getMixingModel() {
+        return mixingModel;
+    }
+
+    template<typename T>
     ResistanceModel<T>* Simulation<T>::getResistanceModel() {
         return resistanceModel;
     }
@@ -612,7 +617,11 @@ namespace sim {
                 nodal::conductNodalAnalysis(network);
 
                 // Update and propagate the mixtures 
-                calculateNewMixtures(timestep); // DIFF: this->diffMixingModel->updateMinimalTimeStep(network);
+                if (this->mixingModel->isInstantaneous()){
+                    calculateNewMixtures(timestep);
+                } else if (this->mixingModel->isDiffusive()) {
+                    this->mixingModel->updateMinimalTimeStep(network);
+                }
                 
                 // store simulation results of current state
                 saveState();
@@ -644,8 +653,12 @@ namespace sim {
 
                 timestep = nextEvent->getTime();
                 time += nextEvent->getTime();
-
-                this->mixingModel->updateNodeInflow(timestep, network); // DIFF: this->diffMixingModel->updateDiffusiveMixtures(timestep, network, this, diffusiveMixtures);
+                
+                if (this->mixingModel->isInstantaneous()){
+                    this->mixingModel->updateNodeInflow(timestep, network);
+                } else if (this->mixingModel->isDiffusive()) {
+                    this->mixingModel->updateMixtures(timestep, network, this, mixtures);
+                }
                 
                 nextEvent->performEvent();
                 iteration++;

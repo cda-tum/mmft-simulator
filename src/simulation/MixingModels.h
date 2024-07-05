@@ -70,7 +70,6 @@ struct FlowSectionInput {
     T a_0_old;
 };
 
-
 /**
  * @brief Virtual class that describes the basic functionality for mixing models.
 */
@@ -121,6 +120,13 @@ public:
     const std::unordered_map<int, int>& getFilledEdges() const;
 
     /**
+     * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
+     * @param[in] mixtureId Id of the mixture.
+     * @param[in] channelId Id of the channel.
+    */
+    void injectMixtureInEdge(int mixtureId, int channelId);
+
+    /**
      * @brief Update the position of all mixtures in the network and update the inflow into all nodes.
      * @param[in] timeStep the current timestep size.
      * @param[in] network pointer to the network.
@@ -136,12 +142,9 @@ public:
     */
     virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
 
-    /**
-     * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
-     * @param[in] mixtureId Id of the mixture.
-     * @param[in] channelId Id of the channel.
-    */
-    virtual void injectMixtureInEdge(int mixtureId, int channelId) = 0;
+    virtual bool isInstantaneous() = 0;
+
+    virtual bool isDiffusive() = 0;
 };
 
 /**
@@ -204,16 +207,13 @@ public:
     void clean(arch::Network<T>* network);
 
     /**
-     * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
-     * @param[in] mixtureId Id of the mixture.
-     * @param[in] channelId Id of the channel.
-    */
-    void injectMixtureInEdge(int mixtureId, int channelId);
-
-    /**
      * @brief Print all mixtures and their positions in the network.
     */
     void printMixturesInNetwork();
+
+    bool isInstantaneous() override { return 1; };
+
+    bool isDiffusive() override { return 0; };
 
 };
 
@@ -262,9 +262,6 @@ public:
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
 
-
-    void injectMixtureInEdge(int mixtureId, int channelId);
-
     void clean(arch::Network<T>* network);
 
     void printMixturesInNetwork();
@@ -272,6 +269,10 @@ public:
     std::vector<std::vector<RadialPosition<T>>>& getConcatenatedFlows() { return concatenatedFlows; }
 
     std::unordered_map<int, std::vector<FlowSection<T>>>& getOutflowDistributions() { return outflowDistributions; }
+
+    bool isInstantaneous() override { return 0; };
+
+    bool isDiffusive() override { return 1; };
 
 };
 

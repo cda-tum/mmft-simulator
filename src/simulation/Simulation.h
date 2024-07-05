@@ -431,6 +431,12 @@ public:
      * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
      * @param[in] model The resistance model to be used.
      */
+    MixingModel<T>* getMixingModel();
+
+    /**
+     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
+     * @param[in] model The resistance model to be used.
+     */
     ResistanceModel<T>* getResistanceModel();
 
     /**

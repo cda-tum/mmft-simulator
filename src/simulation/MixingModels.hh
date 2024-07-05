@@ -25,12 +25,15 @@ void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
         T channelFlowRate = std::abs(network->getChannel(channelId)->getFlowRate());
         for (auto& [mixtureId, endPos] : deque) {
             T flowTime = (1.0 - endPos)*channelVolume/channelFlowRate;
+            //std::cout << "Channel " << channelId << " has a flowrate of " << channelFlowRate << std::endl;
+            //std::cout << "flowtime " << flowTime << "= (1.0 - " << endPos << ")*"<<channelVolume<<"/"<<channelFlowRate <<std::endl;
             if (this->minimalTimeStep < 1e-12) {
                 this->minimalTimeStep = flowTime;
             } else if (flowTime < this->minimalTimeStep) {
                 this->minimalTimeStep = flowTime;
             }
         }
+        std::cout << "Update minimal timestep to " << this->minimalTimeStep << std::endl;
     }
 }
 
@@ -47,6 +50,17 @@ const std::unordered_map<int, std::deque<std::pair<int,T>>>& MixingModel<T>::get
 template<typename T>
 const std::unordered_map<int, int>& MixingModel<T>::getFilledEdges() const {
     return filledEdges;
+}
+
+template<typename T>
+void MixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
+    if (this->mixturesInEdge.count(channelId)) {
+        this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
+    } else {
+        std::deque<std::pair<int,T>> newDeque;
+        newDeque.push_back(std::make_pair(mixtureId, T(0.0)));
+        this->mixturesInEdge.try_emplace(channelId, newDeque);
+    }
 }
 
 template<typename T>
@@ -164,7 +178,7 @@ void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, arch::Network<
             // check if edge is an outflow edge to this node
             if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
                 if (mixtureOutflowAtNode.count(nodeId)) {
-                    injectMixtureInEdge(mixtureOutflowAtNode.at(nodeId), channel->getId());
+                    this->injectMixtureInEdge(mixtureOutflowAtNode.at(nodeId), channel->getId());
                 }
             }
         }
@@ -190,17 +204,6 @@ void InstantaneousMixingModel<T>::clean(arch::Network<T>* network) {
     mixtureInflowAtNode.clear();
     mixtureOutflowAtNode.clear();
     totalInflowVolumeAtNode.clear();
-}
-
-template<typename T>
-void InstantaneousMixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
-    if (this->mixturesInEdge.count(channelId)) {
-        this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
-    } else {
-        std::deque<std::pair<int,T>> newDeque;
-        newDeque.push_back(std::make_pair(mixtureId, T(0.0)));
-        this->mixturesInEdge.try_emplace(channelId, newDeque);
-    }
 }
 
 template<typename T>
@@ -310,7 +313,7 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                 //Create new DiffusiveMixture
                 DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
                 newMixture->setNonConstant();
-                injectMixtureInEdge(newMixture->getId(), channelId);
+                this->injectMixtureInEdge(newMixture->getId(), channelId);
                 std::cout << "Generating mixtutre " << newMixture->getId() << " in channel " << channelId << " from mixture(s): ";
                 for (auto& section : outflowDistributions.at(channel->getId())) {
                     if (this->filledEdges.count(section.channelId)) {
@@ -804,17 +807,6 @@ void DiffusionMixingModel<T>::printTopology() {
         }
         std::cout << "\n";
         iteration++;
-    }
-}
-
-template<typename T>
-void DiffusionMixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
-    if (this->mixturesInEdge.count(channelId)) {
-        this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
-    } else {
-        std::deque<std::pair<int,T>> newDeque;
-        newDeque.push_back(std::make_pair(mixtureId, T(0.0)));
-        this->mixturesInEdge.try_emplace(channelId, newDeque);
     }
 }
 
