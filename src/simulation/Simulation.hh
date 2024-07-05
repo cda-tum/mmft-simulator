@@ -701,9 +701,7 @@ namespace sim {
             auto& nodeB = network->getNodes().at(channel->getNodeB());
             T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
             T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-            if (channel->getLength() <= 1e-15) {
-                channel->setLength(sqrt(dx*dx + dy*dy));
-            }
+            channel->setLength(sqrt(dx*dx + dy*dy));
         }       
 
         // compute channel resistances

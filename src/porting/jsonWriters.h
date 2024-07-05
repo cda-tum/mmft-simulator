@@ -84,7 +84,4 @@ std::string writeSimType (sim::Simulation<T>* simulation);
 template<typename T>
 std::string writeSimPlatform (sim::Simulation<T>* simulation);
 
-    template<typename T>
-    void writeConcentrations (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation);
-
 }   // namespace porting

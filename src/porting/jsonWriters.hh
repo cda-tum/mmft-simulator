@@ -127,95 +127,40 @@ std::string writeSimPlatform(sim::Simulation<T>* simulation) {
     return("Continuous");
 }
 
-    template<typename T>
-    void writeConcentrations (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {
-        //TODO
-    }
+template<typename T>
+void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {
+    auto mixturePositions = json::array();
+    for (auto& [key, mixturePosition] : state->getMixturePositions()) {
+        // mixture object
+        auto position = json::object();
 
-/*
- "concentrations": [
-    {
-        "species": 0,
-        "distribution": [
-            {
-                "concentration": 4.0,
-                "boundaries": [
-                    {
-                        "position": {
-                            "channel": 1,
-                            "position": 0.45
-                        },
-                        "volumeTowardsNode1": false
-                    },
-                    {
-                        "posision": {
-                            "channel": 1,
-                            "position": 0.95
-                        },
-                        "volumeTowardsNode1": true
-                    }
-                ],
-                "channels": []
-            },
-            {
-                "concentration": 2.5,
-                "boundaries": [
-                    {
-                        "position": {
-                            "channel": 2,
-                            "position": 0.45
-                        },
-                        "volumeTowardsNode1": false
-                    },
-                    {
-                        "posision": {
-                            "channel": 2,
-                            "position": 0.95
-                        },
-                        "volumeTowardsNode1": true
-                    }
-                ],
-                "channels": []
-            },
-        ]
-    }
-]
-*/
-
-    template<typename T>
-    void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {
-        auto mixturePositions = json::array();
-        for (auto& [key, mixturePosition] : state->getMixturePositions()) {
-            // mixture object
-            auto position = json::object();
-
-            // species
-            position["species"] = json::array();
-            for(auto& specie : mixturePosition.mixture->getSpecies()) {
-                mixturePosition["species"].push_back(specie.getId());
-            }
-
-            // concentrations
-            position["concentrations"] = json::array();
-            for(auto& concentration : mixturePosition.mixture->getConcentrations()) {
-                mixturePosition["concentrations"].push_back(concentration);
-            }
-
-            //boundaries
-            position["boundaries"] = json::array();
-            for(auto& boundary : mixturePosition.boundaries()) {
-                position["boundaries"].push_back({
-                    {
-                        {"channelId", boundary.getChannel()},
-                        {"position1", boundary.getPosition1()},
-                        {"position2", boundary.getPosition2()}
-                    }
-                });
-            }
-
-            mixturePositions.push_back(position);
+        // species
+        position["species"] = json::array();
+        for(auto& specie : mixturePosition.mixture->getSpecies()) {
+            mixturePosition["species"].push_back(specie.getId());
         }
-        jsonString["result"].push_back({"mixturePositions", mixturePositions});
+
+        // concentrations
+        position["concentrations"] = json::array();
+        for(auto& concentration : mixturePosition.mixture->getConcentrations()) {
+            mixturePosition["concentrations"].push_back(concentration);
+        }
+
+        //boundaries
+        position["boundaries"] = json::array();
+        for(auto& boundary : mixturePosition.boundaries()) {
+            position["boundaries"].push_back({
+                {
+                    {"channelId", boundary.getChannel()},
+                    {"position1", boundary.getPosition1()},
+                    {"position2", boundary.getPosition2()}
+                }
+            });
+        }
+
+        mixturePositions.push_back(position);
     }
+    jsonString["result"].push_back({"mixturePositions", mixturePositions});
+}
 
 }   // namespace porting
