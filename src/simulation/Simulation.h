@@ -428,14 +428,14 @@ public:
     Fluid<T>* getContinuousPhase();
 
     /**
-     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
-     * @param[in] model The resistance model to be used.
+     * @brief Get the mixing model that is used in the simulation.
+     * @return The mixing model of the simulation.
      */
     MixingModel<T>* getMixingModel();
 
     /**
-     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
-     * @param[in] model The resistance model to be used.
+     * @brief Get the resistance model that is used in the simulation.
+     * @return The resistance model of the simulation.
      */
     ResistanceModel<T>* getResistanceModel();
 

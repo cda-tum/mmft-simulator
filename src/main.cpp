@@ -40,79 +40,8 @@ int main(int argc, char const* argv []) {
     // Print the results
     testSimulation.getSimulationResults()->printStates();
 
-    std::cout << "Write diffusive mixtures" << std::endl;
-
-    /**
-     * Case 1
-    */
-    testSimulation.getSimulationResults()->writeMixture(1);
-    testSimulation.getSimulationResults()->writeMixture(2);
-    testSimulation.getSimulationResults()->writeMixture(3);
-
-    /**
-     * Case 2
-    */
-    // result->writeDiffusiveMixtures(3);
-    // result->writeDiffusiveMixtures(9);
-    // result->writeDiffusiveMixtures(8);
-    // result->writeDiffusiveMixtures(7);
-
-    /**
-     * Case 3
-    */
-    // result->writeDiffusiveMixtures(4);
-    // result->writeDiffusiveMixtures(3);
-    // result->writeDiffusiveMixtures(13);
-    // result->writeDiffusiveMixtures(23);
-    // result->writeDiffusiveMixtures(38);
-    // result->writeDiffusiveMixtures(35);
-    // result->writeDiffusiveMixtures(42);
-    // result->writeDiffusiveMixtures(41);
-
-    /**
-     * Case 4
-    */
-    // result->writeDiffusiveMixtures(2);
-    // result->writeDiffusiveMixtures(1);
-    // result->writeDiffusiveMixtures(7);
-    // result->writeDiffusiveMixtures(3);
-    // result->writeDiffusiveMixtures(10);
-    // result->writeDiffusiveMixtures(11);
-    
-    /**
-     * Case 1
-    */
-    //result->writeDiffusiveMixtures(2);
-    //result->writeDiffusiveMixtures(3);
-
-    /**
-     * Case 2
-    */
-    //result->writeDiffusiveMixtures(2);
-    //result->writeDiffusiveMixtures(6);
-    //result->writeDiffusiveMixtures(7); // -> C = 1
-    //result->writeDiffusiveMixtures(8); // -> C = 1
-    //result->writeDiffusiveMixtures(9);
-
-    /**
-     * Case 3
-    */
-    //result->writeDiffusiveMixtures(1);  // 3.1
-    //result->writeDiffusiveMixtures(2);  // 3.1
-    //result->writeDiffusiveMixtures(0);  // 3.2
-    //result->writeDiffusiveMixtures(1);  // 3.2
-    //result->writeDiffusiveMixtures(2);  // 3.2
-    //result->writeDiffusiveMixtures(3);  // 3.2
-    //result->writeDiffusiveMixtures(4);  // 3.2
-    //result->writeDiffusiveMixtures(5);  // 3.2
-    //result->writeDiffusiveMixtures(40);
-    //result->writeDiffusiveMixtures(41);
-
-    /**
-     * Case 4
-    */
-    //result->writeDiffusiveMixtures(13);
-    //result->writeDiffusiveMixtures(14);
+    //std::cout << "Write diffusive mixtures" << std::endl;
+    //testSimulation.getSimulationResults()->writeMixture(1);
 
     #ifdef USE_ESSLBM
     MPI_Finalize();
