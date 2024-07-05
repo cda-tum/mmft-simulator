@@ -5,6 +5,7 @@
 #pragma once
 
 #include <deque>
+#include <functional>
 #include <memory>
 #include <set>
 #include <unordered_map>
