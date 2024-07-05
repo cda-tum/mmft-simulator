@@ -351,10 +351,6 @@ bool conductNodalAnalysis( const arch::Network<T>* network, std::unordered_map<i
                 }
                 pressures_.at(key) = set_pressure;
 
-                /* Debug mode
-                std::cout << "[NodalAnalysis] at node " << key << " the pressure 2 is set at " << set_pressure << " [Pa] " <<
-                    " from old " << old_pressure << " and new " << new_pressure << std::endl;
-                */
                 if (abs(old_pressure - new_pressure) > 1e-2) {
                     pressureConvergence = false;
                 }
@@ -370,11 +366,6 @@ bool conductNodalAnalysis( const arch::Network<T>* network, std::unordered_map<i
                     set_flowRate = new_flowRate;
                 }
                 flowRates_.at(key) = set_flowRate;
-
-                /* Debug mode
-                std::cout << "[NodalAnalysis] at node " << key << " we set flow rate 2 is at " << set_flowRate << " [m^2/s] " <<
-                    " from old " << old_flowRate << " and new " << new_flowRate << std::endl;
-                */
 
                 if (abs(old_flowRate - new_flowRate) > 1e-2) {
                     pressureConvergence = false;

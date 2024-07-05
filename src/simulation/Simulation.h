@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <iostream>
 #include <math.h>
 #include <memory>
@@ -200,6 +201,13 @@ public:
 
     /**
      * @brief Create mixture.
+     * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
+     * @return Pointer to created mixture.
+     */
+    Mixture<T>* addMixture(std::unordered_map<int, T> specieConcentrations);
+
+    /**
+     * @brief Create mixture.
      * @param[in] species Unordered map of specie ids and pointer to that specie.
      * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
      * @return Pointer to created mixture.
@@ -208,10 +216,33 @@ public:
 
     /**
      * @brief Create mixture.
-     * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
+     * @param[in] specieConcentrations
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addMixture(std::unordered_map<int, T> specieConcentrations);
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations);
+
+    /**
+     * @brief Create mixture.
+     * @param[in] specieIds
+     * @param[in] specieConcentrations
+     * @return Pointer to created mixture.
+     */
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+
+    /**
+     * @brief Create mixture.
+     * @param[in] specieConcentrations
+     * @return Pointer to created mixture.
+     */
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
+    
+    /**
+     * @brief Create mixture.
+     * @param[in] specieIds
+     * @param[in] specieConcentrations
+     * @return Pointer to created mixture.
+     */
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
     /**
      * @brief Create injection.
@@ -398,8 +429,14 @@ public:
     Fluid<T>* getContinuousPhase();
 
     /**
-     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
-     * @param[in] model The resistance model to be used.
+     * @brief Get the mixing model that is used in the simulation.
+     * @return The mixing model of the simulation.
+     */
+    MixingModel<T>* getMixingModel();
+
+    /**
+     * @brief Get the resistance model that is used in the simulation.
+     * @return The resistance model of the simulation.
      */
     ResistanceModel<T>* getResistanceModel();
 

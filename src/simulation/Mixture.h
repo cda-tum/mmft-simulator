@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <unordered_map>
 
 namespace arch { 
@@ -132,11 +133,48 @@ public:
      */
     const std::unordered_map<int, T>& getSpecieConcentrations() const;
 
-    /**
+    /**     
      * @brief Get the species that are contained in this mixture.
      * @return Map of specie id and pointer to the specie in this mixture.
     */
     const std::unordered_map<int, Specie<T>*>& getSpecies() const;
+
+    virtual const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const {
+        throw std::invalid_argument("Tried to access species distribution for non-diffusive mixture.");
+    };
+
+};
+
+template<typename T>
+class DiffusiveMixture : public Mixture<T> {
+private:
+
+    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
+    int resolution;
+    bool isConstant = true;
+
+public:
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions,T viscosity, T density, T largestMolecularSize, int resolution=10);
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution=10);
+
+    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution=10);
+
+    std::function<T(T)> getDistributionOfSpecie(int specieId) const;
+
+    const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const override;
+
+    bool getIsConstant();
+
+    void setNonConstant();
+
+    void setResolution(int resolution);
+
+    int getResolution();
 };
 
 }   /// namespace sim

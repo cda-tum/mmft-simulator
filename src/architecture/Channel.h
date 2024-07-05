@@ -118,7 +118,6 @@ class Channel : public Edge<T>{
          */
         void setPressure(T pressure);
 
-
         /**
          * @brief Set resistance of a channel without droplets.
          * @param[in] channelResistance Resistance of a channel without droplets in Pas/L.

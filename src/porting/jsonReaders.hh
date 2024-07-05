@@ -160,7 +160,13 @@ void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
                     concentrations.try_emplace(specie, mixture["concentrations"][counter]);
                     counter++;
                 }
-                simulation.addMixture(species, concentrations);
+                if (simulation.getMixingModel()->isInstantaneous()) {
+                    simulation.addMixture(species, concentrations);
+                } else if (simulation.getMixingModel()->isDiffusive()) {
+                    simulation.addDiffusiveMixture(species, concentrations);
+                } else {
+                    throw std::invalid_argument("Please define a mixing model before adding mixtures.");
+                }
             } else {
                 throw std::invalid_argument("Wrongly defined mixture. Please provide as many concentrations as species.");
             }
@@ -320,8 +326,10 @@ void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
             mixingModel = new sim::InstantaneousMixingModel<T>();
+        } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
+            mixingModel = new sim::DiffusionMixingModel<T>();
         } else {
-            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous");
+            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous\nDiffusion");
         }
     } else {
         throw std::invalid_argument("No mixing model defined.");

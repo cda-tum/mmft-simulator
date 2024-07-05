@@ -11,7 +11,7 @@
     #include <mpi.h>
 #endif
 
-using T = float;
+using T = double;
 
 int main(int argc, char const* argv []) {
 
@@ -29,6 +29,9 @@ int main(int argc, char const* argv []) {
     std::cout << "[Main] Create simulation object..." << std::endl;
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
 
+    network.sortGroups();
+    network.isNetworkValid();
+
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results
     testSimulation.simulate();
@@ -37,7 +40,8 @@ int main(int argc, char const* argv []) {
     // Print the results
     testSimulation.getSimulationResults()->printStates();
 
-    porting::resultToJSON<T>("result.json", &testSimulation );
+    //std::cout << "Write diffusive mixtures" << std::endl;
+    //testSimulation.getSimulationResults()->writeMixture(1);
 
     #ifdef USE_ESSLBM
     MPI_Finalize();

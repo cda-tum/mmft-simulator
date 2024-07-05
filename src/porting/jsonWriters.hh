@@ -127,4 +127,40 @@ std::string writeSimPlatform(sim::Simulation<T>* simulation) {
     return("Continuous");
 }
 
+template<typename T>
+void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {
+    auto mixturePositions = json::array();
+    for (auto& [key, mixturePosition] : state->getMixturePositions()) {
+        // mixture object
+        auto position = json::object();
+
+        // species
+        position["species"] = json::array();
+        for(auto& specie : mixturePosition.mixture->getSpecies()) {
+            mixturePosition["species"].push_back(specie.getId());
+        }
+
+        // concentrations
+        position["concentrations"] = json::array();
+        for(auto& concentration : mixturePosition.mixture->getConcentrations()) {
+            mixturePosition["concentrations"].push_back(concentration);
+        }
+
+        //boundaries
+        position["boundaries"] = json::array();
+        for(auto& boundary : mixturePosition.boundaries()) {
+            position["boundaries"].push_back({
+                {
+                    {"channelId", boundary.getChannel()},
+                    {"position1", boundary.getPosition1()},
+                    {"position2", boundary.getPosition2()}
+                }
+            });
+        }
+
+        mixturePositions.push_back(position);
+    }
+    jsonString["result"].push_back({"mixturePositions", mixturePositions});
+}
+
 }   // namespace porting
