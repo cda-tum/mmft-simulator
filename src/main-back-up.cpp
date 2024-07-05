@@ -7,44 +7,32 @@
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
 
-#ifdef USE_ESSLBM
-    #include <mpi.h>
-#endif
-
 using T = double;
 
 int main(int argc, char const* argv []) {
 
-    #ifdef USE_ESSLBM
-    MPI_Init(NULL,NULL);
-    #endif
-
-    std::string file = argv[1];
+    // Define JSON files
+    std::string file = "../examples/1D/Mixing/DiffusionCase3.JSON";
 
     // Load and set the network from a JSON file
-    std::cout << "[Main] Create network object..." << std::endl;
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
-    // Load and set the simulation from a JSON file
-    std::cout << "[Main] Create simulation object..." << std::endl;
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    // Load and set the simulations from the JSON files
+    sim::Simulation<T> sim = porting::simulationFromJSON<T>(file, &network);
 
-    std::cout << "[Main] Simulation..." << std::endl;
-    // Perform simulation and store results
-    testSimulation.simulate();
+    // Check if network is valid
+    network.isNetworkValid();
+    network.sortGroups();
 
-    std::cout << "[Main] Results..." << std::endl;
-    // Print the results
-    testSimulation.getSimulationResults()->printStates();
+    // simulate
+    sim.simulate();
 
+    // results
+    result::SimulationResult<T>* result = sim.getSimulationResults();
+
+    std::cout << "Print last state" << std::endl;
+    result->printStates();
     std::cout << "Write diffusive mixtures" << std::endl;
-
-    /**
-     * Case 1
-    */
-    testSimulation.getSimulationResults()->writeMixture(1);
-    testSimulation.getSimulationResults()->writeMixture(2);
-    testSimulation.getSimulationResults()->writeMixture(3);
 
     /**
      * Case 2
@@ -57,14 +45,14 @@ int main(int argc, char const* argv []) {
     /**
      * Case 3
     */
-    // result->writeDiffusiveMixtures(4);
-    // result->writeDiffusiveMixtures(3);
-    // result->writeDiffusiveMixtures(13);
-    // result->writeDiffusiveMixtures(23);
-    // result->writeDiffusiveMixtures(38);
-    // result->writeDiffusiveMixtures(35);
-    // result->writeDiffusiveMixtures(42);
-    // result->writeDiffusiveMixtures(41);
+    result->writeDiffusiveMixtures(4);
+    result->writeDiffusiveMixtures(3);
+    result->writeDiffusiveMixtures(13);
+    result->writeDiffusiveMixtures(23);
+    result->writeDiffusiveMixtures(38);
+    result->writeDiffusiveMixtures(35);
+    result->writeDiffusiveMixtures(42);
+    result->writeDiffusiveMixtures(41);
 
     /**
      * Case 4
@@ -110,10 +98,6 @@ int main(int argc, char const* argv []) {
     */
     //result->writeDiffusiveMixtures(13);
     //result->writeDiffusiveMixtures(14);
-
-    #ifdef USE_ESSLBM
-    MPI_Finalize();
-    #endif
 
     return 0;
 }

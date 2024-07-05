@@ -65,7 +65,7 @@ namespace sim {
 
     template<typename T>
     Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations) {
-        auto id = diffusiveMixtures.size();
+        auto id = mixtures.size();
 
         std::unordered_map<int, Specie<T>*> species;
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
@@ -79,14 +79,14 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
-        auto result = diffusiveMixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
         return result.first->second.get();
     }
 
     template<typename T>
     Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
-        auto id = diffusiveMixtures.size();
+        auto id = mixtures.size();
 
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
 
@@ -98,14 +98,14 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
-        auto result = diffusiveMixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
         return result.first->second.get();
     }
 
     template<typename T>
     Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions) {
-        auto id = diffusiveMixtures.size();
+        auto id = mixtures.size();
 
         std::unordered_map<int, Specie<T>*> species;
         std::unordered_map<int, T> specieConcentrations;
@@ -117,14 +117,14 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
-        auto result = diffusiveMixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
         return result.first->second.get();
     }
 
     template<typename T>
     Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions) {
-        auto id = diffusiveMixtures.size();
+        auto id = mixtures.size();
 
         std::unordered_map<int, T> specieConcentrations;
 
@@ -134,7 +134,7 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
-        auto result = diffusiveMixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
         return result.first->second.get();
     }

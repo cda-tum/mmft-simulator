@@ -6,6 +6,7 @@
 
 #include <deque>
 #include <memory>
+#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -221,6 +222,7 @@ class DiffusionMixingModel : public MixingModel<T> {
 
 private:
     int resolution = 10;
+    std::set<int> mixingNodes;
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
     std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
@@ -242,12 +244,12 @@ public:
     /**
      * @brief Propagate the mixtures and check if a mixtures reaches channel end.
     */
-    void updateNodeInflow(T timeStep, arch::Network<T>* network, Simulation<T>*, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
+    void updateNodeInflow(T timeStep, arch::Network<T>* network) override;
 
     /**
      * @brief Generate a new inflow in case a mixture has reached channel end. Invoked by updateNodeInflow.
     */
-    void generateInflows(int nodeId, T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures);
+    void generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     void topologyAnalysis(arch::Network<T>* network, int nodeId);
     
@@ -258,7 +260,7 @@ public:
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
 
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
-        const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& diffusiveMixtures);
+        const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
 
 
     void injectMixtureInEdge(int mixtureId, int channelId);

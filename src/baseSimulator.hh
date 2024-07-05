@@ -9,8 +9,10 @@
 #include "simulation/Simulation.hh"
 #include "simulation/simulators/cfdSimulator.hh"
 #include "simulation/simulators/olbContinuous.hh"
+#include "simulation/Specie.hh"
 #include "simulation/events/BoundaryEvent.hh"
 #include "simulation/events/InjectionEvent.hh"
+#include "simulation/events/MergingEvent.hh"
 
 #include "nodalAnalysis/NodalAnalysis.hh"
 

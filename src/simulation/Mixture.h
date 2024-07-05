@@ -138,6 +138,8 @@ public:
     */
     const std::unordered_map<int, Specie<T>*>& getSpecies() const;
 
+    virtual const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const { };
+
 };
 
 template<typename T>
@@ -161,7 +163,7 @@ public:
 
     std::function<T(T)> getDistributionOfSpecie(int specieId) const;
 
-    const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const;
+    const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const override;
 
     bool getIsConstant();
 

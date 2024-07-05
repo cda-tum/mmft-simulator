@@ -222,15 +222,16 @@ DiffusionMixingModel<T>::DiffusionMixingModel() : MixingModel<T>() { }
 
 template<typename T>
 void DiffusionMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
-    updateNodeInflow(timeStep, network, sim, mixtures);
+    updateNodeInflow(timeStep, network);
+    generateInflows(timeStep, network, sim, mixtures);
     clean(network);
     this->updateMinimalTimeStep(network);
     //printMixturesInNetwork();
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
-    std::set<int> mixingNodes;
+void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network) {
+    mixingNodes.clear();
     for (auto& [nodeId, node] : network->getNodes()) {
         bool generateInflow = false;
         for (auto& [channelId, channel] : network->getChannels()) {
@@ -241,7 +242,7 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
                 if (this->mixturesInEdge.count(channel->getId())) {
                     for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
                         // Propagate the mixture positions in the channel with movedDistance
-                        T newEndPos = std::min(endPos + movedDistance, 1.0);
+                        T newEndPos = std::min(endPos + movedDistance, (T) 1.0);
                         endPos = newEndPos;
                         std::cout << "In channel " << channelId << " the moved distance is: " << movedDistance << " = " << inflowVolume << "/" << channel->getVolume() << std::endl;
                         std::cout << "Propagate mixture " << mixtureId << " in channel " << channelId << " to position " << endPos << std::endl;
@@ -260,68 +261,66 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
                 }
             }
         }
-
-    }
-    // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
-    // It is unlikely that this exact mixture, with same species and functions already exists
-    for (auto& nodeId : mixingNodes) {
-        generateInflows(nodeId, timeStep, network, sim, mixtures);
     }
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
-    // Perform topoology analysis at node, to know how the inflow sections and their relative order.
-    topologyAnalysis(network, nodeId);
-    for (auto& [channelId, channel] : network->getChannels()) {
-        if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
-            std::cout << "Channel " << channelId << " has following flowsections:";
-            for (auto& section : outflowDistributions.at(channel->getId())) {
-                std::cout << "\n\t channel " << section.channelId;
-                std::cout << "\n\t sectionStart " << section.sectionStart;
-                std::cout << "\n\t sectionEnd " << section.sectionEnd;
-                std::cout << "\n\t flowRate " << section.flowRate << std::endl;
+void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+    // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
+    // It is unlikely that this exact mixture, with same species and functions already exists
+    for (auto& nodeId : mixingNodes) {
+        // Perform topoology analysis at node, to know how the inflow sections and their relative order.
+        topologyAnalysis(network, nodeId);
+        for (auto& [channelId, channel] : network->getChannels()) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+                std::cout << "Channel " << channelId << " has following flowsections:";
+                for (auto& section : outflowDistributions.at(channel->getId())) {
+                    std::cout << "\n\t channel " << section.channelId;
+                    std::cout << "\n\t sectionStart " << section.sectionStart;
+                    std::cout << "\n\t sectionEnd " << section.sectionEnd;
+                    std::cout << "\n\t flowRate " << section.flowRate << std::endl;
+                }
             }
-        }
-        // If the channel flows out of this node
-        if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
-            // Loop over all species in the incoming mixtures and add to set of present species
-            std::set<int> presentSpecies;
-            for (auto& section : outflowDistributions.at(channel->getId())) {
-                std::cout << "Check if channel " << section.channelId << " is a filled edge." << std::endl;
-                if (this->filledEdges.count(section.channelId)) {
-                    std::cout << "Yes" << std::endl;
-                    for (auto& [specieId, pair] : mixtures.at(this->filledEdges.at(section.channelId))->getSpecieDistributions()) {
-                        if (presentSpecies.find(specieId) == presentSpecies.end()) {
-                            presentSpecies.emplace(specieId);
+            // If the channel flows out of this node
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+                // Loop over all species in the incoming mixtures and add to set of present species
+                std::set<int> presentSpecies;
+                for (auto& section : outflowDistributions.at(channel->getId())) {
+                    std::cout << "Check if channel " << section.channelId << " is a filled edge." << std::endl;
+                    if (this->filledEdges.count(section.channelId)) {
+                        std::cout << "Yes" << std::endl;
+                        for (auto& [specieId, pair] : mixtures.at(this->filledEdges.at(section.channelId))->getSpecieDistributions()) {
+                            if (presentSpecies.find(specieId) == presentSpecies.end()) {
+                                presentSpecies.emplace(specieId);
+                            }
                         }
+                    } else {
+                        std::cout << "No" << std::endl;
                     }
-                } else {
-                    std::cout << "No" << std::endl;
                 }
-            }
-            // We should evaluate the final function of the mixture reaching the end of this channel
-            std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
-            for (auto& specieId : presentSpecies) {
-                T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
-                std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
-                    channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
-                    pecletNr, outflowDistributions.at(channel->getId()), mixtures);
-                newDistributions.try_emplace(specieId, analyticalResult);
-            }
-            //Create new DiffusiveMixture
-            DiffusiveMixture<T>* newMixture = sim->addDiffusiveMixture(newDistributions);
-            newMixture->setNonConstant();
-            injectMixtureInEdge(newMixture->getId(), channelId);
-            std::cout << "Generating mixtutre " << newMixture->getId() << " in channel " << channelId << " from mixture(s): ";
-            for (auto& section : outflowDistributions.at(channel->getId())) {
-                if (this->filledEdges.count(section.channelId)) {
-                    std::cout << mixtures.at(this->filledEdges.at(section.channelId))->getId() << ", ";
-                } else {
-                    std::cout << "empty.";
+                // We should evaluate the final function of the mixture reaching the end of this channel
+                std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
+                for (auto& specieId : presentSpecies) {
+                    T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                    std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
+                        channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
+                        pecletNr, outflowDistributions.at(channel->getId()), mixtures);
+                    newDistributions.try_emplace(specieId, analyticalResult);
                 }
+                //Create new DiffusiveMixture
+                DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
+                newMixture->setNonConstant();
+                injectMixtureInEdge(newMixture->getId(), channelId);
+                std::cout << "Generating mixtutre " << newMixture->getId() << " in channel " << channelId << " from mixture(s): ";
+                for (auto& section : outflowDistributions.at(channel->getId())) {
+                    if (this->filledEdges.count(section.channelId)) {
+                        std::cout << mixtures.at(this->filledEdges.at(section.channelId))->getId() << ", ";
+                    } else {
+                        std::cout << "empty.";
+                    }
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
     }
 } 
@@ -694,7 +693,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 template<typename T>
 std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
     T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
-    T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixture) { 
+    T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures) { 
     std::cout << "Getting into getAnalyticalSolutionTotal" << std::endl;
     T prevEndWidth = 0.0;
 
@@ -726,7 +725,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         } else {
             std::cout << "The filled edges do contain " << flowSection.channelId << "\n";
             T mixtureId = this->filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
-            DiffusiveMixture<T>* diffusiveMixture = diffusiveMixtures.at(mixtureId).get(); // Assuming diffusiveMixtures is passed
+            DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
             if (diffusiveMixture->getSpecieConcentrations().find(speciesId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
                 T concentration = 0.0;
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
@@ -821,7 +820,6 @@ void DiffusionMixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) 
 
 template<typename T>
 void DiffusionMixingModel<T>::clean(arch::Network<T>* network) {
-    
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
             if (this->mixturesInEdge.count(channel->getId())){
