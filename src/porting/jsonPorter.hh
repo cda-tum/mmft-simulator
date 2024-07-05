@@ -24,6 +24,7 @@ void networkFromJSON(std::string jsonFile, arch::Network<T>& network) {
 
     readNodes(jsonString, network);
     readChannels(jsonString, network);
+    readModules(jsonString, network);
 }
 
 template<typename T>
@@ -33,6 +34,7 @@ arch::Network<T> networkFromJSON(json jsonString) {
 
     readNodes(jsonString, network);
     readChannels(jsonString, network);
+    readModules(jsonString, network);
 
     return network;
 }
@@ -61,6 +63,7 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
     simulation.setNetwork(network_);
 
     readFluids<T>(jsonString, simulation);
+    readPumps<T>(jsonString, network_);
 
     if (platform == sim::Platform::Continuous) {
         if (simType == sim::Type::CFD) {
@@ -86,7 +89,7 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
     }
 
     if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, network_);
+        readSimulators<T>(jsonString, simulation, network_);
         network_->sortGroups();
     }
 
@@ -97,7 +100,6 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
 
     readBoundaryConditions<T>(jsonString, simulation, activeFixture);
     readContinuousPhase<T>(jsonString, simulation, activeFixture);
-    readPumps<T>(jsonString, network_);
     readResistanceModel<T>(jsonString, simulation);
 }
 
@@ -113,6 +115,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     simulation.setNetwork(network_);
 
     readFluids<T>(jsonString, simulation);
+    readResistanceModel<T>(jsonString, simulation);
 
     if (platform == sim::Platform::Continuous) {
         if (simType == sim::Type::CFD) {
@@ -139,7 +142,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     }
 
     if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, network_);
+        readSimulators<T>(jsonString, simulation, network_);
         network_->sortGroups();
     }
 
@@ -151,7 +154,6 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     readBoundaryConditions<T>(jsonString, simulation, activeFixture);
     readContinuousPhase<T>(jsonString, simulation, activeFixture);
     readPumps<T>(jsonString, network_);
-    readResistanceModel<T>(jsonString, simulation);
 
     return simulation;
 }

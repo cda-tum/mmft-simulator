@@ -91,14 +91,68 @@ namespace sim {
     }
 
     template<typename T>
-    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int channelId, T injectionTime) {
+    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
         auto id = mixtureInjections.size();
-        auto channel = network->getChannel(channelId);
 
-        auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
-
-        return result.first->second.get();
+        if (network->isChannel(edgeId)) {
+            auto channel = network->getChannel(edgeId);
+            auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            return result.first->second.get();
+            
+        } else if (network->isPressurePump(edgeId)) {
+            auto pump = network->getPressurePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        } else if (network->isFlowRatePump(edgeId)) {
+            auto pump = network->getFlowRatePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        }
+        return nullptr;
     }
+
+    template<typename T>
+    lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+                                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+    }
+
+    template<typename T>
+    essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+                                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {
+        #ifdef USE_ESSLBM
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+        #else
+        throw std::invalid_argument("MMFT Simulator was not built using the ESS library.");
+        #endif
+    }
+
 
     template<typename T>
     void Simulation<T>::setPlatform(Platform platform_) {
@@ -237,6 +291,11 @@ namespace sim {
     }
 
     template<typename T>
+    ResistanceModel<T>* Simulation<T>::getResistanceModel() {
+        return resistanceModel;
+    }
+
+    template<typename T>
     Mixture<T>* Simulation<T>::getMixture(int mixtureId) {
         return mixtures.at(mixtureId).get();
     }
@@ -350,7 +409,7 @@ namespace sim {
 
                 // Initialization of CFD domains
                 while (! allConverged) {
-                    allConverged = conductCFDSimulation(this->network, 1);
+                    allConverged = conductCFDSimulation(cfdSimulators, 1);
                 }
 
                 while (! allConverged || !pressureConverged) {
@@ -358,11 +417,11 @@ namespace sim {
 
                     // conduct CFD simulations
                     //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                    allConverged = conductCFDSimulation(this->network, 10);
+                    allConverged = conductCFDSimulation(cfdSimulators, 10);
                 
                     // compute nodal analysis again
                     //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodal::conductNodalAnalysis(this->network);
+                    pressureConverged = nodal::conductNodalAnalysis(this->network, cfdSimulators);
 
                 }
 
@@ -493,7 +552,6 @@ namespace sim {
                     }
                     return a->getTime() < b->getTime();  // ascending order
                 });
-                int test_size = events.size();
 
                 #ifdef VERBOSE  
                 for (auto& event : events) {
@@ -569,46 +627,30 @@ namespace sim {
 
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             
-            for (auto& [key, module] : network->getModules()) {
-                module->lbmInit(fluids[continuousPhase]->getViscosity(),
-                                fluids[continuousPhase]->getDensity());
-            }
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
 
-            // This is boilerplate code, and can be done way more efficiently in a recursive manner
-            for (auto& [modulekey, module] : network->getModules()) {
-                for (auto& [key, channel] : module->getNetwork()->getChannels()) {
-                    //std::cout << "[Simulation] Channel " << channel->getId();
-                    auto& nodeA = network->getNodes().at(channel->getNodeA());
-                    auto& nodeB = network->getNodes().at(channel->getNodeB());
-                    //std::cout << " has nodes " << nodeA->getId() << " and " << nodeB->getId();
-                    T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
-                    T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-                    channel->setLength(sqrt(dx*dx + dy*dy));
-                    //std::cout << " and a length of " << sqrt(dx*dx + dy*dy) <<std::endl;
-                }
-            }
-            // Also boilerplate code that can be done more efficiently
-            for (auto& [modulekey, module] : network->getModules()) {
-                for (auto& [key, channel] : module->getNetwork()->getChannels()) {
-                    T resistance = resistanceModel->getChannelResistance(channel.get());
-                    channel->setResistance(resistance);
-                }
+            // Initialize the CFD simulators
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
             }
 
             // compute nodal analysis
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodal::conductNodalAnalysis(this->network);
+            nodal::conductNodalAnalysis(this->network, cfdSimulators);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE
                 std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
             #endif
 
-            for (auto& [key, module] : network->getModules()) {
-                module->prepareGeometry();
-                module->prepareLattice();
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
             }
         }
     }

@@ -4,25 +4,62 @@ namespace porting {
 
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
+    int nodeId = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
-        bool ground = false;
-        if(node.contains("ground")) {
-            ground = node["ground"];
-        }
-        auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
-        if(node.contains("sink")) {
-            if (node["sink"]) {
-                network.setSink(addedNode->getId());
+        
+        if (node.contains("virtual") && node["virtual"]) {
+            nodeId++;
+            continue;
+        } else {
+            if (!node.contains("x") || !node.contains("y")) {
+                throw std::invalid_argument("Node is ill-defined. Please define:\nx\ny");
             }
+            bool ground = false;
+            if(node.contains("ground")) {
+                ground = node["ground"];
+            }
+            auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
+            if(node.contains("sink")) {
+                if (node["sink"]) {
+                    network.setSink(addedNode->getId());
+                }
+            }
+            nodeId++;
         }
     }
 }
 
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
+    int channelId = 0;
     for (auto& channel : jsonString["network"]["channels"]) {
-        arch::ChannelType type = arch::ChannelType::NORMAL;
-        network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
+        if (channel.contains("virtual") && channel["virtual"]) {
+            channelId++;
+            continue;
+        } else {
+            if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
+                throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+            }
+            arch::ChannelType type = arch::ChannelType::NORMAL;
+            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            channelId++;
+        }
+    }
+}
+
+template<typename T>
+void readModules(json jsonString, arch::Network<T>& network) {
+    for (auto& module : jsonString["network"]["modules"]) {
+        if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
+            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
+        }
+        std::vector<T> position = { module["position"][0], module["position"][1] };
+        std::vector<T> size = { module["size"][0], module["size"][1] };
+        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
+        for (auto& nodeId : module["nodes"]) {
+            Nodes.try_emplace(nodeId, network.getNode(nodeId));
+        }
+        network.addModule(position, size, std::move(Nodes));
     }
 }
 
@@ -158,7 +195,7 @@ void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int 
             int mixtureId = injection["mixture"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
-            auto injectionTest = simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
+            simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
         }
     } else {
         throw std::invalid_argument("Please define at least one mixture injection for the active fixture or choose a different platform.");
@@ -166,7 +203,7 @@ void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int 
 }
 
 template<typename T>
-void readSimulators(json jsonString, arch::Network<T>* network) {
+void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network) {
         std::string vtkFolder;
         if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
             throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");
@@ -176,29 +213,40 @@ void readSimulators(json jsonString, arch::Network<T>* network) {
         } else {
             vtkFolder = "./tmp/";
         }
-        for (auto& module : jsonString["simulation"]["settings"]["simulators"]) {
-            std::string name = module["name"];
-            std::string stlFile = module["stlFile"];
-            std::vector<T> position = { module["posX"], module["posY"] };
-            std::vector<T> size = { module["sizeX"], module["sizeY"] };
-            T charPhysLength = module["charPhysLength"];
-            T charPhysVelocity = module["charPhysVelocity"];
-            T alpha = module["alpha"];
-            T resolution = module["resolution"];
-            T epsilon = module["epsilon"];
-            T tau = module["tau"];
-            std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
+        for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
+            std::string name = simulator["name"];
+            std::string stlFile = simulator["stlFile"];
+            T charPhysLength = simulator["charPhysLength"];
+            T charPhysVelocity = simulator["charPhysVelocity"];
+            T alpha = simulator["alpha"];
+            T resolution = simulator["resolution"];
+            T epsilon = simulator["epsilon"];
+            T tau = simulator["tau"];
+            int moduleId = simulator["moduleId"];
             std::unordered_map<int, arch::Opening<T>> Openings;
-            for (auto& opening : module["Openings"]) {
+            for (auto& opening : simulator["Openings"]) {
                 int nodeId = opening["node"];
-                Nodes.try_emplace(nodeId, network->getNode(nodeId));
                 std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
                 arch::Opening<T> opening_(network->getNode(nodeId), normal, opening["width"]);
                 Openings.try_emplace(nodeId, opening_);
             }
-            auto mod = network->addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
-                                alpha, resolution, epsilon, tau);
-            mod->setVtkFolder(vtkFolder);
+
+            if(simulator["Type"] == "LBM")
+            {
+                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                                                            charPhysVelocity, alpha, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+            }
+            else if(simulator["Type"] == "ESS_LBM")
+            {
+                #ifdef USE_ESSLBM
+                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                                                            charPhysVelocity, alpha, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+                #else
+                throw std::invalid_argument("The simulator was not build using the ESS library.");
+                #endif
+            }
         }
 }
 
@@ -253,12 +301,12 @@ template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     sim::ResistanceModel<T>* resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
-        if (jsonString["simulation"]["resistanceModel"] == "1D") {
+        if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
-            throw std::invalid_argument("Invalid resistance model. Options are:\n1D\nPoiseuille");
+            throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");

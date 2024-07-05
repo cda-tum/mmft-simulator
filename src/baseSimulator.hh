@@ -7,6 +7,8 @@
 #include "simulation/MixingModels.hh"
 #include "simulation/ResistanceModels.hh"
 #include "simulation/Simulation.hh"
+#include "simulation/simulators/cfdSimulator.hh"
+#include "simulation/simulators/olbContinuous.hh"
 #include "simulation/Specie.hh"
 #include "simulation/events/BoundaryEvent.hh"
 #include "simulation/events/InjectionEvent.hh"
@@ -18,7 +20,6 @@
 #include "architecture/ChannelPosition.hh"
 #include "architecture/Edge.hh"
 #include "architecture/FlowRatePump.hh"
-#include "architecture/lbmModule.hh"
 #include "architecture/Module.hh"
 #include "architecture/Network.hh"
 #include "architecture/Node.hh"
@@ -29,3 +30,7 @@
 #include "porting/jsonWriters.hh"
 
 #include "result/Results.hh"
+
+#ifdef USE_ESSLBM
+    #include "simulation/simulators/essContinuous.hh"
+#endif

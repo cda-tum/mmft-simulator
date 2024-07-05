@@ -44,30 +44,17 @@ int main(int argc, char const* argv []) {
     auto c8 = network.addChannel(node9->getId(), node10->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     // module
-    std::string name = "Paper1a-cross-0";
-    std::string stlFile = "../examples/STL/cross.stl";
     std::vector<T> position = { 1.75e-3, 0.75e-3 };
     std::vector<T> size = { 5e-4, 5e-4 };
-    T charPhysLength = 1e-4;
-    T charPhysVelocity = 1e-1;
-    T alpha = 0.1;
-    T resolution = 20;
-    T epsilon = 1e-1;
-    T tau = 0.55;
-    std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
-    Nodes.try_emplace(5, network.getNode(5));
-    Nodes.try_emplace(7, network.getNode(7));
-    Nodes.try_emplace(8, network.getNode(8));
-    Nodes.try_emplace(9, network.getNode(9));
-    std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(5, arch::Opening<T>(network.getNode(5), std::vector<T>({1.0, 0.0}), 1e-4));
-    Openings.try_emplace(7, arch::Opening<T>(network.getNode(7), std::vector<T>({0.0, -1.0}), 1e-4));
-    Openings.try_emplace(8, arch::Opening<T>(network.getNode(8), std::vector<T>({0.0, 1.0}), 1e-4));
-    Openings.try_emplace(9, arch::Opening<T>(network.getNode(9), std::vector<T>({-1.0, 0.0}), 1e-4));
+    std::unordered_map<int, std::shared_ptr<arch::Node<T>>> nodes;
 
-    network.addModule(name, stlFile, position, size, Nodes, Openings, charPhysLength, charPhysVelocity,
-                        alpha, resolution, epsilon, tau);
-    
+    nodes.try_emplace(5, network.getNode(5));
+    nodes.try_emplace(7, network.getNode(7));
+    nodes.try_emplace(8, network.getNode(8));
+    nodes.try_emplace(9, network.getNode(9));
+
+    auto m0 = network.addModule(position, size, nodes);
+
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
     //--- continuousPhase ---
@@ -76,6 +63,22 @@ int main(int argc, char const* argv []) {
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(testSimulation.getContinuousPhase()->getViscosity());
     testSimulation.setResistanceModel(&resistanceModel);
 
+    // simulator
+    std::string name = "Paper1a-cross-0";
+    std::string stlFile = "../examples/STL/cross.stl";
+    T charPhysLength = 1e-4;
+    T charPhysVelocity = 1e-1;
+    T alpha = 0.1;
+    T resolution = 20;
+    T epsilon = 1e-1;
+    T tau = 0.55;
+    std::unordered_map<int, arch::Opening<T>> Openings;
+    Openings.try_emplace(5, arch::Opening<T>(network.getNode(5), std::vector<T>({1.0, 0.0}), 1e-4));
+    Openings.try_emplace(7, arch::Opening<T>(network.getNode(7), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(8, arch::Opening<T>(network.getNode(8), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(9, arch::Opening<T>(network.getNode(9), std::vector<T>({-1.0, 0.0}), 1e-4));
+
+    testSimulation.addLbmSimulator(name, stlFile, network.getModule(m0->getId()), Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
     network.sortGroups();
 
     // pressure pump

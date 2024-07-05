@@ -1,0 +1,128 @@
+{	
+"network": {
+    "nodes": [
+        {   
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 1e-3,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 2e-3,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 2.5e-3,
+            "y": 0.86602540378e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 3e-3,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 4e-3,
+            "y": 0.0,
+            "z": 0.0,
+            "ground": true,
+            "sink": true
+        }
+    ],
+    "channels": [
+        {	
+            "node1": 0,
+            "node2": 1,
+            "width": 1e-4,
+            "height": 3e-5
+        },        
+        {	
+            "node1": 1,
+            "node2": 2,
+            "width": 1e-4,
+            "height": 3e-5
+        },        
+        {	
+            "node1": 2,
+            "node2": 3,
+            "width": 1e-4,
+            "height": 3e-5
+        },        
+        {	
+            "node1": 2,
+            "node2": 4,
+            "width": 1e-4,
+            "height": 3e-5
+        },        
+        {	
+            "node1": 3,
+            "node2": 4,
+            "width": 1e-4,
+            "height": 3e-5
+        },        
+        {	
+            "node1": 4,
+            "node2": 5,
+            "width": 1e-4,
+            "height": 3e-5
+        },        
+        {	
+            "node1": 5,
+            "node2": 0,
+            "width": 1e-4,
+            "height": 3e-5
+        }
+    ]
+},
+"simulation": {
+    "platform": "BigDroplet",
+    "type": "Abstract",
+    "resistanceModel": "Rectangular",
+    "fluids": [
+        {	
+            "name": "Water",
+            "concentration": 1,
+            "density": 1e3,           
+            "viscosity": 1e-3
+        },
+        {
+            "name": "Oil",
+            "concentration": 1,
+            "density": 1e3,           
+            "viscosity": 3e-3        
+        }
+    ],
+    "pumps": [
+        {	
+            "channel":6,
+            "type": "PumpFlowrate",
+            "flowRate": 3e-11
+        }
+    ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0,
+            "bigDropletInjections": [
+                {
+                    "fluid": 1,
+                    "volume": 4.5e-13,
+                    "channel": 0,
+                    "pos": 0.5,
+                    "t0": 0,
+                    "deltaT": 0,
+                    "t1": 0
+                }
+            ]
+        }
+    ],
+    "activeFixture": 0,
+    "settings": {
+    }
+}
+}

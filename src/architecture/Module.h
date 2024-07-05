@@ -14,6 +14,9 @@ namespace arch {
 template<typename T>
 class Node;
 
+template<typename T>
+struct Opening;
+
 /**
  * @brief An enum to specify the type of module.
 */
@@ -22,7 +25,9 @@ enum class ModuleType {
     MIXER,      ///< A mixer module that mixes the incoming fluids to a certain degree.
     HEATER,     ///< A heater module that heats the passing fluid to a certain degree.
     ORGAN,      ///< An organ module that models the functionality of an organ in the network.
-    LBM         ///< A CFD module that maps the LBM simulation result on the abstract level.
+    LBM,        ///< A CFD module that maps the LBM simulation result from an OLB solver on the 1D level.
+    ESS_LBM     ///< A CFD module that maps the LBM simulation result from an ESS solver on the 1D level.
+
 };
 
 /**
@@ -76,6 +81,18 @@ class Module {
      * @returns Nodes on the boundary of the module.
     */
     std::unordered_map<int, std::shared_ptr<Node<T>>> getNodes() const;
+
+    /**
+     * @brief Returns the type of the module.
+     * @returns What type the channel has.
+     */
+    void setModuleTypeLbm();
+
+    /**
+     * @brief Returns the type of the module.
+     * @returns What type the channel has.
+     */
+    void setModuleTypeEssLbm();
 
     /**
      * @brief Returns the type of the module.

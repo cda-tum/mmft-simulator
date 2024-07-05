@@ -55,11 +55,11 @@ class Mixture {
 private:
 
     int const id;
+    std::unordered_map<int, Specie<T>*> species;
+    std::unordered_map<int, T> specieConcentrations;
     T viscosity;
     T density;
     T largestMolecularSize;
-    std::unordered_map<int, Specie<T>*> species;
-    std::unordered_map<int, T> specieConcentrations;
 
 public:
     /**

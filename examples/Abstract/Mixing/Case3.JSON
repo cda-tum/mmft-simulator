@@ -1,0 +1,54 @@
+{	
+"_comment": "Network2",
+"simulation": {
+    "platform": "Mixing",
+    "type": "Abstract",
+    "resistanceModel": "Rectangular",
+    "mixingModel": "Instantaneous",
+    "fluids": [
+        {	
+            "name": "Water",
+            "concentration": 1,
+            "density": 1e3,           
+            "viscosity": 1e-3
+        }
+    ],
+    "species": [
+        {
+            "name": "Oxygen",
+            "diffusivity": 2.3e-9,
+            "saturationConcentration": 8.3,
+            "molecularSize": 0.0
+        }
+    ],
+    "mixtures": [
+        {
+            "species": [0],
+            "concentrations": [4.0]
+        }
+    ],
+    "pumps": [
+        {	
+            "channel":0,
+            "type": "PumpFlowrate",
+            "flowRate": 3e-11
+        }
+    ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0,
+            "mixtureInjections": [
+                {
+                    "mixture": 0,
+                    "channel": 1,
+                    "t0": 0.0
+                }
+            ]
+        }
+    ],
+    "activeFixture": 0,
+    "settings": {
+    }
+}
+}
