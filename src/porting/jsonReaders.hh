@@ -297,36 +297,6 @@ void readPumps(json jsonString, arch::Network<T>* network) {
     }
 }
 
-<<<<<<< HEAD
-    template<typename T>
-    void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
-        sim::InstantaneousMixingModel<T>* instMixingModel; 
-        sim::DiffusionMixingModel<T>* diffMixingModel; 
-        if (jsonString["simulation"].contains("mixingModel")) {
-            if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
-                instMixingModel = new sim::InstantaneousMixingModel<T>();
-                simulation.setMixingModel(instMixingModel);
-            } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
-                diffMixingModel = new sim::DiffusionMixingModel<T>();
-                simulation.setMixingModel(diffMixingModel);
-                simulation.diffusiveMixing = true;
-            } else {
-                throw std::invalid_argument("Invalid mixing model.");
-            }
-        } else {
-            throw std::invalid_argument("No mixing model defined.");
-        }
-    }
-
-    template<typename T>
-    int readActiveFixture(json jsonString) {
-        int activeFixture = 0;
-        if (jsonString["simulation"].contains("activeFixture")) {
-            activeFixture = jsonString["simulation"]["activeFixture"];
-            if (!jsonString["simulation"].contains("fixtures") || jsonString["simulation"]["fixtures"].size()-1 < activeFixture) {
-                throw std::invalid_argument("The active fixture does not exist.");
-            }
-=======
 template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     sim::ResistanceModel<T>* resistanceModel; 
@@ -335,7 +305,6 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
->>>>>>> ESSLbm
         } else {
             throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
@@ -351,8 +320,10 @@ void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
             mixingModel = new sim::InstantaneousMixingModel<T>();
+        } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
+            mixingModel = new sim::DiffusionMixingModel<T>();
         } else {
-            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous");
+            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous\nDiffusion");
         }
     } else {
         throw std::invalid_argument("No mixing model defined.");

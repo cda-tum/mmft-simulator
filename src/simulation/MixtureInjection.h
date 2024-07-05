@@ -1,18 +1,29 @@
 /**
- * @file Injection.h
+ * @file MixtureInjection.h
  */
 
 #pragma once
 
 #include <memory>
 #include <string>
+#include <utility>
 
-#include "../architecture/ChannelPosition.h"
-#include "Mixture.h"
+namespace arch { 
 
-#include "../architecture/MixturePump.h"
+// Forward declared dependencies
+template<typename T>
+class ChannelPosition;
+
+template<typename T>
+class RectangularChannel;
+
+}
 
 namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Mixture;
 
 /**
  * @brief Class that contains all paramaters necessary to conduct an injection of a mixture.
@@ -22,14 +33,14 @@ class MixtureInjection {
   private:
     const int id;               ///< Unique identifier of an injection.
     std::string name = "";      ///< Name of the injection.
-    T injectionTime;            ///< Time at which the injection should start in s elapsed since the start of the simulation.
     int mixtureId;              ///< Id of mixture to be injected.
     arch::RectangularChannel<T>* injectionChannel;  ///< Channel at which the fluid is injected.
+    T injectionTime;            ///< Time at which the injection should start in s elapsed since the start of the simulation.
     bool performed = false;     ///< Information if the change of the input mixture was already performed or not.
 
   public:
     /**
-     * @brief Create a bolus injection.
+     * @brief Create a mixture injection.
      * @param[in] id Unique identifier of an injection.
      * @param[in] mixture Pointer to the mixture to be injected.
      * @param[in] injectionPump Pump from which the fluid is injected

@@ -4,14 +4,34 @@
 
 #pragma once
 
-#include <deque>
+#include <iostream>
+#include <memory>
+#include <fstream>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "../architecture/Network.h"
-#include "../simulation/Droplet.h"
-#include "../simulation/Fluid.h"
-#include "../simulation/Injection.h"
-#include "../simulation/Mixture.h"
+namespace arch {
+    
+// Forward declared dependencies
+template<typename T>
+class Network;
+
+}
+
+namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Droplet;
+
+template<typename T>
+class DropletPosition;
+
+template<typename T>
+class Fluid;
+}
 
 namespace result {
 
@@ -25,7 +45,7 @@ struct State {
     std::unordered_map<int, T> pressures;                               ///< Keys are the nodeIds.
     std::unordered_map<int, T> flowRates;                               ///< Keys are the edgeIds (channels and pumps).
     std::unordered_map<int, sim::DropletPosition<T>> dropletPositions;  ///< Only contains the position of droplets that are currently inside the network (key is the droplet id).
-    std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the mixture id).
+    std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the channel id).
     std::unordered_map<int, int> filledEdges;                           ///< Contains the mixture ids that fill the edges of the network <EdgeID, MixtureID>
 
     /**
@@ -109,7 +129,6 @@ struct SimulationResult {
     std::unordered_map<int, sim::Fluid<T>>* fluids;                 /// Contains all fluids which were defined (i.e., also the fluids which were created when droplets merged).
     std::unordered_map<int, sim::Droplet<T>>* droplets;             /// Contains all droplets that occurred during the simulation not only the once that were injected (i.e., also merged and splitted droplets)
     std::unordered_map<int, sim::Mixture<T>*> mixtures;
-    std::unordered_map<int, sim::DiffusiveMixture<T>*> diffusiveMixtures;
     std::unordered_map<int, sim::Specie<T>>* species;
     std::unordered_map<int, int> filledEdges;
     std::vector<std::unique_ptr<State<T>>> states;                  /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
@@ -118,8 +137,17 @@ struct SimulationResult {
     T maximalAdaptiveTimeStep;     /// Value for the maximal adaptive time step that was used.
     int resistanceModel;                /// Id of the used resistance model.
 
+    /**
+     * @brief Constructs an uninitialized simulationResult object, which stores all results of a simulation.
+     */
     SimulationResult();
 
+    /**
+     * @brief Constructs a simulationResult object, which stores all results of a simulation.
+     * @param[in] network pointer to the network on which the simulation acts
+     * @param[in] fluids a pointer to the unordered map of fluids in the simulation
+     * @param[in] droplets a pointer to the unordered map of droplets in the simulation
+     */
     SimulationResult(   arch::Network<T>* network, 
                         std::unordered_map<int, sim::Fluid<T>>* fluids, 
                         std::unordered_map<int, sim::Droplet<T>>* droplets);
@@ -140,25 +168,7 @@ struct SimulationResult {
      * @brief Adds a state to the simulation results.
      * @param[in] state
     */
-    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
-
-    /**
-     * @brief Get the simulated pressures at the nodes.
-     * @return Vector of pressure values
-     */
-    const std::unordered_map<int, T>& getFinalPressures() const;
-
-    /**
-     * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
-     */
-    const std::unordered_map<int, T>& getFinalFlowRates() const;
-
-    /**
-     * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
-     */
-    const std::unordered_map<int, T>& getFinalDropletPositions() const;
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
      * @brief Get the simulated flowrates in the channels.
@@ -192,13 +202,9 @@ struct SimulationResult {
 
     const std::unordered_map<int, sim::Mixture<T>*>& getMixtures() const;
 
-    const void setDiffusiveMixtures(std::unordered_map<int, sim::DiffusiveMixture<T>*> mixtures);
-
-    const std::unordered_map<int, sim::DiffusiveMixture<T>*>& getDiffusiveMixtures() const;
-
     const void printMixtures();
 
-    const void writeDiffusiveMixtures(int mixtureId);
+    const void writeMixture(int mixtureId);
 };
 
 }   // namespace results

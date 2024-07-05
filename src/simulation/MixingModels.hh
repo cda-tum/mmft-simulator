@@ -20,7 +20,6 @@ T MixingModel<T>::getMinimalTimeStep() {
 template<typename T>
 void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
     this->minimalTimeStep = 0.0;
-    std::cout << "Still living here" << std::endl;
     for (auto& [channelId, deque] : mixturesInEdge) {
         T channelVolume = network->getChannel(channelId)->getVolume();
         T channelFlowRate = std::abs(network->getChannel(channelId)->getFlowRate());
@@ -33,7 +32,6 @@ void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
             }
         }
     }
-    std::cout << "The minimal timestep is now " << this->minimalTimeStep << std::endl;
 }
 
 template<typename T>
@@ -86,7 +84,7 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                 }
                 if (this->mixturesInEdge.count(channel->getId())){
                     for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
-                        T newEndPos = std::min(endPos + movedDistance, 1.0);
+                        T newEndPos = std::min(endPos + movedDistance, (T) 1.0);
                         endPos = newEndPos;
                         if (newEndPos == 1.0) {
                             // if the mixture front left the channel, it's fully filled
@@ -223,7 +221,7 @@ template<typename T>
 DiffusionMixingModel<T>::DiffusionMixingModel() : MixingModel<T>() { }
 
 template<typename T>
-void DiffusionMixingModel<T>::updateDiffusiveMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
+void DiffusionMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
     updateNodeInflow(timeStep, network, sim, mixtures);
     clean(network);
     this->updateMinimalTimeStep(network);
@@ -231,7 +229,7 @@ void DiffusionMixingModel<T>::updateDiffusiveMixtures(T timeStep, arch::Network<
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
+void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
     std::set<int> mixingNodes;
     for (auto& [nodeId, node] : network->getNodes()) {
         bool generateInflow = false;
@@ -259,16 +257,10 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
                             mixingNodes.emplace(nodeId);
                         }   
                     }
-                    //std::cout << "The filled edges now contain \n";
-                    for (auto& [edgeId, MixtureId] : this->filledEdges) {
-                        //std::cout << "Edge " << edgeId << " contains mixture " << MixtureId << std::endl;
-                    }
                 }
             }
         }
-        //if (generateInflow) {
-        //    generateInflows(nodeId, timeStep, network, sim, mixtures);
-        //}
+
     }
     // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
     // It is unlikely that this exact mixture, with same species and functions already exists
@@ -278,7 +270,7 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& mixtures) {
+void DiffusionMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
     // Perform topoology analysis at node, to know how the inflow sections and their relative order.
     topologyAnalysis(network, nodeId);
     for (auto& [channelId, channel] : network->getChannels()) {
@@ -702,7 +694,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 template<typename T>
 std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
     T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
-    T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<DiffusiveMixture<T>>>& diffusiveMixtures) { 
+    T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixture) { 
     std::cout << "Getting into getAnalyticalSolutionTotal" << std::endl;
     T prevEndWidth = 0.0;
 

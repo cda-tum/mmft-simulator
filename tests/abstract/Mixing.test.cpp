@@ -4,7 +4,6 @@
 
 using T = double;
 
-<<<<<<< HEAD:tests/1D/Mixing.test.cpp
 /** Case 1:
  * 
  *  3 way node
@@ -2404,7 +2403,6 @@ TEST(DiffusionMixing, caseJeonEtAl) {
 //         0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(1), 1e-7);
 
 // }
-=======
 TEST(Mixing, Case1) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network1.JSON";
@@ -3254,4 +3252,3 @@ TEST(Mixing, Case12) {
         0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(1), 1e-7);
 
 }
->>>>>>> ESSLbm:tests/abstract/Mixing.test.cpp

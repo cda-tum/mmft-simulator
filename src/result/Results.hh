@@ -1,13 +1,5 @@
 #include "Results.h"
 
-#include <iostream>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <nlohmann/json.hpp>
-
 namespace result {
 
 template<typename T>
@@ -126,19 +118,12 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
 }
 
 template<typename T>
-void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges_) {
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions) {
     int id = states.size();
     for ( auto& [channelId, deque] : mixturePositions ) {
         if (filledEdges.count(channelId)) {
-            std::cout << "We are replacing filled Edge " <<channelId<< " mixture " << filledEdges.at(channelId) <<" with "<< deque.front().mixtureId << std::endl;
             filledEdges.at(channelId) = deque.front().mixtureId;
-            std::cout << "The deque contains: ";
-            for (auto& mixture : deque) {
-                std::cout << mixture.mixtureId << ", ";
-            }
-            std::cout<<std::endl;
         } else {
-            std::cout << "We are emplacing a filled Edge." << std::endl;
             filledEdges.try_emplace(channelId, deque.back().mixtureId);
         }
     }
@@ -179,16 +164,6 @@ const std::unordered_map<int, sim::Mixture<T>*>& SimulationResult<T>::getMixture
 }
 
 template<typename T>
-const void SimulationResult<T>::setDiffusiveMixtures(std::unordered_map<int, sim::DiffusiveMixture<T>*> mixtures_) {
-    diffusiveMixtures = mixtures_;
-}
-
-template<typename T>
-const std::unordered_map<int, sim::DiffusiveMixture<T>*>& SimulationResult<T>::getDiffusiveMixtures() const {
-    return diffusiveMixtures;
-}
-
-template<typename T>
 const void SimulationResult<T>::printMixtures() {
 
     if (mixtures.empty()) {
@@ -205,7 +180,7 @@ const void SimulationResult<T>::printMixtures() {
 }
 
 template<typename T>
-const void SimulationResult<T>::writeDiffusiveMixtures(int mixtureId) {
+const void SimulationResult<T>::writeMixture(int mixtureId) {
     // TODO Maria, CSV Writer here
     // TODO get a channel pointer
     int numValues = 101; // Number of points to calculate
@@ -245,29 +220,6 @@ const void SimulationResult<T>::writeDiffusiveMixtures(int mixtureId) {
     }
     
     std::cout << "CSV file has been generated " << std::endl;
-
-    // for (auto& [channelId, channel] : network->getChannels()) {
-    //     // Calculate the step size
-    //     double step = channel->getWidth() / (numValues - 1);
-
-    //     for (auto& [mixtureId, mixture] : diffMixtures) { // adapt for diffusive mixtures
-    //         // std::cout << "\t[Result] Mixture " << mixtureId << " contains\n";
-    //         for (auto& [specieId, pair] : mixture->getSpecieDistributions()) {
-    //             // Calculate and write the values to the file
-    //             for (int i = 0; i < numValues; ++i) {
-    //                 T x = i * step;
-    //                 T y;
-    //                 if (mixture->getIsConstant()){ 
-    //                     y = species[specieId]->getConcentration(); // why is the getConcentration() defined in the fluid.h
-    //                 } else {
-    //                     y = species[specieId]->getConcentrationFunctionAtWidth(x); // TODO define this function?
-    //                 }
-    //                 y = pair.first(x);
-    //             outputFile << channelId << "," << std::fixed << std::setprecision(4) << x << "," << y << "\n"; 
-    //             }
-    //         }
-    //     }
-    // }
 }
 
-}  // namespace droplet
+}  // namespace result

@@ -7,22 +7,27 @@
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
 
-using T = double;
+#ifdef USE_ESSLBM
+    #include <mpi.h>
+#endif
+
+using T = float;
 
 int main(int argc, char const* argv []) {
 
-    // Define JSON files
-    std::string file = "../examples/1D/Mixing/DiffusionCase1.JSON";
+    #ifdef USE_ESSLBM
+    MPI_Init(NULL,NULL);
+    #endif
+
+    std::string file = argv[1];
 
     // Load and set the network from a JSON file
+    std::cout << "[Main] Create network object..." << std::endl;
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
-    // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(file, &network);
-
-    // Check if network is valid
-    network.isNetworkValid();
-    network.sortGroups();
+    // Load and set the simulation from a JSON file
+    std::cout << "[Main] Create simulation object..." << std::endl;
+    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
 
     // simulate
     sim.simulate();
@@ -37,9 +42,9 @@ int main(int argc, char const* argv []) {
     /**
      * Case 1
     */
-    result->writeDiffusiveMixtures(1);
-    result->writeDiffusiveMixtures(2);
-    result->writeDiffusiveMixtures(3);
+    result->writeMixtures(1);
+    result->writeMixtures(2);
+    result->writeMixtures(3);
 
     /**
      * Case 2
@@ -105,6 +110,10 @@ int main(int argc, char const* argv []) {
     */
     //result->writeDiffusiveMixtures(13);
     //result->writeDiffusiveMixtures(14);
+
+    #ifdef USE_ESSLBM
+    MPI_Finalize();
+    #endif
 
     return 0;
 }
