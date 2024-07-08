@@ -24,6 +24,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 | :-----------  | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      |
 | BigDroplet    | &#x2705;      |               |
+| Mixing        | &#x2705;      |               |
 
 </div>
 
@@ -33,7 +34,10 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 
 ### Platforms
 **Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based pressure-driven microfluidic flow. <sup>[[3]](https://doi.org/10.1039/C2LC20799K)</sup> <br>
-**BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[4]](https://doi.org/10.1145/3313867)</sup> <sup>[[5]](https://doi.org/10.1016/j.simpa.2022.100440)</sup>
+**BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[4]](https://doi.org/10.1145/3313867)</sup> <sup>[[5]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
+**Mixing**: Solvents play an important role in microfluidics and on this platform, concentrations of species dissolved in the continuous phase can be simulated. There are currently **two** mixing models available:
+* Instantaneous mixing model: Fluids are assumed to be fully mixed as soon as they meet.
+* Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology.
 
 
 
@@ -157,6 +161,15 @@ A `Channel` connects two nodes (node1 and node2) and has a width and a height:
     "height": 1e-4
 }
 ```
+A `module` defines a "black box" region on which a `simulator` acts. This region is defined by it's position, size, and the nodes that are present on its interface. An example use for the `module` is to define a CFD region for a Hybrid simulation.
+```JSON
+{
+    "position": [2.75e-3, 1.75e-3],
+    "size": [5e-4, 5e-4],
+    "nodes": [5, 7, 8, 9]
+}
+```
+
 Please, see the `examples` folder for examples of JSON definitions of networks for various simulations.
 
 **Simulation Definition**
@@ -206,7 +219,7 @@ A simulation requires a fluid that acts as continuous phase and pumps. The defin
     "activeFixture": 0,
 }   
 ```
-For simulations that are of `hybrid` type, at least one "CFD module" must be defined. This is the subset of the domain that will be simulated using CFD. A CFD Module is currently only supported for "LBM" type and contains paramaters for the LBM solver instance and information on the geometry of the CFD instance. The geometry of the CFD `Module` is described by a .STL file. The in-/outflow boundaries of the CFD `Module` are described by the `Openings`. Each opening is coupled to a single `Node` (located in the middle of the opening) of the Network, has a normal direction and a width.
+For simulations that are of `hybrid` type, at least one CFD `simulator` must be defined on a `module`, which is the subset of the domain that will be simulated using CFD. A CFD `simulator` is currently only supported for "LBM" type and contains paramaters for the LBM solver instance and a reference to the module it acts on. The geometry of the CFD `simulator` is described by a .STL file, which is contained by the bounding-box given by the `module`. The in-/outflow boundaries of the CFD `simulator` are described by the `Openings`. Each opening is coupled to a single `Node` (located in the middle of the opening) of the Network, has a normal direction and a width. These nodes are the interface nodes of the `module` on which the `simulator` is defined, and the node ids must correspond.
 ```JSON
 {
     "settings": {
@@ -221,10 +234,7 @@ For simulations that are of `hybrid` type, at least one "CFD module" must be def
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "posX": 1.75e-3,
-                "posY": 0.75e-3,
-                "sizeX": 5e-4,
-                "sizeY": 5e-4,
+                "moduleId": 0,
                 "Openings": [
                     {	
                         "node": 5,
