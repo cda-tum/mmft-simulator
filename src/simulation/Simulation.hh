@@ -573,7 +573,7 @@ namespace sim {
                     return a->getTime() < b->getTime();  // ascending order
                 });
 
-                #ifdef VERBOSE     
+                #ifdef DEBUG     
                     for (auto& event : events) {
                         event->print();
                     }
@@ -638,7 +638,7 @@ namespace sim {
                     return a->getTime() < b->getTime();  // ascending order
                 });
 
-                #ifdef VERBOSE  
+                #ifdef DEBUG  
                 for (auto& event : events) {
                     event->print();
                 }

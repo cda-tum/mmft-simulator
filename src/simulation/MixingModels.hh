@@ -25,15 +25,12 @@ void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
         T channelFlowRate = std::abs(network->getChannel(channelId)->getFlowRate());
         for (auto& [mixtureId, endPos] : deque) {
             T flowTime = (1.0 - endPos)*channelVolume/channelFlowRate;
-            //std::cout << "Channel " << channelId << " has a flowrate of " << channelFlowRate << std::endl;
-            //std::cout << "flowtime " << flowTime << "= (1.0 - " << endPos << ")*"<<channelVolume<<"/"<<channelFlowRate <<std::endl;
             if (this->minimalTimeStep < 1e-12) {
                 this->minimalTimeStep = flowTime;
             } else if (flowTime < this->minimalTimeStep) {
                 this->minimalTimeStep = flowTime;
             }
         }
-        std::cout << "Update minimal timestep to " << this->minimalTimeStep << std::endl;
     }
 }
 
@@ -246,8 +243,6 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
                         // Propagate the mixture positions in the channel with movedDistance
                         T newEndPos = std::min(endPos + movedDistance, (T) 1.0);
                         endPos = newEndPos;
-                        std::cout << "In channel " << channelId << " the moved distance is: " << movedDistance << " = " << inflowVolume << "/" << channel->getVolume() << std::endl;
-                        std::cout << "Propagate mixture " << mixtureId << " in channel " << channelId << " to position " << endPos << std::endl;
                         if (newEndPos == 1.0) {
                             // if the mixture front left the channel, it's fully filled with the current mixture
                             if (this->filledEdges.count(channel->getId())) {
@@ -273,30 +268,17 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
         // Perform topoology analysis at node, to know how the inflow sections and their relative order.
         topologyAnalysis(network, nodeId);
         for (auto& [channelId, channel] : network->getChannels()) {
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
-                std::cout << "Channel " << channelId << " has following flowsections:";
-                for (auto& section : outflowDistributions.at(channel->getId())) {
-                    std::cout << "\n\t channel " << section.channelId;
-                    std::cout << "\n\t sectionStart " << section.sectionStart;
-                    std::cout << "\n\t sectionEnd " << section.sectionEnd;
-                    std::cout << "\n\t flowRate " << section.flowRate << std::endl;
-                }
-            }
             // If the channel flows out of this node
             if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
                 // Loop over all species in the incoming mixtures and add to set of present species
                 std::set<int> presentSpecies;
                 for (auto& section : outflowDistributions.at(channel->getId())) {
-                    std::cout << "Check if channel " << section.channelId << " is a filled edge." << std::endl;
                     if (this->filledEdges.count(section.channelId)) {
-                        std::cout << "Yes" << std::endl;
                         for (auto& [specieId, pair] : mixtures.at(this->filledEdges.at(section.channelId))->getSpecieDistributions()) {
                             if (presentSpecies.find(specieId) == presentSpecies.end()) {
                                 presentSpecies.emplace(specieId);
                             }
                         }
-                    } else {
-                        std::cout << "No" << std::endl;
                     }
                 }
                 // We should evaluate the final function of the mixture reaching the end of this channel
@@ -312,15 +294,6 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                 DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
                 newMixture->setNonConstant();
                 this->injectMixtureInEdge(newMixture->getId(), channelId);
-                std::cout << "Generating mixtutre " << newMixture->getId() << " in channel " << channelId << " from mixture(s): ";
-                for (auto& section : outflowDistributions.at(channel->getId())) {
-                    if (this->filledEdges.count(section.channelId)) {
-                        std::cout << mixtures.at(this->filledEdges.at(section.channelId))->getId() << ", ";
-                    } else {
-                        std::cout << "empty.";
-                    }
-                }
-                std::cout << std::endl;
             }
         }
     }
@@ -396,34 +369,17 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             channelOrder.erase(channelOrder.begin(), channelOrder.begin() + n);
             concatenatedFlows.push_back(concatenatedFlow);
         }
-        int counter = 0;
-        for (auto& concatenation : concatenatedFlows) {
-            for (auto& channel : concatenation) {
-                std::cout << "Channel " << channel.channelId << " is inflow " << channel.inFlow << " in concatenation " << counter << std::endl;
-            }
-            counter++;
-        }
 
         if (concatenatedFlows.front().front().inFlow == concatenatedFlows.back().back().inFlow) {
-            std::cout << "This condition is true." << std::endl;
             for (auto& flow : concatenatedFlows.front()) {
                 concatenatedFlows.back().emplace_back( std::move(flow) );
             }
             concatenatedFlows.erase(concatenatedFlows.begin());
         }
 
-        counter = 0;
-        for (auto& concatenation : concatenatedFlows) {
-            for (auto& channel : concatenation) {
-                std::cout << "Channel " << channel.channelId << " is inflow " << channel.inFlow << " in concatenation " << counter << std::endl;
-            }
-            counter++;
-        }
-
         // 4. Calculate the flow connections between inflow/outflow channels
         // and generate outflowDistribution.
         if (concatenatedFlows.size() == 2) {
-            std::cout << "At node " << node->getId() << " we go with version 1" << std::endl;
             int in = (concatenatedFlows[0][0].inFlow) ? 0 : 1;
             int out = (concatenatedFlows[0][0].inFlow) ? 1 : 0;
             T flowRateIn = 0.0;
@@ -435,29 +391,21 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                 flowRateOut += std::abs(network->getChannel(channel.channelId)->getFlowRate());
             }
 
-            std::cout << "Total inflow " << flowRateIn << std::endl;
-            std::cout << "Total outflow " << flowRateOut << std::endl;
-
             std::vector<T> inflowCuts = {0.0};
             std::vector<int> channelInIDs;
             // Calculate inflow separations
-            for (auto& channelIn : concatenatedFlows[in]) {
-                std::cout << "Channel " << channelIn.channelId << " is in inflow concatenation " << std::endl;
-            }
             for (auto channelIn = concatenatedFlows[in].rbegin(); channelIn != concatenatedFlows[in].rend(); ++channelIn) {
                 T newCut = inflowCuts.back() + std::abs(network->getChannel(channelIn->channelId)->getFlowRate())/flowRateIn;
-                inflowCuts.push_back(std::min(newCut, 1.0));
+                inflowCuts.push_back(std::min(newCut, (T) 1.0));
                 channelInIDs.push_back(channelIn->channelId);
-                std::cout << "Channel " << channelIn->channelId << " cuts at " << std::min(newCut, 1.0) << " with inflow of " << std::abs(network->getChannel(channelIn->channelId)->getFlowRate()) << std::endl;
             }
 
             std::vector<T> outflowCuts = {0.0};
             std::vector<int> channelOutIDs;
             for (auto& channelOut : concatenatedFlows[out]) {
                 T newCut = outflowCuts.back() + std::abs(network->getChannel(channelOut.channelId)->getFlowRate())/flowRateOut;
-                outflowCuts.push_back(std::min(newCut, 1.0));
+                outflowCuts.push_back(std::min(newCut, (T) 1.0));
                 channelOutIDs.push_back(channelOut.channelId);
-                std::cout << "Channel " << channelOut.channelId << " cuts at " << std::min(newCut, 1.0) << " with outflow of " << std::abs(network->getChannel(channelOut.channelId)->getFlowRate()) << std::endl;
             }
 
             long unsigned int n_in = 0;
@@ -467,19 +415,11 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             for (auto& channelInId : channelInIDs) {
                 bool filled = false;
                 while (!filled){
-                    std::cout << "Construcing flow section from " << channelInId << " into " << channelOutIDs[n_out] << std::endl;
-                    std::cout << "Cut on the inflow side " << inflowCuts[n_in+1] << " cut on the outflow side " << outflowCuts[n_out+1]<< std::endl;
                     FlowSection<T> inFlowSection;
                     if (inflowCuts[n_in+1] <= outflowCuts[n_out+1] + 1e-15) {   ///< 1e-16 to account for machine precision. TODO: improve algorithm
                         // The cut is caused on the inflow side
                         T flowRate = (1.0 - start) * std::abs(network->getChannel(channelInId)->getFlowRate());
                         inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate, network->getChannel(channelInId)->getWidth()};
-                        std::cout << "Add flowsection for channel " << channelOutIDs[n_out] << " with following parameters: \n" ;
-                        std::cout << "Cut v1\n";
-                        std::cout << " \t channel in " << channelInId << " \n ";
-                        std::cout << " \t section start " << start << " \n ";
-                        std::cout << " \t section end " << 1.0 << " \n ";
-                        std::cout << " \t flowrate " << flowRate << " \n ";
                         if (outflowDistributions.count(channelOutIDs[n_out])) {
                             outflowDistributions.at(channelOutIDs[n_out]).push_back(inFlowSection);
                         } else {
@@ -496,14 +436,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                         // The cut is caused on the outflow side
                         T flowRate = (outflowCuts[n_out + 1] - std::max(inflowCuts[n_in], outflowCuts[n_out]))*flowRateIn;
                         end = start + flowRate / std::abs(network->getChannel(channelInId)->getFlowRate());
-                        std::cout << "end: " << end << " = " << start << " + " << flowRate << "/" << std::abs(network->getChannel(channelInId)->getFlowRate()) <<"\n";
                         inFlowSection = FlowSection<T> {channelInId, start, end, flowRate, network->getChannel(channelInId)->getWidth()};
-                        std::cout << "Add flowsection for channel " << channelOutIDs[n_out] << " with following parameters: \n" ;
-                        std::cout << "Cut v2\n";
-                        std::cout << " \t channel in " << channelInId << " \n ";
-                        std::cout << " \t section start " << start << " \n ";
-                        std::cout << " \t section end " << end << " \n ";
-                        std::cout << " \t flowrate " << flowRate << " \n ";
                         if (outflowDistributions.count(channelOutIDs[n_out])) {
                             outflowDistributions.at(channelOutIDs[n_out]).push_back(inFlowSection);
                         } else {
@@ -520,7 +453,6 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             }
 
         } else if (concatenatedFlows.size() == 4){
-            std::cout << "At node " << node->getId() << " we go with version 2" << std::endl;
             // Assume case with 2 pairs of opposing channels
             int lowest = 0;
             int n = 0;
@@ -639,12 +571,9 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
     }
     
     // calculating a_0
-    std::cout << "Calculating a_0 in solutionFunction" << std::endl;
     for (const auto& parameter : parameters) {
         T a_0_old = parameter.a_0_old;
-        std::cout << "a_0_old is " << a_0_old << std::endl;
         a_0 += a_0_old * (parameter.endWidth - parameter.startWidth); 
-        std::cout << "a_0 += " << a_0_old * (parameter.endWidth - parameter.startWidth) << std::endl;
         for (long unsigned int i = 0; i < parameter.segmentedResult.size(); i++) { 
             T scaleFactor = parameter.scaleFactor;
             T translateFactor = parameter.translateFactor;
@@ -654,7 +583,6 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                 - std::sin(oldN * M_PI * parameter.startWidth / scaleFactor + oldN * M_PI * translateFactor));
         }
     }     
-    std::cout << "a_0 is " << a_0 << std::endl;
 
     auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
@@ -701,7 +629,7 @@ template<typename T>
 std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
     T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
     T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures) { 
-    std::cout << "Getting into getAnalyticalSolutionTotal" << std::endl;
+    
     T prevEndWidth = 0.0;
 
     std::vector<FlowSectionInput<T>> constantFlowSections;
@@ -712,7 +640,6 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         T endWidth = startWidth + ((flowSection.flowRate / currChannelFlowRate));
         prevEndWidth = endWidth;
         T scaleFactor = (endWidth - startWidth) / (flowSection.sectionEnd - flowSection.sectionStart);
-        std::cout << "The scale factor is: " << scaleFactor << " = (" << (endWidth - startWidth) << ")/(" << (flowSection.sectionEnd - flowSection.sectionStart) << ")" << std::endl;
         T translateFactor = flowSection.sectionStart - startWidth / scaleFactor;
         #ifdef DEBUG
         assert(flowSection.sectionStart-startWidth >= (-1.0 - 1e-16) && flowSection.sectionStart-startWidth <= (1.0 + 1e-16));
@@ -723,16 +650,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
             std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
             std::vector<T> zeroSegmentedResult = {0};
             constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
-            std::cout << "The filled edges do not contain " << flowSection.channelId << "\n";
-            std::cout << "contantFlowSections pushed back: \n";
-            std::cout << "\t startWidth: " << startWidth;
-            std::cout << "\n\t endWidth: " << endWidth;
-            std::cout << "\n\t scaleFactor: " << 1.0;
-            std::cout << "\n\t translateFactor: " << translateFactor;
-            std::cout << "\n\t concentration: " << concentration;
-            std::cout << "\n";
         } else {
-            std::cout << "The filled edges do contain " << flowSection.channelId << "\n";
             T mixtureId = this->filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
             DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
             if (diffusiveMixture->getSpecieConcentrations().find(speciesId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
@@ -740,25 +658,11 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
-                std::cout << "contantFlowSections pushed back: \n";
-                std::cout << "\t startWidth: " << startWidth;
-                std::cout << "\n\t endWidth: " << endWidth;
-                std::cout << "\n\t scaleFactor: " << 1.0;
-                std::cout << "\n\t translateFactor: " << translateFactor;
-                std::cout << "\n\t concentration: " << concentration;
-                std::cout << "\n";
             } else if (diffusiveMixture->getIsConstant()) { 
                 T concentration = diffusiveMixture->getConcentrationOfSpecie(speciesId); 
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)}); 
-                std::cout << "contantFlowSections pushed back: \n";
-                std::cout << "\t startWidth: " << startWidth;
-                std::cout << "\n\t endWidth: " << endWidth;
-                std::cout << "\n\t scaleFactor: " << 1.0;
-                std::cout << "\n\t translateFactor: " << translateFactor;
-                std::cout << "\n\t concentration: " << concentration;
-                std::cout << "\n";
             } else {
                 auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(speciesId);
                 // std::function<T(T)> concentrationFunction = specieDistribution.first;
@@ -769,23 +673,12 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
                 T a_0_old = std::get<2>(specieDistribution);
                 // functionFlowSections.push_back({startWidth, endWidth, scaleFactor * (flowSection.width/channelWidth), translateFactor, T(0.0), concentrationFunction, segmentedResults, a_0_old});
                 functionFlowSections.push_back({startWidth, endWidth, scaleFactor, translateFactor, T(0.0), concentrationFunction, segmentedResults, a_0_old});
-                std::cout << "functionFlowSections pushed back: \n";
-                std::cout << "\t startWidth: " << startWidth;
-                std::cout << "\n\t endWidth: " << endWidth;
-                std::cout << "\n\t scaleFactor: " << scaleFactor;
-                std::cout << "\n\t translateFactor: " << translateFactor;
-                std::cout << "\n\t concentration: " << 0.0;
-                std::cout << "\n\t a_0_old: " << a_0_old;
-                std::cout << "\n";
             }
         }
     }
 
-    std::cout << "Peclet number is " << pecletNr << std::endl;
     auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalSolutionConstant(channelLength, channelWidth, 1000, pecletNr, constantFlowSections);
     auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalSolutionFunction(channelLength, channelWidth, 1000, pecletNr, functionFlowSections, fConstant);
-    std::cout << "a_0_Constant is " << a_0_Constant << std::endl;
-    std::cout << "a_0_Function is " << a_0_Function << std::endl;
 
     segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
 
