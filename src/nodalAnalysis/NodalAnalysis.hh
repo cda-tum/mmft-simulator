@@ -5,7 +5,7 @@ namespace nodal {
 template<typename T>
 void conductNodalAnalysis( const arch::Network<T>* network)
     {
-    const int nNodes = network->getNodes().size() - 1;    // -1 due to ground node
+    const int nNodes = network->getNodes().size();    // -1 due to ground node
     std::unordered_set<int> conductingNodeIds;
     std::unordered_map<int, int> groundNodeIds;
 

@@ -309,3 +309,32 @@ TEST(Continuous, Y_Network) {
                 result2->getStates().at(0)->getFlowRates().at(pump22->getId()), 1e-16);
 
 }
+
+TEST(Continuous, Network2) {
+    std::string file = "../examples/Abstract/Continuous/Network2.JSON";
+
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(file);
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+   
+    network.sortGroups();
+    network.isNetworkValid();
+
+    // Perform simulation and store results
+    testSimulation.simulate();
+
+    // results
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(3), result->getStates().at(0)->getFlowRates().at(4), 5e-10);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(4), result->getStates().at(0)->getFlowRates().at(5), 5e-10);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(5), result->getStates().at(0)->getFlowRates().at(6), 5e-10);
+
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(9), result->getStates().at(0)->getFlowRates().at(10), 5e-10);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(10), result->getStates().at(0)->getFlowRates().at(11), 5e-10);
+
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(12), result->getStates().at(0)->getFlowRates().at(13), 5e-10);
+    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(13), result->getStates().at(0)->getFlowRates().at(14), 5e-10);
+}
