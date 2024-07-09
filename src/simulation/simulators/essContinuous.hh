@@ -14,6 +14,7 @@ namespace sim{
             epsilon(epsilon_), relaxationTime(relaxationTime_)
     {
         this->cfdModule->setModuleTypeEssLbm();
+        allNodes = cfdModule_->getNodes();
     }
 
     template<typename T>
