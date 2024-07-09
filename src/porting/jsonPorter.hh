@@ -44,69 +44,33 @@ sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* ne
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
-    sim::Simulation<T> simulation = simulationFromJSON<T>(jsonString, network_);
+    sim::Simulation<T> simulation = sim::Simulation<T>();
+
+    simulationFromJSON<T>(jsonFile, network_, simulation);
+
+    return simulation;
+}
+
+template<typename T>
+sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
+    sim::Simulation<T> simulation = sim::Simulation<T>();
+
+    simulationFromJSON<T>(jsonString, network_, simulation);
 
     return simulation;
 }
 
 template<typename T>
 void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
-    
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
-    sim::Platform platform = readPlatform<T>(jsonString, simulation);
-    sim::Type simType = readType<T>(jsonString, simulation);
-    int activeFixture = readActiveFixture<T>(jsonString);
-    simulation.setFixtureId(activeFixture);
-
-    simulation.setNetwork(network_);
-
-    readFluids<T>(jsonString, simulation);
-    readPumps<T>(jsonString, network_);
-
-    if (platform == sim::Platform::Continuous) {
-        if (simType == sim::Type::CFD) {
-            throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
-        }
-    } else
-    if (platform == sim::Platform::BigDroplet) {
-        if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
-        }
-        readDropletInjections<T>(jsonString, simulation, activeFixture);
-    } else
-    if (platform == sim::Platform::Mixing) {
-        if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
-        }
-        readMixingModel<T>(jsonString, simulation);
-        readSpecies<T>(jsonString, simulation);
-        readMixtures<T>(jsonString, simulation);
-        readMixtureInjections<T>(jsonString, simulation, activeFixture);
-    } else {
-        throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
-    }
-
-    if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, simulation, network_);
-        network_->sortGroups();
-    }
-
-    if (simType == sim::Type::CFD) {
-        // NOT YET SUPPORTED
-        throw std::invalid_argument("Full CFD simulations are not yet supported in the simulator.");
-    }
-
-    readBoundaryConditions<T>(jsonString, simulation, activeFixture);
-    readContinuousPhase<T>(jsonString, simulation, activeFixture);
-    readResistanceModel<T>(jsonString, simulation);
+    simulationFromJSON<T>(jsonString, network_, simulation);
 }
 
 template<typename T>
-sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
+void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
 
-    sim::Simulation<T> simulation = sim::Simulation<T>();
     sim::Platform platform = readPlatform<T>(jsonString, simulation);
     sim::Type simType = readType<T>(jsonString, simulation);
     int activeFixture = readActiveFixture<T>(jsonString);
@@ -115,47 +79,62 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
     simulation.setNetwork(network_);
 
     readFluids<T>(jsonString, simulation);
-    readPumps<T>(jsonString, network_);
 
-    if (platform == sim::Platform::Continuous) {
-        if (simType == sim::Type::CFD) {
-            throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
-        }
-    } else
-    if (platform == sim::Platform::BigDroplet) {
-        if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
-        }
-        //readDroplets<T>(jsonString, simulation);
-        readDropletInjections<T>(jsonString, simulation, activeFixture);
-    } else
-    if (platform == sim::Platform::Mixing) {
-        if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
-        }
-        readMixingModel<T>(jsonString, simulation);
-        readSpecies<T>(jsonString, simulation);
-        readMixtures<T>(jsonString, simulation);
-        readMixtureInjections<T>(jsonString, simulation, activeFixture);
-    } else {
-        throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
-    }
+    // Read an Abstract simulation definition
+    if (simType == sim::Type::Abstract) {
 
-    if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, simulation, network_);
+        readPumps<T>(jsonString, network_);
+
+        if (platform == sim::Platform::Continuous) {
+
+        } else if (platform == sim::Platform::BigDroplet) {
+            readDropletInjections<T>(jsonString, simulation, activeFixture);
+        } else if (platform == sim::Platform::Mixing) {
+            readMixingModel<T>(jsonString, simulation);
+            readSpecies<T>(jsonString, simulation);
+            readMixtures<T>(jsonString, simulation);
+            readMixtureInjections<T>(jsonString, simulation, activeFixture);
+        } else {
+            throw std::invalid_argument("Invalid platform for Abstract simulation. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
+        }
+
+        readContinuousPhase<T>(jsonString, simulation, activeFixture);
+        readResistanceModel<T>(jsonString, simulation);
         network_->sortGroups();
+        network_->isNetworkValid();
     }
 
-    if (simType == sim::Type::CFD) {
-        // NOT YET SUPPORTED
-        throw std::invalid_argument("Full CFD simulations are not yet supported in the simulator.");
+    // Read a Hybrid simulation definition
+    else if (simType == sim::Type::Hybrid) {
+
+        readContinuousPhase<T>(jsonString, simulation, activeFixture);
+        readResistanceModel<T>(jsonString, simulation);
+
+        if (platform == sim::Platform::Continuous) {
+            readSimulators<T>(jsonString, simulation, network_);
+            network_->sortGroups();
+        } else if (platform == sim::Platform::BigDroplet) {
+            throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
+        } else if (platform == sim::Platform::Mixing) {
+            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
+        } else {
+            throw std::invalid_argument("Invalid platform for Hybrid simulation. Please select one of the following:\n\tcontinuous");
+        }
+
+        readPumps<T>(jsonString, network_);
+        network_->isNetworkValid();
     }
 
-    readBoundaryConditions<T>(jsonString, simulation, activeFixture);
-    readContinuousPhase<T>(jsonString, simulation, activeFixture);
-    readResistanceModel<T>(jsonString, simulation);
+    // Read a CFD simulation definition
+    else if (simType == sim::Type::CFD) {
+        throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
+    } 
+    
+    // Invalid simulation definition
+    else {
+        throw std::invalid_argument("Invalid simulation type. Please select one of the following:\n\tAbstract\n\tHybrid");
+    }
 
-    return simulation;
 }
 
 template<typename T>

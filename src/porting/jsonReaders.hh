@@ -183,7 +183,6 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
             int fluid = injection["fluid"];
             T volume = injection["volume"];
             auto newDroplet = simulation.addDroplet(fluid, volume);
-            //int dropletId = injection["droplet"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
             T injectionPosition = injection["pos"];
