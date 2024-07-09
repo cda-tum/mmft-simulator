@@ -53,7 +53,7 @@ namespace sim {
             bool initialized = false;               ///< Is the module initialized?
             bool isConverged = false;               ///< Has the module converged?
             
-            std::shared_ptr<arch::Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
+            std::unordered_map<int, std::shared_ptr<arch::Node<T>>>  allNodes;                      ///< Fully connected graph as network for the initial approximation.
             std::unordered_map<int, arch::Opening<T>> moduleOpenings;             ///< Map of openings.
             std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
