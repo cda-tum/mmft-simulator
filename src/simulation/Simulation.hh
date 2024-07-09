@@ -8,66 +8,66 @@ namespace sim {
     }
 
     template<typename T>
-    Fluid<T>* Simulation<T>::addFluid(T viscosity, T density, T concentration) {
+    std::shared_ptr<Fluid<T>> Simulation<T>::addFluid(T viscosity, T density, T concentration) {
         auto id = fluids.size();
 
         auto result = fluids.insert_or_assign(id, std::make_unique<Fluid<T>>(id, density, viscosity, concentration));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Droplet<T>* Simulation<T>::addDroplet(int fluidId, T volume) {
+    std::shared_ptr<Droplet<T>> Simulation<T>::addDroplet(int fluidId, T volume) {
         auto id = droplets.size();
-        auto fluid = fluids.at(fluidId).get();
+        auto fluid = fluids.at(fluidId);
 
         auto result = droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluid));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Specie<T>* Simulation<T>::addSpecie(T diffusivity, T satConc) {
+    std::shared_ptr<Specie<T>> Simulation<T>::addSpecie(T diffusivity, T satConc) {
         auto id = species.size();
         
         auto result = species.insert_or_assign(id, std::make_unique<Specie<T>>(id, diffusivity, satConc));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, T> specieConcentrations) {
+    std::shared_ptr<Mixture<T>> Simulation<T>::addMixture(std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
-        std::unordered_map<int, Specie<T>*> species;
+        std::unordered_map<int, std::shared_ptr<Specie<T>>> species;
 
         for (auto& [specieId, concentration] : specieConcentrations) {
             species.try_emplace(specieId, getSpecie(specieId));
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+        std::shared_ptr<Fluid<T>> carrierFluid = this->getFluid(this->continuousPhase);
 
         auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
+    std::shared_ptr<Mixture<T>> Simulation<T>::addMixture(std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
-        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+        std::shared_ptr<Fluid<T>> carrierFluid = this->getFluid(this->continuousPhase);
 
         auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations) {
+    std::shared_ptr<Mixture<T>> Simulation<T>::addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
-        std::unordered_map<int, Specie<T>*> species;
+        std::unordered_map<int, std::shared_ptr<Specie<T>>> species;
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
 
         for (auto& [specieId, concentration] : specieConcentrations) {
@@ -77,15 +77,15 @@ namespace sim {
             specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+        std::shared_ptr<Fluid<T>> carrierFluid = this->getFluid(this->continuousPhase);
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
+    std::shared_ptr<Mixture<T>> Simulation<T>::addDiffusiveMixture(std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
@@ -96,18 +96,18 @@ namespace sim {
             specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+        std::shared_ptr<Fluid<T>> carrierFluid = this->getFluid(this->continuousPhase);
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions) {
+    std::shared_ptr<Mixture<T>> Simulation<T>::addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions) {
         auto id = mixtures.size();
 
-        std::unordered_map<int, Specie<T>*> species;
+        std::unordered_map<int, std::shared_ptr<Specie<T>>> species;
         std::unordered_map<int, T> specieConcentrations;
 
         for (auto& [specieId, distribution] : specieDistributions) {
@@ -115,15 +115,15 @@ namespace sim {
             specieConcentrations.try_emplace(specieId, T(0));
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+        std::shared_ptr<Fluid<T>> carrierFluid = this->getFluid(this->continuousPhase);
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions) {
+    std::shared_ptr<Mixture<T>> Simulation<T>::addDiffusiveMixture(std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions) {
         auto id = mixtures.size();
 
         std::unordered_map<int, T> specieConcentrations;
@@ -132,17 +132,17 @@ namespace sim {
             specieConcentrations.try_emplace(specieId, T(0));
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+        std::shared_ptr<Fluid<T>> carrierFluid = this->getFluid(this->continuousPhase);
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    DropletInjection<T>* Simulation<T>::addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition) {
+    std::shared_ptr<DropletInjection<T>> Simulation<T>::addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition) {
         auto id = dropletInjections.size();
-        auto droplet = droplets.at(dropletId).get();
+        auto droplet = droplets.at(dropletId);
         auto channel = network->getChannel(channelId);
 
         // --- check if injection is valid ---
@@ -163,17 +163,17 @@ namespace sim {
         }
 
         auto result = dropletInjections.insert_or_assign(id, std::make_unique<DropletInjection<T>>(id, droplet, injectionTime, channel, injectionPosition));
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
+    std::shared_ptr<MixtureInjection<T>> Simulation<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
         auto id = mixtureInjections.size();
 
         if (network->isChannel(edgeId)) {
             auto channel = network->getChannel(edgeId);
             auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
-            return result.first->second.get();
+            return result.first->second;
             
         } else if (network->isPressurePump(edgeId)) {
             auto pump = network->getPressurePump(edgeId);
@@ -190,13 +190,13 @@ namespace sim {
     }
 
     template<typename T>
-    lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+    std::shared_ptr<lbmSimulator<T>> Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
                                                     T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+            auto addCfdSimulator = std::make_shared<lbmSimulator<T>>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -208,14 +208,14 @@ namespace sim {
     }
 
     template<typename T>
-    essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+    std::shared_ptr<essLbmSimulator<T>> Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
                                                         T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
         #ifdef USE_ESSLBM
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+            auto addCfdSimulator = std::make_shared<essLbmSimulator<T>>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -246,18 +246,18 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setNetwork(arch::Network<T>* network_) {
+    void Simulation<T>::setNetwork(std::shared_ptr<arch::Network<T>> network_) {
         this->network = network_;
     }
 
     template<typename T>
-    void Simulation<T>::setFluids(std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids_) {
-        this->fluids = std::move(fluids_);
+    void Simulation<T>::setFluids(std::unordered_map<int, std::shared_ptr<Fluid<T>>> fluids_) {
+        this->fluids = fluids_;
     }
 
     template<typename T>
-    void Simulation<T>::setDroplets(std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets_) {
-        this->droplets = std::move(droplets_);
+    void Simulation<T>::setDroplets(std::unordered_map<int, std::shared_ptr<Droplet<T>>> droplets_) {
+        this->droplets = droplets_;
     }
 
     template<typename T>
@@ -266,23 +266,23 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::setContinuousPhase(Fluid<T>* fluid) {
+    void Simulation<T>::setContinuousPhase(std::shared_ptr<Fluid<T>> fluid) {
         this->continuousPhase = fluid->getId();
     }
 
     template<typename T>
-    void Simulation<T>::setResistanceModel(ResistanceModel<T>* model_) {
+    void Simulation<T>::setResistanceModel(std::shared_ptr<ResistanceModel<T>> model_) {
         this->resistanceModel = model_;
     }
 
     template<typename T>
-    void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
+    void Simulation<T>::setMixingModel(std::shared_ptr<MixingModel<T>> model_) {
         this->mixingModel = model_;
     }
     
     template<typename T>
     void Simulation<T>::calculateNewMixtures(double timestep_) {
-        this->mixingModel->updateMixtures(timestep_, this->network, this, this->mixtures);
+        this->mixingModel->updateMixtures(timestep_, this->network, this->shared_from_this(), this->mixtures);
     }
 
     template<typename T>
@@ -301,27 +301,27 @@ namespace sim {
     }
 
     template<typename T>
-    arch::Network<T>* Simulation<T>::getNetwork() {
+    std::shared_ptr<arch::Network<T>> Simulation<T>::getNetwork() {
         return this->network;
     }
 
     template<typename T>
-    Fluid<T>* Simulation<T>::getFluid(int fluidId) {
-        return fluids.at(fluidId).get();
+    std::shared_ptr<Fluid<T>> Simulation<T>::getFluid(int fluidId) {
+        return fluids.at(fluidId);
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<Fluid<T>>>& Simulation<T>::getFluids() {
+    std::unordered_map<int, std::shared_ptr<Fluid<T>>>& Simulation<T>::getFluids() {
         return fluids;
     }
 
     template<typename T>
-    Droplet<T>* Simulation<T>::getDroplet(int dropletId) {
-        return droplets.at(dropletId).get();
+    std::shared_ptr<Droplet<T>> Simulation<T>::getDroplet(int dropletId) {
+        return droplets.at(dropletId);
     }
 
     template<typename T>
-    Droplet<T>* Simulation<T>::getDropletAtNode(int nodeId) {
+    std::shared_ptr<Droplet<T>> Simulation<T>::getDropletAtNode(int nodeId) {
         // loop through all droplets
         for (auto& [id, droplet] : droplets) {
             // do not consider droplets which are not inside the network
@@ -337,13 +337,13 @@ namespace sim {
             // check if a boundary is connected with the reference node and if yes then return the droplet immediately
             auto connectedBoundaries = droplet->getConnectedBoundaries(nodeId);
             if (connectedBoundaries.size() != 0) {
-                return droplet.get();
+                return droplet;
             }
 
             // check if a fully occupied channel is connected with the reference node and if yes then return the droplet immediately
             auto connectedFullyOccupiedChannels = droplet->getConnectedFullyOccupiedChannels(nodeId);
             if (connectedFullyOccupiedChannels.size() != 0) {
-                return droplet.get();
+                return droplet;
             }
         }
 
@@ -352,66 +352,66 @@ namespace sim {
     }
 
     template<typename T>
-    DropletInjection<T>* Simulation<T>::getDropletInjection(int injectionId) {
-        return dropletInjections.at(injectionId).get();
+    std::shared_ptr<DropletInjection<T>> Simulation<T>::getDropletInjection(int injectionId) {
+        return dropletInjections.at(injectionId);
     }
 
     template<typename T>
-    MixtureInjection<T>* Simulation<T>::getMixtureInjection(int injectionId) {
-        return mixtureInjections.at(injectionId).get();
+    std::shared_ptr<MixtureInjection<T>> Simulation<T>::getMixtureInjection(int injectionId) {
+        return mixtureInjections.at(injectionId);
     }
 
     template<typename T>
-    Fluid<T>* Simulation<T>::getContinuousPhase() {
-        return fluids[continuousPhase].get();
+    std::shared_ptr<Fluid<T>> Simulation<T>::getContinuousPhase() {
+        return fluids[continuousPhase];
     }
 
     template<typename T>
-    MixingModel<T>* Simulation<T>::getMixingModel() {
+    std::shared_ptr<MixingModel<T>> Simulation<T>::getMixingModel() {
         return mixingModel;
     }
 
     template<typename T>
-    ResistanceModel<T>* Simulation<T>::getResistanceModel() {
+    std::shared_ptr<ResistanceModel<T>> Simulation<T>::getResistanceModel() {
         return resistanceModel;
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::getMixture(int mixtureId) {
-        return mixtures.at(mixtureId).get();
+    std::shared_ptr<Mixture<T>> Simulation<T>::getMixture(int mixtureId) {
+        return mixtures.at(mixtureId);
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Simulation<T>::getMixtures() {
+    std::unordered_map<int, std::shared_ptr<Mixture<T>>>& Simulation<T>::getMixtures() {
         return mixtures;
     }
 
     template<typename T>
-    Specie<T>* Simulation<T>::getSpecie(int specieId) {
-        return species.at(specieId).get();
+    std::shared_ptr<Specie<T>> Simulation<T>::getSpecie(int specieId) {
+        return species.at(specieId);
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<Specie<T>>>& Simulation<T>::getSpecies() {
+    std::unordered_map<int, std::shared_ptr<Specie<T>>>& Simulation<T>::getSpecies() {
         return species;
     }
 
     template<typename T>
-    result::SimulationResult<T>* Simulation<T>::getSimulationResults() {
-        return simulationResult.get();
+    std::shared_ptr<result::SimulationResult<T>> Simulation<T>::getSimulationResults() {
+        return simulationResult;
     }
 
     template<typename T>
-    Fluid<T>* Simulation<T>::mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1) {
+    std::shared_ptr<Fluid<T>> Simulation<T>::mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1) {
         // check if fluids are identically (no merging needed) and if they exist
         if (fluid0Id == fluid1Id) {
             // try to get the fluid (throws error if the fluid is not present)
-            return fluids.at(fluid0Id).get();
+            return fluids.at(fluid0Id);
         }
 
         // get fluids
-        auto fluid0 = fluids.at(fluid0Id).get();
-        auto fluid1 = fluids.at(fluid1Id).get();
+        auto fluid0 = fluids.at(fluid0Id);
+        auto fluid1 = fluids.at(fluid1Id);
 
         // compute ratios
         T volume = volume0 + volume1;
@@ -434,11 +434,11 @@ namespace sim {
     }
 
     template<typename T>
-    Droplet<T>* Simulation<T>::mergeDroplets(int droplet0Id, int droplet1Id) {
+    std::shared_ptr<Droplet<T>> Simulation<T>::mergeDroplets(int droplet0Id, int droplet1Id) {
         // check if droplets are identically (no merging needed) and if they exist
         if (droplet0Id == droplet1Id) {
             // try to get the droplet (throws error if the droplet is not present)
-            return droplets.at(droplet0Id).get();
+            return droplets.at(droplet0Id);
         }
 
         // get droplets
@@ -580,9 +580,9 @@ namespace sim {
                 #endif
 
                 // get next event or break loop, if no events remain
-                Event<T>* nextEvent = nullptr;
+                std::shared_ptr<Event<T>> nextEvent = nullptr;
                 if (events.size() != 0) {
-                    nextEvent = events[0].get();
+                    nextEvent = events[0];
                 } else {
                     break;
                 }
@@ -644,9 +644,9 @@ namespace sim {
                 }
                 #endif
                 
-                Event<T>* nextEvent = nullptr;
+                std::shared_ptr<Event<T>> nextEvent = nullptr;
                 if (events.size() != 0) {
-                    nextEvent = events[0].get();
+                    nextEvent = events[0];
                 } else {
                     break;
                 }
@@ -657,7 +657,7 @@ namespace sim {
                 if (this->mixingModel->isInstantaneous()){
                     this->mixingModel->updateNodeInflow(timestep, network);
                 } else if (this->mixingModel->isDiffusive()) {
-                    this->mixingModel->updateMixtures(timestep, network, this, mixtures);
+                    this->mixingModel->updateMixtures(timestep, network, this->shared_from_this(), mixtures);
                 }
                 
                 nextEvent->performEvent();
@@ -709,7 +709,7 @@ namespace sim {
             std::cout << "[Simulation] Compute and set channel resistances..." << std::endl;
         #endif
         for (auto& [key, channel] : network->getChannels()) {
-            T resistance = resistanceModel->getChannelResistance(channel.get());
+            T resistance = resistanceModel->getChannelResistance(channel);
             channel->setResistance(resistance);
             channel->setDropletResistance(0.0);
         }
@@ -850,9 +850,9 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::saveMixtures() {
-        std::unordered_map<int, Mixture<T>*> mixtures_ptr;
+        std::unordered_map<int, std::shared_ptr<Mixture<T>>> mixtures_ptr;
         for (auto& [mixtureId, mixture] : this->mixtures) {
-            mixtures_ptr.try_emplace(mixtureId, mixture.get());
+            mixtures_ptr.try_emplace(mixtureId, mixture);
         }
         simulationResult->setMixtures(mixtures_ptr);   
     }
@@ -875,9 +875,9 @@ namespace sim {
     }
 
     template<typename T>
-    std::vector<std::unique_ptr<Event<T>>> Simulation<T>::computeMixingEvents() {
+    std::vector<std::shared_ptr<Event<T>>> Simulation<T>::computeMixingEvents() {
         // events
-        std::vector<std::unique_ptr<Event<T>>> events;
+        std::vector<std::shared_ptr<Event<T>>> events;
 
         T minimalTimeStep = 0.0;
         
@@ -899,9 +899,9 @@ namespace sim {
     }
 
     template<typename T>
-    std::vector<std::unique_ptr<Event<T>>> Simulation<T>::computeEvents() {
+    std::vector<std::shared_ptr<Event<T>>> Simulation<T>::computeEvents() {
         // events
-        std::vector<std::unique_ptr<Event<T>>> events;
+        std::vector<std::shared_ptr<Event<T>>> events;
 
         // injection events
         for (auto& [key, injection] : dropletInjections) {
@@ -912,8 +912,8 @@ namespace sim {
         }
 
         // define maps that are used for detecting merging inside channels
-        std::unordered_map<int, std::vector<DropletBoundary<T>*>> channelBoundariesMap;
-        std::unordered_map<DropletBoundary<T>*, Droplet<T>*> boundaryDropletMap;
+        std::unordered_map<int, std::vector<std::shared_ptr<DropletBoundary<T>>>> channelBoundariesMap;
+        std::unordered_map<std::shared_ptr<DropletBoundary<T>>, std::shared_ptr<Droplet<T>>> boundaryDropletMap;
 
         for (auto& [key, droplet] : droplets) {
             // only consider droplets inside the network (but no trapped droplets)
@@ -928,7 +928,7 @@ namespace sim {
                 if (boundary->getFlowRate() < 0) {
                     // boundary moves towards the droplet center => BoundaryTailEvent
                     double time = boundary->getTime();
-                    events.push_back(std::make_unique<BoundaryTailEvent<T>>(time, *droplet, *boundary, *network));
+                    events.push_back(std::make_unique<BoundaryTailEvent<T>>(time, droplet, boundary, network));
                 } else if (boundary->getFlowRate() > 0) {
                     // boundary moves away from the droplet center => BoundaryHeadEvent
                     double time = boundary->getTime();
@@ -938,7 +938,7 @@ namespace sim {
                     // hence it is either a MergeBifurcationEvent or a BoundaryHeadEvent that will happen
 
                     // check if merging is enabled
-                    Droplet<T>* mergeDroplet = nullptr;
+                    std::shared_ptr<Droplet<T>> mergeDroplet = nullptr;
 
                     // find droplet to merge (if present)
                     auto referenceNode = boundary->getOppositeReferenceNode(network);
@@ -947,19 +947,19 @@ namespace sim {
                     if (mergeDroplet == nullptr) {
                         // no merging will happen => BoundaryHeadEvent
                         if (!boundary->isInWaitState()) {
-                            events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *network));
+                            events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, droplet, boundary, network));
                         }
                     } else {
                         // merging of the actual droplet with the merge droplet will happen => MergeBifurcationEvent
-                        events.push_back(std::make_unique<MergeBifurcationEvent<T>>(time, *droplet, *mergeDroplet, *boundary, *this));
+                        events.push_back(std::make_unique<MergeBifurcationEvent<T>>(time, droplet, mergeDroplet, boundary, this->shared_from_this()));
                     }
                 }
 
                 // fill the maps which are later used for merging inside channels (if merging is enabled)
                 auto [value, success] = channelBoundariesMap.try_emplace(boundary->getChannelPosition().getChannel()->getId());
-                value->second.push_back(boundary.get());
+                value->second.push_back(boundary);
 
-                boundaryDropletMap.emplace(boundary.get(), droplet.get());
+                boundaryDropletMap.emplace(boundary, droplet);
             }
         }
 
@@ -1017,7 +1017,7 @@ namespace sim {
                     }
 
                     // add MergeChannelEvent
-                    events.push_back(std::make_unique<MergeChannelEvent<T>>(time, *referenceDroplet, *droplet, *referenceBoundary, *boundary, *this));
+                    events.push_back(std::make_unique<MergeChannelEvent<T>>(time, referenceDroplet, droplet, referenceBoundary, boundary, this->shared_from_this()));
                 }
             }
         }

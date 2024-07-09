@@ -125,13 +125,13 @@ struct State {
  */
 template<typename T>
 struct SimulationResult {
-    arch::Network<T>* network;                                      /// Contains the chip, with all the channels and pumps.
-    std::unordered_map<int, sim::Fluid<T>>* fluids;                 /// Contains all fluids which were defined (i.e., also the fluids which were created when droplets merged).
-    std::unordered_map<int, sim::Droplet<T>>* droplets;             /// Contains all droplets that occurred during the simulation not only the once that were injected (i.e., also merged and splitted droplets)
-    std::unordered_map<int, sim::Mixture<T>*> mixtures;
-    std::unordered_map<int, sim::Specie<T>>* species;
+    std::shared_ptr<arch::Network<T>> network;                                      /// Contains the chip, with all the channels and pumps.
+    std::unordered_map<int, std::shared_ptr<sim::Fluid<T>>> fluids;                 /// Contains all fluids which were defined (i.e., also the fluids which were created when droplets merged).
+    std::unordered_map<int, std::shared_ptr<sim::Droplet<T>>> droplets;             /// Contains all droplets that occurred during the simulation not only the once that were injected (i.e., also merged and splitted droplets)
+    std::unordered_map<int, std::shared_ptr<sim::Mixture<T>>> mixtures;
+    std::unordered_map<int, std::shared_ptr<sim::Specie<T>>> species;
     std::unordered_map<int, int> filledEdges;
-    std::vector<std::unique_ptr<State<T>>> states;                  /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
+    std::vector<std::shared_ptr<State<T>>> states;                  /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
 
     int continuousPhaseId;              /// Fluid id which served as the continuous phase.
     T maximalAdaptiveTimeStep;     /// Value for the maximal adaptive time step that was used.
@@ -148,9 +148,9 @@ struct SimulationResult {
      * @param[in] fluids a pointer to the unordered map of fluids in the simulation
      * @param[in] droplets a pointer to the unordered map of droplets in the simulation
      */
-    SimulationResult(   arch::Network<T>* network, 
-                        std::unordered_map<int, sim::Fluid<T>>* fluids, 
-                        std::unordered_map<int, sim::Droplet<T>>* droplets);
+    SimulationResult(   std::shared_ptr<arch::Network<T>> network,
+                        std::unordered_map<int, std::shared_ptr<sim::Fluid<T>>> fluids,
+                        std::unordered_map<int, std::shared_ptr<sim::Droplet<T>>> droplets);
 
     /**
      * @brief Adds a state to the simulation results.
@@ -180,7 +180,7 @@ struct SimulationResult {
      * @brief Get the simulated states that were stored during simulation.
      * @return Vector of states
      */
-    const std::vector<std::unique_ptr<State<T>>>& getStates() const;
+    const std::vector<std::shared_ptr<State<T>>>& getStates() const;
 
     /**
      * @brief Print all the states that were stored during simulation.
@@ -198,9 +198,9 @@ struct SimulationResult {
     */
     const void printState(int key) const;
 
-    const void setMixtures(std::unordered_map<int, sim::Mixture<T>*> mixtures);
+    const void setMixtures(std::unordered_map<int, std::shared_ptr<sim::Mixture<T>>> mixtures);
 
-    const std::unordered_map<int, sim::Mixture<T>*>& getMixtures() const;
+    const std::unordered_map<int, std::shared_ptr<sim::Mixture<T>>>& getMixtures() const;
 
     const void printMixtures();
 

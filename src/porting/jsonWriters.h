@@ -38,7 +38,7 @@ namespace porting {
  * @return The json string containing the result
 */
 template<typename T>
-auto writePressures (result::State<T>* state);
+auto writePressures (std::shared_ptr<result::State<T>> state);
 
 /**
  * @brief Write the flow rates in the channels of a network at a state (timestamp) of the simulation
@@ -46,7 +46,7 @@ auto writePressures (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeChannels (result::State<T>* state);
+auto writeChannels (std::shared_ptr<result::State<T>> state);
 
 /**
  * @brief Write the droplet positions at a state (timestamp) of the simulation
@@ -55,7 +55,7 @@ auto writeChannels (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
+auto writeDroplets (std::shared_ptr<result::State<T>> state, std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Write set of fluids of the simulation
@@ -63,10 +63,10 @@ auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeFluids (sim::Simulation<T>* simulation);
+auto writeFluids (std::shared_ptr<sim::Simulation<T>> simulation);
 
 template<typename T>
-auto writeMixtures (sim::Simulation<T>* simulation);
+auto writeMixtures (std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Return the simulation type of the simulation
@@ -74,7 +74,7 @@ auto writeMixtures (sim::Simulation<T>* simulation);
  * @return String of the simulation type
 */
 template<typename T>
-std::string writeSimType (sim::Simulation<T>* simulation);
+std::string writeSimType (std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Return the platform of the simulation
@@ -82,6 +82,6 @@ std::string writeSimType (sim::Simulation<T>* simulation);
  * @return String of the platform
 */
 template<typename T>
-std::string writeSimPlatform (sim::Simulation<T>* simulation);
+std::string writeSimPlatform (std::shared_ptr<sim::Simulation<T>> simulation);
 
 }   // namespace porting

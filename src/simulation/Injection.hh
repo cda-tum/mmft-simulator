@@ -3,12 +3,12 @@
 namespace sim {
 
 template<typename T>
-DropletInjection<T>::DropletInjection(int id, Droplet<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition) : 
+DropletInjection<T>::DropletInjection(int id, std::shared_ptr<Droplet<T>> droplet, T injectionTime, std::shared_ptr<arch::RectangularChannel<T>> channel, T injectionPosition) :
     id(id), droplet(droplet), injectionTime(injectionTime), injectionPosition(arch::ChannelPosition<T>(channel, injectionPosition)) { }
 
 template<typename T>
 void DropletInjection<T>::setName(std::string name) {
-    name = std::move(name);
+    this->name = name;
 }
 
 template<typename T>
@@ -32,7 +32,7 @@ const arch::ChannelPosition<T>& DropletInjection<T>::getInjectionPosition() cons
 }
 
 template<typename T>
-Droplet<T>* DropletInjection<T>::getDroplet() const {
+std::shared_ptr<Droplet<T>> DropletInjection<T>::getDroplet() const {
     return droplet;
 }
 

@@ -82,8 +82,8 @@ class Channel : public Edge<T>{
         ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular.
         ChannelType type = ChannelType::NORMAL;     ///< What kind of channel it is.
         
-        std::vector<std::unique_ptr<Line_segment<T,2>>> line_segments;      ///< Straight line segments in the channel.
-        std::vector<std::unique_ptr<Arc<T,2>>> arcs;                        ///< Arcs in the channel.
+        std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments;      ///< Straight line segments in the channel.
+        std::vector<std::shared_ptr<Arc<T,2>>> arcs;                        ///< Arcs in the channel.
 
     public:
         /**
@@ -95,8 +95,8 @@ class Channel : public Edge<T>{
          * @param[in] arcs The arcs of this channel.
         */
         Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, 
-                std::vector<Line_segment<T,2>*> line_segments,
-                std::vector<Arc<T,2>*> arcs);
+                std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments,
+                std::vector<std::shared_ptr<Arc<T,2>>> arcs);
 
         /**
          * @brief Constructor of a channel connecting two-nodes.
@@ -219,8 +219,8 @@ class RectangularChannel : public Channel<T> {
          * @param[in] height The height of the channel cross-section.
         */
         RectangularChannel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, 
-                std::vector<Line_segment<T,2>*> line_segments,
-                std::vector<Arc<T,2>*> arcs, T width, T height);
+                std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments,
+                std::vector<std::shared_ptr<Arc<T,2>>> arcs, T width, T height);
 
         /**
          * @brief Set width of rectangular channel.

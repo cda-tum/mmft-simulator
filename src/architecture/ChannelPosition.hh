@@ -3,10 +3,10 @@
 namespace arch {
 
 template<typename T>
-ChannelPosition<T>::ChannelPosition(RectangularChannel<T>* channel, T position) : channel(channel), position(position) {}
+ChannelPosition<T>::ChannelPosition(std::shared_ptr<RectangularChannel<T> > channel, T position) : channel(channel), position(position) {}
 
 template<typename T>
-void ChannelPosition<T>::setChannel(RectangularChannel<T>* const channel) {
+void ChannelPosition<T>::setChannel(std::shared_ptr<RectangularChannel<T>> const channel) {
     this->channel = channel;
 }
 
@@ -29,7 +29,7 @@ void ChannelPosition<T>::addToPosition(T volumeShift) {
 }
 
 template<typename T>
-RectangularChannel<T>* ChannelPosition<T>::getChannel() const {
+std::shared_ptr<RectangularChannel<T> > ChannelPosition<T>::getChannel() const {
     return channel;
 }
 

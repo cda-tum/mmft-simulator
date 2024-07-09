@@ -3,17 +3,18 @@
 namespace sim {
 
 template<typename T>
-MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, Simulation<T>& simulation) : 
+MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, std::shared_ptr<Droplet<T>> droplet0, std::shared_ptr<Droplet<T>> droplet1,
+                                                std::shared_ptr<DropletBoundary<T>> boundary0, std::shared_ptr<Simulation<T>> simulation) :
     Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), simulation(simulation) { }
 
 template<typename T>
 void MergeBifurcationEvent<T>::performEvent() {
-    auto newDroplet = simulation.mergeDroplets(droplet0.getId(), droplet1.getId());
+    auto newDroplet = simulation->mergeDroplets(droplet0->getId(), droplet1->getId());
 
     // add boundaries from droplet0
-    for (auto& boundary : droplet0.getBoundaries()) {
+    for (auto& boundary : droplet0->getBoundaries()) {
         // do not add boundary to new droplet
-        if (boundary.get() == &boundary0) {
+        if (boundary.get() == boundary0.get()) {
             continue;
         }
 
@@ -22,29 +23,29 @@ void MergeBifurcationEvent<T>::performEvent() {
     }
 
     // add fully occupied channels from droplet0
-    for (auto& channel : droplet0.getFullyOccupiedChannels()) {
+    for (auto& channel : droplet0->getFullyOccupiedChannels()) {
         newDroplet->addFullyOccupiedChannel(channel);
     }
 
     // add boundaries from droplet1
-    for (auto& boundary : droplet1.getBoundaries()) {
+    for (auto& boundary : droplet1->getBoundaries()) {
         newDroplet->addBoundary(boundary->getChannelPosition().getChannel(), boundary->getChannelPosition().getPosition(), boundary->isVolumeTowardsNodeA(), boundary->getState());
     }
 
     // add fully occupied channels from droplet1
-    for (auto& channel : droplet1.getFullyOccupiedChannels()) {
+    for (auto& channel : droplet1->getFullyOccupiedChannels()) {
         newDroplet->addFullyOccupiedChannel(channel);
     }
 
     // check if droplet0 is inside a single channel, because if not then also a fully occupied channel has to be added
-    if (!droplet0.isInsideSingleChannel()) {
-        newDroplet->addFullyOccupiedChannel(boundary0.getChannelPosition().getChannel());
+    if (!droplet0->isInsideSingleChannel()) {
+        newDroplet->addFullyOccupiedChannel(boundary0->getChannelPosition().getChannel());
     }
 
     // add/remove droplets form network
     newDroplet->setDropletState(DropletState::NETWORK);
-    droplet0.setDropletState(DropletState::SINK);
-    droplet1.setDropletState(DropletState::SINK);
+    droplet0->setDropletState(DropletState::SINK);
+    droplet1->setDropletState(DropletState::SINK);
 }
 
 template<typename T>
@@ -53,17 +54,19 @@ void MergeBifurcationEvent<T>::print() {
 }
 
 template<typename T>
-MergeChannelEvent<T>::MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, Simulation<T>& simulation) : 
+MergeChannelEvent<T>::MergeChannelEvent(T time, std::shared_ptr<Droplet<T>> droplet0, std::shared_ptr<Droplet<T>> droplet1,
+                                        std::shared_ptr<DropletBoundary<T>> boundary0, std::shared_ptr<DropletBoundary<T>> boundary1,
+                                        std::shared_ptr<Simulation<T>> simulation) :
     Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), boundary1(boundary1), simulation(simulation) {}
 
 template<typename T>
 void MergeChannelEvent<T>::performEvent() {
-    auto newDroplet = simulation.mergeDroplets(droplet0.getId(), droplet1.getId());
+    auto newDroplet = simulation->mergeDroplets(droplet0->getId(), droplet1->getId());
 
     // add boundaries from droplet0
-    for (auto& boundary : droplet0.getBoundaries()) {
+    for (auto& boundary : droplet0->getBoundaries()) {
         // do not add boundary0 to new droplet
-        if (boundary.get() == &boundary0) {
+        if (boundary.get() == boundary0.get()) {
             continue;
         }
 
@@ -72,14 +75,14 @@ void MergeChannelEvent<T>::performEvent() {
     }
 
     // add fully occupied channels from droplet0
-    for (auto& channel : droplet0.getFullyOccupiedChannels()) {
+    for (auto& channel : droplet0->getFullyOccupiedChannels()) {
         newDroplet->addFullyOccupiedChannel(channel);
     }
 
     // add boundaries from droplet1
-    for (auto& boundary : droplet1.getBoundaries()) {
+    for (auto& boundary : droplet1->getBoundaries()) {
         // do not add boundary1 to new droplet
-        if (boundary.get() == &boundary1) {
+        if (boundary.get() == boundary1.get()) {
             continue;
         }
 
@@ -88,20 +91,20 @@ void MergeChannelEvent<T>::performEvent() {
     }
 
     // add fully occupied channels from droplet1
-    for (auto& channel : droplet1.getFullyOccupiedChannels()) {
+    for (auto& channel : droplet1->getFullyOccupiedChannels()) {
         newDroplet->addFullyOccupiedChannel(channel);
     }
 
     // check if droplet0 and droplet1 are not inside a single channel, because then a fully occupied channel has to be added
-    if (!droplet0.isInsideSingleChannel() && !droplet1.isInsideSingleChannel()) {
+    if (!droplet0->isInsideSingleChannel() && !droplet1->isInsideSingleChannel()) {
         // boundary0 and boundary1 must have the same channel
-        newDroplet->addFullyOccupiedChannel(boundary0.getChannelPosition().getChannel());
+        newDroplet->addFullyOccupiedChannel(boundary0->getChannelPosition().getChannel());
     }
 
     // add/remove droplets from network
     newDroplet->setDropletState(DropletState::NETWORK);
-    droplet0.setDropletState(DropletState::SINK);
-    droplet1.setDropletState(DropletState::SINK);
+    droplet0->setDropletState(DropletState::SINK);
+    droplet1->setDropletState(DropletState::SINK);
 }
 
 template<typename T>

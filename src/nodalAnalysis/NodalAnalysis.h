@@ -40,7 +40,7 @@ namespace nodal {
  * @param[in] flowRatePumps List of flowrate pumps.
  */
 template<typename T>
-void conductNodalAnalysis( const arch::Network<T>* network);
+void conductNodalAnalysis( const std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Conducts the Modifed Nodal Analysis (e.g., http://qucs.sourceforge.net/tech/node14.html) and computes the pressure levels for each node.
@@ -52,7 +52,7 @@ void conductNodalAnalysis( const arch::Network<T>* network);
  * @param[in] flowRatePumps List of flowrate pumps.
  */
 template<typename T>
-bool conductNodalAnalysis( const arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+bool conductNodalAnalysis( const std::shared_ptr<arch::Network<T>> network, std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
 
 bool contains( const std::unordered_set<int>& set, int key);
 bool contains( const std::unordered_map<int,int>& map, int key);

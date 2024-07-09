@@ -3,7 +3,7 @@
 namespace porting {
 
 template<typename T>
-void readNodes(json jsonString, arch::Network<T>& network) {
+void readNodes(json jsonString, std::shared_ptr<arch::Network<T>> network) {
     int nodeId = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
         
@@ -18,10 +18,10 @@ void readNodes(json jsonString, arch::Network<T>& network) {
             if(node.contains("ground")) {
                 ground = node["ground"];
             }
-            auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
+            auto addedNode = network->addNode(nodeId, T(node["x"]), T(node["y"]), ground);
             if(node.contains("sink")) {
                 if (node["sink"]) {
-                    network.setSink(addedNode->getId());
+                    network->setSink(addedNode->getId());
                 }
             }
             nodeId++;
@@ -30,7 +30,7 @@ void readNodes(json jsonString, arch::Network<T>& network) {
 }
 
 template<typename T>
-void readChannels(json jsonString, arch::Network<T>& network) {
+void readChannels(json jsonString, std::shared_ptr<arch::Network<T>> network) {
     int channelId = 0;
     for (auto& channel : jsonString["network"]["channels"]) {
         if (channel.contains("virtual") && channel["virtual"]) {
@@ -41,14 +41,14 @@ void readChannels(json jsonString, arch::Network<T>& network) {
                 throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
-            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            network->addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
             channelId++;
         }
     }
 }
 
 template<typename T>
-void readModules(json jsonString, arch::Network<T>& network) {
+void readModules(json jsonString, std::shared_ptr<arch::Network<T>> network) {
     for (auto& module : jsonString["network"]["modules"]) {
         if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
             throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
@@ -57,14 +57,14 @@ void readModules(json jsonString, arch::Network<T>& network) {
         std::vector<T> size = { module["size"][0], module["size"][1] };
         std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
         for (auto& nodeId : module["nodes"]) {
-            Nodes.try_emplace(nodeId, network.getNode(nodeId));
+            Nodes.try_emplace(nodeId, network->getNode(nodeId));
         }
-        network.addModule(position, size, std::move(Nodes));
+        network->addModule(position, size, Nodes);
     }
 }
 
 template<typename T>
-sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
+sim::Platform readPlatform(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
         throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
@@ -78,12 +78,12 @@ sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     } else {
         throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
     }
-    simulation.setPlatform(platform);
+    simulation->setPlatform(platform);
     return platform;
 } 
 
 template<typename T>
-sim::Type readType(json jsonString, sim::Simulation<T>& simulation) {
+sim::Type readType(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
     sim::Type simType = sim::Type::Abstract;
     if (!jsonString["simulation"].contains("type")) {
         throw std::invalid_argument("Please define a simulation type. The following types are possible:\nAbstract\nHybrid\nCFD");
@@ -97,12 +97,12 @@ sim::Type readType(json jsonString, sim::Simulation<T>& simulation) {
     } else {
         throw std::invalid_argument("Simulation type is invalid. The following types are possible:\nAbstract\nHybrid\nCFD");
     }
-    simulation.setType(simType);
+    simulation->setType(simType);
     return simType;
 }
 
 template<typename T>
-void readFluids(json jsonString, sim::Simulation<T>& simulation) {
+void readFluids(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
     if (!jsonString["simulation"].contains("fluids") || jsonString["simulation"]["fluids"].empty()) {
         throw std::invalid_argument("No fluids are defined. Please define at least 1 fluid.");
     }
@@ -111,7 +111,7 @@ void readFluids(json jsonString, sim::Simulation<T>& simulation) {
             T density = fluid["density"];
             T viscosity = fluid["viscosity"];
             T concentration = fluid["concentration"];
-            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density, concentration);
+            auto addedFluid = simulation->addFluid(viscosity, density, concentration);
             std::string name = fluid["name"];
             addedFluid->setName(name);
         } else {
@@ -121,12 +121,12 @@ void readFluids(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readDroplets(json jsonString, sim::Simulation<T>& simulation) {
+void readDroplets(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
     for (auto& droplet : jsonString["simulation"]["droplets"]) {
         if (droplet.contains("fluid") && droplet.contains("volume")) {
             int fluid = droplet["fluid"];
             T volume = droplet["volume"];
-            auto newDroplet = simulation.addDroplet(fluid, volume);
+            auto newDroplet = simulation->addDroplet(fluid, volume);
         } else {
             throw std::invalid_argument("Wrongly defined droplet. Please provide following information for droplets:\nfluid\nvolume");
         }
@@ -134,12 +134,12 @@ void readDroplets(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
+void readSpecies(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
     for (auto& specie : jsonString["simulation"]["species"]) {
         if (specie.contains("diffusivity") && specie.contains("saturationConcentration")) {
             T diffusivity = specie["diffusivity"];
             T satConc = specie["saturationConcentration"];
-            simulation.addSpecie(diffusivity, satConc);
+            simulation->addSpecie(diffusivity, satConc);
         } else {
             throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
         }
@@ -147,23 +147,23 @@ void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
+void readMixtures(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
     for (auto& mixture : jsonString["simulation"]["mixtures"]) {
         if (mixture.contains("species") && mixture.contains("concentrations")) {
             if (mixture["species"].size() == mixture["concentrations"].size()) {
                 int counter = 0;
-                std::unordered_map<int, sim::Specie<T>*> species;
+                std::unordered_map<int, std::shared_ptr<sim::Specie<T>>> species;
                 std::unordered_map<int, T> concentrations;
                 for (auto& specie : mixture["species"]) {
-                    auto specie_ptr = simulation.getSpecie(specie);
+                    auto specie_ptr = simulation->getSpecie(specie);
                     species.try_emplace(specie, specie_ptr);
                     concentrations.try_emplace(specie, mixture["concentrations"][counter]);
                     counter++;
                 }
-                if (simulation.getMixingModel()->isInstantaneous()) {
-                    simulation.addMixture(species, concentrations);
-                } else if (simulation.getMixingModel()->isDiffusive()) {
-                    simulation.addDiffusiveMixture(species, concentrations);
+                if (simulation->getMixingModel()->isInstantaneous()) {
+                    simulation->addMixture(species, concentrations);
+                } else if (simulation->getMixingModel()->isDiffusive()) {
+                    simulation->addDiffusiveMixture(species, concentrations);
                 } else {
                     throw std::invalid_argument("Please define a mixing model before adding mixtures.");
                 }
@@ -177,17 +177,17 @@ void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+void readDropletInjections(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("bigDropletInjections")) {
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
             int fluid = injection["fluid"];
             T volume = injection["volume"];
-            auto newDroplet = simulation.addDroplet(fluid, volume);
+            auto newDroplet = simulation->addDroplet(fluid, volume);
             //int dropletId = injection["droplet"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
             T injectionPosition = injection["pos"];
-            simulation.addDropletInjection(newDroplet->getId(), injectionTime, channelId, injectionPosition);
+            simulation->addDropletInjection(newDroplet->getId(), injectionTime, channelId, injectionPosition);
         }
     } else {
         throw std::invalid_argument("Please define at least one droplet injection or choose a different platform.");
@@ -195,13 +195,13 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
 }
 
 template<typename T>
-void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+void readMixtureInjections(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("mixtureInjections")) {
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["mixtureInjections"]) {
             int mixtureId = injection["mixture"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
-            simulation.addMixtureInjection(mixtureId, channelId, injectionTime);
+            simulation->addMixtureInjection(mixtureId, channelId, injectionTime);
         }
     } else {
         throw std::invalid_argument("Please define at least one mixture injection for the active fixture or choose a different platform.");
@@ -209,7 +209,7 @@ void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int 
 }
 
 template<typename T>
-void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network) {
+void readSimulators(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, std::shared_ptr<arch::Network<T>> network) {
         std::string vtkFolder;
         if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
             throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");
@@ -239,14 +239,14 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
 
             if(simulator["Type"] == "LBM")
             {
-                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                auto simulator = simulation->addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength,
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
-                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                auto simulator = simulation->addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength,
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
                 #else
@@ -257,23 +257,23 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
 }
 
 template<typename T>
-void readBoundaryConditions(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+void readBoundaryConditions(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("boundaryConditions")) {
         throw std::invalid_argument("Setting boundary condition values in fixture is not yets supported.");
     }
 }
 
 template<typename T>
-void readContinuousPhase(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+void readContinuousPhase(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("phase")) {
-        simulation.setContinuousPhase(jsonString["simulation"]["fixtures"][activeFixture]["phase"]);
+        simulation->setContinuousPhase(jsonString["simulation"]["fixtures"][activeFixture]["phase"]);
     } else {
         throw std::invalid_argument("Please set the continuous phase in the active fixture.");
     }
 }
 
 template<typename T>
-void readPumps(json jsonString, arch::Network<T>* network) {
+void readPumps(json jsonString, std::shared_ptr<arch::Network<T>> network) {
     if (!jsonString["simulation"].contains("pumps") || jsonString["simulation"]["pumps"].empty()) {
         throw std::invalid_argument("No pumps are defined. Please define at least 1 pump.");
     }
@@ -304,37 +304,37 @@ void readPumps(json jsonString, arch::Network<T>* network) {
 }
 
 template<typename T>
-void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
-    sim::ResistanceModel<T>* resistanceModel; 
+void readResistanceModel(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
+    std::shared_ptr<sim::ResistanceModel<T>> resistanceModel;
     if (jsonString["simulation"].contains("resistanceModel")) {
         if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
-            resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
+            resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(simulation->getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
-            resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+            resistanceModel = std::make_shared<sim::ResistanceModelPoiseuille<T>>(simulation->getContinuousPhase()->getViscosity());
         } else {
             throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
     }
-    simulation.setResistanceModel(resistanceModel);
+    simulation->setResistanceModel(resistanceModel);
 }
 
 template<typename T>
-void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
-    sim::MixingModel<T>* mixingModel;
+void readMixingModel(json jsonString, std::shared_ptr<sim::Simulation<T>> simulation) {
+    std::shared_ptr<sim::MixingModel<T>> mixingModel;
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
-            mixingModel = new sim::InstantaneousMixingModel<T>();
+            mixingModel = std::make_shared<sim::InstantaneousMixingModel<T>>();
         } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
-            mixingModel = new sim::DiffusionMixingModel<T>();
+            mixingModel = std::make_shared<sim::DiffusionMixingModel<T>>();
         } else {
             throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous\nDiffusion");
         }
     } else {
         throw std::invalid_argument("No mixing model defined.");
     }
-    simulation.setMixingModel(mixingModel);
+    simulation->setMixingModel(mixingModel);
 }
 
 template<typename T>

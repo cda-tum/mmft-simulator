@@ -4,32 +4,32 @@
 namespace sim {
 
 template<typename T>
-BoundaryHeadEvent<T>::BoundaryHeadEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
+BoundaryHeadEvent<T>::BoundaryHeadEvent(T time, std::shared_ptr<Droplet<T>> droplet, std::shared_ptr<DropletBoundary<T>> boundary, const std::shared_ptr<arch::Network<T>> network) :
     Event<T>(time, 1), droplet(droplet), boundary(boundary), network(network) { }
 
 template<typename T>
 void BoundaryHeadEvent<T>::performEvent() {
     // get boundary channel
-    auto boundaryChannel = boundary.getChannelPosition().getChannel();
+    auto boundaryChannel = boundary->getChannelPosition().getChannel();
 
     // get correct node (is the opposite node of the boundary reference node inside the channel)
-    int node = boundary.isVolumeTowardsNodeA() ? boundaryChannel->getNodeB() : boundaryChannel->getNodeA();
+    int node = boundary->isVolumeTowardsNodeA() ? boundaryChannel->getNodeB() : boundaryChannel->getNodeA();
 
     // if this node is a sink then remove the whole droplet from the network
-    if ((network.isSink(node))) {
-        droplet.setDropletState(DropletState::SINK);
+    if ((network->isSink(node))) {
+        droplet->setDropletState(DropletState::SINK);
         return;
     }
 
     // get next channels
-    std::vector<arch::RectangularChannel<T>*> nextChannels = network.getChannelsAtNode(node);
+    std::vector<std::shared_ptr<arch::RectangularChannel<T>>> nextChannels = network->getChannelsAtNode(node);
 
     // choose branch with the highest instantaneous flow rate
     T maxFlowRate;
-    arch::RectangularChannel<T>* nextChannel = nullptr;
-    for (auto* channel : nextChannels) {
+    std::shared_ptr<arch::RectangularChannel<T>> nextChannel = nullptr;
+    for (auto channel : nextChannels) {
         // do not consider the boundary channel and only consider Normal channels
-        if (channel == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {
+        if (channel.get() == boundaryChannel.get() || channel->getChannelType() != arch::ChannelType::NORMAL) {
             continue;
         }
 
@@ -50,13 +50,13 @@ void BoundaryHeadEvent<T>::performEvent() {
 
     if (nextChannel == nullptr) {
         // no new channel was found => the boundary goes into a Wait state
-        boundary.setState(BoundaryState::WAIT_OUTFLOW);
+        boundary->setState(BoundaryState::WAIT_OUTFLOW);
         return;
     }
 
     // check if the droplet was in a single channel, if not then the boundary channel has to be added as fully occupied channel
-    if (!droplet.isInsideSingleChannel()) {
-        droplet.addFullyOccupiedChannel(boundaryChannel);
+    if (!droplet->isInsideSingleChannel()) {
+        droplet->addFullyOccupiedChannel(boundaryChannel);
     }
 
     // get new position (is either 0.0 or 1.0, depending on if node0 or node1 of the nextChannel is the referenceNode)
@@ -64,10 +64,10 @@ void BoundaryHeadEvent<T>::performEvent() {
     bool volumeTowardsNodeA = nextChannel->getNodeA() == node;
 
     // set new channel, position, direction of volume, and state of the boundary
-    boundary.getChannelPosition().setChannel(nextChannel);
-    boundary.getChannelPosition().setPosition(channelPosition);
-    boundary.setVolumeTowardsNodeA(volumeTowardsNodeA);
-    boundary.setState(BoundaryState::NORMAL);
+    boundary->getChannelPosition().setChannel(nextChannel);
+    boundary->getChannelPosition().setPosition(channelPosition);
+    boundary->setVolumeTowardsNodeA(volumeTowardsNodeA);
+    boundary->setState(BoundaryState::NORMAL);
 }
 
 template<typename T>
@@ -76,17 +76,17 @@ void BoundaryHeadEvent<T>::print() {
 }
 
 template<typename T>
-BoundaryTailEvent<T>::BoundaryTailEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
+BoundaryTailEvent<T>::BoundaryTailEvent(T time, std::shared_ptr<Droplet<T>> droplet, std::shared_ptr<DropletBoundary<T>> boundary, const std::shared_ptr<arch::Network<T>> network) :
     Event<T>(time, 1), droplet(droplet), boundary(boundary), network(network) { }
 
 template<typename T>
 void BoundaryTailEvent<T>::performEvent() {
     // get reference node of boundary
-    auto referenceNode = boundary.getReferenceNode();
+    auto referenceNode = boundary->getReferenceNode();
 
     // get the other boundaries and fully occupied channels inside this droplet that have the same reference node
-    auto boundaries = droplet.getConnectedBoundaries(referenceNode, &boundary);  // do not consider the actual boundary
-    auto fullyOccupiedChannels = droplet.getConnectedFullyOccupiedChannels(referenceNode);
+    auto boundaries = droplet->getConnectedBoundaries(referenceNode, boundary);  // do not consider the actual boundary
+    auto fullyOccupiedChannels = droplet->getConnectedFullyOccupiedChannels(referenceNode);
 
     // if more than a single entity (boundary or fully occupied channel) is present, then remove the boundary, otherwise switch the channel
     if (boundaries.size() + fullyOccupiedChannels.size() == 1) {
@@ -100,18 +100,18 @@ void BoundaryTailEvent<T>::performEvent() {
         bool volumeTowardsNodeA = nextChannel->getNodeA() != referenceNode;
 
         // set new channel, position, direction of volume, and state of the boundary
-        boundary.getChannelPosition().setChannel(nextChannel);
-        boundary.getChannelPosition().setPosition(channelPosition);
-        boundary.setVolumeTowardsNodeA(volumeTowardsNodeA);
-        boundary.setState(BoundaryState::NORMAL);
+        boundary->getChannelPosition().setChannel(nextChannel);
+        boundary->getChannelPosition().setPosition(channelPosition);
+        boundary->setVolumeTowardsNodeA(volumeTowardsNodeA);
+        boundary->setState(BoundaryState::NORMAL);
 
         // remove fully occupied channel if present
         if (fullyOccupiedChannels.size() == 1) {
-            droplet.removeFullyOccupiedChannel(nextChannel->getId());
+            droplet->removeFullyOccupiedChannel(nextChannel->getId());
         }
     } else {
         // more than one entity is present => remove boundary
-        droplet.removeBoundary(boundary);
+        droplet->removeBoundary(boundary);
     }
 }
 

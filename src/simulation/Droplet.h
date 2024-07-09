@@ -73,7 +73,7 @@ class DropletBoundary {
      * @param volumeTowardsNodeA Direction in which the volume of the boundary is located (true if it is towards node0).
      * @param state State in which the boundary is in.
      */
-    DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
+    DropletBoundary(std::shared_ptr<arch::RectangularChannel<T>> channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
     /**
      * @brief Get the channel position of the boundary.
@@ -121,7 +121,7 @@ class DropletBoundary {
      * @brief Get the reference node of the boundary, which is the node that "touches" the droplet volume (i.e., if volumeTowardsNode0==true, then node0, otherwise node1)
      * @return Reference node of the boundary.
      */
-    arch::Node<T>* getReferenceNode(arch::Network<T>* network);
+   std::shared_ptr<arch::Node<T>> getReferenceNode(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Get the reference node of the boundary, which is the node that "touches" the droplet volume (i.e., if volumeTowardsNode0==true, then node0, otherwise node1)
@@ -133,7 +133,7 @@ class DropletBoundary {
      * @brief Get the opposite reference node of the boundary, which is the node that does not "touch" the droplet volume (i.e., if volumeTowardsNode0==true, then node1, otherwise node0)
      * @return Opposite reference node of the boundary.
      */
-    arch::Node<T>* getOppositeReferenceNode(arch::Network<T>* network);
+   std::shared_ptr<arch::Node<T>> getOppositeReferenceNode(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Get the opposite reference node of the boundary, which is the node that does not "touch" the droplet volume (i.e., if volumeTowardsNode0==true, then node1, otherwise node0)
@@ -203,17 +203,18 @@ struct DropletPosition {
  * @brief Class to specify a droplet.
  */
 template<typename T>
-class Droplet {
+class Droplet : public std::enable_shared_from_this<Droplet<T>>
+{
   private:
     T const slipFactor = 1.28;                            ///< Slip factor of droplets.
     int const id;                                         ///< Unique identifier of the droplet.
     std::string name = "";                                ///< Name of the droplet.
     T volume;                                             ///< Volume of the droplet in m^3.
-    Fluid<T>* fluid;                                      ///< Pointer to fluid of which the droplet consists of.
-    std::vector<Droplet<T>*> mergedDroplets;              ///< List of previous droplets, if this droplet got merged.
+    std::shared_ptr<Fluid<T>> fluid;                                      ///< Pointer to fluid of which the droplet consists of.
+    std::vector<std::shared_ptr<Droplet<T>>> mergedDroplets;              ///< List of previous droplets, if this droplet got merged.
     DropletState dropletState = DropletState::INJECTION;  ///< Current state of the droplet
-    std::vector<std::unique_ptr<DropletBoundary<T>>> boundaries;
-    std::vector<arch::RectangularChannel<T>*> channels;              ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
+    std::vector<std::shared_ptr<DropletBoundary<T>>> boundaries;
+    std::vector<std::shared_ptr<arch::RectangularChannel<T>>> channels;              ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
 
   public:
     /**
@@ -222,7 +223,7 @@ class Droplet {
      * @param[in] volume Volume of the droplet in m^3.
      * @param[in] fluid Pointer to fluid the droplet consists of.
      */
-    Droplet(int id, T volume, Fluid<T>* fluid);
+    Droplet(int id, T volume, std::shared_ptr<Fluid<T>> fluid);
 
     /**
      * @brief Change volume of droplet.
@@ -270,7 +271,7 @@ class Droplet {
      * @brief Retrieve the fluid of the droplet.
      * @return The fluid the droplet consists of in m^3.
      */
-    const Fluid<T>* getFluid() const;
+    const std::shared_ptr<Fluid<T>> getFluid() const;
 
     /**
      * @brief Add the resistance the droplet causes to the channels it currently occupies.
@@ -282,13 +283,13 @@ class Droplet {
      * @brief Get the Boundaries object
      * @return all boundaries
      */
-    const std::vector<std::unique_ptr<DropletBoundary<T>>>& getBoundaries();
+    const std::vector<std::shared_ptr<DropletBoundary<T>>>& getBoundaries();
 
     /**
      * @brief Get all fully occupied channels
      * @return all fully occupied channels
      */
-    std::vector<arch::RectangularChannel<T>*>& getFullyOccupiedChannels();
+    std::vector<std::shared_ptr<arch::RectangularChannel<T>>>& getFullyOccupiedChannels();
 
     /**
      * @brief If the droplet currently is at a bifurcation
@@ -311,19 +312,19 @@ class Droplet {
      * @param volumeTowardsNodeA Direction in which the droplet lies within the channel (in regards to node0)
      * @param state State the boundary is in
      */
-    void addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
+    void addBoundary(std::shared_ptr<arch::RectangularChannel<T>> channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
     /**
      * @brief Add fully occupied channel to the fully occupied channel list.
      * @param channel New fully occupied channel.
      */
-    void addFullyOccupiedChannel(arch::RectangularChannel<T>* channel);
+    void addFullyOccupiedChannel(std::shared_ptr<arch::RectangularChannel<T>> channel);
 
     /**
      * @brief Remove boundary from the boundary list.
      * @param boundaryReference Reference to the boundary that should be removed.
      */
-    void removeBoundary(DropletBoundary<T>& boundaryReference);
+    void removeBoundary(std::shared_ptr<DropletBoundary<T>> boundaryReference);
 
     /**
      * @brief Remove fully occupied channel from the fully occupied channel list.
@@ -337,14 +338,14 @@ class Droplet {
      * @param doNotConsider boundary that should not be included in the list (helpful, during request for droplet merging)
      * @return List of connected boundaries
      */
-    std::vector<DropletBoundary<T>*> getConnectedBoundaries(int nodeId, DropletBoundary<T>* doNotConsider = nullptr);
+    std::vector<std::shared_ptr<DropletBoundary<T>>> getConnectedBoundaries(int nodeId, std::shared_ptr<DropletBoundary<T>> doNotConsider = nullptr);
 
     /**
      * @brief Get a list of fully occupied channels that are "connected" to the corresponding node 
      * @param nodeId Id of the node
      * @return List of connected fully occupied channels
      */
-    std::vector<arch::RectangularChannel<T>*> getConnectedFullyOccupiedChannels(int nodeId);
+    std::vector<std::shared_ptr<arch::RectangularChannel<T>>> getConnectedFullyOccupiedChannels(int nodeId);
 
     /**
      * @brief Update the flow-rates of the droplet boundaries according to the flowRates inside the channels
@@ -356,13 +357,13 @@ class Droplet {
      * @brief Adds a droplet from which the current droplet was created by merging.
      * @param droplet Pointer to droplet.
      */
-    void addMergedDroplet(Droplet<T>* droplet);
+    void addMergedDroplet(std::shared_ptr<Droplet<T>> droplet);
 
     /**
      * @brief Gets the list of droplets, that created the actual droplet due to merging.
      * @return List of merged droplets.
      */
-    const std::vector<Droplet<T>*>& getMergedDroplets() const;
+    const std::vector<std::shared_ptr<Droplet<T>>>& getMergedDroplets() const;
 };
 
 }  // namespace sim

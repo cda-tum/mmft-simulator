@@ -18,6 +18,6 @@ class CFDSimulator;
      * @param[in] network The network on which the CFD simulations are conducted.
      */
     template<typename T>
-    bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators, int iteration);
+    bool conductCFDSimulation(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators, int iteration);
 
 }   // namespace sim

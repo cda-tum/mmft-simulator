@@ -9,7 +9,7 @@ Specie<T>::Specie(int id_, T diffusivity_, T satConc_) : id(id_), diffusivity(di
 
 template<typename T>
 void Specie<T>::setName(std::string name_) {
-    this->name = std::move(name_);
+    this->name = name_;
 }
 
 template<typename T>

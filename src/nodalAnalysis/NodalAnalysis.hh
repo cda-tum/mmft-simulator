@@ -3,7 +3,7 @@
 namespace nodal {
 
 template<typename T>
-void conductNodalAnalysis( const arch::Network<T>* network)
+void conductNodalAnalysis( const std::shared_ptr<arch::Network<T>> network)
     {
     const int nNodes = network->getNodes().size() - 1;    // -1 due to ground node
     std::unordered_set<int> conductingNodeIds;
@@ -158,7 +158,7 @@ void conductNodalAnalysis( const arch::Network<T>* network)
 }
 
 template<typename T>
-bool conductNodalAnalysis( const arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators)
+bool conductNodalAnalysis( const std::shared_ptr<arch::Network<T>> network, std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators)
     {
     const int nNodes = network->getNodes().size() - 1;    // -1 due to ground node
     std::unordered_set<int> conductingNodeIds;

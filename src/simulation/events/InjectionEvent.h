@@ -47,7 +47,7 @@ template<typename T>
 class MixtureInjectionEvent : public Event<T> {
   private:
     MixtureInjection<T>& injection;           ///< Specifies the mixture injection.
-    MixingModel<T>* mixingModel;              ///< Pointer to the active mixing model.
+    std::shared_ptr<MixingModel<T>> mixingModel;              ///< Pointer to the active mixing model.
 
   public:
     /**
@@ -55,7 +55,7 @@ class MixtureInjectionEvent : public Event<T> {
      * @param[in] time The time at which the event should take place in s elapsed since the start of the simulation.
      * @param[in,out] injection A class containing all details necessary to conduct an injection event.
      */
-    MixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel);
+    MixtureInjectionEvent(T time, MixtureInjection<T>& injection, std::shared_ptr<MixingModel<T>> mixingModel);
 
     /**
      * @brief Conducts the injection event.

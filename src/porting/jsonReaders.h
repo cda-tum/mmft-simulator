@@ -47,7 +47,7 @@ namespace porting {
  * @param[in] network network object
 */
 template<typename T>
-void readNodes (json jsonString, arch::Network<T>& network);
+void readNodes (json jsonString, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Construct and store the channels in the network as defined by the json string
@@ -55,7 +55,7 @@ void readNodes (json jsonString, arch::Network<T>& network);
  * @param[in] network network object
 */
 template<typename T>
-void readChannels (json jsonString, arch::Network<T>& network);
+void readChannels (json jsonString, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Construct and store the modules in the network as defined by the json string
@@ -63,7 +63,7 @@ void readChannels (json jsonString, arch::Network<T>& network);
  * @param[in] network network object
 */
 template<typename T>
-void readModules (json jsonString, arch::Network<T>& network);
+void readModules (json jsonString, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Set the platform of the simulation as defined by the json string
@@ -72,7 +72,7 @@ void readModules (json jsonString, arch::Network<T>& network);
  * @return Platform platform
 */
 template<typename T>
-sim::Platform readPlatform (json jsonString, sim::Simulation<T>& simulation);
+sim::Platform readPlatform (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Set the simulation type of the simulation as defined by the json string
@@ -81,7 +81,7 @@ sim::Platform readPlatform (json jsonString, sim::Simulation<T>& simulation);
  * @return Type simulation type
 */
 template<typename T>
-sim::Type readType (json jsonString, sim::Simulation<T>& simulation);
+sim::Type readType (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Construct and store the fluids in the simulation as defined by the json string
@@ -89,7 +89,7 @@ sim::Type readType (json jsonString, sim::Simulation<T>& simulation);
  * @param[in] simulation simulation object
 */
 template<typename T>
-void readFluids (json jsonString, sim::Simulation<T>& simulation);
+void readFluids (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Construct and store the droplets in the simulation as defined by the json string
@@ -97,13 +97,13 @@ void readFluids (json jsonString, sim::Simulation<T>& simulation);
  * @param[in] simulation simulation object
 */
 template<typename T>
-void readDroplets (json jsonString, sim::Simulation<T>& simulation);
+void readDroplets (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 template<typename T>
-void readSpecies (json jsonString, sim::Simulation<T>& simulation);
+void readSpecies (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 template<typename T>
-void readMixtures (json jsonString, sim::Simulation<T>& simulation);
+void readMixtures (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Construct and store the droplet injections in the simulation as defined by the json string
@@ -112,10 +112,10 @@ void readMixtures (json jsonString, sim::Simulation<T>& simulation);
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readDropletInjections (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
+void readDropletInjections (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture);
 
 template<typename T>
-void readMixtureInjections (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
+void readMixtureInjections (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture);
 
 /**
  * @brief Set the boundary conditions of the simulation as defined by the json string
@@ -124,7 +124,7 @@ void readMixtureInjections (json jsonString, sim::Simulation<T>& simulation, int
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readBoundaryConditions (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
+void readBoundaryConditions (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture);
 
 /**
  * @brief Set the continuous phase of the simulation as defined by the json string
@@ -133,7 +133,7 @@ void readBoundaryConditions (json jsonString, sim::Simulation<T>& simulation, in
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readContinuousPhase (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
+void readContinuousPhase (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, int activeFixture);
 
 /**
  * @brief Construct and stores the CFD modules simulators that are included in the network as defined by the json string
@@ -142,7 +142,7 @@ void readContinuousPhase (json jsonString, sim::Simulation<T>& simulation, int a
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network);
+void readSimulators (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Sets channels in the network to pressure or flow rate pump, as defined by the json string
@@ -151,7 +151,7 @@ void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Netw
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readPumps (json jsonString, arch::Network<T>* network);
+void readPumps (json jsonString, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Construct and store the resistance model of the simulation as defined by the json string
@@ -159,10 +159,10 @@ void readPumps (json jsonString, arch::Network<T>* network);
  * @param[in] simulation simulation object
 */
 template<typename T>
-void readResistanceModel (json jsonString, sim::Simulation<T>& simulation);
+void readResistanceModel (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 template<typename T>
-void readMixingModel (json jsonString, sim::Simulation<T>& simulation);
+void readMixingModel (json jsonString, std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Returns the id of the active fixture as defined in the json string

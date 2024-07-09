@@ -11,7 +11,7 @@ template<typename T>
 ResistanceModel1D<T>::ResistanceModel1D(T continuousPhaseViscosity_) : ResistanceModel<T>(continuousPhaseViscosity_) {}
 
 template<typename T>
-T ResistanceModel1D<T>::getChannelResistance(arch::RectangularChannel<T> const* const channel) const {
+T ResistanceModel1D<T>::getChannelResistance(std::shared_ptr<arch::RectangularChannel<T>> const channel) const {
     T a = computeFactorA(channel->getWidth(), channel->getHeight());
 
     return channel->getLength() * a * this->continuousPhaseViscosity / (channel->getWidth() * pow(channel->getHeight(), 3));
@@ -23,7 +23,7 @@ T ResistanceModel1D<T>::computeFactorA(T width, T height) const {
 }
 
 template<typename T>
-T ResistanceModel1D<T>::getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const {
+T ResistanceModel1D<T>::getDropletResistance(std::shared_ptr<arch::RectangularChannel<T>> const channel, std::shared_ptr<Droplet<T>> droplet, T volumeInsideChannel) const {
     T a = computeFactorA(channel->getWidth(), channel->getHeight());
     T dropletLength = volumeInsideChannel / (channel->getWidth() * channel->getHeight());
     T resistance = 3 * dropletLength * a * this->continuousPhaseViscosity / (channel->getWidth() * pow(channel->getHeight(), 3));
@@ -46,7 +46,7 @@ template<typename T>
 ResistanceModelPoiseuille<T>::ResistanceModelPoiseuille(T continuousPhaseViscosity_) : ResistanceModel<T>(continuousPhaseViscosity_) {}
 
 template<typename T>
-T ResistanceModelPoiseuille<T>::getChannelResistance(arch::RectangularChannel<T> const* const channel) const {
+T ResistanceModelPoiseuille<T>::getChannelResistance(std::shared_ptr<arch::RectangularChannel<T>> const channel) const {
     T a = computeFactorA(channel->getWidth(), channel->getHeight());
 
     return channel->getLength() * a * this->continuousPhaseViscosity / (channel->getHeight() * pow(channel->getWidth(), 3));
@@ -58,7 +58,7 @@ T ResistanceModelPoiseuille<T>::computeFactorA(T width, T height) const {
 }
 
 template<typename T>
-T ResistanceModelPoiseuille<T>::getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const {
+T ResistanceModelPoiseuille<T>::getDropletResistance(std::shared_ptr<arch::RectangularChannel<T>> const channel, std::shared_ptr<Droplet<T>> droplet, T volumeInsideChannel) const {
     throw std::invalid_argument("The resistance model is not compatible with droplet simulations.");
 }
 }  // namespace sim

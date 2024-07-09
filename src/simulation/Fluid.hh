@@ -12,7 +12,7 @@ Fluid<T>::Fluid(int id_, T density_, T viscosity_, T concentration_, std::string
 
 template<typename T>
 void Fluid<T>::setName(std::string name_) {
-    this->name = std::move(name_);
+    this->name = name_;
 }
 
 template<typename T>
@@ -41,12 +41,12 @@ T Fluid<T>::getConcentration() const {
 }
 
 template<typename T>
-void Fluid<T>::addMixedFluid(Fluid<T>* fluid) {
+void Fluid<T>::addMixedFluid(std::shared_ptr<Fluid<T>> fluid) {
     mixedFluids.push_back(fluid);
 }
 
 template<typename T>
-const std::vector<Fluid<T>*>& Fluid<T>::getMixedFluids() const {
+const std::vector<std::shared_ptr<Fluid<T>>>& Fluid<T>::getMixedFluids() const {
     return mixedFluids;
 }
 

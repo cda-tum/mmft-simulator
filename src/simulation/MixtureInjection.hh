@@ -3,11 +3,11 @@
 namespace sim {
 
 template<typename T>
-MixtureInjection<T>::MixtureInjection(int id, int mixtureId, arch::RectangularChannel<T>* injectionChannel, T injectionTime) : id(id), mixtureId(mixtureId), injectionChannel(injectionChannel), injectionTime(injectionTime) {}
+MixtureInjection<T>::MixtureInjection(int id, int mixtureId, std::shared_ptr<arch::RectangularChannel<T>> injectionChannel, T injectionTime) : id(id), mixtureId(mixtureId), injectionChannel(injectionChannel), injectionTime(injectionTime) {}
 
 template<typename T>
 void MixtureInjection<T>::setName(std::string name) {
-    name = std::move(name);
+    this->name = name;
 }
 
 template<typename T>
@@ -26,7 +26,7 @@ T MixtureInjection<T>::getInjectionTime() const {
 }
 
 template<typename T>
-arch::RectangularChannel<T>* MixtureInjection<T>::getInjectionChannel() {
+std::shared_ptr<arch::RectangularChannel<T>> MixtureInjection<T>::getInjectionChannel() {
     return injectionChannel;
 }
 

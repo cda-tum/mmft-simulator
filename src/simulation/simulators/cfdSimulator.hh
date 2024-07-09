@@ -3,7 +3,7 @@
 namespace sim{ 
 
 template <typename T>
-CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, T alpha_, ResistanceModel<T>* resistanceModel_) :
+CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, T alpha_, std::shared_ptr<ResistanceModel<T>> resistanceModel_) :
     id(id_), name(name_), stlFile(stlFile_), cfdModule(cfdModule_), moduleOpenings(openings_), alpha(alpha_)
     { 
         // Create this module's network, required for initial condition
@@ -18,7 +18,7 @@ CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_,
             channel->setLength(sqrt(dx*dx + dy*dy));
         }
         for (auto& [key, channel] : moduleNetwork->getChannels()) {
-            T resistance = resistanceModel_->getChannelResistance(channel.get());
+            T resistance = resistanceModel_->getChannelResistance(channel);
             channel->setResistance(resistance);
         }
     }

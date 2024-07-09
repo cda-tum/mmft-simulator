@@ -16,7 +16,7 @@ void lbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
 template<typename T>
 lbmSimulator<T>::lbmSimulator (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
-    ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) : 
+    std::shared_ptr<ResistanceModel<T>> resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) :
         CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, alpha_, resistanceModel_), 
         charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
         epsilon(epsilon_), relaxationTime(relaxationTime_)

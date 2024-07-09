@@ -34,7 +34,7 @@ class MixtureInjection {
     const int id;               ///< Unique identifier of an injection.
     std::string name = "";      ///< Name of the injection.
     int mixtureId;              ///< Id of mixture to be injected.
-    arch::RectangularChannel<T>* injectionChannel;  ///< Channel at which the fluid is injected.
+    std::shared_ptr<arch::RectangularChannel<T>> injectionChannel;  ///< Channel at which the fluid is injected.
     T injectionTime;            ///< Time at which the injection should start in s elapsed since the start of the simulation.
     bool performed = false;     ///< Information if the change of the input mixture was already performed or not.
 
@@ -46,7 +46,7 @@ class MixtureInjection {
      * @param[in] injectionPump Pump from which the fluid is injected
      * @param[in] injectionTime Time at which the fluid injection should start, in s elapsed since the start of the simulation in s.
      */
-    MixtureInjection(int id, int mixtureId, arch::RectangularChannel<T>* channel, T injectionTime);
+    MixtureInjection(int id, int mixtureId, std::shared_ptr<arch::RectangularChannel<T>> channel, T injectionTime);
 
     /**
      * @brief Set name of injection.
@@ -76,7 +76,7 @@ class MixtureInjection {
      * @brief Retrieve pump from which the injection should take place.
      * @return Pump from which the injection should take place. 
      */
-    arch::RectangularChannel<T>* getInjectionChannel();
+    std::shared_ptr<arch::RectangularChannel<T>> getInjectionChannel();
 
     /**
      * @brief Retrieve pointer to the fluid that should be injected.

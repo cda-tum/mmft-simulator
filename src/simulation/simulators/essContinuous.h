@@ -53,7 +53,7 @@ namespace sim {
             bool initialized = false;               ///< Is the module initialized?
             bool isConverged = false;               ///< Has the module converged?
             
-            std::shared_ptr<arch::Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
+            std::unordered_map<int, std::shared_ptr<arch::Node<T>>> allNodes;                    ///< Nodes the network consists of.
             std::unordered_map<int, arch::Opening<T>> moduleOpenings;             ///< Map of openings.
             std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
@@ -80,7 +80,7 @@ namespace sim {
              * @param[in] openings Map of the in-/outlets of the module.
             */
             essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule,  std::unordered_map<int, arch::Opening<T>> openings_,
-                            ResistanceModel<T>* resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
+                            std::shared_ptr<ResistanceModel<T>> resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
             /**
              * @brief Initialize an instance of the LBM solver for this module.
              * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.

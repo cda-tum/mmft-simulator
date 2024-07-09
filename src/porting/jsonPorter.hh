@@ -6,32 +6,12 @@ using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
 
 template<typename T>
-arch::Network<T> networkFromJSON(std::string jsonFile) {
+std::shared_ptr<arch::Network<T>> networkFromJSON(std::string jsonFile) {
 
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
-    arch::Network<T> network = networkFromJSON<T>(jsonString);
-
-    return network;
-}
-
-template<typename T>
-void networkFromJSON(std::string jsonFile, arch::Network<T>& network) {
-
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
-    readNodes(jsonString, network);
-    readChannels(jsonString, network);
-    readModules(jsonString, network);
-}
-
-template<typename T>
-arch::Network<T> networkFromJSON(json jsonString) {
-
-    arch::Network<T> network;
-
+    auto network = std::make_shared<arch::Network<T>>();
     readNodes(jsonString, network);
     readChannels(jsonString, network);
     readModules(jsonString, network);
@@ -40,79 +20,18 @@ arch::Network<T> networkFromJSON(json jsonString) {
 }
 
 template<typename T>
-sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_) {
+std::shared_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>> network_) {
+
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
-    sim::Simulation<T> simulation = simulationFromJSON<T>(jsonString, network_);
-
-    return simulation;
-}
-
-template<typename T>
-void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
-    
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
+    auto simulation = std::make_shared<sim::Simulation<T>>();
     sim::Platform platform = readPlatform<T>(jsonString, simulation);
     sim::Type simType = readType<T>(jsonString, simulation);
     int activeFixture = readActiveFixture<T>(jsonString);
-    simulation.setFixtureId(activeFixture);
 
-    simulation.setNetwork(network_);
-
-    readFluids<T>(jsonString, simulation);
-    readPumps<T>(jsonString, network_);
-
-    if (platform == sim::Platform::Continuous) {
-        if (simType == sim::Type::CFD) {
-            throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
-        }
-    } else
-    if (platform == sim::Platform::BigDroplet) {
-        if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
-        }
-        readDropletInjections<T>(jsonString, simulation, activeFixture);
-    } else
-    if (platform == sim::Platform::Mixing) {
-        if (simType != sim::Type::Abstract) {
-            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
-        }
-        readMixingModel<T>(jsonString, simulation);
-        readSpecies<T>(jsonString, simulation);
-        readMixtures<T>(jsonString, simulation);
-        readMixtureInjections<T>(jsonString, simulation, activeFixture);
-    } else {
-        throw std::invalid_argument("Invalid platform. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
-    }
-
-    if (simType == sim::Type::Hybrid) {
-        readSimulators<T>(jsonString, simulation, network_);
-        network_->sortGroups();
-    }
-
-    if (simType == sim::Type::CFD) {
-        // NOT YET SUPPORTED
-        throw std::invalid_argument("Full CFD simulations are not yet supported in the simulator.");
-    }
-
-    readBoundaryConditions<T>(jsonString, simulation, activeFixture);
-    readContinuousPhase<T>(jsonString, simulation, activeFixture);
-    readResistanceModel<T>(jsonString, simulation);
-}
-
-template<typename T>
-sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
-
-    sim::Simulation<T> simulation = sim::Simulation<T>();
-    sim::Platform platform = readPlatform<T>(jsonString, simulation);
-    sim::Type simType = readType<T>(jsonString, simulation);
-    int activeFixture = readActiveFixture<T>(jsonString);
-    simulation.setFixtureId(activeFixture);
-
-    simulation.setNetwork(network_);
+    simulation->setFixtureId(activeFixture);
+    simulation->setNetwork(network_);
 
     readFluids<T>(jsonString, simulation);
     readResistanceModel<T>(jsonString, simulation);
@@ -143,7 +62,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
 
     if (simType == sim::Type::Hybrid) {
         readSimulators<T>(jsonString, simulation, network_);
-        network_->sortGroups();
+//        network_->sortGroups();
     }
 
     if (simType == sim::Type::CFD) {
@@ -159,7 +78,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
 }
 
 template<typename T>
-void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
+void resultToJSON(std::string jsonFile, std::shared_ptr<sim::Simulation<T>> simulation) {
     std::ofstream file(jsonFile);
 
     ordered_json jsonString = resultToJSON<T>(simulation);
@@ -168,7 +87,7 @@ void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
+nlohmann::ordered_json resultToJSON(std::shared_ptr<sim::Simulation<T>> simulation) {
 
     auto jsonResult = ordered_json::object();
     auto jsonStates = ordered_json::array();
@@ -176,10 +95,10 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
     for (auto const& state : simulation->getSimulationResults()->getStates()) {
         auto jsonState = ordered_json::object();
         jsonState["time"] = state->getTime();
-        jsonState["nodes"] = writePressures(state.get());
-        jsonState["channels"] = writeChannels(state.get());
+        jsonState["nodes"] = writePressures(state);
+        jsonState["channels"] = writeChannels(state);
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
-            jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
+            jsonState["bigDroplets"] = writeDroplets(state, simulation);
         }
         jsonStates.push_back(jsonState);
     }
