@@ -14,7 +14,6 @@ namespace sim{
             epsilon(epsilon_), relaxationTime(relaxationTime_)
     {
         this->cfdModule->setModuleTypeEssLbm();
-        allNodes = cfdModule_->getNodes();
     }
 
     template<typename T>
@@ -39,6 +38,11 @@ namespace sim{
         std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
         const auto& allNodes = this->moduleNetwork->getNodes();
 
+<<<<<<< HEAD
+=======
+        std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
+        const auto& allNodes = this->moduleNetwork->getNodes();
+>>>>>>> e2b0f99 (Fixed stlFile endless loop)
         std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
 
