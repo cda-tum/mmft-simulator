@@ -14,7 +14,6 @@ namespace sim{
             epsilon(epsilon_), relaxationTime(relaxationTime_)
     {
         this->cfdModule->setModuleTypeEssLbm();
-        allNodes = cfdModule_->getNodes();
     }
 
     template<typename T>
@@ -36,13 +35,9 @@ namespace sim{
     template<typename T>
     void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
     {
-
-<<<<<<< HEAD
         std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
         const auto& allNodes = this->moduleNetwork->getNodes();
-=======
-        std::string work_dir = "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/build";
->>>>>>> 6a54db9 (Fixed segfault)
+
         std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
 
