@@ -46,16 +46,7 @@ namespace sim {
             int maxIter = 1e7;                      ///< Maximum total iterations.
             int theta = 10;                         ///< Number of OLB iterations per communication iteration.
 
-            std::string vtkFolder = "./tmp/";       ///< Folder in which vtk files will be saved.
-            std::string name;                       ///< Name of the module.
-            std::string stlFile;                    ///< The STL file of the CFD domain.
-
-            bool initialized = false;               ///< Is the module initialized?
             bool isConverged = false;               ///< Has the module converged?
-            
-            std::shared_ptr<arch::Network<T>> moduleNetwork;                      ///< Fully connected graph as network for the initial approximation.
-            std::unordered_map<int, arch::Opening<T>> moduleOpenings;             ///< Map of openings.
-            std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
             T charPhysLength;                       ///< Characteristic physical length (= width, usually).
             T charPhysVelocity;                     ///< Characteristic physical velocity (expected maximal velocity).
@@ -134,7 +125,7 @@ namespace sim {
              * @returns Ground nodes.
             */
             std::unordered_map<int, bool> getGroundNodes() {
-                return groundNodes;
+                return this->groundNodes;
             }
 
             /**
