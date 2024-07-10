@@ -3,6 +3,96 @@
 namespace nodal {
 
 template<typename T>
+NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
+    network = network_;
+
+    // Sort nodes into conducting nodes and ground nodes.
+    // First loop, all nodes with id > 0 are conducting nodes.
+    int iPump = nNodes;
+    for (const auto& [key, group] : network->getGroups()) {
+        for (const auto& nodeId : group->nodeIds) {
+            if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
+                conductingNodeIds.emplace(nodeId);
+            } else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
+                groundNodeIds.emplace(nodeId, iPump);
+                iPump++;
+            }
+        }
+    }
+}
+
+template<typename T>
+void NodalAnalysis<T>::conductNodalAnalysis() {
+    readConductance();
+    updateReferenceP();
+    readPressurePumps();
+    readFlowRatePumps();
+    solve();
+    setResults();
+    initGroundNodes();
+}
+
+template<typename T>
+void NodalAnalysis<T>::conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+    readConductance();
+    readCfdSimulators(cfdSimulators);
+    updateReferenceP();
+    readPressurePumps();
+    readFlowRatePumps();
+    solve();
+    setResults();
+    writeCfdSimulators();
+    initGroundNodes();
+}
+
+template<typename T>
+void NodalAnalysis<T>::readConductance() {
+    // loop through channels and build matrix G
+    for (const auto& channel : network->getChannels()) {
+        auto nodeAMatrixId = channel.second->getNodeA();
+        auto nodeBMatrixId = channel.second->getNodeB();
+        const T conductance = 1. / channel.second->getResistance();
+
+        // main diagonal elements of G
+        if (!network->getNodes().at(nodeAMatrixId)->getGround()) {
+            A(nodeAMatrixId, nodeAMatrixId) += conductance;
+        }
+
+        if (!network->getNodes().at(nodeBMatrixId)->getGround()) {
+            A(nodeBMatrixId, nodeBMatrixId) += conductance;
+        }
+
+        // minor diagonal elements of G (if no ground node was present)
+        if (!network->getNodes().at(nodeAMatrixId)->getGround() && !network->getNodes().at(nodeBMatrixId)->getGround()) {
+            A(nodeAMatrixId, nodeBMatrixId) -= conductance;
+            A(nodeBMatrixId, nodeAMatrixId) -= conductance;
+        }
+    }
+}
+
+template<typename T>
+void NodalAnalysis<T>::conductNodalAnalysis() {
+
+    std::unordered_set<int> conductingNodeIds;
+    std::unordered_map<int, int> groundNodeIds;
+
+    // Sort nodes into conducting nodes and ground nodes.
+    // First loop, all nodes with id > 0 are conducting nodes.
+    int iPump = nNodes;
+    for (const auto& [key, group] : network->getGroups()) {
+        for (const auto& nodeId : group->nodeIds) {
+            if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
+                conductingNodeIds.emplace(nodeId);
+            } else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
+                groundNodeIds.emplace(nodeId, iPump);
+                iPump++;
+            }
+        }
+    }
+
+}
+
+template<typename T>
 void conductNodalAnalysis( const arch::Network<T>* network)
     {
     const int nNodes = network->getNodes().size();    // -1 due to ground node

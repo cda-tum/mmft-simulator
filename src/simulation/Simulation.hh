@@ -681,12 +681,6 @@ namespace sim {
         for (auto& [key, channel] : network->getChannels()) {
             std::cout << "[Result] Channel " << channel->getId() << " has a flow rate of " << channel->getFlowRate() << " m^3/s.\n";
         }
-        /*
-        std::cout << "\n";
-        // print the resistances in all channels
-        for (auto& [key, channel] : network->getChannels()) {
-            std::cout << "[Result] Channel " << channel->getId() << " has a resistance of " << channel->getResistance() << " Pas/L.\n";
-        }*/
         std::cout << std::endl;
     }
 
