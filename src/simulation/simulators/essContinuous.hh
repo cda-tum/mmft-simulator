@@ -14,7 +14,6 @@ namespace sim{
             epsilon(epsilon_), relaxationTime(relaxationTime_)
     {
         this->cfdModule->setModuleTypeEssLbm();
-        allNodes = cfdModule_->getNodes();
     }
 
     template<typename T>
@@ -37,11 +36,12 @@ namespace sim{
     void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
     {
 
-        std::string work_dir = "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/build";
+        std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
+        const auto& allNodes = this->moduleNetwork->getNodes();
         std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
 
-        for(auto& op : moduleOpenings)
+        for(auto& op : this->moduleOpenings)
         {
             ess::Opening opening;
             opening.width = op.second.width;
@@ -57,7 +57,7 @@ namespace sim{
             nodes.try_emplace(op.first, node);
         }
 
-        solver_ = std::make_shared<ess::lbmSolver>(work_dir, stlFile, openings, nodes, charPhysLength, charPhysVelocity, 1.0f / resolution, epsilon, relaxationTime, density, dynViscosity);
+        solver_ = std::make_shared<ess::lbmSolver>(work_dir, this->stlFile, openings, nodes, charPhysLength, charPhysVelocity, 1.0f / resolution, epsilon, relaxationTime, density, dynViscosity);
         solver_->prepareLattice();
 
         #ifdef DEBUG
@@ -78,7 +78,7 @@ namespace sim{
         setPressures(pressures);
 
         #ifdef VERBOSE
-            std::cout << "[essLbmModule] lbmInit " << name << "... OK" << std::endl;
+            std::cout << "[essLbmModule] lbmInit " << this->name << "... OK" << std::endl;
         #endif
     }
 
