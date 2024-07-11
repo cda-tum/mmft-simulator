@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -39,9 +40,14 @@ private:
     int nPressurePumps;     // Number of pressurePumps
     int iPump;
 
+    bool pressureConvergence;
+
     Eigen::MatrixXd A;      // matrix A = [G, B; C, D]
     Eigen::VectorXd z;      // vector z = [i; e]
     Eigen::VectorXd x;      // vector x = [v; j]
+
+    std::unordered_set<int> conductingNodeIds;
+    std::unordered_map<int, int> groundNodeIds;
 
     void readConductance();         // loop through channels and build matrix G
     void updateReferenceP();        // update the reference pressure for each group
@@ -50,14 +56,17 @@ private:
     void solve();                   // solve equation x = A^(-1) * z
     void setResults();              // set pressure of nodes to v and flow rate at pressure pumps to j
     void initGroundNodes();         // initialize the ground nodes of the groups
+    void clear();
 
     // For hybrid simulations
     void readCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
     void writeCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+    void initGroundNodes(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
 
     // Helper functions
     bool contains( const std::unordered_set<int>& set, int key);
     bool contains( const std::unordered_map<int,int>& map, int key);
+    void printSystem();
 
 public:
     /**
@@ -80,7 +89,7 @@ public:
      * @param[in] network Pointer to the network on which the nodal analysis is conducted. Results are stored in the network's nodes.
      * @param[in] cfdSimulators The cfd simulators for a hybrid simulation
      */
-    void conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+    bool conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
 
 };
 

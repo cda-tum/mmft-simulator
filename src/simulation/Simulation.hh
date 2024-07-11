@@ -476,7 +476,7 @@ namespace sim {
         // * save state
         if (simType == Type::Abstract && platform == Platform::Continuous) {
             // compute nodal analysis
-            nodal::conductNodalAnalysis(network);
+            nodalAnalysis->conductNodalAnalysis();
 
             // store simulation results of current state
             saveState();
@@ -502,7 +502,7 @@ namespace sim {
                 
                     // compute nodal analysis again
                     //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodal::conductNodalAnalysis(this->network, cfdSimulators);
+                    pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
 
                 }
 
@@ -540,7 +540,7 @@ namespace sim {
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
                 updateDropletResistances();
                 // compute nodal analysis
-                nodal::conductNodalAnalysis(network);
+                nodalAnalysis->conductNodalAnalysis();
                 // update droplets, i.e., their boundary flow rates
                 // loop over all droplets
                 dropletsAtBifurcation = false;
@@ -614,7 +614,7 @@ namespace sim {
                     break;
                 }
                 // compute nodal analysis
-                nodal::conductNodalAnalysis(network);
+                nodalAnalysis->conductNodalAnalysis();
 
                 // Update and propagate the mixtures 
                 if (this->mixingModel->isInstantaneous()){
@@ -708,6 +708,8 @@ namespace sim {
             channel->setDropletResistance(0.0);
         }
 
+        nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network);
+
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             
             #ifdef VERBOSE
@@ -724,7 +726,7 @@ namespace sim {
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodal::conductNodalAnalysis(this->network, cfdSimulators);
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE
