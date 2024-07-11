@@ -37,6 +37,7 @@ private:
 
     int nNodes;             // Number of nodes
     int nPressurePumps;     // Number of pressurePumps
+    int iPump;
 
     Eigen::MatrixXd A;      // matrix A = [G, B; C, D]
     Eigen::VectorXd z;      // vector z = [i; e]
@@ -53,6 +54,10 @@ private:
     // For hybrid simulations
     void readCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
     void writeCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+
+    // Helper functions
+    bool contains( const std::unordered_set<int>& set, int key);
+    bool contains( const std::unordered_map<int,int>& map, int key);
 
 public:
     /**
@@ -79,31 +84,5 @@ public:
 
 };
 
-/**
- * @brief Conducts the Modifed Nodal Analysis (e.g., http://qucs.sourceforge.net/tech/node14.html) and computes the pressure levels for each node.
- * Hence, the passed nodes contain the final pressure levels when the function is finished.
- *
- * @param[in,out] nodes List of nodes, which contain the result (pressure values) of the modified nodal analysis.
- * @param[in] channels List of channels.
- * @param[in,out] pressurePumps List of pressure pumps.
- * @param[in] flowRatePumps List of flowrate pumps.
- */
-template<typename T>
-void conductNodalAnalysis( const arch::Network<T>* network);
-
-/**
- * @brief Conducts the Modifed Nodal Analysis (e.g., http://qucs.sourceforge.net/tech/node14.html) and computes the pressure levels for each node.
- * Hence, the passed nodes contain the final pressure levels when the function is finished.
- *
- * @param[in,out] nodes List of nodes, which contain the result (pressure values) of the modified nodal analysis.
- * @param[in] channels List of channels.
- * @param[in,out] pressurePumps List of pressure pumps.
- * @param[in] flowRatePumps List of flowrate pumps.
- */
-template<typename T>
-bool conductNodalAnalysis( const arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
-
-bool contains( const std::unordered_set<int>& set, int key);
-bool contains( const std::unordered_map<int,int>& map, int key);
 
 }   // namespace nodal
