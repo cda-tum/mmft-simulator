@@ -32,7 +32,8 @@ TEST(Network, testNetwork1) {
 
     // compute network
     network.sortGroups();
-    nodal::conductNodalAnalysis(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    nodalAnalysis->conductNodalAnalysis();
 
     // check result
     const double errorTolerance = 1e-6;
@@ -71,7 +72,8 @@ TEST(Network, testNetwork2) {
 
     // compute network
     network.sortGroups();
-    nodal::conductNodalAnalysis(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    nodalAnalysis->conductNodalAnalysis();
 
     // check result
     const double errorTolerance = 1e-6;
@@ -108,7 +110,8 @@ TEST(Network, testNetwork3) {
 
     // compute network
     network.sortGroups();
-    nodal::conductNodalAnalysis(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    nodalAnalysis->conductNodalAnalysis();
 
     // check result
     const double errorTolerance = 1e-6;
@@ -142,7 +145,8 @@ TEST(Network, testNetwork4) {
 
     // compute network
     network.sortGroups();
-    nodal::conductNodalAnalysis(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    nodalAnalysis->conductNodalAnalysis();
 
     // check result
     const double errorTolerance = 1e-6;
@@ -175,7 +179,8 @@ TEST(Network, testNetwork5) {
 
     // compute network
     network.sortGroups();
-    nodal::conductNodalAnalysis(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    nodalAnalysis->conductNodalAnalysis();
 
     // check result
     const double errorTolerance = 1e-6;
