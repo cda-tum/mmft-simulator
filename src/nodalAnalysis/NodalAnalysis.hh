@@ -5,6 +5,7 @@ namespace nodal {
 template<typename T>
 NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     network = network_;
+    nNodes = network->getNodes().size();
 
     // loop through modules
     for (const auto& [key, module] : network->getModules()) {
@@ -15,20 +16,10 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
         assert(module->getModuleType() == arch::ModuleType::ESS_LBM);
         #endif
     }
-}
-
-template<typename T>
-void NodalAnalysis<T>::clear() {
-
-    pressureConvergence = true;
-    nNodes = network->getNodes().size();
-    
-    conductingNodeIds.clear();
-    groundNodeIds.clear();
 
     // Sort nodes into conducting nodes and ground nodes.
     // First loop, all nodes with id > 0 are conducting nodes.
-    iPump = nNodes;
+    int iPump = nNodes;
     for (const auto& [key, group] : network->getGroups()) {
         for (const auto& nodeId : group->nodeIds) {
             if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
@@ -39,14 +30,23 @@ void NodalAnalysis<T>::clear() {
             }
         }
     }
-
+    
     nPressurePumps = network->getPressurePumps().size() + groundNodeIds.size();
     int nNodesAndPressurePumps = nNodes + nPressurePumps;
 
     A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
     z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
+    x = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
 
+}
 
+template<typename T>
+void NodalAnalysis<T>::clear() {
+
+    pressureConvergence = true;
+
+    A.setZero();
+    z.setZero();
 }
 
 template<typename T>
@@ -121,6 +121,7 @@ void NodalAnalysis<T>::updateReferenceP() {
 
 template<typename T>
 void NodalAnalysis<T>::readPressurePumps() {
+    int iPump = nNodes;
     // loop through pressurePumps and build matrix B, C and vector e
     for (const auto& pressurePump : network->getPressurePumps()) {
         auto nodeAMatrixId = pressurePump.second->getNodeA();
@@ -186,7 +187,7 @@ void NodalAnalysis<T>::setResults() {
     }
 
     // set flow rate at pressure pumps
-    iPump = nNodes;
+    int iPump = nNodes;
     for (auto& pressurePump : network->getPressurePumps()){
         pressurePump.second->setFlowRate(x(iPump));
         iPump++;

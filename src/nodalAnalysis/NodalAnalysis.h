@@ -38,7 +38,6 @@ private:
 
     int nNodes;             // Number of nodes
     int nPressurePumps;     // Number of pressurePumps
-    int iPump;
 
     bool pressureConvergence;
 
