@@ -361,6 +361,11 @@ void Network<T>::setGround(int nodeId_) {
 }
 
 template<typename T>
+void Network<T>::setVirtualNodes(int virtualNodes_) {
+    this->virtualNodes = virtualNodes_;
+}
+
+template<typename T>
 void Network<T>::setPressurePump(int channelId_, T pressure_) {
     int nodeAId = channels.at(channelId_).get()->getNodeA();
     int nodeBId = channels.at(channelId_).get()->getNodeB();
@@ -424,6 +429,11 @@ std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
 template<typename T>
 const std::unordered_map<int, std::shared_ptr<Node<T>>>& Network<T>::getNodes() const {
     return nodes;
+}
+
+template<typename T>
+int Network<T>::getVirtualNodes() const {
+    return virtualNodes;
 }
 
 template<typename T>
@@ -684,6 +694,35 @@ bool Network<T>::isNetworkValid() {
     }
 
     return true;
+}
+
+template<typename T>
+void Network<T>::print() {
+    std::string printNodes = "";
+    std::string printChannels = "";
+    std::string printModules = "";
+
+    for (auto const& [k, v] : nodes) {
+        printNodes.append(" " + std::to_string(v->getId()));
+    }
+
+    for (auto const& [k, v] : channels) {
+        printChannels.append("\t id: " + std::to_string(v->getId()) 
+                            + "\t nA: " + std::to_string(v->getNodeA())
+                            + "\t nB: " + std::to_string(v->getNodeB()) + "\n");
+    }
+
+    for (auto const& [k, v] : modules) {
+        printModules.append("\t id: " + std::to_string(v->getId()) + "\t nodes:");
+        for (auto const& [kN, vN] : v->getNodes()) {
+            printModules.append(" " + std::to_string(vN->getId()));
+        }
+    }
+
+    std::cout << "The network consists of the following components:\n" << std::endl;
+    std::cout << "Nodes: " << printNodes << "\n" << std::endl;
+    std::cout << "Channels:\n" << printChannels << std::endl;
+    std::cout << "Modules:\n" << printModules << std::endl;
 }
 
 }   // namespace arch

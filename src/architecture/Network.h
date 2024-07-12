@@ -93,6 +93,8 @@ private:
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
     std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
+    int virtualNodes;
+
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
      * @param[in] id Id of the node that is visited.
@@ -248,7 +250,13 @@ public:
      * @brief Sets a node as the ground node, i.e., this node has a pressure value of 0 and acts as a reference node for all other nodes.
      * @param[in] nodeId Id of the node that should be the ground node of the network.
      */
-    void setGround(int nodeId);    
+    void setGround(int nodeId);   
+
+    /**
+     * @brief Sets the amount of virtual nodes read from the GUI.
+     * @param[in] virtualNodes Amount of virtual nodes.
+     */
+    void setVirtualNodes(int virtualNodes);
 
     /**
      * @brief Turns a channel with the specific id into a pressurepump with given pressure.
@@ -323,6 +331,12 @@ public:
     std::set<Node<T>*> getGroundNodes() const;
 
     /**
+     * @brief Returns the amount of virtual nodes given by the GUI.
+     * @return Amount of virtual nodes in the original network.
+     */
+    int getVirtualNodes() const;
+
+    /**
      * @brief Get a pointer to the channel with the specific id.
     */
     RectangularChannel<T>* getChannel(int channelId) const;
@@ -394,6 +408,11 @@ public:
      * @return If the network is valid.
      */
     bool isNetworkValid();
+
+    /**
+     * @brief Prints the contents of this network
+     */
+    void print();
 };
 
 }   // namespace arch

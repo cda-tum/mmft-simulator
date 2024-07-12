@@ -5,7 +5,7 @@ namespace nodal {
 template<typename T>
 NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     network = network_;
-    nNodes = network->getNodes().size();
+    nNodes = network->getNodes().size() + network->getVirtualNodes();
 
     // loop through modules
     for (const auto& [key, module] : network->getModules()) {
@@ -73,7 +73,6 @@ bool NodalAnalysis<T>::conductNodalAnalysis(std::unordered_map<int, std::unique_
     setResults();
     writeCfdSimulators(cfdSimulators);
     initGroundNodes(cfdSimulators);
-
     return pressureConvergence;
 }
 
