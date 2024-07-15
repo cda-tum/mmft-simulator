@@ -142,7 +142,7 @@ void readContinuousPhase (json jsonString, sim::Simulation<T>& simulation, int a
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network);
+void readSimulators (json jsonString, sim::Simulation<T>& simulation, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Sets channels in the network to pressure or flow rate pump, as defined by the json string
@@ -151,7 +151,7 @@ void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Netw
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readPumps (json jsonString, arch::Network<T>* network);
+void readPumps (json jsonString, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Construct and store the resistance model of the simulation as defined by the json string

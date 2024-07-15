@@ -67,7 +67,7 @@ private:
     std::shared_ptr<olb::CuboidGeometry<T,2>> cuboidGeometry;       ///< The geometry in a single cuboid.
     std::shared_ptr<olb::SuperGeometry<T,2>> geometry;              ///< The final geometry of the channels.
     std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
-    std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
+    std::shared_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
 
     std::unordered_map<int, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
     std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>> densities;
@@ -105,7 +105,7 @@ public:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
     lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
-        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
+        std::shared_ptr<ResistanceModel<T>> resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
      * @brief Initialize an instance of the LBM solver for this module.

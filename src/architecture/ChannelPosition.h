@@ -16,7 +16,7 @@ class RectangularChannel;
 template<typename T>
 class ChannelPosition {
   private:
-    RectangularChannel<T>* channel;  ///< Channel in which one end of droplet currently is.
+    std::shared_ptr<RectangularChannel<T>> channel;  ///< Channel in which one end of droplet currently is.
     T position;   ///< Exact relative position (between 0.0 and 1.0) within the channel.
 
   public:
@@ -25,13 +25,13 @@ class ChannelPosition {
      * @param[in] channel Channel in which this end of the droplet currently is.
      * @param[in] position Relative position (between 0.0 and 1.0) of the droplet end in this channel.
      */
-    ChannelPosition(RectangularChannel<T>* channel, T position);
+    ChannelPosition(std::shared_ptr<RectangularChannel<T>> channel, T position);
 
     /**
      * @brief Change the channel of the channel position (at which one end of the droplet currently is).
      * @param[in] channel New channel to which the position should be set.
      */
-    void setChannel(RectangularChannel<T>* const channel);
+    void setChannel(std::shared_ptr<RectangularChannel<T>> const channel);
 
     /**
      * @brief Reset relative position.
@@ -49,7 +49,7 @@ class ChannelPosition {
      * @brief Returns pointer to channel in which this end of the droplet currently is.
      * @return Pointer to channel at which this end of the droplet currently is.
      */
-    RectangularChannel<T>* getChannel() const;
+    std::shared_ptr<RectangularChannel<T>> getChannel() const;
 
     /**
      * @brief Returns relative position within the channel.

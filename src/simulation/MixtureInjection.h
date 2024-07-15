@@ -31,22 +31,22 @@ class Mixture;
 template<typename T>
 class MixtureInjection {
   private:
-    const int id;               ///< Unique identifier of an injection.
+    const int id;               ///< shared identifier of an injection.
     std::string name = "";      ///< Name of the injection.
     int mixtureId;              ///< Id of mixture to be injected.
-    arch::RectangularChannel<T>* injectionChannel;  ///< Channel at which the fluid is injected.
+    std::shared_ptr<arch::RectangularChannel<T>> injectionChannel;  ///< Channel at which the fluid is injected.
     T injectionTime;            ///< Time at which the injection should start in s elapsed since the start of the simulation.
     bool performed = false;     ///< Information if the change of the input mixture was already performed or not.
 
   public:
     /**
      * @brief Create a mixture injection.
-     * @param[in] id Unique identifier of an injection.
+     * @param[in] id shared identifier of an injection.
      * @param[in] mixture Pointer to the mixture to be injected.
      * @param[in] injectionPump Pump from which the fluid is injected
      * @param[in] injectionTime Time at which the fluid injection should start, in s elapsed since the start of the simulation in s.
      */
-    MixtureInjection(int id, int mixtureId, arch::RectangularChannel<T>* channel, T injectionTime);
+    MixtureInjection(int id, int mixtureId, std::shared_ptr<arch::RectangularChannel<T>> channel, T injectionTime);
 
     /**
      * @brief Set name of injection.
@@ -55,8 +55,8 @@ class MixtureInjection {
     void setName(std::string name);
 
     /**
-     * @brief Retrieve unique identifier of injection.
-     * @return Unique identifier of injection.
+     * @brief Retrieve shared identifier of injection.
+     * @return shared identifier of injection.
      */
     int getId() const;
 
@@ -76,7 +76,7 @@ class MixtureInjection {
      * @brief Retrieve pump from which the injection should take place.
      * @return Pump from which the injection should take place. 
      */
-    arch::RectangularChannel<T>* getInjectionChannel();
+    std::shared_ptr<arch::RectangularChannel<T>> getInjectionChannel();
 
     /**
      * @brief Retrieve pointer to the fluid that should be injected.

@@ -56,7 +56,7 @@ class Mixture {
 private:
 
     int const id;
-    std::unordered_map<int, Specie<T>*> species;
+    std::unordered_map<int, std::shared_ptr<Specie<T>>> species;
     std::unordered_map<int, T> specieConcentrations;
     T viscosity;
     T density;
@@ -71,7 +71,7 @@ public:
      * @param density Density of the mixture in kg/m^3.
      * @param largestMolecularSize Largest molecular size in that mixture in m^3.
      */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
+    Mixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density, T largestMolecularSize);
 
     /**
      * @brief Construct a new mixture out of a list of fluids and their concentration values.
@@ -80,7 +80,7 @@ public:
      * @param viscosity Viscosity of the mixture in Pas.
      * @param density Density of the mixture in kg/m^3.
      */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density);
+    Mixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, T viscosity, T density);
 
     /**
      * @brief Construct a new mixture out of a list of fluids and their concentration values.
@@ -88,11 +88,11 @@ public:
      * @param fluidConcentrations Map of fluid id and fluid concentration pairs.
      * @param fluid Carrier fluid of the mixture.
      */
-    Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, Fluid<T>* carrierFluid);
+    Mixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, std::shared_ptr<Fluid<T>> carrierFluid);
 
     /**
      * @brief Get the id of this mixture
-     * @return Unique identifier of the mixture.
+     * @return shared identifier of the mixture.
      */
     int getId() const;
 
@@ -137,7 +137,7 @@ public:
      * @brief Get the species that are contained in this mixture.
      * @return Map of specie id and pointer to the specie in this mixture.
     */
-    const std::unordered_map<int, Specie<T>*>& getSpecies() const;
+    const std::unordered_map<int, std::shared_ptr<Specie<T>>>& getSpecies() const;
 
     virtual const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const {
         throw std::invalid_argument("Tried to access species distribution for non-diffusive mixture.");
@@ -155,14 +155,14 @@ private:
 
 public:
 
-    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+    DiffusiveMixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions,T viscosity, T density, T largestMolecularSize, int resolution=10);
 
-    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+    DiffusiveMixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution=10);
 
-    DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution=10);
+    DiffusiveMixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, std::shared_ptr<Fluid<T>> carrierFluid, int resolution=10);
 
     std::function<T(T)> getDistributionOfSpecie(int specieId) const;
 

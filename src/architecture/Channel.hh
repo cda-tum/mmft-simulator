@@ -64,24 +64,24 @@ namespace arch {
     template<typename T>
     Channel<T>::Channel(int id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_) : 
     Edge<T>(id_, nodeA_->getId(), nodeB_->getId()) { 
-        std::unique_ptr<Line_segment<T,2>> line = std::make_unique<Line_segment<T,2>> (nodeA_->getPosition(), nodeB_->getPosition());
+        std::shared_ptr<Line_segment<T,2>> line = std::make_shared<Line_segment<T,2>> (nodeA_->getPosition(), nodeB_->getPosition());
         this->length = line->getLength();
         line_segments.push_back(std::move(line));
     }
 
     template<typename T>
     Channel<T>::Channel(int id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, 
-                        std::vector<Line_segment<T,2>*> line_segments_,
-                        std::vector<Arc<T,2>*> arcs_) :
+                        std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments_,
+                        std::vector<std::shared_ptr<Arc<T,2>>> arcs_) :
     Edge<T>(id_, nodeA_->getId(), nodeB_->getId()) {
         for (auto& line : line_segments_) {
             this->length += line->getLength();
-            std::unique_ptr<Line_segment<T,2>> uLine(line);
+            std::shared_ptr<Line_segment<T,2>> uLine(line);
             line_segments.push_back(std::move(uLine));
         }
         for (auto& arc : arcs_) {
             this->length += arc->getLength();
-            std::unique_ptr<Arc<T,2>> uArc(arc);
+            std::shared_ptr<Arc<T,2>> uArc(arc);
             arcs.push_back(std::move(uArc));
         }
     }
@@ -163,8 +163,8 @@ namespace arch {
 
     template<typename T>
     RectangularChannel<T>::RectangularChannel(int id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, 
-                        std::vector<Line_segment<T,2>*> line_segments_,
-                        std::vector<Arc<T,2>*> arcs_, T width_, T height_) : 
+                        std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments_,
+                        std::vector<std::shared_ptr<Arc<T,2>>> arcs_, T width_, T height_) : 
     Channel<T>(id_, nodeA_, nodeB_, line_segments_, arcs_), width(width_), height(height_) { 
         this->area = width*height;
     }

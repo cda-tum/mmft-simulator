@@ -3,20 +3,20 @@
 namespace sim {
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+Mixture<T>::Mixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
                     T viscosity, T density, T largestMolecularSize) : 
                     id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
                     density(density), largestMolecularSize(largestMolecularSize) { }
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+Mixture<T>::Mixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
                     T viscosity, T density) : 
                     id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
                     density(density), largestMolecularSize(0.0) { }
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-                    Fluid<T>* carrierFluid) : 
+Mixture<T>::Mixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
+                    std::shared_ptr<Fluid<T>> carrierFluid) : 
                     id(id), species(species), specieConcentrations(specieConcentrations), 
                     viscosity(carrierFluid->getViscosity()), density(carrierFluid->getDensity()), 
                     largestMolecularSize(0.0) { }
@@ -60,23 +60,23 @@ const std::unordered_map<int, T>& Mixture<T>::getSpecieConcentrations() const {
 }
 
 template<typename T>
-const std::unordered_map<int, Specie<T>*>& Mixture<T>::getSpecies() const {
+const std::unordered_map<int, std::shared_ptr<Specie<T>>>& Mixture<T>::getSpecies() const {
     return species;
 }
 
 template<typename T>
-DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
     std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, T largestMolecularSize, int resolution) : 
     Mixture<T>(id, species, specieConcentrations, viscosity, density, largestMolecularSize), specieDistributions(specieDistributions), resolution(resolution) { }
 
 template<typename T>
-DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
+DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
     std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution) :
     Mixture<T>(id, species, specieConcentrations, viscosity, density), specieDistributions(specieDistributions), resolution(resolution) { }
 
 template<typename T>
-DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution) : 
+DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, std::shared_ptr<Specie<T>>> species, std::unordered_map<int, T> specieConcentrations, 
+    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, std::shared_ptr<Fluid<T>> carrierFluid, int resolution) : 
     Mixture<T>(id, species, specieConcentrations, carrierFluid), specieDistributions(specieDistributions), resolution(resolution) { }
 
 template<typename T>

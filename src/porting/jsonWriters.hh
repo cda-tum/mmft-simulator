@@ -3,7 +3,7 @@
 namespace porting {
 
 template<typename T>
-auto writePressures(result::State<T>* state) {
+auto writePressures(std::shared_ptr<result::State<T>> state) {
     auto nodes = ordered_json::array();
     auto const& pressures = state->getPressures();
     for (long unsigned int i=0; i<pressures.size(); ++i) {
@@ -13,7 +13,7 @@ auto writePressures(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeChannels(result::State<T>* state) {      
+auto writeChannels(std::shared_ptr<result::State<T>> state) {      
     auto channels = ordered_json::array();
     auto const& flowRates = state->getFlowRates();
     if (state->getMixturePositions().empty()) {
@@ -41,7 +41,7 @@ auto writeChannels(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {      
+auto writeDroplets(std::shared_ptr<result::State<T>> state, std::shared_ptr<sim::Simulation<T>> simulation) {      
     auto BigDroplets = ordered_json::array();
     for (auto& [key, dropletPosition] : state->getDropletPositions()) {
         //dropletPosition
@@ -75,7 +75,7 @@ auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-auto writeFluids(sim::Simulation<T>* simulation) {      
+auto writeFluids(std::shared_ptr<sim::Simulation<T>> simulation) {      
     auto Fluids = ordered_json::array();
     auto const& simFluids = simulation->getFluids();
     for (long unsigned int i=0; i<simFluids.size(); ++i) {
@@ -92,7 +92,7 @@ auto writeFluids(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-auto writeMixtures (sim::Simulation<T>* simulation) {
+auto writeMixtures (std::shared_ptr<sim::Simulation<T>> simulation) {
     auto Mixtures = ordered_json::array();
     auto const& simMixtures = simulation->getMixtures();
     for (long unsigned int i=0; i<simMixtures.size(); ++i) {
@@ -108,7 +108,7 @@ auto writeMixtures (sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-std::string writeSimType(sim::Simulation<T>* simulation) {      
+std::string writeSimType(std::shared_ptr<sim::Simulation<T>> simulation) {      
     if(simulation->getType() == sim::Type::Hybrid) {
         return("Hybrid");
     } else if (simulation->getType() == sim::Type::CFD) {
@@ -118,7 +118,7 @@ std::string writeSimType(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-std::string writeSimPlatform(sim::Simulation<T>* simulation) {      
+std::string writeSimPlatform(std::shared_ptr<sim::Simulation<T>> simulation) {      
     if(simulation->getPlatform() == sim::Platform::BigDroplet) {
         return("BigDroplet");
     } else if (simulation->getPlatform() == sim::Platform::Mixing) {
@@ -128,7 +128,7 @@ std::string writeSimPlatform(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {
+void writeMixtures (json& jsonString, std::shared_ptr<result::State<T>> state, std::shared_ptr<sim::Simulation<T>> simulation) {
     auto mixturePositions = json::array();
     for (auto& [key, mixturePosition] : state->getMixturePositions()) {
         // mixture object

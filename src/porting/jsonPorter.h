@@ -62,7 +62,7 @@ arch::Network<T> networkFromJSON(nlohmann::json jsonString);
  * @returns Simulation simulation
 */
 template<typename T>
-sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network);
+sim::Simulation<T> simulationFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Define an existing Simulation from a JSON file
@@ -72,7 +72,7 @@ sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* ne
  * @returns Simulation simulation
 */
 template<typename T>
-void simulationFromJSON(std::string jsonFile, arch::Network<T>* network, sim::Simulation<T>& simulation);
+void simulationFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>> network, sim::Simulation<T>& simulation);
 
 /**
  * @brief Define an existing Simulation from a JSON file
@@ -82,7 +82,7 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network, sim::Si
  * @returns Simulation simulation
 */
 template<typename T>
-void simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network, sim::Simulation<T>& simulation);
+void simulationFromJSON(nlohmann::json jsonString, std::shared_ptr<arch::Network<T>> network, sim::Simulation<T>& simulation);
 
 
 /**
@@ -92,7 +92,7 @@ void simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network, si
  * @returns Simulation simulation
 */
 template<typename T>
-sim::Simulation<T> simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network);
+sim::Simulation<T> simulationFromJSON(nlohmann::json jsonString, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Generates a json string of the simulation results and writes it in the provided location
@@ -100,7 +100,7 @@ sim::Simulation<T> simulationFromJSON(nlohmann::json jsonString, arch::Network<T
  * @param[in] simulation pointer to the simulation of which the results must be stored
 */
 template<typename T>
-void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation);
+void resultToJSON(std::string jsonFile, std::shared_ptr<sim::Simulation<T>> simulation);
 
 /**
  * @brief Constructor of a json string of the simulation results
@@ -108,6 +108,6 @@ void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation);
  * @returns ordered_json json string
 */
 template<typename T>
-nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation);
+nlohmann::ordered_json resultToJSON(std::shared_ptr<sim::Simulation<T>> simulation);
 
 }   // namespace porting

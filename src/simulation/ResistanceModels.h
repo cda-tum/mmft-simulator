@@ -38,7 +38,7 @@ class ResistanceModel {
    * @param[in] channel A pointer to the channel for which the resistance should be calculated.
    * @return The resistance of the channel itself in Pas/L.
    */
-  virtual T getChannelResistance(arch::RectangularChannel<T> const* const channel) const = 0;
+  virtual T getChannelResistance(std::shared_ptr<const arch::RectangularChannel<T>> const channel) const = 0;
 
   /**
    * @brief Compute the a factor.
@@ -55,7 +55,7 @@ class ResistanceModel {
    * @param[in] volumeInsideChannel The volume inside the channel in m^3.
    * @return Resistance caused by the droplet in the channel in Pas/L.
    */
-  virtual T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const = 0;
+  virtual T getDropletResistance(std::shared_ptr<const arch::RectangularChannel<T>> const channel, std::shared_ptr<Droplet<T>> droplet, T volumeInsideChannel) const = 0;
 };
 
 /**
@@ -76,7 +76,7 @@ class ResistanceModel1D : public ResistanceModel<T> {
      * @param[in] channel A pointer to the channel for which the resistance should be calculated.
      * @return The resistance of the channel itself in Pas/L.
      */
-    T getChannelResistance(arch::RectangularChannel<T> const* const channel) const override;
+    T getChannelResistance(std::shared_ptr<const arch::RectangularChannel<T>> const channel) const override;
 
     /**
      * @brief Compute the a factor.
@@ -93,7 +93,7 @@ class ResistanceModel1D : public ResistanceModel<T> {
      * @param[in] volumeInsideChannel The volume inside the channel in m^3.
      * @return Resistance caused by the droplet in the channel in Pas/L.
      */
-    T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
+    T getDropletResistance(std::shared_ptr<const arch::RectangularChannel<T>> const channel, std::shared_ptr<Droplet<T>> droplet, T volumeInsideChannel) const override;
 
 };
 
@@ -115,7 +115,7 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
      * @param[in] channel A pointer to the channel for which the resistance should be calculated.
      * @return The resistance of the channel itself in Pas/L.
      */
-    T getChannelResistance(arch::RectangularChannel<T> const* const channel) const override;
+    T getChannelResistance(std::shared_ptr<const arch::RectangularChannel<T>> const channel) const override;
 
     /**
      * @brief Compute the a factor.
@@ -132,7 +132,7 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
      * @param[in] volumeInsideChannel The volume inside the channel in m^3.
      * @return Resistance caused by the droplet in the channel in Pas/L.
      */
-    T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
+    T getDropletResistance(std::shared_ptr<const arch::RectangularChannel<T>> const channel, std::shared_ptr<Droplet<T>> droplet, T volumeInsideChannel) const override;
 
 };
 

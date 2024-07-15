@@ -71,7 +71,7 @@ namespace sim {
              * @param[in] openings Map of the in-/outlets of the module.
             */
             essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule,  std::unordered_map<int, arch::Opening<T>> openings_,
-                            ResistanceModel<T>* resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
+                            std::shared_ptr<ResistanceModel<T>> resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
             /**
              * @brief Initialize an instance of the LBM solver for this module.
              * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.

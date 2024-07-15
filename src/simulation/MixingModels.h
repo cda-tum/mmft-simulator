@@ -99,7 +99,7 @@ public:
      * @brief Update the minimal timestep for a mixture to 'outflow' their channel.
      * @param[in] network
     */
-    void updateMinimalTimeStep(arch::Network<T>* network);
+    void updateMinimalTimeStep(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Retrieve the mixtures that are present in a specific channel.
@@ -132,7 +132,7 @@ public:
      * @param[in] timeStep the current timestep size.
      * @param[in] network pointer to the network.
     */
-    virtual void updateNodeInflow(T timeStep, arch::Network<T>* network) = 0;
+    virtual void updateNodeInflow(T timeStep, std::shared_ptr<arch::Network<T>> network) = 0;
 
     /**
      * @brief Create and/or propagate mixtures into channels downstream.
@@ -141,7 +141,7 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
+    virtual void updateMixtures(T timeStep, std::shared_ptr<arch::Network<T>> network, std::shared_ptr<Simulation<T>> sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) = 0;
 
     virtual bool isInstantaneous() = 0;
 
@@ -161,7 +161,7 @@ private:
     std::unordered_map<int, T> totalInflowVolumeAtNode;                             ///< Unordered map to track the total volumetric flow entering a node.
     std::unordered_map<int, bool> createMixture;                                    ///< Unordered map to track whether a new mixture is created at a node.
 
-    int generateInflows(int nodeId, T timeStep, arch::Network<T>* network);
+    int generateInflows(int nodeId, T timeStep, std::shared_ptr<arch::Network<T>> network);
 
 public:
 
@@ -177,21 +177,21 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
+    void updateMixtures(T timeStep, std::shared_ptr<arch::Network<T>> network, std::shared_ptr<Simulation<T>> sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) override;
 
     /**
      * @brief Calculate and store the mixtures flowing into all nodes
      * @param[in] timeStep The timeStep size of the current iteration.
      * @param[in] network Pointer to the network.
     */
-    void updateNodeInflow(T timeStep, arch::Network<T>* network) override;
+    void updateNodeInflow(T timeStep, std::shared_ptr<arch::Network<T>> network) override;
 
     /**
      * @brief Calculate the mixture outflow at each node from all inflows and, when necessary, create new mixtures.
      * @param[in] sim Pointer to the simulation.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void generateNodeOutflow(Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void generateNodeOutflow(std::shared_ptr<Simulation<T>> sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Add the node outflow as inflow to the channels
@@ -199,13 +199,13 @@ public:
      * @param[in] network Pointer to the network.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void updateChannelInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void updateChannelInflow(T timeStep, std::shared_ptr<arch::Network<T>> network, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Remove mixtures that have 'outflowed' their channel
      * @param[in] network Pointer to the network.
     */
-    void clean(arch::Network<T>* network);
+    void clean(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Print all mixtures and their positions in the network.
@@ -240,19 +240,19 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
+    void updateMixtures(T timeStep, std::shared_ptr<arch::Network<T>> network, std::shared_ptr<Simulation<T>> sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) override;
 
     /**
      * @brief Propagate the mixtures and check if a mixtures reaches channel end.
     */
-    void updateNodeInflow(T timeStep, arch::Network<T>* network) override;
+    void updateNodeInflow(T timeStep, std::shared_ptr<arch::Network<T>> network) override;
 
     /**
      * @brief Generate a new inflow in case a mixture has reached channel end. Invoked by updateNodeInflow.
     */
-    void generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void generateInflows(T timeStep, std::shared_ptr<arch::Network<T>> network, std::shared_ptr<Simulation<T>> sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures);
 
-    void topologyAnalysis(arch::Network<T>* network, int nodeId);
+    void topologyAnalysis(std::shared_ptr<arch::Network<T>> network, int nodeId);
     
     void printTopology();
 
@@ -261,9 +261,9 @@ public:
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
 
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
-        const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
+        const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& diffusiveMixtures);
 
-    void clean(arch::Network<T>* network);
+    void clean(std::shared_ptr<arch::Network<T>> network);
 
     void printMixturesInNetwork();
 

@@ -40,7 +40,7 @@ void DropletInjectionEvent<T>::print() {
 
 
 template<typename T>
-MixtureInjectionEvent<T>::MixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel) : 
+MixtureInjectionEvent<T>::MixtureInjectionEvent(T time, MixtureInjection<T>& injection, std::shared_ptr<MixingModel<T>> mixingModel) : 
     Event<T>(time, 1), injection(injection), mixingModel(mixingModel) { }
 
 template<typename T>

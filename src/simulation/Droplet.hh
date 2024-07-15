@@ -8,7 +8,7 @@ DropletPosition<T>::DropletPosition() { }
 ///-----------------------------Droplet------------------------------------///
 
 template<typename T>
-Droplet<T>::Droplet(int id, T volume, Fluid<T>* fluid) : 
+Droplet<T>::Droplet(int id, T volume, std::shared_ptr<Fluid<T>> fluid) : 
     id(id), volume(volume), fluid(fluid) { }
 
 template<typename T>
@@ -47,7 +47,7 @@ DropletState Droplet<T>::getDropletState() const {
 }
 
 template<typename T>
-const Fluid<T>* Droplet<T>::getFluid() const {
+const std::shared_ptr<Fluid<T>> Droplet<T>::getFluid() const {
     return fluid;
 }
 
@@ -74,12 +74,12 @@ void Droplet<T>::addDropletResistance(const ResistanceModel<T>& model) {
 }
 
 template<typename T>
-const std::vector<std::unique_ptr<DropletBoundary<T>>>& Droplet<T>::getBoundaries() {
+const std::vector<std::shared_ptr<DropletBoundary<T>>>& Droplet<T>::getBoundaries() {
     return boundaries;
 }
 
 template<typename T>
-std::vector<arch::RectangularChannel<T>*>& Droplet<T>::getFullyOccupiedChannels() {
+std::vector<std::shared_ptr<arch::RectangularChannel<T>>>& Droplet<T>::getFullyOccupiedChannels() {
     return channels;
 }
 
@@ -97,12 +97,12 @@ bool Droplet<T>::isInsideSingleChannel() {
 }
 
 template<typename T>
-void Droplet<T>::addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) { 
-    boundaries.push_back(std::make_unique<DropletBoundary<T>>(channel, position, volumeTowardsNodeA, state));
+void Droplet<T>::addBoundary(std::shared_ptr<arch::RectangularChannel<T>> channel, T position, bool volumeTowardsNodeA, BoundaryState state) { 
+    boundaries.push_back(std::make_shared<DropletBoundary<T>>(channel, position, volumeTowardsNodeA, state));
 }
 
 template<typename T>
-void Droplet<T>::addFullyOccupiedChannel(arch::RectangularChannel<T>* channel) {
+void Droplet<T>::addFullyOccupiedChannel(std::shared_ptr<arch::RectangularChannel<T>> channel) {
     channels.push_back(channel);
 }
 
@@ -129,8 +129,8 @@ void Droplet<T>::removeFullyOccupiedChannel(int channelId) {
 }
 
 template<typename T>
-std::vector<DropletBoundary<T>*> Droplet<T>::getConnectedBoundaries(int nodeId, DropletBoundary<T>* doNotConsider) {
-    std::vector<DropletBoundary<T>*> connectedBoundaries;
+std::vector<std::shared_ptr<DropletBoundary<T>>> Droplet<T>::getConnectedBoundaries(int nodeId, std::shared_ptr<DropletBoundary<T>> doNotConsider) {
+    std::vector<std::shared_ptr<DropletBoundary<T>>> connectedBoundaries;
     for (auto& boundary : boundaries) {
         // do not consider boundary
         if (boundary.get() == doNotConsider) {
@@ -146,8 +146,8 @@ std::vector<DropletBoundary<T>*> Droplet<T>::getConnectedBoundaries(int nodeId, 
 }
 
 template<typename T>
-std::vector<arch::RectangularChannel<T>*> Droplet<T>::getConnectedFullyOccupiedChannels(int nodeId) {
-    std::vector<arch::RectangularChannel<T>*> connectedChannels;
+std::vector<std::shared_ptr<arch::RectangularChannel<T>>> Droplet<T>::getConnectedFullyOccupiedChannels(int nodeId) {
+    std::vector<std::shared_ptr<arch::RectangularChannel<T>>> connectedChannels;
     for (auto& channel : channels) {
         if (nodeId == channel->getNodeA() || nodeId == channel->getNodeB()) {
             connectedChannels.push_back(channel);
@@ -166,8 +166,8 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
     // determine the state of the droplet
     T qInflow = 0;
     T qOutflow = 0;
-    std::vector<DropletBoundary<T>*> outflowBoundaries;
-    std::vector<DropletBoundary<T>*> inflowBoundaries;
+    std::vector<std::shared_ptr<DropletBoundary<T>>> outflowBoundaries;
+    std::vector<std::shared_ptr<DropletBoundary<T>>> inflowBoundaries;
 
     // loop through boundaries
     for (auto& boundary : boundaries) {
@@ -244,19 +244,19 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
 }
 
 template<typename T>
-void Droplet<T>::addMergedDroplet(Droplet<T>* droplet) {
+void Droplet<T>::addMergedDroplet(std::shared_ptr<Droplet<T>> droplet) {
     mergedDroplets.push_back(droplet);
 }
 
 template<typename T>
-const std::vector<Droplet<T>*>& Droplet<T>::getMergedDroplets() const {
+const std::vector<std::shared_ptr<Droplet<T>>>& Droplet<T>::getMergedDroplets() const {
     return mergedDroplets;
 }
 
 ///--------------------------DropletBoundary------------------------------------///
 
 template<typename T>
-DropletBoundary<T>::DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) : 
+DropletBoundary<T>::DropletBoundary(std::shared_ptr<arch::RectangularChannel<T>> channel, T position, bool volumeTowardsNodeA, BoundaryState state) : 
     channelPosition(channel, position), volumeTowardsNodeA(volumeTowardsNodeA), state(state) { }
 
 template<typename T>
@@ -295,7 +295,7 @@ void DropletBoundary<T>::setState(BoundaryState state) {
 }
 
 template<typename T>
-arch::Node<T>* DropletBoundary<T>::getReferenceNode(arch::Network<T>* network) {
+std::shared_ptr<arch::Node<T>> DropletBoundary<T>::getReferenceNode(std::shared_ptr<arch::Network<T>> network) {
     if (volumeTowardsNodeA) {
         return network->getNode(channelPosition.getChannel()->getNodeA()).get();
     } else {
@@ -313,7 +313,7 @@ int DropletBoundary<T>::getReferenceNode() {
 }
 
 template<typename T>
-arch::Node<T>* DropletBoundary<T>::getOppositeReferenceNode(arch::Network<T>* network) {
+std::shared_ptr<arch::Node<T>> DropletBoundary<T>::getOppositeReferenceNode(std::shared_ptr<arch::Network<T>> network) {
     if (volumeTowardsNodeA) {
         return network->getNode(channelPosition.getChannel()->getNodeB()).get();
     } else {

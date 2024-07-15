@@ -40,7 +40,7 @@ arch::Network<T> networkFromJSON(json jsonString) {
 }
 
 template<typename T>
-sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_) {
+sim::Simulation<T> simulationFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>> network_) {
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
@@ -52,7 +52,7 @@ sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* ne
 }
 
 template<typename T>
-sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
+sim::Simulation<T> simulationFromJSON(json jsonString, std::shared_ptr<arch::Network<T>> network_) {
     sim::Simulation<T> simulation = sim::Simulation<T>();
 
     simulationFromJSON<T>(jsonString, network_, simulation);
@@ -61,7 +61,7 @@ sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network
 }
 
 template<typename T>
-void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
+void simulationFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>> network_, sim::Simulation<T>& simulation) {
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
@@ -69,7 +69,7 @@ void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::S
 }
 
 template<typename T>
-void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
+void simulationFromJSON(json jsonString, std::shared_ptr<arch::Network<T>> network_, sim::Simulation<T>& simulation) {
 
     sim::Platform platform = readPlatform<T>(jsonString, simulation);
     sim::Type simType = readType<T>(jsonString, simulation);
@@ -138,7 +138,7 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
 }
 
 template<typename T>
-void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
+void resultToJSON(std::string jsonFile, std::shared_ptr<sim::Simulation<T>> simulation) {
     std::ofstream file(jsonFile);
 
     ordered_json jsonString = resultToJSON<T>(simulation);
@@ -147,7 +147,7 @@ void resultToJSON(std::string jsonFile, sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
+nlohmann::ordered_json resultToJSON(std::shared_ptr<sim::Simulation<T>> simulation) {
 
     auto jsonResult = ordered_json::object();
     auto jsonStates = ordered_json::array();

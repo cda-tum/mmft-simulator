@@ -26,7 +26,7 @@ T MixtureInjection<T>::getInjectionTime() const {
 }
 
 template<typename T>
-arch::RectangularChannel<T>* MixtureInjection<T>::getInjectionChannel() {
+std::shared_ptr<arch::RectangularChannel<T>> MixtureInjection<T>::getInjectionChannel() {
     return injectionChannel;
 }
 

@@ -98,22 +98,22 @@ template<typename T>
 SimulationResult<T>::SimulationResult() { }
 
 template<typename T>
-SimulationResult<T>::SimulationResult(  arch::Network<T>* network_, 
-                                        std::unordered_map<int, sim::Fluid<T>>* fluids_,
-                                        std::unordered_map<int, sim::Droplet<T>>* droplets_) :
+SimulationResult<T>::SimulationResult(  std::shared_ptr<arch::Network<T>> network_, 
+                                        std::shared_ptr<std::unordered_map<int, sim::Fluid<T>>> fluids_,
+                                        std::shared_ptr<std::unordered_map<int, sim::Droplet<T>>> droplets_) :
                                         network(network_), fluids(fluids_), droplets(droplets_) { }
 
 template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates) {
     int id = states.size();
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates);
+    std::shared_ptr<State<T>> newState = std::make_shared<State<T>>(id, time, pressures, flowRates);
     states.push_back(std::move(newState));
 }
 
 template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions) {
     int id = states.size();
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, dropletPositions);
+    std::shared_ptr<State<T>> newState = std::make_shared<State<T>>(id, time, pressures, flowRates, dropletPositions);
     states.push_back(std::move(newState));
 }
 
@@ -127,12 +127,12 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
             filledEdges.try_emplace(channelId, deque.back().mixtureId);
         }
     }
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions, filledEdges);
+    std::shared_ptr<State<T>> newState = std::make_shared<State<T>>(id, time, pressures, flowRates, mixturePositions, filledEdges);
     states.push_back(std::move(newState));
 }
 
 template<typename T>
-const std::vector<std::unique_ptr<State<T>>>& SimulationResult<T>::getStates() const {
+const std::vector<std::shared_ptr<State<T>>>& SimulationResult<T>::getStates() const {
     return states;
 }
 
@@ -154,12 +154,12 @@ const void SimulationResult<T>::printState(int key) const {
 }
 
 template<typename T>
-const void SimulationResult<T>::setMixtures(std::unordered_map<int, sim::Mixture<T>*> mixtures_) {
+const void SimulationResult<T>::setMixtures(std::unordered_map<int, std::shared_ptr<sim::Mixture<T>>> mixtures_) {
     mixtures = mixtures_;
 }
 
 template<typename T>
-const std::unordered_map<int, sim::Mixture<T>*>& SimulationResult<T>::getMixtures() const {
+const std::unordered_map<int, std::shared_ptr<sim::Mixture<T>>>& SimulationResult<T>::getMixtures() const {
     return mixtures;
 }
 

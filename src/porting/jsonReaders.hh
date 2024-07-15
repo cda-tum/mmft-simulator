@@ -114,7 +114,7 @@ void readFluids(json jsonString, sim::Simulation<T>& simulation) {
             T density = fluid["density"];
             T viscosity = fluid["viscosity"];
             T concentration = fluid["concentration"];
-            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density, concentration);
+            std::shared_ptr<sim::Fluid<T>> addedFluid = simulation.addFluid(viscosity, density, concentration);
             std::string name = fluid["name"];
             addedFluid->setName(name);
         } else {
@@ -155,7 +155,7 @@ void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
         if (mixture.contains("species") && mixture.contains("concentrations")) {
             if (mixture["species"].size() == mixture["concentrations"].size()) {
                 int counter = 0;
-                std::unordered_map<int, sim::Specie<T>*> species;
+                std::unordered_map<int, std::shared_ptr<sim::Specie<T>>> species;
                 std::unordered_map<int, T> concentrations;
                 for (auto& specie : mixture["species"]) {
                     auto specie_ptr = simulation.getSpecie(specie);
@@ -211,7 +211,7 @@ void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int 
 }
 
 template<typename T>
-void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network) {
+void readSimulators(json jsonString, sim::Simulation<T>& simulation, std::shared_ptr<arch::Network<T>> network) {
         std::string vtkFolder;
         if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
             throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");
@@ -275,7 +275,7 @@ void readContinuousPhase(json jsonString, sim::Simulation<T>& simulation, int ac
 }
 
 template<typename T>
-void readPumps(json jsonString, arch::Network<T>* network) {
+void readPumps(json jsonString, std::shared_ptr<arch::Network<T>> network) {
     if (!jsonString["simulation"].contains("pumps") || jsonString["simulation"]["pumps"].empty()) {
         throw std::invalid_argument("No pumps are defined. Please define at least 1 pump.");
     }
@@ -307,12 +307,12 @@ void readPumps(json jsonString, arch::Network<T>* network) {
 
 template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
-    sim::ResistanceModel<T>* resistanceModel; 
+    std::shared_ptr<sim::ResistanceModel<T>> resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
         if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
-            resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
+            resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(simulation.getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
-            resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+            resistanceModel = std::make_shared<sim::ResistanceModelPoiseuille<T>>(simulation.getContinuousPhase()->getViscosity());
         } else {
             throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
@@ -324,12 +324,12 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
 
 template<typename T>
 void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
-    sim::MixingModel<T>* mixingModel;
+    std::shared_ptr<sim::MixingModel<T>> mixingModel;
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
-            mixingModel = new sim::InstantaneousMixingModel<T>();
+            mixingModel = std::make_shared<sim::InstantaneousMixingModel<T>>();
         } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
-            mixingModel = new sim::DiffusionMixingModel<T>();
+            mixingModel = std::make_shared<sim::DiffusionMixingModel<T>>();
         } else {
             throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous\nDiffusion");
         }

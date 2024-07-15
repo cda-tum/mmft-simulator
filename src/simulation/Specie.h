@@ -15,7 +15,7 @@ namespace sim {
 template<typename T>
 class Specie {
   private:
-    int const id;                       ///< Unique identifier of the specie.
+    int const id;                       ///< shared identifier of the specie.
     std::string name = "";              ///< Name of the specie.
     T diffusivity;                      ///< Diffusivity coefficient of the specie in the continuous phase in m^2/s.
     T satConc;                          ///< Saturation concentration of the specie in the continuous phase in g/m^3.
@@ -23,7 +23,7 @@ class Specie {
   public:
     /**
      * @brief Constructs a specie.
-     * @param[in] id Unique identifier of the specie.
+     * @param[in] id shared identifier of the specie.
      * @param[in] diffusivity Diffusivity of the specie in the continuous phase in m^2/s.
      * @param[in] satConc Saturation concentration of the specie in de continuous phase in g/m^3.
      */
@@ -36,8 +36,8 @@ class Specie {
     void setName(std::string name);
 
     /**
-     * @brief Retrieve the unique identifier of the specie.
-     * @return Unique identifier of the specie.
+     * @brief Retrieve the shared identifier of the specie.
+     * @return shared identifier of the specie.
      */
     int getId() const;
 
