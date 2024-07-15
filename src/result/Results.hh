@@ -10,6 +10,10 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_) { }
 
 template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::string> vtkFiles_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), vtkFiles(vtkFiles_) { }
+
+template<typename T>
 State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions_) 
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_) { }
 
@@ -25,6 +29,11 @@ const std::unordered_map<int, T>& State<T>::getPressures() const {
 template<typename T>
 const std::unordered_map<int, T>& State<T>::getFlowRates() const {
     return flowRates;
+}
+
+template<typename T>
+const std::unordered_map<int, std::string>& State<T>::getVtkFiles() const {
+    return vtkFiles;
 }
 
 template<typename T>
@@ -107,6 +116,13 @@ template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates) {
     int id = states.size();
     std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates);
+    states.push_back(std::move(newState));
+}
+
+template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::string> vtkFiles) {
+    int id = states.size();
+    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, vtkFiles);
     states.push_back(std::move(newState));
 }
 

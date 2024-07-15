@@ -157,6 +157,9 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
         jsonState["time"] = state->getTime();
         jsonState["nodes"] = writePressures(state.get());
         jsonState["channels"] = writeChannels(state.get());
+        if (simulation->getPlatform() == sim::Platform::Continuous && simulation->getType() == sim::Type::Hybrid) {
+            jsonState["modules"] = writeModules(state.get());
+        }
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
             jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
         }

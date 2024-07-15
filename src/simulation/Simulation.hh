@@ -763,6 +763,7 @@ namespace sim {
 
         std::unordered_map<int, T> savePressures;
         std::unordered_map<int, T> saveFlowRates;
+        std::unordered_map<int, std::string> vtkFiles;
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
         std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
         std::unordered_map<int, int> filledEdges;
@@ -781,6 +782,11 @@ namespace sim {
         }
         for (auto& [id, pump] : network->getPressurePumps()) {
             saveFlowRates.try_emplace(pump->getId(), pump->getFlowRate());
+        }
+
+        // vtk Files
+        for (auto& [id, simulator] : this->cfdSimulators) {
+            vtkFiles.try_emplace(simulator->getId(), simulator->getVtkFile());
         }
 
         // droplet positions
@@ -835,7 +841,11 @@ namespace sim {
         
         // state
         if (platform == Platform::Continuous) {
-            simulationResult->addState(time, savePressures, saveFlowRates);
+            if (simType == Type::Abstract){
+                simulationResult->addState(time, savePressures, saveFlowRates);
+            } else if (simType == Type::Hybrid) {
+                simulationResult->addState(time, savePressures, saveFlowRates, vtkFiles);
+            }
         } else if (platform == Platform::BigDroplet) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
         } else if (platform == Platform::Mixing) {

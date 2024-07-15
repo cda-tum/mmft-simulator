@@ -49,6 +49,14 @@ template<typename T>
 auto writeChannels (result::State<T>* state);
 
 /**
+ * @brief Write the location of the vtk results of a module at a state (timestamp) of the simulation
+ * @param[in] state the state (timestamp) of the simulation that should be written
+ * @return The json string containing the result
+*/
+template<typename T>
+auto writeModules (result::State<T>* state);
+
+/**
  * @brief Write the droplet positions at a state (timestamp) of the simulation
  * @param[in] state the state (timestamp) of the simulation that should be written
  * @param[in] simulation pointer to the simulation of which the results are written
