@@ -55,6 +55,11 @@ void CFDSimulator<T>::setVtkFolder(std::string vtkFolder_) {
 }
 
 template <typename T>
+void CFDSimulator<T>::setAlpha(T alpha_) {
+    this->alpha = alpha_;
+}
+
+template <typename T>
 T CFDSimulator<T>::getAlpha() {
     return alpha;
 }

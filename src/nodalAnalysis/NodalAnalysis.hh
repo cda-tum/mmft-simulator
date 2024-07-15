@@ -161,8 +161,27 @@ void NodalAnalysis<T>::readFlowRatePumps() {
 
 template<typename T>
 void NodalAnalysis<T>::solve() {
+    xPrev = x;
     // solve equation x = A^(-1) * z
     x = A.colPivHouseholderQr().solve(z);
+
+    if (xPrev.size() == x.size()) {
+        Eigen::VectorXd xDiff = xPrev - x;
+        L1_Error_x.push_back(xDiff.lpNorm<1>());
+        L2_Error_x.push_back(xDiff.lpNorm<2>());
+        L_inf_Error_x.push_back(xDiff.lpNorm<Eigen::Infinity>());
+    }
+
+    if (zPrev.size() == z.size()) {
+        Eigen::VectorXd zDiff = zPrev - z;
+        //std::cout << zDiff.lpNorm<1>() << "\t" << zDiff.lpNorm<2>() << std::endl;
+        //std::cout << zDiff <<std::endl;
+        L1_Error_z.push_back(zDiff.lpNorm<1>());
+        L2_Error_z.push_back(zDiff.lpNorm<2>());
+        L_inf_Error_z.push_back(zDiff.lpNorm<Eigen::Infinity>());
+    }
+
+    zPrev = z;
 }
 
 template<typename T>
@@ -403,6 +422,42 @@ void NodalAnalysis<T>::printSystem() {
     std::cout << "Matrix A:\n" << A  << "\n\n" << std::endl;
     std::cout << "Vector z:\n" << z  << "\n\n" << std::endl;
     std::cout << "Vector x:\n" << x  << "\n\n" << std::endl;
+}
+
+template<typename T>
+void NodalAnalysis<T>::writeNorms() {
+
+    long unsigned int i = 0;
+
+    long unsigned int minimum = std::min({L1_Error_x.size(), L1_Error_z.size()});
+
+    std::string outputFileName = "ErrorNorms.csv";
+    std::cout << "Generating CSV file: " << outputFileName << std::endl;
+    // Open a file in write mode.
+    std::ofstream outputFile;
+    outputFile.open(outputFileName); // TODO maybe define this inside of the loop
+    // Write the header to the CSV file TODO adapt this to fit the specific mixture
+    outputFile << "i,x_L1,x_L2,x_L_inf,z_L1,z_L2,z_L_inf\n";
+    // Calculate and write the values to the file
+    while(i < minimum) {
+        outputFile << i << ",";
+        outputFile << std::setprecision(4) << L1_Error_x.at(i) << ",";
+        outputFile << std::setprecision(4) << L2_Error_x.at(i) << ",";
+        outputFile << std::setprecision(4) << L_inf_Error_x.at(i) << ",";
+        outputFile << std::setprecision(4) << L1_Error_z.at(i) << ",";
+        outputFile << std::setprecision(4) << L2_Error_z.at(i) << ",";
+        outputFile << std::setprecision(4) << L_inf_Error_z.at(i) << "\n";
+        i++;
+    }
+    // Close the file
+    outputFile.close();
+    
+    std::cout << "CSV file has been generated " << std::endl;
+}
+
+template<typename T>
+T NodalAnalysis<T>::getL2() {
+    return L2_Error_x.back();
 }
 
 }   // namespace nodal

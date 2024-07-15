@@ -44,6 +44,17 @@ private:
     Eigen::MatrixXd A;      // matrix A = [G, B; C, D]
     Eigen::VectorXd z;      // vector z = [i; e]
     Eigen::VectorXd x;      // vector x = [v; j]
+    
+    Eigen::VectorXd xPrev;
+    Eigen::VectorXd zPrev;
+
+    std::vector<T> L1_Error_x;
+    std::vector<T> L2_Error_x;
+    std::vector<T> L_inf_Error_x;
+
+    std::vector<T> L1_Error_z;
+    std::vector<T> L2_Error_z;
+    std::vector<T> L_inf_Error_z;
 
     std::unordered_set<int> conductingNodeIds;
     std::unordered_map<int, int> groundNodeIds;
@@ -89,6 +100,10 @@ public:
      * @param[in] cfdSimulators The cfd simulators for a hybrid simulation
      */
     bool conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+
+    void writeNorms();
+
+    T getL2();
 
 };
 

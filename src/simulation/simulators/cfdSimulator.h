@@ -99,6 +99,11 @@ public:
     void setVtkFolder(std::string vtkFolder_);
 
     /**
+     * @brief Set the relaxation factor alpha.
+    */
+    void setAlpha(T alpha);
+
+    /**
      * @brief Get the relaxation factor alpha.
      * @returns alpha.
     */

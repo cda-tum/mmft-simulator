@@ -306,7 +306,7 @@ void lbmSimulator<T>::writeVTK (int iT) {
 template<typename T>
 void lbmSimulator<T>::solve() {
     // theta = 10
-    for (int iT = 0; iT < 10; ++iT){      
+    for (int iT = 0; iT < 1; ++iT){      
         this->setBoundaryValues(step);
         writeVTK(step);          
         lattice->collideAndStream();

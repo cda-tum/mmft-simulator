@@ -484,13 +484,16 @@ namespace sim {
 
         // Continuous Hybrid simulation
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
+            T alpha = 0.001;
+            bool below = false;
+            bool above = false;
             if (network->getModules().size() > 0 ) {
                 bool allConverged = false;
                 bool pressureConverged = false;
 
                 // Initialization of CFD domains
                 while (! allConverged) {
-                    allConverged = conductCFDSimulation(cfdSimulators, 1);
+                    allConverged = conductCFDSimulation(cfdSimulators, 1, alpha);
                 }
 
                 while (! allConverged || !pressureConverged) {
@@ -498,12 +501,36 @@ namespace sim {
 
                     // conduct CFD simulations
                     //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                    allConverged = conductCFDSimulation(cfdSimulators, 10);
+
+                    std::cout << "alpha:\t" << alpha << "\t L2:\t" << nodalAnalysis->getL2() << std::endl;
+
+                    allConverged = conductCFDSimulation(cfdSimulators, 1, alpha);
                 
                     // compute nodal analysis again
                     //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
                     pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
-
+                    
+                    if (nodalAnalysis->getL2() < 1.0) {
+                        if (alpha < 0.1) {
+                            alpha += 1e-5;
+                        }
+                    }
+                    if (nodalAnalysis->getL2() < 0.1) {
+                            alpha += 1e-4;
+                    }
+                    if (nodalAnalysis->getL2() < 0.01) {
+                        alpha += 1e-3;
+                    }
+                    if (nodalAnalysis->getL2() > 10.0) {
+                        if (alpha > 1e-3) {
+                            alpha -= 1e-4;
+                            //above = true;
+                        }
+                    } //else {
+                        //above = false;
+                    //}
+                    
+                    
                 }
 
                 #ifdef VERBOSE     
@@ -514,6 +541,7 @@ namespace sim {
                 #endif
             }
             saveState();
+            nodalAnalysis->writeNorms();
         }
 
         // Abstract Droplet simulation

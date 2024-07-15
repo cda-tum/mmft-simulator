@@ -48,7 +48,7 @@ private:
     int step = 0;                           ///< Iteration step of this module.
     int stepIter = 1000;                    ///< Number of iterations for the value tracer.
     int maxIter = 1e7;                      ///< Maximum total iterations.
-    int theta = 10;                         ///< Number of OLB iterations per communication iteration.
+    int theta = 1;                          ///< Number of OLB iterations per communication iteration.
     std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes.
     std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes.
     
