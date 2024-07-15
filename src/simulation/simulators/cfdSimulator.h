@@ -34,6 +34,7 @@ protected:
 
     std::string name;                       ///< Name of the module.
     std::string vtkFolder = "./tmp/";       ///< Folder in which vtk files will be saved.
+    std::string vtkFile = ".";              ///< File in which last file was saved.
     bool initialized = false;               ///< Is the module initialized?
     std::string stlFile;                    ///< The STL file of the CFD domain.
 
@@ -97,6 +98,8 @@ public:
     void setInitialized(bool initialization);
 
     void setVtkFolder(std::string vtkFolder_);
+
+    std::string getVtkFile();
 
     /**
      * @brief Set the relaxation factor alpha.

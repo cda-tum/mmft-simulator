@@ -188,7 +188,7 @@ void lbmSimulator<T>::setBoundaryValues (int iT) {
 template<typename T>
 void lbmSimulator<T>::getResults (int iT) {
     int input[1] = { };
-    T output[3];
+    T output[10];
     
     for (auto& [key, Opening] : this->moduleOpenings) {
         if (this->groundNodes.at(key)) {
@@ -272,6 +272,7 @@ void lbmSimulator<T>::writeVTK (int iT) {
         olb::SuperLatticeGeometry2D<T,DESCRIPTOR> writeGeometry (getLattice(), getGeometry());
         vtmWriter.write(writeGeometry);
         vtmWriter.createMasterFile();
+        this->vtkFile = olb::singleton::directories().getVtkOutDir() + olb::createFileName( this->name ) + ".pvd";
     }
 
     if (iT % 1000 == 0) {
@@ -285,6 +286,7 @@ void lbmSimulator<T>::writeVTK (int iT) {
         
         // write vtk to file system
         vtmWriter.write(iT);
+        this->vtkFile = olb::singleton::directories().getVtkOutDir() + "data/" + olb::createFileName( this->name, iT ) + ".vtm";
         converge->takeValue(getLattice().getStatistics().getAverageEnergy(), print);
     }
     if (iT %1000 == 0) {
