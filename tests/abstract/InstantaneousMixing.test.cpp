@@ -10,20 +10,24 @@ TEST(InstantaneousMixing, Case1) {
     std::string simFile = "../examples/Abstract/Mixing/Case1.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 1:
@@ -75,6 +79,8 @@ TEST(InstantaneousMixing, Case1) {
 
     ASSERT_NEAR(result->getMixtures().at(1)->getSpecieConcentrations().at(0), 
         0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
+
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case2) {
@@ -83,20 +89,24 @@ TEST(InstantaneousMixing, Case2) {
     std::string simFile = "../examples/Abstract/Mixing/Case2.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 2:
@@ -209,7 +219,8 @@ TEST(InstantaneousMixing, Case2) {
     ASSERT_NEAR(result->getMixtures().at(3)->getSpecieConcentrations().at(0), 
         0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0) + 
         0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(0), 1e-7);
-    
+
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case3) {
@@ -218,20 +229,24 @@ TEST(InstantaneousMixing, Case3) {
     std::string simFile = "../examples/Abstract/Mixing/Case3.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 3:
@@ -286,6 +301,7 @@ TEST(InstantaneousMixing, Case3) {
     ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(3).front().position1, 0.0, 1e-12);
     ASSERT_NEAR(result->getStates().at(3)->getMixturePositions().at(3).front().position2, 1.0, 1e-12);
 
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case4) {
@@ -294,20 +310,24 @@ TEST(InstantaneousMixing, Case4) {
     std::string simFile = "../examples/Abstract/Mixing/Case4.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 4:
@@ -422,6 +442,7 @@ TEST(InstantaneousMixing, Case4) {
     ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(3).front().position1, 0.0, 1e-12);
     ASSERT_NEAR(result->getStates().at(6)->getMixturePositions().at(3).front().position2, 1.0, 1e-12);
 
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case5) {
@@ -430,20 +451,24 @@ TEST(InstantaneousMixing, Case5) {
     std::string simFile = "../examples/Abstract/Mixing/Case5.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 5:
@@ -464,6 +489,7 @@ TEST(InstantaneousMixing, Case5) {
     ASSERT_NEAR(result->getStates().at(3)->getTime(), 2.192570, 5e-7);
     ASSERT_NEAR(result->getStates().at(4)->getTime(), 2.657379, 5e-7);
 
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case6) {
@@ -472,20 +498,24 @@ TEST(InstantaneousMixing, Case6) {
     std::string simFile = "../examples/Abstract/Mixing/Case6.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 6:
@@ -514,6 +544,7 @@ TEST(InstantaneousMixing, Case6) {
     ASSERT_NEAR(result->getStates().at(7)->getTime(), 2.692570, 5e-7);
     ASSERT_NEAR(result->getStates().at(8)->getTime(), 3.157379, 5e-7);
 
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case7) {
@@ -522,20 +553,24 @@ TEST(InstantaneousMixing, Case7) {
     std::string simFile = "../examples/Abstract/Mixing/Case7.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 7:
@@ -556,6 +591,7 @@ TEST(InstantaneousMixing, Case7) {
     ASSERT_NEAR(result->getStates().at(3)->getTime(), 0.745356, 5e-7);
     ASSERT_NEAR(result->getStates().at(4)->getTime(), 1.216761, 5e-7);
 
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case8) {
@@ -564,20 +600,24 @@ TEST(InstantaneousMixing, Case8) {
     std::string simFile = "../examples/Abstract/Mixing/Case8.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 8:
@@ -620,7 +660,7 @@ TEST(InstantaneousMixing, Case8) {
     ASSERT_NEAR(result->getMixtures().at(4)->getSpecieConcentrations().at(1), 
         0.5*result->getMixtures().at(2)->getSpecieConcentrations().at(1), 1e-7);
     
-
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case9) {
@@ -629,20 +669,24 @@ TEST(InstantaneousMixing, Case9) {
     std::string simFile = "../examples/Abstract/Mixing/Case9.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 9:
@@ -682,6 +726,7 @@ TEST(InstantaneousMixing, Case9) {
     ASSERT_NEAR(result->getMixtures().at(2)->getSpecieConcentrations().at(0),
         result->getMixtures().at(0)->getSpecieConcentrations().at(0)/1.5, 1e-7);
 
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case10) {
@@ -690,20 +735,24 @@ TEST(InstantaneousMixing, Case10) {
     std::string simFile = "../examples/Abstract/Mixing/Case10.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 10:
@@ -755,6 +804,7 @@ TEST(InstantaneousMixing, Case10) {
         result->getMixtures().at(1)->getSpecieConcentrations().at(1)/3.0 +
         result->getMixtures().at(2)->getSpecieConcentrations().at(1)/3.0, 1e-7);
 
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case11) {
@@ -763,20 +813,24 @@ TEST(InstantaneousMixing, Case11) {
     std::string simFile = "../examples/Abstract/Mixing/Case11.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 11:
@@ -800,6 +854,8 @@ TEST(InstantaneousMixing, Case11) {
 
     ASSERT_NEAR(result->getMixtures().at(1)->getSpecieConcentrations().at(0), 
         0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
+    
+    delete result;
 }
 
 TEST(InstantaneousMixing, Case12) {
@@ -808,20 +864,24 @@ TEST(InstantaneousMixing, Case12) {
     std::string simFile = "../examples/Abstract/Mixing/Case12.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(networkFile, network);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(simFile, networkPtr, testSimulation);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     /**
      * Case 12:
@@ -852,4 +912,5 @@ TEST(InstantaneousMixing, Case12) {
     ASSERT_NEAR(result->getMixtures().at(2)->getSpecieConcentrations().at(1), 
         0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(1), 1e-7);
 
+    delete result;
 }

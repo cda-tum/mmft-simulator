@@ -3,6 +3,7 @@
 //namespace py = pybind11;
 
 #include <iostream>
+#include <memory>
 
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
@@ -23,19 +24,21 @@ int main(int argc, char const* argv []) {
 
     // Load and set the network from a JSON file
     std::cout << "[Main] Create network object..." << std::endl;
-    arch::Network<T> network = porting::networkFromJSON<T>(file);
+    std::shared_ptr<arch::Network<T>> network = std::make_shared<arch::Network<T>>();
+    porting::networkFromJSON<T>(file, *network);
 
     // Load and set the simulation from a JSON file
     std::cout << "[Main] Create simulation object..." << std::endl;
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulation = std::make_shared<sim::Simulation<T>>();
+    porting::simulationFromJSON<T>(file, network, *testSimulation);
 
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     std::cout << "[Main] Results..." << std::endl;
     // Print the results
-    testSimulation.getSimulationResults()->printStates();
+    testSimulation->getSimulationResults()->printStates();
 
     //std::cout << "Write diffusive mixtures" << std::endl;
     //testSimulation.getSimulationResults()->writeMixture(1);

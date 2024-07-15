@@ -58,17 +58,17 @@ void Droplet<T>::addDropletResistance(const ResistanceModel<T>& model) {
         auto channel = boundaries[0]->getChannelPosition().getChannel();
         // volumeInsideChannel = volumeChannel - (volumeBoundary0 - volumeChannel) - (volumeBoundary1 - volumeChannel) = volumeBoundary0 + volumeBoundary1 - volumeChannel
         T volumeInsideChannel = boundaries[0]->getVolume() + boundaries[1]->getVolume() - channel->getVolume();
-        channel->addDropletResistance(model.getDropletResistance(channel, this, volumeInsideChannel));
+        channel->addDropletResistance(model.getDropletResistance(channel, std::shared_ptr<Droplet<T>>(this), volumeInsideChannel));
     } else {
         // loop through boundaries
         for (auto& boundary : boundaries) {
             auto channel = boundary->getChannelPosition().getChannel();
-            channel->addDropletResistance(model.getDropletResistance(channel, this, boundary->getVolume()));
+            channel->addDropletResistance(model.getDropletResistance(channel, std::shared_ptr<Droplet<T>>(this), boundary->getVolume()));
         }
 
         // loop through fully occupied channels (if present)
         for (auto& channel : channels) {
-            channel->addDropletResistance(model.getDropletResistance(channel, this, channel->getVolume()));
+            channel->addDropletResistance(model.getDropletResistance(channel, std::shared_ptr<Droplet<T>>(this), channel->getVolume()));
         }
     }
 }
@@ -133,12 +133,12 @@ std::vector<std::shared_ptr<DropletBoundary<T>>> Droplet<T>::getConnectedBoundar
     std::vector<std::shared_ptr<DropletBoundary<T>>> connectedBoundaries;
     for (auto& boundary : boundaries) {
         // do not consider boundary
-        if (boundary.get() == doNotConsider) {
+        if (boundary == doNotConsider) {
             continue;
         }
 
         if (boundary->getReferenceNode() == nodeId) {
-            connectedBoundaries.push_back(boundary.get());
+            connectedBoundaries.push_back(boundary);
         }
     }
 
@@ -188,11 +188,11 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
 
         if (flowRate < 0) {
             // inflow occurs
-            inflowBoundaries.push_back(boundary.get());
+            inflowBoundaries.push_back(boundary);
             qInflow += -flowRate;  // only the absolute value of qInflow is important, hence, the minus sign
         } else if (flowRate > 0) {
             // outflow occurs
-            outflowBoundaries.push_back(boundary.get());
+            outflowBoundaries.push_back(boundary);
             qOutflow += flowRate;
         } else {
             // flow rate is zero and, thus, does not contribute to the in/outflow
@@ -297,9 +297,9 @@ void DropletBoundary<T>::setState(BoundaryState state) {
 template<typename T>
 std::shared_ptr<arch::Node<T>> DropletBoundary<T>::getReferenceNode(std::shared_ptr<arch::Network<T>> network) {
     if (volumeTowardsNodeA) {
-        return network->getNode(channelPosition.getChannel()->getNodeA()).get();
+        return network->getNode(channelPosition.getChannel()->getNodeA());
     } else {
-        return network->getNode(channelPosition.getChannel()->getNodeB()).get();
+        return network->getNode(channelPosition.getChannel()->getNodeB());
     }
 }
 
@@ -315,9 +315,9 @@ int DropletBoundary<T>::getReferenceNode() {
 template<typename T>
 std::shared_ptr<arch::Node<T>> DropletBoundary<T>::getOppositeReferenceNode(std::shared_ptr<arch::Network<T>> network) {
     if (volumeTowardsNodeA) {
-        return network->getNode(channelPosition.getChannel()->getNodeB()).get();
+        return network->getNode(channelPosition.getChannel()->getNodeB());
     } else {
-        return network->getNode(channelPosition.getChannel()->getNodeA()).get();
+        return network->getNode(channelPosition.getChannel()->getNodeA());
     }
 }
 

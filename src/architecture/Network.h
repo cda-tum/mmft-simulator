@@ -328,7 +328,7 @@ public:
      * @brief Returns a pointer to the ground node.
      * @return Pointer to the ground node.
      */
-    std::set<std::shared_ptr<Node<T>>> getGroundNodes() const;
+    std::set<std::shared_ptr<Node<T>>>& getGroundNodes() const;
 
     /**
      * @brief Returns the amount of virtual nodes given by the GUI.
@@ -362,7 +362,7 @@ public:
      * @param[in] nodeId Id of the node at which the adherent channels should be returned.
      * @return Vector of pointers to channels adherent to this node.
      */
-    const std::vector<std::shared_ptr<RectangularChannel<T>>>& getChannelsAtNode(int nodeId) const;
+    const std::vector<std::shared_ptr<RectangularChannel<T>>> getChannelsAtNode(int nodeId) const;
         
     /**
      * @brief Get the flow rate pumps of the network.

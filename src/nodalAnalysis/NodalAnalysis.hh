@@ -3,7 +3,7 @@
 namespace nodal {
 
 template<typename T>
-NodalAnalysis<T>::NodalAnalysis(const std::shared_ptr<arch::Network<T>> network_) {
+NodalAnalysis<T>::NodalAnalysis(std::shared_ptr<arch::Network<T>> network_) {
     network = network_;
     nNodes = network->getNodes().size() + network->getVirtualNodes();
 

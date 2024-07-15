@@ -6,7 +6,9 @@ using T = double;
 
 TEST(Network, testNetwork1) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
     auto node2 = network.addNode(0.0, 0.0, false);
@@ -32,7 +34,7 @@ TEST(Network, testNetwork1) {
 
     // compute network
     network.sortGroups();
-    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(networkPtr);
     nodalAnalysis->conductNodalAnalysis();
 
     // check result
@@ -48,7 +50,8 @@ TEST(Network, testNetwork1) {
 
 TEST(Network, testNetwork2) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
     auto node2 = network.addNode(0.0, 0.0, false);
@@ -72,7 +75,7 @@ TEST(Network, testNetwork2) {
 
     // compute network
     network.sortGroups();
-    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(networkPtr);
     nodalAnalysis->conductNodalAnalysis();
 
     // check result
@@ -90,7 +93,8 @@ TEST(Network, testNetwork2) {
 
 TEST(Network, testNetwork3) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
     auto node2 = network.addNode(0.0, 0.0, false);
@@ -110,7 +114,7 @@ TEST(Network, testNetwork3) {
 
     // compute network
     network.sortGroups();
-    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(networkPtr);
     nodalAnalysis->conductNodalAnalysis();
 
     // check result
@@ -126,7 +130,8 @@ TEST(Network, testNetwork3) {
 
 TEST(Network, testNetwork4) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
     auto node2 = network.addNode(0.0, 0.0, false);
@@ -145,7 +150,7 @@ TEST(Network, testNetwork4) {
 
     // compute network
     network.sortGroups();
-    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(networkPtr);
     nodalAnalysis->conductNodalAnalysis();
 
     // check result
@@ -159,7 +164,8 @@ TEST(Network, testNetwork4) {
 
 TEST(Network, testNetwork5) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
     auto node2 = network.addNode(0.0, 0.0, false);
@@ -179,7 +185,7 @@ TEST(Network, testNetwork5) {
 
     // compute network
     network.sortGroups();
-    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(&network);
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>>(networkPtr);
     nodalAnalysis->conductNodalAnalysis();
 
     // check result

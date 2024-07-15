@@ -25,9 +25,9 @@ void BoundaryHeadEvent<T>::performEvent() {
     std::vector<std::shared_ptr<arch::RectangularChannel<T>>> nextChannels = network.getChannelsAtNode(node);
 
     // choose branch with the highest instantaneous flow rate
-    T maxFlowRate;
+    T maxFlowRate = 0.0;
     std::shared_ptr<arch::RectangularChannel<T>> nextChannel = nullptr;
-    for (auto* channel : nextChannels) {
+    for (auto channel : nextChannels) {
         // do not consider the boundary channel and only consider Normal channels
         if (channel == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {
             continue;
@@ -85,7 +85,7 @@ void BoundaryTailEvent<T>::performEvent() {
     auto referenceNode = boundary.getReferenceNode();
 
     // get the other boundaries and fully occupied channels inside this droplet that have the same reference node
-    auto boundaries = droplet.getConnectedBoundaries(referenceNode, &boundary);  // do not consider the actual boundary
+    auto boundaries = droplet.getConnectedBoundaries(referenceNode, std::shared_ptr<DropletBoundary<T>>(&boundary));  // do not consider the actual boundary
     auto fullyOccupiedChannels = droplet.getConnectedFullyOccupiedChannels(referenceNode);
 
     // if more than a single entity (boundary or fully occupied channel) is present, then remove the boundary, otherwise switch the channel

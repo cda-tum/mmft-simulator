@@ -34,7 +34,7 @@ namespace nodal {
 template<typename T>
 class NodalAnalysis {
 private:
-    const std::shared_ptr<arch::Network<T>> network;
+    std::shared_ptr<arch::Network<T>> network;
 
     int nNodes;             // Number of nodes
     int nPressurePumps;     // Number of pressurePumps
@@ -71,7 +71,7 @@ public:
     /**
      * @brief Creates a NodalAnalysis object
      */
-    NodalAnalysis(const std::shared_ptr<arch::Network<T>> network);
+    NodalAnalysis(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Conducts the Modifed Nodal Analysis (e.g., http://qucs.sourceforge.net/tech/node14.html) and computes the pressure levels for each node.

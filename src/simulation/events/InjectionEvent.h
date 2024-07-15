@@ -47,7 +47,7 @@ template<typename T>
 class MixtureInjectionEvent : public Event<T> {
   private:
     MixtureInjection<T>& injection;           ///< Specifies the mixture injection.
-    MixingModel<T>* mixingModel;              ///< Pointer to the active mixing model.
+    std::shared_ptr<MixingModel<T>> mixingModel;              ///< Pointer to the active mixing model.
 
   public:
     /**

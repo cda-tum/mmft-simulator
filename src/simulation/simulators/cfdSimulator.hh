@@ -18,7 +18,7 @@ CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_,
             channel->setLength(sqrt(dx*dx + dy*dy));
         }
         for (auto& [key, channel] : moduleNetwork->getChannels()) {
-            T resistance = resistanceModel_->getChannelResistance(channel.get());
+            T resistance = resistanceModel_->getChannelResistance(channel);
             channel->setResistance(resistance);
         }
     }

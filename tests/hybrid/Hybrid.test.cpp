@@ -8,12 +8,14 @@ using T = double;
 
 TEST(Continuous, Case1a) {
     // define simulation
-    sim::Simulation<T> testSimulation;
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
     testSimulation.setType(sim::Type::Hybrid);
     testSimulation.setPlatform(sim::Platform::Continuous);
 
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
     
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -60,8 +62,8 @@ TEST(Continuous, Case1a) {
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
-    sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
+    std::shared_ptr<sim::ResistanceModel1D<T>> resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(resistanceModel);
 
     // simulator
     std::string name = "Paper1a-cross-0";
@@ -90,7 +92,7 @@ TEST(Continuous, Case1a) {
     network.isNetworkValid();
     
     // Simulate
-    testSimulation.setNetwork(&network);
+    testSimulation.setNetwork(networkPtr);
     testSimulation.simulate();
 
     ASSERT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-3);

@@ -6,13 +6,15 @@ using T = double;
 
 TEST(BigDroplet, allResultValues) {
     // define simulation
-    sim::Simulation<T> testSimulation;
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
     testSimulation.setType(sim::Type::Abstract);
     testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
-    arch::Network<T> network;
-    testSimulation.setNetwork(&network);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    testSimulation.setNetwork(networkPtr);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -55,8 +57,8 @@ TEST(BigDroplet, allResultValues) {
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
    // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
+    std::shared_ptr<sim::ResistanceModel1D<T>> resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();
@@ -66,7 +68,7 @@ TEST(BigDroplet, allResultValues) {
     testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     ASSERT_EQ(network.getFlowRatePumps().at(pump->getId())->getId(), pump->getId());
     ASSERT_EQ(network.getFlowRatePumps().at(pump->getId())->getNodeA(), node0->getId());
@@ -277,17 +279,21 @@ TEST(BigDroplet, allResultValues) {
     ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
 
     ASSERT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
+
+    delete result;
 }
 
 TEST(BigDroplet, inverseDirectionChannels) {
     // define simulation
-    sim::Simulation<T> testSimulation;
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
     testSimulation.setType(sim::Type::Abstract);
     testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
-    arch::Network<T> network;
-    testSimulation.setNetwork(&network);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    testSimulation.setNetwork(networkPtr);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -330,8 +336,8 @@ TEST(BigDroplet, inverseDirectionChannels) {
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
     // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
+    std::shared_ptr<sim::ResistanceModel1D<T>> resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();
@@ -341,7 +347,7 @@ TEST(BigDroplet, inverseDirectionChannels) {
     testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     ASSERT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     ASSERT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -489,17 +495,21 @@ TEST(BigDroplet, inverseDirectionChannels) {
     ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c6->getId()), -0.00000000003, 5e-17);
 
     ASSERT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
+
+    delete result;
 }
 
 TEST(BigDroplet, mixedDirectionChannels) {
     // define simulation
-    sim::Simulation<T> testSimulation;
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
     testSimulation.setType(sim::Type::Abstract);
     testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
-    arch::Network<T> network;
-    testSimulation.setNetwork(&network);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    testSimulation.setNetwork(networkPtr);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -542,8 +552,8 @@ TEST(BigDroplet, mixedDirectionChannels) {
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
     // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
+    std::shared_ptr<sim::ResistanceModel1D<T>> resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();
@@ -553,7 +563,7 @@ TEST(BigDroplet, mixedDirectionChannels) {
     testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     ASSERT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     ASSERT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -701,16 +711,22 @@ TEST(BigDroplet, mixedDirectionChannels) {
     ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(c6->getId()), 0.00000000003, 5e-17);
 
     ASSERT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
+
+    delete result;
 }
 
 TEST(BigDroplet, jsonDefinition) {
     std::string file = "../examples/Abstract/Droplet/Network1.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(file);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    porting::networkFromJSON<T>(file, network);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
+    porting::simulationFromJSON<T>(file, networkPtr, testSimulation);
    
     network.sortGroups();
     network.isNetworkValid();
@@ -719,7 +735,7 @@ TEST(BigDroplet, jsonDefinition) {
     testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults().get();
 
     ASSERT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     ASSERT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -867,17 +883,21 @@ TEST(BigDroplet, jsonDefinition) {
     ASSERT_NEAR(result->getStates().at(8)->getFlowRates().at(5), 0.00000000003, 5e-17);
 
     ASSERT_EQ(testSimulation.getContinuousPhase()->getId(), 0);
+
+    delete result;
 }
 
 TEST(BigDroplet, noSink1) {
     // define simulation
-    sim::Simulation<T> testSimulation;
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
     testSimulation.setType(sim::Type::Abstract);
     testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
-    arch::Network<T> network;
-    testSimulation.setNetwork(&network);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    testSimulation.setNetwork(networkPtr);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -911,8 +931,8 @@ TEST(BigDroplet, noSink1) {
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
     // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
+    std::shared_ptr<sim::ResistanceModel1D<T>> resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();
@@ -924,13 +944,15 @@ TEST(BigDroplet, noSink1) {
 
 TEST(BigDroplet, noSink2) {
     // define simulation
-    sim::Simulation<T> testSimulation;
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
     testSimulation.setType(sim::Type::Abstract);
     testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
-    arch::Network<T> network;
-    testSimulation.setNetwork(&network);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    testSimulation.setNetwork(networkPtr);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -964,8 +986,8 @@ TEST(BigDroplet, noSink2) {
     testSimulation.addDropletInjection(droplet0->getId(), 0.1, c1->getId(), 0.5);
 
     // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
+    std::shared_ptr<sim::ResistanceModel1D<T>> resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();
@@ -977,13 +999,15 @@ TEST(BigDroplet, noSink2) {
 
 TEST(BigDroplet, noSinkTwoDroplets) {
     // define simulation
-    sim::Simulation<T> testSimulation;
+    std::shared_ptr<sim::Simulation<T>> testSimulationPtr = std::make_shared<sim::Simulation<T>>();
+    sim::Simulation<T> testSimulation = *testSimulationPtr;
     testSimulation.setType(sim::Type::Abstract);
     testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
-    arch::Network<T> network;
-    testSimulation.setNetwork(&network);
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
+    testSimulation.setNetwork(networkPtr);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -1018,8 +1042,8 @@ TEST(BigDroplet, noSinkTwoDroplets) {
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c2->getId(), 0.5);
 
     // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
+    std::shared_ptr<sim::ResistanceModel1D<T>> resistanceModel = std::make_shared<sim::ResistanceModel1D<T>>(testSimulation.getContinuousPhase()->getViscosity());
+    testSimulation.setResistanceModel(resistanceModel);
 
     // check if chip is valid
     network.isNetworkValid();

@@ -12,7 +12,8 @@ using T = double;
 */
 TEST(Topology, case1) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
 
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -40,7 +41,7 @@ TEST(Topology, case1) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network, node2->getId());
+    mixingModel.topologyAnalysis(networkPtr, node2->getId());
 
     ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
     ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
@@ -73,7 +74,8 @@ TEST(Topology, case1) {
 */
 TEST(Topology, case2) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
 
     // nodes
     auto node0 = network.addNode(0.0, 1e-3, true);
@@ -101,7 +103,7 @@ TEST(Topology, case2) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network, node1->getId());
+    mixingModel.topologyAnalysis(networkPtr, node1->getId());
 
     ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
     ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
@@ -135,7 +137,8 @@ TEST(Topology, case2) {
 */
 TEST(Topology, case3) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
 
     // nodes
     auto node0 = network.addNode(0.0, 1e-3, true);
@@ -167,7 +170,7 @@ TEST(Topology, case3) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network, node1->getId());
+    mixingModel.topologyAnalysis(networkPtr, node1->getId());
 
     T r1 = network.getChannel(1)->getFlowRate()/network.getChannel(0)->getFlowRate();
     T r2 = network.getChannel(2)->getFlowRate()/network.getChannel(0)->getFlowRate();
@@ -212,7 +215,8 @@ TEST(Topology, case3) {
 */
 TEST(Topology, case4) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
 
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -244,7 +248,7 @@ TEST(Topology, case4) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network, node2->getId());
+    mixingModel.topologyAnalysis(networkPtr, node2->getId());
     
     ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
     ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 2);
@@ -284,7 +288,8 @@ TEST(Topology, case4) {
 */
 TEST(Topology, case5) {
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
 
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -316,7 +321,7 @@ TEST(Topology, case5) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network, node3->getId());
+    mixingModel.topologyAnalysis(networkPtr, node3->getId());
 
     ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
     ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
@@ -355,7 +360,8 @@ TEST(Topology, case5) {
 */
 TEST(Topology, case6) {    
     // define network
-    arch::Network<T> network;
+    std::shared_ptr<arch::Network<T>> networkPtr = std::make_shared<arch::Network<T>>();
+    arch::Network<T> network = *networkPtr;
 
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -387,7 +393,7 @@ TEST(Topology, case6) {
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
-    mixingModel.topologyAnalysis(&network, node3->getId());
+    mixingModel.topologyAnalysis(networkPtr, node3->getId());
 
     ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 4);
     ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);

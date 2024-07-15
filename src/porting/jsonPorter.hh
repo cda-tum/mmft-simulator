@@ -155,10 +155,10 @@ nlohmann::ordered_json resultToJSON(std::shared_ptr<sim::Simulation<T>> simulati
     for (auto const& state : simulation->getSimulationResults()->getStates()) {
         auto jsonState = ordered_json::object();
         jsonState["time"] = state->getTime();
-        jsonState["nodes"] = writePressures(state.get());
-        jsonState["channels"] = writeChannels(state.get());
+        jsonState["nodes"] = writePressures(state);
+        jsonState["channels"] = writeChannels(state);
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
-            jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
+            jsonState["bigDroplets"] = writeDroplets(state, simulation);
         }
         jsonStates.push_back(jsonState);
     }

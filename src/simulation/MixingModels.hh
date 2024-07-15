@@ -160,7 +160,7 @@ void InstantaneousMixingModel<T>::generateNodeOutflow(std::shared_ptr<Simulation
         if ( !createMixture.at(nodeId)) {
             mixtureOutflowAtNode.try_emplace(nodeId, mixtureInflowList[0].mixtureId);
         } else {
-            Mixture<T>* newMixture = sim->addMixture(newConcentrations);
+            std::shared_ptr<Mixture<T>> newMixture = sim->addMixture(newConcentrations);
             mixtureOutflowAtNode.try_emplace(nodeId, newMixture->getId());
             createMixture.at(nodeId) = false;
         }
@@ -291,7 +291,7 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, std::shared_ptr<arch::
                     newDistributions.try_emplace(specieId, analyticalResult);
                 }
                 //Create new DiffusiveMixture
-                std::shared_ptr<DiffusiveMixture<T>> newMixture = dynamic_pointer_cast<DiffusiveMixture<T>>(sim->addDiffusiveMixture(newDistributions));
+                std::shared_ptr<DiffusiveMixture<T>> newMixture = std::dynamic_pointer_cast<DiffusiveMixture<T>>(sim->addDiffusiveMixture(newDistributions));
                 newMixture->setNonConstant();
                 this->injectMixtureInEdge(newMixture->getId(), channelId);
             }
@@ -312,7 +312,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( std::shared_ptr<arch::Network<T>
      * 6. Outflow groups always (?) merge the incoming 1 or 2 neighbouring inflow groups
      * 7. Outflow groups always (?) split the total income into channels.
     */
-    std::shared_ptr<arch::Node<T>> node = network->getNode(nodeId).get();
+    std::shared_ptr<arch::Node<T>> node = network->getNode(nodeId);
     concatenatedFlows.clear();
     outflowDistributions.clear();
     if (!node->getGround()){
@@ -321,8 +321,8 @@ void DiffusionMixingModel<T>::topologyAnalysis( std::shared_ptr<arch::Network<T>
         std::vector<RadialPosition<T>> channelOrder;
         for (auto& [channelId, channel] : network->getChannels()) {
             bool inflow;
-            std::shared_ptr<arch::Node<T>> nodeA = network->getNode(channel->getNodeA()).get();
-            std::shared_ptr<arch::Node<T>> nodeB = network->getNode(channel->getNodeB()).get();
+            std::shared_ptr<arch::Node<T>> nodeA = network->getNode(channel->getNodeA());
+            std::shared_ptr<arch::Node<T>> nodeB = network->getNode(channel->getNodeB());
             T dx = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[0]-nodeA->getPosition()[0] : nodeA->getPosition()[0]-nodeB->getPosition()[0];
             T dy = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[1]-nodeA->getPosition()[1] : nodeA->getPosition()[1]-nodeB->getPosition()[1];
             #ifdef DEBUG
@@ -652,7 +652,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
             constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
         } else {
             T mixtureId = this->filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
-            std::shared_ptr<DiffusiveMixture<T>> diffusiveMixture = dynamic_pointer_cast<DiffusiveMixture<T>>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
+            std::shared_ptr<DiffusiveMixture<T>> diffusiveMixture = std::dynamic_pointer_cast<DiffusiveMixture<T>>(Mixtures.at(mixtureId)); // Assuming diffusiveMixtures is passed
             if (diffusiveMixture->getSpecieConcentrations().find(speciesId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
                 T concentration = 0.0;
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
