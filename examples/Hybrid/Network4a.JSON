@@ -210,7 +210,7 @@
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.003,
                 "resolution": 20,
-                "epsilon": 1e-1,
+                "epsilon": 1e-2,
                 "tau": 0.55,
                 "moduleId": 0,
                 "Openings": [
