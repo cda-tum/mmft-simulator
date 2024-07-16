@@ -22,9 +22,12 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     int iPump = nNodes;
     for (const auto& [key, group] : network->getGroups()) {
         for (const auto& nodeId : group->nodeIds) {
+            // The node is a conducting node
             if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
                 conductingNodeIds.emplace(nodeId);
-            } else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
+            } 
+            // The node is an overall ground node, or counts as ground to a group
+            else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
                 groundNodeIds.emplace(nodeId, iPump);
                 iPump++;
             }
@@ -32,7 +35,7 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     }
     
     nPressurePumps = network->getPressurePumps().size() + groundNodeIds.size();
-    int nNodesAndPressurePumps = nNodes + nPressurePumps;
+    int nNodesAndPressurePumps = nNodes + nPressurePumps + network->getModules().size();
 
     A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
     z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
@@ -45,6 +48,31 @@ void NodalAnalysis<T>::clear() {
 
     pressureConvergence = true;
 
+    conductingNodeIds.clear();
+    groundNodeIds.clear();
+
+    int iPump = network->getNodes().size() + network->getVirtualNodes() + network->getPressurePumps().size();
+
+    for (const auto& [key, group] : network->getGroups()) {
+        for (const auto& nodeId : group->nodeIds) {
+            // The node is a conducting node
+            if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
+                conductingNodeIds.emplace(nodeId);
+            } 
+            // The node is an overall ground node, or counts as ground to a group
+            else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
+                groundNodeIds.emplace(nodeId, iPump);
+                iPump++;
+            }
+        }
+    }
+
+    int nNodesAndPressurePumps = nNodes + nPressurePumps + groundNodeIds.size();
+
+    A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
+    z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
+    x = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
+
     A.setZero();
     z.setZero();
 }
@@ -53,7 +81,6 @@ template<typename T>
 void NodalAnalysis<T>::conductNodalAnalysis() {
     clear();
     readConductance();
-    updateReferenceP();
     readPressurePumps();
     readFlowRatePumps();
     solve();

@@ -93,7 +93,7 @@ private:
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
     std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
-    int virtualNodes;
+    int virtualNodes = 0;
 
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
