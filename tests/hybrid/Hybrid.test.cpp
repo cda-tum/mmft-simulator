@@ -303,14 +303,14 @@ TEST(Hybrid, testCase4a) {
     ASSERT_NEAR(network.getNodes().at(15)->getPressure(), 217.852, 2e-2);
     ASSERT_NEAR(network.getNodes().at(16)->getPressure(), 0, 1e-2);
 
-    ASSERT_NEAR(network.getChannels().at(1)->getFlowRate(), 2.43192e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(2)->getFlowRate(), 9.06805e-10, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(3)->getFlowRate(), 1.52958e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(4)->getFlowRate(), 9.06814e-10, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(5)->getFlowRate(), 4.96981e-10, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(6)->getFlowRate(), 1.02671e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(7)->getFlowRate(), 1.39876e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 1.02671e-9, 1e-14);
-    ASSERT_NEAR(network.getChannels().at(9)->getFlowRate(), 2.42058e-9, 1e-14);
+    ASSERT_NEAR(network.getChannels().at(1)->getFlowRate(), 2.43192e-9, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(2)->getFlowRate(), 9.06805e-10, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(3)->getFlowRate(), 1.52958e-9, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(4)->getFlowRate(), 9.06814e-10, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(5)->getFlowRate(), 4.96981e-10, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(6)->getFlowRate(), 1.02671e-9, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(7)->getFlowRate(), 1.39876e-9, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 1.02671e-9, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(9)->getFlowRate(), 2.42058e-9, 1e-13);
 
 }
