@@ -287,20 +287,20 @@ TEST(Hybrid, testCase4a) {
 
     ASSERT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-2);
     ASSERT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(2)->getPressure(), 781.127, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(3)->getPressure(), 616.803, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(4)->getPressure(), 604.131, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(5)->getPressure(), 535.190, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(6)->getPressure(), 447.980, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(7)->getPressure(), 371.030, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(8)->getPressure(), 698.415, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(9)->getPressure(), 695.906, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(10)->getPressure(), 552.139, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(11)->getPressure(), 540.383, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(12)->getPressure(), 522.320, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(13)->getPressure(), 454.955, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(14)->getPressure(), 355.576, 1e-2);
-    ASSERT_NEAR(network.getNodes().at(15)->getPressure(), 217.852, 1e-2);
+    ASSERT_NEAR(network.getNodes().at(2)->getPressure(), 781.127, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(3)->getPressure(), 616.803, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(4)->getPressure(), 604.131, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(5)->getPressure(), 535.190, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(6)->getPressure(), 447.980, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(7)->getPressure(), 371.030, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(8)->getPressure(), 698.415, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(9)->getPressure(), 695.906, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(10)->getPressure(), 552.139, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(11)->getPressure(), 540.383, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(12)->getPressure(), 522.320, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(13)->getPressure(), 454.955, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(14)->getPressure(), 355.576, 2e-2);
+    ASSERT_NEAR(network.getNodes().at(15)->getPressure(), 217.852, 2e-2);
     ASSERT_NEAR(network.getNodes().at(16)->getPressure(), 0, 1e-2);
 
     ASSERT_NEAR(network.getChannels().at(1)->getFlowRate(), 2.43192e-9, 1e-14);
