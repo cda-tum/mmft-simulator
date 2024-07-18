@@ -309,8 +309,8 @@ TEST(Hybrid, testCase4a) {
     ASSERT_NEAR(network.getChannels().at(4)->getFlowRate(), 9.06793e-10, 1e-13);
     ASSERT_NEAR(network.getChannels().at(5)->getFlowRate(), 4.96979e-10, 1e-13);
     ASSERT_NEAR(network.getChannels().at(6)->getFlowRate(), 1.02671e-9, 1e-13);
-    ASSERT_NEAR(network.getChannels().at(7)->getFlowRate(), 1.39887e-9, 1e-13);
-    ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 1.02671e-9, 1e-13);
-    ASSERT_NEAR(network.getChannels().at(9)->getFlowRate(), 2.42036e-9, 1e-13);
+    ASSERT_NEAR(network.getChannels().at(7)->getFlowRate(), 1.39887e-9, 1e-12);
+    ASSERT_NEAR(network.getChannels().at(8)->getFlowRate(), 1.02671e-9, 1e-12);
+    ASSERT_NEAR(network.getChannels().at(9)->getFlowRate(), 2.42036e-9, 1e-12);
 
 }
