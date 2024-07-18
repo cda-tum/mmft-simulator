@@ -10,6 +10,7 @@ set(HEADER_LIST
 add_subdirectory(nodalAnalysis)
 add_subdirectory(architecture)
 add_subdirectory(simulation)
+add_subdirectory(olbProcessors)
 add_subdirectory(porting)
 add_subdirectory(result)
 

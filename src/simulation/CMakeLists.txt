@@ -9,6 +9,7 @@ set(SOURCE_LIST
     ResistanceModels.hh
     Simulation.hh
     Specie.hh
+    Tissue.hh
 )
 
 set(HEADER_LIST
@@ -22,6 +23,7 @@ set(HEADER_LIST
     ResistanceModels.h
     Simulation.h
     Specie.h
+    Tissue.h
 )
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})

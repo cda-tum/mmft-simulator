@@ -71,6 +71,9 @@ template<typename T>
 class essLbmSimulator;
 
 template<typename T>
+class MembraneModel;
+
+template<typename T>
 class MixingModel;
 
 template<typename T>
@@ -84,6 +87,9 @@ class ResistanceModel;
 
 template<typename T>
 class Specie;
+
+template<typename T>
+class Tissue;
 
 enum class Type {
     Abstract,       ///< A simulation in the 1D abstraction level
@@ -111,11 +117,13 @@ private:
     std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
     std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
     std::unordered_map<int, std::unique_ptr<Specie<T>>> species;                        ///< Species specified for the simulation.
+    std::unordered_map<int, std::unique_ptr<Tissue<T>>> tissues;                        ///< Tissues specified for the simulation.
     std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
     std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
     std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;
     ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
+    MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
     MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
