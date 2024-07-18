@@ -1,11 +1,13 @@
 set(SOURCE_LIST
     cfdSimulator.hh
     olbContinuous.hh
+    olbOoc.hh
 )
 
 set(HEADER_LIST
     cfdSimulator.h
     olbContinuous.h
+    olbOoc.h
 )
 
 if(USE_ESSLBM)

@@ -61,7 +61,7 @@ void MixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
 }
 
 template<typename T>
-InstantaneousMixingModel<T>::InstantaneousMixingModel() { }
+InstantaneousMixingModel<T>::InstantaneousMixingModel() : MixingModel<T>() { }
 
 template<typename T>
 void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {

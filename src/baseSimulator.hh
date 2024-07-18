@@ -2,6 +2,7 @@
 #include "simulation/Droplet.hh"
 #include "simulation/Fluid.hh"
 #include "simulation/Injection.hh"
+#include "simulation/MembraneModels.hh"
 #include "simulation/Mixture.hh"
 #include "simulation/MixtureInjection.hh"
 #include "simulation/MixingModels.hh"
@@ -9,7 +10,9 @@
 #include "simulation/Simulation.hh"
 #include "simulation/simulators/cfdSimulator.hh"
 #include "simulation/simulators/olbContinuous.hh"
+#include "simulation/simulators/olbOoc.hh"
 #include "simulation/Specie.hh"
+#include "simulation/Tissue.hh"
 #include "simulation/events/BoundaryEvent.hh"
 #include "simulation/events/InjectionEvent.hh"
 #include "simulation/events/MergingEvent.hh"
@@ -24,6 +27,10 @@
 #include "architecture/Network.hh"
 #include "architecture/Node.hh"
 #include "architecture/PressurePump.hh"
+
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
+#include "olbProcessors/saturatedFluxPostProcessor2D.h"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
 
 #include "porting/jsonPorter.hh"
 #include "porting/jsonReaders.hh"

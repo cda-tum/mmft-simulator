@@ -44,7 +44,7 @@ using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
 using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
 using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
-private:
+protected:
     int step = 0;                           ///< Iteration step of this module.
     int stepIter = 1000;                    ///< Number of iterations for the value tracer.
     int maxIter = 1e7;                      ///< Maximum total iterations.
