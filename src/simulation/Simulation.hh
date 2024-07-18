@@ -484,9 +484,10 @@ namespace sim {
 
         // Continuous Hybrid simulation
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
-            T alpha = 0.001;
+            T alpha = 0.0002;
             bool below = false;
             bool above = false;
+            int iter = 0;
             if (network->getModules().size() > 0 ) {
                 bool allConverged = false;
                 bool pressureConverged = false;
@@ -510,27 +511,21 @@ namespace sim {
                     //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
                     pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
                     
-                    if (nodalAnalysis->getL2() < 1.0) {
-                        if (alpha < 0.1) {
-                            alpha += 1e-5;
-                        }
-                    }
                     if (nodalAnalysis->getL2() < 0.1) {
-                            alpha += 1e-4;
+                        alpha = 0.0003;
                     }
                     if (nodalAnalysis->getL2() < 0.01) {
-                        alpha += 1e-3;
+                        //alpha = 0.004;
                     }
                     if (nodalAnalysis->getL2() > 10.0) {
-                        if (alpha > 1e-3) {
-                            alpha -= 1e-4;
+                        if (alpha > 3e-3) {
+                            //alpha -= 1e-4;
                             //above = true;
                         }
                     } //else {
                         //above = false;
                     //}
-                    
-                    
+                    iter++;
                 }
 
                 #ifdef VERBOSE     

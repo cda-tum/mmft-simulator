@@ -50,6 +50,7 @@ private:
 
     std::vector<T> L1_Error_x;
     std::vector<T> L2_Error_x;
+    std::vector<T> dL2_Error_x_dt;
     std::vector<T> L_inf_Error_x;
 
     std::vector<T> L1_Error_z;

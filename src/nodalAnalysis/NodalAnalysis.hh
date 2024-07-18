@@ -71,7 +71,10 @@ void NodalAnalysis<T>::clear() {
 
     A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
     z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
-    x = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
+    x.resize(nNodesAndPressurePumps);
+
+    xPrev.resize(nNodesAndPressurePumps);
+    zPrev.resize(nNodesAndPressurePumps);
 
     A.setZero();
     z.setZero();
@@ -192,11 +195,19 @@ void NodalAnalysis<T>::solve() {
     // solve equation x = A^(-1) * z
     x = A.colPivHouseholderQr().solve(z);
 
+    T prev = 0.0;
+    if (L2_Error_x.size() > 0) {
+        prev = L2_Error_x.back();
+    }
+
     if (xPrev.size() == x.size()) {
         Eigen::VectorXd xDiff = xPrev - x;
         L1_Error_x.push_back(xDiff.lpNorm<1>());
         L2_Error_x.push_back(xDiff.lpNorm<2>());
         L_inf_Error_x.push_back(xDiff.lpNorm<Eigen::Infinity>());
+        if (L2_Error_x.size() > 1) {
+            dL2_Error_x_dt.push_back(L2_Error_x.back() - prev);
+        }
     }
 
     if (zPrev.size() == z.size()) {
@@ -456,7 +467,7 @@ void NodalAnalysis<T>::writeNorms() {
 
     long unsigned int i = 0;
 
-    long unsigned int minimum = std::min({L1_Error_x.size(), L1_Error_z.size()});
+    long unsigned int minimum = std::min({L1_Error_x.size(), L1_Error_z.size(), dL2_Error_x_dt.size()});
 
     std::string outputFileName = "ErrorNorms.csv";
     std::cout << "Generating CSV file: " << outputFileName << std::endl;
@@ -464,7 +475,7 @@ void NodalAnalysis<T>::writeNorms() {
     std::ofstream outputFile;
     outputFile.open(outputFileName); // TODO maybe define this inside of the loop
     // Write the header to the CSV file TODO adapt this to fit the specific mixture
-    outputFile << "i,x_L1,x_L2,x_L_inf,z_L1,z_L2,z_L_inf\n";
+    outputFile << "i,x_L1,x_L2,x_L_inf,z_L1,z_L2,z_L_inf,dL2x_dt\n";
     // Calculate and write the values to the file
     while(i < minimum) {
         outputFile << i << ",";
@@ -473,7 +484,8 @@ void NodalAnalysis<T>::writeNorms() {
         outputFile << std::setprecision(4) << L_inf_Error_x.at(i) << ",";
         outputFile << std::setprecision(4) << L1_Error_z.at(i) << ",";
         outputFile << std::setprecision(4) << L2_Error_z.at(i) << ",";
-        outputFile << std::setprecision(4) << L_inf_Error_z.at(i) << "\n";
+        outputFile << std::setprecision(4) << L_inf_Error_z.at(i) << ",";
+        outputFile << std::setprecision(4) << dL2_Error_x_dt.at(i) << "\n";
         i++;
     }
     // Close the file
