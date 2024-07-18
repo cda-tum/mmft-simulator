@@ -476,7 +476,7 @@ namespace sim {
         // * save state
         if (simType == Type::Abstract && platform == Platform::Continuous) {
             // compute nodal analysis
-            nodal::conductNodalAnalysis(network);
+            nodalAnalysis->conductNodalAnalysis();
 
             // store simulation results of current state
             saveState();
@@ -502,7 +502,7 @@ namespace sim {
                 
                     // compute nodal analysis again
                     //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodal::conductNodalAnalysis(this->network, cfdSimulators);
+                    pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
 
                 }
 
@@ -540,7 +540,7 @@ namespace sim {
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
                 updateDropletResistances();
                 // compute nodal analysis
-                nodal::conductNodalAnalysis(network);
+                nodalAnalysis->conductNodalAnalysis();
                 // update droplets, i.e., their boundary flow rates
                 // loop over all droplets
                 dropletsAtBifurcation = false;
@@ -614,7 +614,7 @@ namespace sim {
                     break;
                 }
                 // compute nodal analysis
-                nodal::conductNodalAnalysis(network);
+                nodalAnalysis->conductNodalAnalysis();
 
                 // Update and propagate the mixtures 
                 if (this->mixingModel->isInstantaneous()){
@@ -681,12 +681,6 @@ namespace sim {
         for (auto& [key, channel] : network->getChannels()) {
             std::cout << "[Result] Channel " << channel->getId() << " has a flow rate of " << channel->getFlowRate() << " m^3/s.\n";
         }
-        /*
-        std::cout << "\n";
-        // print the resistances in all channels
-        for (auto& [key, channel] : network->getChannels()) {
-            std::cout << "[Result] Channel " << channel->getId() << " has a resistance of " << channel->getResistance() << " Pas/L.\n";
-        }*/
         std::cout << std::endl;
     }
 
@@ -714,6 +708,8 @@ namespace sim {
             channel->setDropletResistance(0.0);
         }
 
+        nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network);
+
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             
             #ifdef VERBOSE
@@ -730,7 +726,7 @@ namespace sim {
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodal::conductNodalAnalysis(this->network, cfdSimulators);
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE
@@ -767,6 +763,7 @@ namespace sim {
 
         std::unordered_map<int, T> savePressures;
         std::unordered_map<int, T> saveFlowRates;
+        std::unordered_map<int, std::string> vtkFiles;
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
         std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
         std::unordered_map<int, int> filledEdges;
@@ -785,6 +782,11 @@ namespace sim {
         }
         for (auto& [id, pump] : network->getPressurePumps()) {
             saveFlowRates.try_emplace(pump->getId(), pump->getFlowRate());
+        }
+
+        // vtk Files
+        for (auto& [id, simulator] : this->cfdSimulators) {
+            vtkFiles.try_emplace(simulator->getId(), simulator->getVtkFile());
         }
 
         // droplet positions
@@ -839,7 +841,11 @@ namespace sim {
         
         // state
         if (platform == Platform::Continuous) {
-            simulationResult->addState(time, savePressures, saveFlowRates);
+            if (simType == Type::Abstract){
+                simulationResult->addState(time, savePressures, saveFlowRates);
+            } else if (simType == Type::Hybrid) {
+                simulationResult->addState(time, savePressures, saveFlowRates, vtkFiles);
+            }
         } else if (platform == Platform::BigDroplet) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
         } else if (platform == Platform::Mixing) {

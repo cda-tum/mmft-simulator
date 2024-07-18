@@ -29,9 +29,6 @@ int main(int argc, char const* argv []) {
     std::cout << "[Main] Create simulation object..." << std::endl;
     sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
 
-    network.sortGroups();
-    network.isNetworkValid();
-
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results
     testSimulation.simulate();

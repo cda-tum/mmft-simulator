@@ -6,8 +6,8 @@ template<typename T>
 auto writePressures(result::State<T>* state) {
     auto nodes = ordered_json::array();
     auto const& pressures = state->getPressures();
-    for (long unsigned int i=0; i<pressures.size(); ++i) {
-        nodes.push_back({{"pressure", pressures.at(i)}});
+    for (auto& [key, pressure] : pressures) {
+        nodes.push_back({{"pressure", pressure}});
     }
     return nodes;
 }
@@ -17,8 +17,8 @@ auto writeChannels(result::State<T>* state) {
     auto channels = ordered_json::array();
     auto const& flowRates = state->getFlowRates();
     if (state->getMixturePositions().empty()) {
-        for (long unsigned int i=0; i<flowRates.size(); ++i) {
-            channels.push_back({{"flowRate", flowRates.at(i)}});
+        for (auto& [key, flowRate] : flowRates) {
+            channels.push_back({{"flowRate", flowRate}});
         }
     } else if ( !state->getMixturePositions().empty() ) {
         for (long unsigned int i=0; i<flowRates.size(); ++i) {
@@ -38,6 +38,19 @@ auto writeChannels(result::State<T>* state) {
         }
     }
     return channels;
+}
+
+template<typename T>
+auto writeModules(result::State<T>* state) {      
+    auto modules = ordered_json::array();
+    auto const& vtkFiles = state->getVtkFiles();
+    for (auto& [key, vtkFile] : vtkFiles) {
+        auto module = ordered_json::object();
+        module["id"] = key;
+        module["vtkFile"] = vtkFile;
+        modules.push_back(module);
+    }
+    return modules;
 }
 
 template<typename T>

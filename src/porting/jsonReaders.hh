@@ -5,10 +5,12 @@ namespace porting {
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
     int nodeId = 0;
+    int virtualNodes = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
         
         if (node.contains("virtual") && node["virtual"]) {
             nodeId++;
+            virtualNodes++;
             continue;
         } else {
             if (!node.contains("x") || !node.contains("y")) {
@@ -27,6 +29,7 @@ void readNodes(json jsonString, arch::Network<T>& network) {
             nodeId++;
         }
     }
+    network.setVirtualNodes(virtualNodes);
 }
 
 template<typename T>
@@ -183,7 +186,6 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
             int fluid = injection["fluid"];
             T volume = injection["volume"];
             auto newDroplet = simulation.addDroplet(fluid, volume);
-            //int dropletId = injection["droplet"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
             T injectionPosition = injection["pos"];

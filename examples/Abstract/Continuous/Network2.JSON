@@ -1,0 +1,276 @@
+{
+    "network": {
+        "channels": [
+            {
+                "height": 5e-05,
+                "node1": 0,
+                "node2": 1,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 1,
+                "node2": 2,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 2,
+                "node2": 3,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 3,
+                "node2": 4,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 4,
+                "node2": 5,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 5,
+                "node2": 6,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 6,
+                "node2": 7,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 7,
+                "node2": 8,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 8,
+                "node2": 9,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 3,
+                "node2": 10,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 10,
+                "node2": 11,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 11,
+                "node2": 8,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 2,
+                "node2": 12,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 12,
+                "node2": 13,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 13,
+                "node2": 7,
+                "width": 1e-04
+            }
+        ],
+        "geometry": {
+            "depth": 0.005,
+            "height": 0.01,
+            "width": 0.01
+        },
+        "info": {
+            "id": "22cfd0ec-02bb-4649-800c-bee13dc2fb66",
+            "margin": 2.5e-07,
+            "name": "MyChip"
+        },
+        "nodes": [
+            {
+                "diameter": 1e-04,
+                "ground": true,
+                "x": 0.00075,
+                "y": 0.0045000000000000005
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.003,
+                "y": 0.0045000000000000005
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.004,
+                "y": 0.0045000000000000005
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.004,
+                "y": 0.00575
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.00525,
+                "y": 0.00575
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.00525,
+                "y": 0.0045000000000000005
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.00525,
+                "y": 0.0035
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.006500000000000001,
+                "y": 0.0035
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.006500000000000001,
+                "y": 0.0045000000000000005
+            },
+            {
+                "diameter": 1e-04,
+                "drain": true,
+                "ground": true,
+                "x": 0.007500000000000001,
+                "y": 0.0045000000000000005
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.004,
+                "y": 0.006750000000000001
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.006500000000000001,
+                "y": 0.006750000000000001
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.004,
+                "y": 0.0025
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.006500000000000001,
+                "y": 0.0025
+            }
+        ]
+    },
+    "settings": {
+        "defaultChannelHeight": 5e-05,
+        "defaultChannelWidth": 1e-04,
+        "defaultNodeDiameter": 1e-04,
+        "gridDistance": 0.00025
+    },
+    "simulation": {
+        "activeFixture": 0,
+        "fixtures": [
+            {
+                
+                "name": "Setup #1",
+                "phase": 0
+            }
+        ],
+        "fluids": [
+            {
+                "color": {
+                    "A": 255,
+                    "B": 221,
+                    "G": 64,
+                    "R": 64
+                },
+                "concentration": 1,
+                "density": 997,
+                "id": "4116ff81-47e7-4c11-9874-d1258d518a35",
+                "name": "Water",
+                "viscosity": 0.001
+            },
+            {
+                "color": {
+                    "A": 255,
+                    "B": 170,
+                    "G": 170,
+                    "R": 64
+                },
+                "concentration": 1,
+                "density": 913,
+                "id": "5e0d5c90-2cad-4ec8-b50e-f1a898e7278e",
+                "name": "Oil #38",
+                "viscosity": 0.004565
+            }
+        ],
+        "mixingModel": "Instantaneous",
+        "platform": "Continuous",
+        "pumps": [
+            {
+                "channel": 0,
+                "color": {
+                    "A": 63,
+                    "B": 127,
+                    "G": 127,
+                    "R": 0
+                },
+                "deltaP": 1000,
+                "name": "Pressure pump",
+                "type": "PumpPressure"
+            }
+        ],
+        "resistanceModel": "Poiseuille",
+        "settings": {
+            "duration": 1,
+            "loop": false,
+            "position": 0.026057999999999998,
+            "step": 0.01,
+            "vtkFolder": "../vtk"
+        },
+        "species": [
+            {
+                "color": {
+                    "A": 255,
+                    "B": 64,
+                    "G": 128,
+                    "R": 64
+                },
+                "diffusivity": 2.3e-09,
+                "id": "afc34e41-9600-4b05-956e-078a312ccfdc",
+                "name": "Oxygen",
+                "saturationConcentration": 8.3
+            },
+            {
+                "color": {
+                    "A": 255,
+                    "B": 128,
+                    "G": 64,
+                    "R": 64
+                },
+                "diffusivity": 6.7e-10,
+                "id": "8673d2fd-b522-4349-9e5d-b81c792267b7",
+                "name": "Glucose",
+                "saturationConcentration": 909000
+            }
+        ],
+        "type": "Abstract"
+    }
+}
