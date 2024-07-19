@@ -12,6 +12,7 @@ lbmOocSimulator<T>::lbmOocSimulator (
         tissue(tissue_), organStlFile(organStlFile_), adRelaxationTime(adRelaxationTime_)
     { 
         this->cfdModule->setModuleTypeLbm();
+        fluxWall.try_emplace(int(0), &zeroFlux);
     } 
 
 template<typename T>
@@ -49,6 +50,7 @@ void lbmOocSimulator<T>::prepareGeometry () {
         std::cout << "[lbmModule] generate 2D geometry from STL  " << this->name << "... OK" << std::endl;
     #endif
 
+    // Define area of in-/Outlets
     for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
         T x_origin =    Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0]
@@ -76,6 +78,11 @@ void lbmOocSimulator<T>::prepareGeometry () {
         
         this->geometry->rename(2, key+3, 1, opening);
     }
+
+    // Define Organ area
+    organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, this->converter->getConversionFactorLength());
+    organStl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*organStlReader);
+    this->geometry->rename(1, 3, *organStl2Dindicator);
 
     this->geometry->clean(print);
     this->geometry->checkForErrors(print);
@@ -124,19 +131,21 @@ void lbmOocSimulator<T>::prepareLattice () {
     for (auto& [speciesId, converter] : adConverters) {
         const T adOmega = this->getAdConverter(speciesId).getLatticeRelaxationFrequency();
         std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
-        
+
         // Set AD lattice dynamics
         adLattice->template defineDynamics<NoADDynamics>(this->getGeometry(), 0);
         adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 1);
         adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 2);
+        adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 3);
 
         // Set initial conditions
+        AnalyticalConst2D<T,T> zeroVelocity( u );
         adLattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
         adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 1, uF);
         adLattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uF);
 
         // Add wall boundary
-        olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, fluxWall.at(speciesId), fluxWall.at(speciesId));
+        olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, fluxWall.at(0), fluxWall.at(0));
 
         // In-/ and Outlets boundaries depend on flow direction, and are handled in setBoundaryValues()
 
@@ -191,15 +200,14 @@ void lbmOocSimulator<T>::prepareLattice () {
 template<typename T>
 void lbmOocSimulator<T>::prepareCoupling() {
 
-    std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLattices;
+    std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLatticesVec;
     std::vector<T> velFactors;
-    for (auto& [speciesId, lattice] : this->getLatticeAD()) {
-        adLattices.emplace_back(this->getLatticeAD(speciesId).get());
-        velFactors[speciesId] = this->converterNS->getConversionFactorVelocity() / this->converterAD->getConversionFactorVelocity();
+    for (auto& [speciesId, adLattice] : adLattices) {
+        adLatticesVec.emplace_back(adLattices[speciesId].get());
+        velFactors.emplace_back(this->converter->getConversionFactorVelocity() / this->adConverters[speciesId]->getConversionFactorVelocity());
     }
-
-    olb::NavierStokesAdvectionDiffusionSingleCouplingGenerator2D<T,DESCRIPTOR> coupling(0, this->converterNS->getLatticeLength(this->size[0]), 0, this->converterNS->getLatticeLength(this->size[0]), adConverters, velFactors);
-    this->lattice.addLatticeCoupling(coupling, adLattices);
+    olb::NavierStokesAdvectionDiffusionSingleCouplingGenerator2D<T,DESCRIPTOR> coupling(0, this->converter->getLatticeLength(this->cfdModule->getSize()[0]), 0, this->converter->getLatticeLength(this->cfdModule->getSize()[1]), velFactors);
+    this->lattice->addLatticeCoupling(coupling, adLatticesVec);
     std::cout << "[OocLbmModule] prepare coupling " << this->name << "... OK" << std::endl;
 }
 
@@ -429,12 +437,19 @@ template<typename T>
 void lbmOocSimulator<T>::solve() {
     // theta = 10
     for (int iT = 0; iT < 10; ++iT){      
+        std::cout << "Getting here 1" << std::endl;
         this->setBoundaryValues(this->step);
+        std::cout << "Getting here 2" << std::endl;
         writeVTK(this->step);          
+        std::cout << "Getting here 3" << std::endl;
         this->lattice->collideAndStream();
+        std::cout << "Getting here 4" << std::endl;
+        this->lattice->executeCoupling();
+        std::cout << "We have " << adLattices.size() << " AD Lattices"<< std::endl;
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
         }
+        std::cout << "Getting here 5" << std::endl;
         this->step += 1;
     }
     getResults(this->step);

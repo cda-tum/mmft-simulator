@@ -114,6 +114,10 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
             readSimulators<T>(jsonString, simulation, network_);
             network_->sortGroups();
         } else if (platform == sim::Platform::Ooc) {
+            readMixingModel<T>(jsonString, simulation);
+            readSpecies<T>(jsonString, simulation);
+            readMixtures<T>(jsonString, simulation);
+            readMixtureInjections<T>(jsonString, simulation, activeFixture);
             readTissues<T>(jsonString, simulation);
             readSimulators<T>(jsonString, simulation, network_);
             network_->sortGroups();

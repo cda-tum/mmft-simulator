@@ -124,9 +124,10 @@
     ]
 },
 "simulation": {
-    "platform": "Continuous",
+    "platform": "Ooc",
     "type": "Hybrid",
     "resistanceModel": "Poiseuille",
+    "mixingModel": "Instantaneous",
     "fluids": [
         {	
             "name": "Water",
