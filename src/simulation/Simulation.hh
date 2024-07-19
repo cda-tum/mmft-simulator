@@ -36,6 +36,15 @@ namespace sim {
     }
 
     template<typename T>
+    Tissue<T>* Simulation<T>::addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM) {
+        auto id = tissues.size();
+        
+        auto result = tissues.insert_or_assign(id, std::make_shared<Tissue<T>>(id, species, Vmax, kM));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
     Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
@@ -197,6 +206,24 @@ namespace sim {
             // create Simulator
             auto id = cfdSimulators.size();
             auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+    }
+
+    template<typename T>
+    lbmOocSimulator<T>* Simulation<T>::addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, 
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
