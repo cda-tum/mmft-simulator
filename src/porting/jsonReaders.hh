@@ -70,7 +70,7 @@ template<typename T>
 sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
-        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
+        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     if (jsonString["simulation"]["platform"] == "Continuous") {
         platform = sim::Platform::Continuous;
@@ -78,8 +78,10 @@ sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
         platform = sim::Platform::BigDroplet;
     } else if (jsonString["simulation"]["platform"] == "Mixing") {
         platform = sim::Platform::Mixing;
+    } else if (jsonString["simulation"]["platform"] == "Ooc") {
+        platform = sim::Platform::Ooc;
     } else {
-        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
+        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     simulation.setPlatform(platform);
     return platform;
@@ -264,7 +266,6 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 arch::Opening<T> opening_(network->getNode(nodeId), normal, opening["width"]);
                 Openings.try_emplace(nodeId, opening_);
             }
-
             if(simulator["Type"] == "LBM")
             {
                 auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 

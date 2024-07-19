@@ -116,7 +116,7 @@ public:
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
     */
-    void prepareCoupling();
+    void prepareCoupling() override;
 
     /**
      * @brief Set the boundary values on the lattice at the module nodes.
