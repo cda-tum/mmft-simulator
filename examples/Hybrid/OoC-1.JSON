@@ -139,7 +139,7 @@
         {
             "name": "Liver",
             "species": [0],
-            "vMax": [0.1],
+            "Vmax": [0.1],
             "kM": [0.5]
         }
     ],
@@ -195,7 +195,7 @@
                 "name": "Liver-Test",
                 "stlFile": "../examples/STL/cross.stl",
                 "tissue": 0,
-                "organStlFile": "../examples/STL/round.stl",
+                "organStlFile": "../examples/STL/cube.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.1,

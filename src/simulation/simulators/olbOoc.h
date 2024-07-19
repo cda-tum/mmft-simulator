@@ -51,16 +51,15 @@ private:
     std::unordered_map<int, std::vector<T>> concentrations;   ///< Vector of concentration values at module nodes.
 
     T adRelaxationTime;                         ///< Relaxation time (tau) for the OLB solver.
+    std::shared_ptr<Tissue<T>> tissue;
     std::string organStlFile;                   ///< The STL file of the CFD domain.
-
-    Tissue<T>* tissue;
 
     std::shared_ptr<olb::STLreader<T>> organStlReader;
     std::shared_ptr<olb::IndicatorF2DfromIndicatorF3D<T>> organStl2Dindicator;
 
     std::unordered_map<int, std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>>> adLattices;      ///< The LBM lattice on the geometry.
     std::unordered_map<int, std::unique_ptr<olb::util::ValueTracer<T>>> adConverges;            ///< Value tracer to track convergence.
-    std::unordered_map<int, std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, ADDESCRIPTOR>>> adConverters;      ///< Object that stores conversion factors from phyical to lattice parameters.
+    std::unordered_map<int, std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T, ADDESCRIPTOR>>> adConverters;      ///< Object that stores conversion factors from phyical to lattice parameters.
 
     std::unordered_map<int, T*> fluxWall;
     T zeroFlux = 0.0;
@@ -93,7 +92,7 @@ public:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmOocSimulator(int id, std::string name, std::string stlFile, Tissue<T>* tissue, std::string organStlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
+    lbmOocSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<Tissue<T>> tissue, std::string organStlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
         std::unordered_map<int, arch::Opening<T>> openings, ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, 
         T alpha, T resolution, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 
@@ -129,6 +128,8 @@ public:
      * @brief Conducts the collide and stream operations of the lattice.
     */
     void solve();
+
+    void initIntegrals();
 
     /**
      * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.

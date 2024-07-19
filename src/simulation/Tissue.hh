@@ -10,7 +10,7 @@ Tissue<T>::Tissue(int id_, Specie<T>* specie_, T vMax_, T kM_) :
     id(id_), species(specie_), vMax(vMax_), kM(kM_) { }
 
 template<typename T>
-Tissue<T>::Tissue(int id_, const std::unordered_map<int, Specie<T>*>& species_, const std::unordered_map<int, T>& vMax_, const std::unordered_map<int, T>& kM_) : 
+Tissue<T>::Tissue(int id_, std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, T> vMax_, std::unordered_map<int, T> kM_) : 
     id(id_), species(species_), vMax(vMax_), kM(kM_) { }
 
 template<typename T>
@@ -37,7 +37,7 @@ void Tissue<T>::addSpecie(Specie<T>* specie_, T vMax_, T kM_) {
 }
 
 template<typename T>
-void Tissue<T>::addSpecies(const std::unordered_map<int, Specie<T>*>& species_, const std::unordered_map<int, T>& vMax_, const std::unordered_map<int, T>& kM_) { 
+void Tissue<T>::addSpecies(std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, T> vMax_, std::unordered_map<int, T> kM_) { 
 
     for (auto& [key, specie_] : species_) {
         auto const result = species->try_emplace(key, specie_);
@@ -58,7 +58,23 @@ void Tissue<T>::addSpecies(const std::unordered_map<int, Specie<T>*>& species_, 
             throw std::invalid_argument(errorString);
         }
     }
+}
 
+template<typename T>
+std::unordered_map<int, Specie<T>*>& Tissue<T>::getSpecies() {
+    return species;
+}
+
+template<typename T>
+T* Tissue<T>::getVmax(int speciesId) {
+    auto vMaxIter = vMax.find(speciesId);
+    return &(vMaxIter->second);
+}
+
+template<typename T>
+T* Tissue<T>::getkM(int speciesId) {
+    auto kMIter = kM.find(speciesId);
+    return &(kMIter->second);
 }
 
 }   // namespace sim

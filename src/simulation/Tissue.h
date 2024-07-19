@@ -50,7 +50,7 @@ public:
      * @param[in] vMax An unordered map of the maximum eleimination rate of species in enzymatic transformation.
      * @param[in] kM An unordered map of the concentration associated with 0.5vMax for species in enzymatic transformation.
      */
-    Tissue(int id, const std::unordered_map<int, Specie<T>*>& species, const std::unordered_map<int, T>& vMax, const std::unordered_map<int, T>& kM);
+    Tissue(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> vMax, std::unordered_map<int, T> kM);
 
     /**
      * @brief Get the name of this tissue.
@@ -77,7 +77,13 @@ public:
      * @param[in] vMax An unordered map of the maximum eleimination rate of species in enzymatic transformation.
      * @param[in] kM An unordered map of the concentration associated with 0.5vMax for species in enzymatic transformation.
      */
-    void addSpecies(const std::unordered_map<int, Specie<T>*>& species, const std::unordered_map<int, T>& vMax, const std::unordered_map<int, T>& kM);
+    void addSpecies(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> vMax, std::unordered_map<int, T> kM);
+
+    std::unordered_map<int, Specie<T>*>& getSpecies();
+
+    T* getVmax(int speciesId);
+
+    T* getkM(int speciesId);
 
 };
 
