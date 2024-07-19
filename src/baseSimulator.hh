@@ -28,9 +28,9 @@
 #include "architecture/Node.hh"
 #include "architecture/PressurePump.hh"
 
-#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
-#include "olbProcessors/saturatedFluxPostProcessor2D.h"
-#include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
+#include "olbProcessors/saturatedFluxPostProcessor2D.hh"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux.hh"
 
 #include "porting/jsonPorter.hh"
 #include "porting/jsonReaders.hh"
