@@ -543,6 +543,40 @@ namespace sim {
             saveState();
         }
 
+        // OoC Hybrid simulation
+        if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
+            if (network->getModules().size() > 0 ) {
+                bool allConverged = false;
+                bool pressureConverged = false;
+
+                // Initialization of CFD domains
+                while (! allConverged) {
+                    allConverged = conductCFDSimulation(cfdSimulators, 1);
+                }
+                
+                while (! allConverged || !pressureConverged) {
+                    //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
+
+                    // conduct CFD simulations
+                    //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
+                    allConverged = conductCFDSimulation(cfdSimulators, 10);
+                
+                    // compute nodal analysis again
+                    //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
+                    pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+                }
+
+                #ifdef VERBOSE     
+                    if (pressureConverged && allConverged) {
+                        std::cout << "[Simulation] All pressures have converged." << std::endl;
+                    } 
+                    printResults();
+                #endif
+            }
+            saveState();
+        }
+
         // Abstract Droplet simulation
         // ##########
         // Simulation Loop
@@ -763,6 +797,36 @@ namespace sim {
             for (auto& [key, cfdSimulator] : cfdSimulators) {
                 cfdSimulator->prepareGeometry();
                 cfdSimulator->prepareLattice();
+            }
+        }
+
+        if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
+            
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
+
+            // Initialize the CFD simulators
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
+            }
+
+            // compute nodal analysis
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+            #endif
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            // Prepare CFD geometry and lattice
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+            #endif
+
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
+                cfdSimulator->prepareCoupling();
             }
         }
     }

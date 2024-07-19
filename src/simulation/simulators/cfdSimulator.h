@@ -107,6 +107,8 @@ public:
     */
     T getAlpha();
 
+    virtual void prepareCoupling() { };
+
     // fully virtual functions
 
     virtual void lbmInit(T dynViscosity, T density) = 0;

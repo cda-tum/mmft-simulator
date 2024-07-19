@@ -8,12 +8,12 @@ namespace olb {
 
 template<typename T, typename DESCRIPTOR>
 NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D<T,DESCRIPTOR>::
-NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D(int x0_, int x1_, int y0_, int y1_, T velFactors_, std::vector<BlockStructureD<2>* > partners_)
+NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D(int x0_, int x1_, int y0_, int y1_, std::vector<T> velFactors_, std::vector<BlockStructureD<2>* > partners_)
   :  x0(x0_), x1(x1_), y0(y0_), y1(y1_), velFactors(velFactors_), partners(partners_)
 {
   this->getName() = "NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D";
   for (int i = 0; i<partners_.size(); i++) {
-    tPartners[i] = static_cast<BlockLattice<T,descriptors::D2Q5<descriptors::VELOCITY,descriptors::SOURCE>> *>(partners[i]);
+    tPartners.emplace_back(static_cast<BlockLattice<T,descriptors::D2Q5<descriptors::VELOCITY>> *>(partners[i]));
   }
 }
 
@@ -22,7 +22,7 @@ void NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D<T,DESCRIPTOR>::
 processSubDomain(BlockLattice<T,DESCRIPTOR>& blockLattice,
                  int x0_, int x1_, int y0_, int y1_)
 {
-
+  std::cout << "Getting here 10" << std::endl;
   int newX0, newX1, newY0, newY1;
   if ( util::intersect (
          x0, x1, y0, y1,
@@ -45,6 +45,7 @@ processSubDomain(BlockLattice<T,DESCRIPTOR>& blockLattice,
       }
     }
   }
+  std::cout << "Getting here 11" << std::endl;
 }
 
 template<typename T, typename DESCRIPTOR>
@@ -58,7 +59,7 @@ process(BlockLattice<T,DESCRIPTOR>& blockLattice)
 
 template<typename T, typename DESCRIPTOR>
 NavierStokesAdvectionDiffusionSingleCouplingGenerator2D<T,DESCRIPTOR>::
-NavierStokesAdvectionDiffusionSingleCouplingGenerator2D(int x0_, int x1_, int y0_, int y1_, T velFactors_)
+NavierStokesAdvectionDiffusionSingleCouplingGenerator2D(int x0_, int x1_, int y0_, int y1_, std::vector<T> velFactors_)
   : LatticeCouplingGenerator2D<T,DESCRIPTOR>(x0_, x1_, y0_, y1_), velFactors(velFactors_)
 { }
 
