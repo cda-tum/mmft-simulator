@@ -95,6 +95,8 @@ void lbmOocSimulator<T>::prepareGeometry () {
 template<typename T>
 void lbmOocSimulator<T>::prepareLattice () {
    
+    auto existIndicator = this->getGeometry().getMaterialIndicator({0, 1, 2, 3}); 
+
     // Initial conditions
     std::vector<T> velocity(T(0), T(0));
     std::vector<T> zeroVelocity(T(0), T(0));
@@ -129,7 +131,7 @@ void lbmOocSimulator<T>::prepareLattice () {
      * Prepare the AD lattices
     */
     for (auto& [speciesId, converter] : adConverters) {
-        const T adOmega = this->getAdConverter(speciesId).getLatticeRelaxationFrequency();
+        const T adOmega = getAdConverter(speciesId).getLatticeRelaxationFrequency();
         std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
 
         // Set AD lattice dynamics
@@ -139,10 +141,12 @@ void lbmOocSimulator<T>::prepareLattice () {
         adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 3);
 
         // Set initial conditions
-        AnalyticalConst2D<T,T> zeroVelocity( u );
-        adLattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
-        adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 1, uF);
-        adLattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uF);
+        adLattice->iniEquilibrium(existIndicator, rhoF, uF);
+        adLattice->template defineField<olb::descriptors::VELOCITY>(existIndicator, uF);
+        for (auto& [key, Opening] : this->moduleOpenings) {
+            adLattice->iniEquilibrium(this->getGeometry(), key, rhoF, uF);
+            adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), key, uF);
+        }
 
         // Add wall boundary
         olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, fluxWall.at(0), fluxWall.at(0));
@@ -193,6 +197,12 @@ void lbmOocSimulator<T>::prepareLattice () {
     // Initialize NS lattice with relaxation frequency omega
     this->lattice->template setParameter<olb::descriptors::OMEGA>(omega);
     this->lattice->initialize();
+    for (auto& [adKey, adLattice] : adLattices) {
+        const T adOmega = getAdConverter(adKey).getLatticeRelaxationFrequency();
+        adLattice->template setParameter<olb::descriptors::OMEGA>(adOmega);
+        adLattice->template setParameter<olb::collision::TRT::MAGIC>(1./12.);
+        adLattice->initialize();
+    }
 
     std::cout << "[OocLbmModule] prepare lattice " << this->name << "... OK" << std::endl;
 }
@@ -436,20 +446,14 @@ void lbmOocSimulator<T>::initIntegrals() {
 template<typename T>
 void lbmOocSimulator<T>::solve() {
     // theta = 10
-    for (int iT = 0; iT < 10; ++iT){      
-        std::cout << "Getting here 1" << std::endl;
+    for (int iT = 0; iT < 10; ++iT){
         this->setBoundaryValues(this->step);
-        std::cout << "Getting here 2" << std::endl;
-        writeVTK(this->step);          
-        std::cout << "Getting here 3" << std::endl;
+        writeVTK(this->step);
         this->lattice->collideAndStream();
-        std::cout << "Getting here 4" << std::endl;
         this->lattice->executeCoupling();
-        std::cout << "We have " << adLattices.size() << " AD Lattices"<< std::endl;
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
         }
-        std::cout << "Getting here 5" << std::endl;
         this->step += 1;
     }
     getResults(this->step);
