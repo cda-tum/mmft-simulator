@@ -22,7 +22,6 @@ void NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D<T,DESCRIPTOR>::
 processSubDomain(BlockLattice<T,DESCRIPTOR>& blockLattice,
                  int x0_, int x1_, int y0_, int y1_)
 {
-  std::cout << "Getting here 10" << std::endl;
   int newX0, newX1, newY0, newY1;
   if ( util::intersect (
          x0, x1, y0, y1,
@@ -45,7 +44,6 @@ processSubDomain(BlockLattice<T,DESCRIPTOR>& blockLattice,
       }
     }
   }
-  std::cout << "Getting here 11" << std::endl;
 }
 
 template<typename T, typename DESCRIPTOR>
