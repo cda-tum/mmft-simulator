@@ -95,13 +95,15 @@ void lbmOocSimulator<T>::prepareGeometry () {
 template<typename T>
 void lbmOocSimulator<T>::prepareLattice () {
    
-    auto existIndicator = this->getGeometry().getMaterialIndicator({0, 1, 2, 3}); 
+    auto existIndicator = this->getGeometry().getMaterialIndicator({1, 2, 3}); 
 
     // Initial conditions
     std::vector<T> velocity(T(0), T(0));
     std::vector<T> zeroVelocity(T(0), T(0));
     olb::AnalyticalConst2D<T,T> rhoF(1);
     olb::AnalyticalConst2D<T,T> uF(velocity);
+    olb::AnalyticalConst2D<T,T> rhoZero(0);
+    olb::AnalyticalConst2D<T,T> uZero(zeroVelocity);
 
     /**
      * Prepare the NS lattice
@@ -113,6 +115,7 @@ void lbmOocSimulator<T>::prepareLattice () {
     this->lattice->template defineDynamics<NoDynamics>(this->getGeometry(), 0);
     this->lattice->template defineDynamics<BGKdynamics>(this->getGeometry(), 1);
     this->lattice->template defineDynamics<BounceBack>(this->getGeometry(), 2);
+    this->lattice->template defineDynamics<BounceBack>(this->getGeometry(), 3);
 
     // Set initial conditions
     this->lattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
@@ -141,11 +144,17 @@ void lbmOocSimulator<T>::prepareLattice () {
         adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 3);
 
         // Set initial conditions
+        adLattice->defineRhoU(this->getGeometry(), 0, rhoZero, uZero);
+        adLattice->iniEquilibrium(this->getGeometry(), 0, rhoZero, uZero);
+        adLattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
+        adLattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uF);
+        
         adLattice->iniEquilibrium(existIndicator, rhoF, uF);
         adLattice->template defineField<olb::descriptors::VELOCITY>(existIndicator, uF);
         for (auto& [key, Opening] : this->moduleOpenings) {
-            adLattice->iniEquilibrium(this->getGeometry(), key, rhoF, uF);
-            adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), key, uF);
+            adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), key+3);
+            adLattice->iniEquilibrium(this->getGeometry(), key+3, rhoF, uF);
+            adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), key+3, uF);
         }
 
         // Add wall boundary
@@ -154,7 +163,7 @@ void lbmOocSimulator<T>::prepareLattice () {
         // In-/ and Outlets boundaries depend on flow direction, and are handled in setBoundaryValues()
 
         // Add Tissue boundary
-        olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, tissue->getVmax(speciesId), tissue->getkM(speciesId));
+        olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, &Vmax, tissue->getkM(speciesId));
 
         adLattices.try_emplace(speciesId, adLattice);
     }
@@ -209,12 +218,13 @@ void lbmOocSimulator<T>::prepareLattice () {
 
 template<typename T>
 void lbmOocSimulator<T>::prepareCoupling() {
-
+    
     std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLatticesVec;
     std::vector<T> velFactors;
     for (auto& [speciesId, adLattice] : adLattices) {
         adLatticesVec.emplace_back(adLattices[speciesId].get());
-        velFactors.emplace_back(this->converter->getConversionFactorVelocity() / this->adConverters[speciesId]->getConversionFactorVelocity());
+        //velFactors.emplace_back(this->converter->getConversionFactorVelocity() / this->adConverters[speciesId]->getConversionFactorVelocity());
+        velFactors.emplace_back(1.0);
     }
     olb::NavierStokesAdvectionDiffusionSingleCouplingGenerator2D<T,DESCRIPTOR> coupling(0, this->converter->getLatticeLength(this->cfdModule->getSize()[0]), 0, this->converter->getLatticeLength(this->cfdModule->getSize()[1]), velFactors);
     this->lattice->addLatticeCoupling(coupling, adLatticesVec);
@@ -258,15 +268,16 @@ void lbmOocSimulator<T>::setBoundaryValues (int iT) {
             outflowNodes.emplace(key);
         }
     }
-
+    
     // Set Boundary Concentrations
     for (auto& [key, Opening] : this->moduleOpenings) {
         if (inflowNodes.count(key)) {
             for (auto& [speciesId, adLattice] : adLattices) {
                 olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
                 olb::AnalyticalConst2D<T,T> one( 1. );
-                olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
-                this->lattice->defineRho(this->getGeometry(), key+3, one + inConc);
+                olb::AnalyticalConst2D<T,T> inConc(0.1);
+                //olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
+                adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
             }
         } else if (outflowNodes.count(key)) {
             for (auto& [speciesId, adLattice] : adLattices) {
@@ -277,7 +288,7 @@ void lbmOocSimulator<T>::setBoundaryValues (int iT) {
             exit(1);
         }
     }
-
+    
 }
 
 template<typename T>
@@ -305,7 +316,7 @@ void lbmOocSimulator<T>::getResults (int iT) {
             }
         }
     }
-
+    /*
     for (auto& [key, Opening] : this->moduleOpenings) {
         // If the node is an outflow, write the concentration value
         if (this->flowRates.at(key) < 0.0) {
@@ -318,6 +329,7 @@ void lbmOocSimulator<T>::getResults (int iT) {
             }
         }
     }
+    */
 }
 
 template<typename T>
@@ -368,6 +380,8 @@ void lbmOocSimulator<T>::lbmInit (T dynViscosity,
 
         this->adConverters.try_emplace(speciesId, tempAD);
         this->adConverges.try_emplace(speciesId, std::make_unique<olb::util::ValueTracer<T>> (this->stepIter, this->epsilon));
+
+        Vmax = (*tissue->getVmax(0))*tempAD->getPhysDeltaT();
     }
 
     // Initialize pressure, flowRate and resistance value-containers
@@ -410,15 +424,17 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
         vtmWriter.addFunctor(velocity);
         vtmWriter.addFunctor(pressure);
         vtmWriter.addFunctor(latDensity);
+
+        vtmWriter.write(iT);
         
         // write all concentrations
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::SuperLatticeDensity2D<T,ADDESCRIPTOR> concentration( getAdLattice(speciesId) );
             concentration.getName() = "concentration " + std::to_string(speciesId);
+            vtmWriter.write(concentration, iT);
         }
 
         // write vtk to file system
-        vtmWriter.write(iT);
         this->vtkFile = olb::singleton::directories().getVtkOutDir() + "data/" + olb::createFileName( this->name, iT ) + ".vtm";
         this->converge->takeValue(this->getLattice().getStatistics().getAverageEnergy(), print);
     }
@@ -450,12 +466,12 @@ void lbmOocSimulator<T>::solve() {
         this->setBoundaryValues(this->step);
         writeVTK(this->step);
         this->lattice->collideAndStream();
-        this->lattice->executeCoupling();
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
         }
         this->step += 1;
     }
+    this->lattice->executeCoupling();
     getResults(this->step);
 }
 
