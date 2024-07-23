@@ -63,6 +63,7 @@ private:
 
     std::unordered_map<int, T*> fluxWall;
     T zeroFlux = 0.0;
+    T Vmax;
 
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>>> concentrationProfiles;
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;       ///< Map of mean pressure values at module nodes.
