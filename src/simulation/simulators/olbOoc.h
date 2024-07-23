@@ -130,7 +130,22 @@ public:
     */
     void solve();
 
-    void initIntegrals();
+    void initValueContainers() override;
+
+    void initAdConverters(T density);
+
+    void initAdConvergenceTracker();
+
+    void readOrganStl();
+
+    void prepareNsLattice(const T omega) override;
+
+    void prepareAdLattice(const T omega, int speciesId);
+
+    void initConcentrationIntegralPlane(int adKey);
+
+    void initAdLattice(int adKey);
+
 
     /**
      * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.

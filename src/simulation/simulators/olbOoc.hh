@@ -16,204 +16,76 @@ lbmOocSimulator<T>::lbmOocSimulator (
     } 
 
 template<typename T>
+void lbmOocSimulator<T>::lbmInit (T dynViscosity, T density) {
+
+    this->setOutputDir();
+    initValueContainers();
+    this->initNsConverter(dynViscosity, density);
+    initAdConverters(density);
+    this->initNsConvergeTracker();
+    initAdConvergenceTracker();
+
+    #ifdef VERBOSE
+        std::cout << "[lbmSimulator] lbmInit " << this->name << "... OK" << std::endl;
+    #endif
+}
+
+template<typename T>
 void lbmOocSimulator<T>::prepareGeometry () {
 
     bool print = false;
 
-    this->stlReader = std::make_shared<olb::STLreader<T>>(this->stlFile, this->converter->getConversionFactorLength());
     #ifdef VERBOSE
         print = true;
-        std::cout << "[lbmModule] reading STL file " << this->name << "... OK" << std::endl;
-    #endif
-    this->stl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*this->stlReader);
-    #ifdef VERBOSE
-        std::cout << "[lbmModule] create 2D indicator " << this->name << "... OK" << std::endl;
     #endif
 
-    olb::Vector<T,2> origin(-0.5*this->converter->getConversionFactorLength(), -0.5*this->converter->getConversionFactorLength());
-    olb::Vector<T,2> extend(this->cfdModule->getSize()[0] + this->converter->getConversionFactorLength(), this->cfdModule->getSize()[1] + this->converter->getConversionFactorLength());
-    olb::IndicatorCuboid2D<T> cuboid(extend, origin);
-    this->cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, this->converter->getConversionFactorLength(), 1);
-    this->loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*this->cuboidGeometry);
-    this->geometry = std::make_shared<olb::SuperGeometry<T,2>> (
-        *this->cuboidGeometry, 
-        *this->loadBalancer);
-
-    #ifdef VERBOSE
-        std::cout << "[lbmModule] generate geometry " << this->name << "... OK" << std::endl;   
-    #endif 
-
-    this->geometry->rename(0, 2);
-    this->geometry->rename(2, 1, *this->stl2Dindicator);
-
-    #ifdef VERBOSE
-        std::cout << "[lbmModule] generate 2D geometry from STL  " << this->name << "... OK" << std::endl;
-    #endif
-
-    // Define area of in-/Outlets
-    for (auto& [key, Opening] : this->moduleOpenings ) {
-        // The unit vector pointing to the extend (opposite origin) of the opening
-        T x_origin =    Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0]
-                        - 0.5*Opening.width*Opening.tangent[0];
-        T y_origin =   Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1]
-                        - 0.5*Opening.width*Opening.tangent[1];
-        
-        // The unit vector pointing to the extend
-        T x_extend = Opening.width*Opening.tangent[0] - this->converter->getConversionFactorLength()*Opening.normal[0];
-        T y_extend = Opening.width*Opening.tangent[1] - this->converter->getConversionFactorLength()*Opening.normal[1];
-
-        // Extend can only have positive values, hence the following transformation
-        if (x_extend < 0 ){
-            x_extend *= -1;
-            x_origin -= x_extend;
-        }
-        if (y_extend < 0 ){
-            y_extend *= -1;
-            y_origin -= y_extend;
-        }
-
-        olb::Vector<T,2> originO (x_origin, y_origin);
-        olb::Vector<T,2> extendO (x_extend, y_extend);
-        olb::IndicatorCuboid2D<T> opening(extendO, originO);
-        
-        this->geometry->rename(2, key+3, 1, opening);
-    }
-
-    // Define Organ area
-    organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, this->converter->getConversionFactorLength());
-    organStl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*organStlReader);
-    this->geometry->rename(1, 3, *organStl2Dindicator);
+    this->readGeometryStl(print);
+    this->readOpenings();
+    readOrganStl();
 
     this->geometry->clean(print);
     this->geometry->checkForErrors(print);
 
     #ifdef VERBOSE
-        std::cout << "[lbmModule] prepare geometry " << this->name << "... OK" << std::endl;
+        std::cout << "[lbmSimulator] prepare geometry " << this->name << "... OK" << std::endl;
     #endif
 }
 
 template<typename T>
 void lbmOocSimulator<T>::prepareLattice () {
-   
-    auto existIndicator = this->getGeometry().getMaterialIndicator({1, 2, 3}); 
-
-    // Initial conditions
-    std::vector<T> velocity(T(0), T(0));
-    std::vector<T> zeroVelocity(T(0), T(0));
-    olb::AnalyticalConst2D<T,T> rhoF(1);
-    olb::AnalyticalConst2D<T,T> uF(velocity);
-    olb::AnalyticalConst2D<T,T> rhoZero(0);
-    olb::AnalyticalConst2D<T,T> uZero(zeroVelocity);
 
     /**
      * Prepare the NS lattice
     */
     const T omega = this->converter->getLatticeRelaxationFrequency();
-    this->lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(this->getGeometry());
-
-    // Set NS lattice dynamics
-    this->lattice->template defineDynamics<NoDynamics>(this->getGeometry(), 0);
-    this->lattice->template defineDynamics<BGKdynamics>(this->getGeometry(), 1);
-    this->lattice->template defineDynamics<BounceBack>(this->getGeometry(), 2);
-    this->lattice->template defineDynamics<BounceBack>(this->getGeometry(), 3);
-
-    // Set initial conditions
-    this->lattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
-    this->lattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uF);
-
-    // Set NS lattice dynamics and initial condition for in- and outlets
-    for (auto& [key, Opening] : this->moduleOpenings) {
-        if (this->groundNodes.at(key)) {
-            setInterpolatedVelocityBoundary(this->getLattice(), omega, this->getGeometry(), key+3);
-        } else {
-            setInterpolatedPressureBoundary(this->getLattice(), omega, this->getGeometry(), key+3);
-        }
-    }
-
+    prepareNsLattice(omega);
+    
     /**
      * Prepare the AD lattices
     */
-    for (auto& [speciesId, converter] : adConverters) {
+    for (auto& [speciesId, converter] : adConverges) {
         const T adOmega = getAdConverter(speciesId).getLatticeRelaxationFrequency();
-        std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
-
-        // Set AD lattice dynamics
-        adLattice->template defineDynamics<NoADDynamics>(this->getGeometry(), 0);
-        adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 1);
-        adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 2);
-        adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 3);
-
-        // Set initial conditions
-        adLattice->defineRhoU(this->getGeometry(), 0, rhoZero, uZero);
-        adLattice->iniEquilibrium(this->getGeometry(), 0, rhoZero, uZero);
-        adLattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
-        adLattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uF);
-        
-        adLattice->iniEquilibrium(existIndicator, rhoF, uF);
-        adLattice->template defineField<olb::descriptors::VELOCITY>(existIndicator, uF);
-        for (auto& [key, Opening] : this->moduleOpenings) {
-            adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), key+3);
-            adLattice->iniEquilibrium(this->getGeometry(), key+3, rhoF, uF);
-            adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), key+3, uF);
-        }
-
-        // Add wall boundary
-        olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, fluxWall.at(0), fluxWall.at(0));
-
-        // In-/ and Outlets boundaries depend on flow direction, and are handled in setBoundaryValues()
-
-        // Add Tissue boundary
-        olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, &Vmax, tissue->getkM(speciesId));
-
-        adLattices.try_emplace(speciesId, adLattice);
+        prepareAdLattice(adOmega, speciesId);
+    }
+    
+    /**
+     * Initialize the integral fluxes for the in- and outlets
+     */
+    this->initPressureIntegralPlane();
+    this->initFlowRateIntegralPlane();
+    for (auto& [adKey, LatticeAD] : adLattices) {
+        initConcentrationIntegralPlane(adKey);
     }
 
-    // Initialize the integral fluxes for the in- and outlets
-    for (auto& [key, Opening] : this->moduleOpenings) {
-
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];        
-
-        std::vector<T> position = {posX, posY};
-        std::vector<int> materials = {1, key+3};
-
-        // Prepare the plane integrals to measure pressure and velocity values at openings.
-        if (this->groundNodes.at(key)) {
-            std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> meanPressure;
-            meanPressure = std::make_shared<olb::SuperPlaneIntegralFluxPressure2D<T>> (this->getLattice(), this->getConverter(), this->getGeometry(),
-                position, Opening.tangent, materials);
-            this->meanPressures.try_emplace(key, meanPressure);
-            this->flowProfiles.try_emplace(key, std::make_shared<olb::Poiseuille2D<T>>(this->getGeometry(), 0, (T) 0.0, (T) 0.0));
-        } else {
-            std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;
-            flux = std::make_shared<olb::SuperPlaneIntegralFluxVelocity2D<T>> (this->getLattice(), this->getConverter(), this->getGeometry(),
-                position, Opening.tangent, materials);
-            this->fluxes.try_emplace(key, flux);
-            this->densities.try_emplace(key, std::make_shared<olb::AnalyticalConst2D<T,T>>((T) 0.0));
-        }
-
-        // Prepare the plane integrals to measure concentration values at openings.
-        for (auto& [adKey, LatticeAD] : adLattices) {
-            std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>  meanConcentration;
-            std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> concentration;
-            concentration = std::make_shared<olb::SuperPlaneIntegralFluxPressure2D<T>> (getAdLattice(adKey), getAdConverter(adKey), this->getGeometry(),
-                position, Opening.tangent, materials);
-            meanConcentration.try_emplace(adKey, concentration);
-            this->meanConcentrations.try_emplace(key, meanConcentration);
-        }
+    /**
+     * Initialize the lattices
+     */
+    this->initNsLattice(omega);
+    for (auto& [speciesId, converter] : adConverges) {
+        initAdLattice(speciesId);
     }
 
-    // Initialize NS lattice with relaxation frequency omega
-    this->lattice->template setParameter<olb::descriptors::OMEGA>(omega);
-    this->lattice->initialize();
-    for (auto& [adKey, adLattice] : adLattices) {
-        const T adOmega = getAdConverter(adKey).getLatticeRelaxationFrequency();
-        adLattice->template setParameter<olb::descriptors::OMEGA>(adOmega);
-        adLattice->template setParameter<olb::collision::TRT::MAGIC>(1./12.);
-        adLattice->initialize();
-    }
-
-    std::cout << "[OocLbmModule] prepare lattice " << this->name << "... OK" << std::endl;
+    std::cout << "[lbmSimulator] prepare lattice " << this->name << "... OK" << std::endl;
 }
 
 template<typename T>
@@ -228,7 +100,7 @@ void lbmOocSimulator<T>::prepareCoupling() {
     }
     olb::NavierStokesAdvectionDiffusionSingleCouplingGenerator2D<T,DESCRIPTOR> coupling(0, this->converter->getLatticeLength(this->cfdModule->getSize()[0]), 0, this->converter->getLatticeLength(this->cfdModule->getSize()[1]), velFactors);
     this->lattice->addLatticeCoupling(coupling, adLatticesVec);
-    std::cout << "[OocLbmModule] prepare coupling " << this->name << "... OK" << std::endl;
+    std::cout << "[lbmSimulator] prepare coupling " << this->name << "... OK" << std::endl;
 }
 
 template<typename T>
@@ -333,73 +205,6 @@ void lbmOocSimulator<T>::getResults (int iT) {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::lbmInit (T dynViscosity, 
-                            T density) {
-
-    if (!std::filesystem::is_directory(this->vtkFolder) || !std::filesystem::exists(this->vtkFolder)) {
-        std::filesystem::create_directory(this->vtkFolder);
-    }
-
-    olb::singleton::directories().setOutputDir( this->vtkFolder+"/" );  // set output directory 
-
-    T kinViscosity = dynViscosity/density;
-
-    #ifdef DEBUG
-    // There must be more than 1 node to have meaningful flow in the module domain
-    assert(this->moduleOpenings.size() > 1);
-    // We must have exactly one opening assigned to each boundaryNode
-    assert(this->moduleOpenings.size() == this->cfdModule->getNodes().size());
-    #endif
-
-    this->converter = std::make_shared<const olb::UnitConverterFromResolutionAndRelaxationTime<T,DESCRIPTOR>> (
-        this->resolution,
-        this->relaxationTime,
-        this->charPhysLength,
-        this->charPhysVelocity,
-        kinViscosity,
-        density
-    );
-
-    #ifdef VERBOSE
-        this->converter->print();
-    #endif
-
-    std::cout << "[OocLbmModule] Setting Advection Diffusion converter " << this->name << ":" << std::endl;
-    for (auto& [speciesId, specie] : tissue->getSpecies()) {
-        std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> tempAD = std::make_shared<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> (
-            this->resolution,
-            this->relaxationTime,
-            this->charPhysLength,
-            this->charPhysVelocity,
-            specie->getDiffusivity(),
-            density
-        );
-        #ifdef VERBOSE
-            tempAD->print();
-        #endif
-
-        this->adConverters.try_emplace(speciesId, tempAD);
-        this->adConverges.try_emplace(speciesId, std::make_unique<olb::util::ValueTracer<T>> (this->stepIter, this->epsilon));
-
-        Vmax = (*tissue->getVmax(0))*tempAD->getPhysDeltaT();
-    }
-
-    // Initialize pressure, flowRate and resistance value-containers
-    for (auto& [key, node] : this->moduleOpenings) {
-        this->pressures.try_emplace(key, (T) 0.0);
-        this->flowRates.try_emplace(key, (T) 0.0);
-        this->concentrations.try_emplace(key, std::vector<T>(tissue->getSpecies().size(), 0.0));
-    }
-
-    // Initialize a convergence tracker for pressure
-    this->converge = std::make_unique<olb::util::ValueTracer<T>> (this->stepIter, this->epsilon);
-
-    #ifdef VERBOSE
-        std::cout << "[OocLbmModule] lbmInit " << this->name << "... OK" << std::endl;
-    #endif
-}
-
-template<typename T>
 void lbmOocSimulator<T>::writeVTK (int iT) {
 
     bool print = false;
@@ -455,11 +260,6 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::initIntegrals() {
-
-}
-
-template<typename T>
 void lbmOocSimulator<T>::solve() {
     // theta = 10
     for (int iT = 0; iT < 10; ++iT){
@@ -475,5 +275,158 @@ void lbmOocSimulator<T>::solve() {
     getResults(this->step);
 }
 
+template<typename T>
+void lbmOocSimulator<T>::initValueContainers () {
+    // Initialize pressure, flowRate and concentration value-containers
+    for (auto& [key, node] : this->moduleOpenings) {
+        this->pressures.try_emplace(key, (T) 0.0);
+        this->flowRates.try_emplace(key, (T) 0.0);
+        this->concentrations.try_emplace(key, std::vector<T>(tissue->getSpecies().size(), 0.0));
+    }
+}
+
+template<typename T>
+void lbmOocSimulator<T>::initAdConverters (T density) {
+    for (auto& [speciesId, specie] : tissue->getSpecies()) {
+        std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> tempAD = std::make_shared<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> (
+            this->resolution,
+            this->relaxationTime,
+            this->charPhysLength,
+            this->charPhysVelocity,
+            specie->getDiffusivity(),
+            density
+        );
+        #ifdef VERBOSE
+            tempAD->print();
+        #endif
+
+        this->adConverters.try_emplace(speciesId, tempAD);
+
+        Vmax = (*tissue->getVmax(0))*tempAD->getPhysDeltaT();
+    }
+}
+
+template<typename T>
+void lbmOocSimulator<T>::initAdConvergenceTracker () {
+    // Initialize a convergence tracker for concentrations
+    for (auto& [speciesId, specie] : tissue->getSpecies()) {
+        this->adConverges.try_emplace(speciesId, std::make_unique<olb::util::ValueTracer<T>> (this->stepIter, this->epsilon));
+    }
+}
+
+template<typename T>
+void lbmOocSimulator<T>::readOrganStl () {
+    // Define Organ area
+    organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, this->converter->getConversionFactorLength());
+    organStl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*organStlReader);
+    this->geometry->rename(1, 3, *organStl2Dindicator);
+}
+
+template<typename T>
+void lbmOocSimulator<T>::prepareNsLattice (const T omega) {
+
+    this->lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(this->getGeometry());
+
+    // Initial conditions
+    std::vector<T> velocity(T(0), T(0));
+    olb::AnalyticalConst2D<T,T> rhoF(1);
+    olb::AnalyticalConst2D<T,T> uF(velocity);
+
+    // Set lattice dynamics
+    this->lattice->template defineDynamics<NoDynamics>(this->getGeometry(), 0);
+    this->lattice->template defineDynamics<BGKdynamics>(this->getGeometry(), 1);
+    this->lattice->template defineDynamics<BounceBack>(this->getGeometry(), 2);
+    this->lattice->template defineDynamics<BounceBack>(this->getGeometry(), 3);
+
+    // Set initial conditions
+    this->lattice->defineRhoU(this->getGeometry(), 1, rhoF, uF);
+    this->lattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uF);
+
+    // Set lattice dynamics and initial condition for in- and outlets
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
+            setInterpolatedVelocityBoundary(this->getLattice(), omega, this->getGeometry(), key+3);
+        } else {
+            setInterpolatedPressureBoundary(this->getLattice(), omega, this->getGeometry(), key+3);
+        }
+    }
+}
+
+template<typename T>
+void lbmOocSimulator<T>::prepareAdLattice (const T adOmega, int speciesId) {
+
+    std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
+
+    // Initial conditions
+    std::vector<T> zeroVelocity(T(0), T(0));
+    olb::AnalyticalConst2D<T,T> rhoF(1);
+    olb::AnalyticalConst2D<T,T> rhoZero(0);
+    olb::AnalyticalConst2D<T,T> uZero(zeroVelocity);
+
+    // Set AD lattice dynamics
+    adLattice->template defineDynamics<NoADDynamics>(this->getGeometry(), 0);
+    adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 1);
+    adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 2);
+    adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), 3);
+
+    // Set initial conditions
+    adLattice->defineRhoU(this->getGeometry(), 0, rhoZero, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 0, rhoZero, uZero);
+    adLattice->defineRhoU(this->getGeometry(), 1, rhoF, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uZero);
+    adLattice->defineRhoU(this->getGeometry(), 2, rhoF, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 2, rhoF, uZero);
+    adLattice->defineRhoU(this->getGeometry(), 3, rhoF, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 3, rhoF, uZero);
+    
+    adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 0, uZero);
+    adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 1, uZero);
+    adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 2, uZero);
+    adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 3, uZero);
+
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), key+3);
+        adLattice->iniEquilibrium(this->getGeometry(), key+3, rhoF, uZero);
+        adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), key+3, uZero);
+    }
+
+    // Add wall boundary
+    olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, fluxWall.at(0), fluxWall.at(0));
+
+    // Add Tissue boundary
+    olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, &Vmax, tissue->getkM(speciesId));
+
+    adLattices.try_emplace(speciesId, adLattice);
+
+}
+
+template<typename T>
+void lbmOocSimulator<T>::initAdLattice(int adKey) {
+    const T adOmega = getAdConverter(adKey).getLatticeRelaxationFrequency();
+    getAdLattice(adKey).template setParameter<olb::descriptors::OMEGA>(adOmega);
+    getAdLattice(adKey).template setParameter<olb::collision::TRT::MAGIC>(1./12.);
+    getAdLattice(adKey).initialize();
+}
+
+template<typename T>
+void lbmOocSimulator<T>::initConcentrationIntegralPlane(int adKey) {
+
+    // Initialize the integral fluxes for the in- and outlets
+    for (auto& [key, Opening] : this->moduleOpenings) {
+
+        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
+        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+
+        std::vector<T> position = {posX, posY};
+        std::vector<int> materials = {1, key+3};
+
+        std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>  meanConcentration;
+        std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> concentration;
+        concentration = std::make_shared<olb::SuperPlaneIntegralFluxPressure2D<T>> (getAdLattice(adKey), getAdConverter(adKey), this->getGeometry(),
+            position, Opening.tangent, materials);
+        meanConcentration.try_emplace(adKey, concentration);
+        this->meanConcentrations.try_emplace(key, meanConcentration);
+    }
+}
 
 }   // namespace arch
