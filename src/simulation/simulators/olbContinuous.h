@@ -147,6 +147,26 @@ public:
     */
     void writeVTK(int iT);
 
+    void setOutputDir();
+    
+    virtual void initValueContainers();
+
+    void initNsConverter(T dynViscosity, T density);
+
+    void initNsConvergeTracker();
+
+    virtual void prepareNsLattice(const T omega);
+
+    void initPressureIntegralPlane();
+
+    void initFlowRateIntegralPlane();
+
+    void initNsLattice(const T omega);
+
+    void readGeometryStl(const bool print);
+
+    void readOpenings();
+
     /**
      * @brief Set the pressures at the nodes on the module boundary.
      * @param[in] pressure Map of pressures and node ids.
