@@ -94,7 +94,7 @@ namespace sim {
              * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
              * @param[in] iT Iteration step.
             */
-            void getResults();
+            void storeCfdResults();
 
             /**
              * @brief Set the pressures at the nodes on the module boundary.

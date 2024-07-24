@@ -107,8 +107,6 @@ public:
     */
     T getAlpha();
 
-    virtual void prepareCoupling() { };
-
     // fully virtual functions
 
     virtual void lbmInit(T dynViscosity, T density) = 0;
@@ -121,11 +119,11 @@ public:
     */
     virtual bool hasConverged() const = 0;
 
-    virtual void setPressures(std::unordered_map<int, T> pressure) = 0;
+    virtual void storePressures(std::unordered_map<int, T> pressure) = 0;
 
     virtual std::unordered_map<int, T> getPressures() const = 0;
 
-    virtual void setFlowRates(std::unordered_map<int, T> flowRate) = 0;
+    virtual void storeFlowRates(std::unordered_map<int, T> flowRate) = 0;
 
     virtual std::unordered_map<int, T> getFlowRates() const = 0;
 
@@ -139,7 +137,7 @@ public:
 
     virtual void writeVTK (int iT) {}; 
     
-    virtual void getResults (int iT) {}; 
+    virtual void storeCfdResults (int iT) {}; 
 
 };
 
