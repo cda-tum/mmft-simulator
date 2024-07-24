@@ -10,6 +10,7 @@
 #include "simulation/Simulation.hh"
 #include "simulation/simulators/cfdSimulator.hh"
 #include "simulation/simulators/olbContinuous.hh"
+#include "simulation/simulators/olbMixing.hh"
 #include "simulation/simulators/olbOoc.hh"
 #include "simulation/Specie.hh"
 #include "simulation/Tissue.hh"
@@ -40,4 +41,5 @@
 
 #ifdef USE_ESSLBM
     #include "simulation/simulators/essContinuous.hh"
+    #include "simulation/simulators/essMixing.hh"
 #endif

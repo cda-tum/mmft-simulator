@@ -15,6 +15,7 @@
 #include "simulation/Simulation.h"
 #include "simulation/simulators/cfdSimulator.h"
 #include "simulation/simulators/olbContinuous.h"
+#include "simulation/simulators/olbMixing.h"
 #include "simulation/simulators/olbOoc.h"
 #include "simulation/Specie.h"
 #include "simulation/Tissue.h"
@@ -46,5 +47,5 @@
 #include "result/Results.h"
 
 #ifdef USE_ESSLBM
-    #include "simulation/simulators/essContinuous.h"
+    #include "simulation/simulators/essMixing.h"
 #endif

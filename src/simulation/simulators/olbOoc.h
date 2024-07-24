@@ -1,5 +1,5 @@
 /**
- * @file olbContinuous.h
+ * @file olbOoc.h
  */
 
 #pragma once
@@ -36,7 +36,7 @@ class Tissue;
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmOocSimulator : public lbmSimulator<T> {
+class lbmOocSimulator : public lbmMixingSimulator<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
@@ -48,62 +48,20 @@ using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
 using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 private:
-    std::unordered_map<int, std::vector<T>> concentrations;   ///< Vector of concentration values at module nodes.
 
-    T adRelaxationTime;                         ///< Relaxation time (tau) for the OLB solver.
     std::shared_ptr<Tissue<T>> tissue;
     std::string organStlFile;                   ///< The STL file of the CFD domain.
 
     std::shared_ptr<olb::STLreader<T>> organStlReader;
     std::shared_ptr<olb::IndicatorF2DfromIndicatorF3D<T>> organStl2Dindicator;
 
-    std::unordered_map<int, std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>>> adLattices;      ///< The LBM lattice on the geometry.
-    std::unordered_map<int, std::unique_ptr<olb::util::ValueTracer<T>>> adConverges;            ///< Value tracer to track convergence.
-    std::unordered_map<int, std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T, ADDESCRIPTOR>>> adConverters;      ///< Object that stores conversion factors from phyical to lattice parameters.
-
-    std::unordered_map<int, T*> fluxWall;
-    T zeroFlux = 0.0;
     T Vmax;
-
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>>> concentrationProfiles;
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;       ///< Map of mean pressure values at module nodes.
-
-    auto& getAdConverter(int key) {
-        return *adConverters.at(key);
-    }
-
-    auto& getAdLattice(int key) {
-        return *adLattices.at(key);
-    }
-
-    void initValueContainers() override;
-
-    void initAdConverters(T density);
-
-    void initAdConvergenceTracker();
 
     void readOrganStl();
 
     void prepareNsLattice(const T omega) override;
 
     void prepareAdLattice(const T omega, int speciesId);
-
-    void initConcentrationIntegralPlane(int adKey);
-
-    void initAdLattice(int adKey);
-
-    /**
-     * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
-    */
-    void prepareCoupling();
-
-    void setConcentration2D(int key);
-
-    /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    void storeCfdResults(int iT);
 
 public:
     /**
@@ -123,7 +81,7 @@ public:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
     lbmOocSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<Tissue<T>> tissue, std::string organStlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
-        std::unordered_map<int, arch::Opening<T>> openings, ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, 
+        std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, arch::Opening<T>> openings, ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, 
         T alpha, T resolution, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 
     /**
@@ -144,29 +102,10 @@ public:
     void prepareLattice() override;
 
     /**
-     * @brief Set the boundary values on the lattice at the module nodes.
-     * @param[in] iT Iteration step.
-    */
-    void setBoundaryValues(int iT) override;
-
-    /**
-     * @brief Conducts the collide and stream operations of the lattice.
-    */
-    void solve();
-
-    /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
     void writeVTK(int iT);
-
-    /**
-     * @brief Returns whether the module has converged or not.
-     * @returns Boolean for module convergence.
-    */
-    bool hasAdConverged(int key) const {
-        return adConverges.at(key)->hasConverged();
-    };
 
 };
 
