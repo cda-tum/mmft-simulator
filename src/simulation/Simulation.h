@@ -68,6 +68,9 @@ template<typename T>
 class lbmSimulator;
 
 template<typename T>
+class lbmMixingSimulator;
+
+template<typename T>
 class lbmOocSimulator;
 
 template<typename T>
@@ -324,7 +327,25 @@ public:
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, 
+    lbmMixingSimulator<T>* addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+
+
+    /**
+     * @brief Adds a new module to the network.
+     * @param[in] name Name of the module.
+     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+     * @param[in] module Shared pointer to the module on which this solver acts.
+     * @param[in] openings Map of openings corresponding to the nodes.
+     * @param[in] charPhysLength Characteristic physical length of this simulator.
+     * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
+     * @param[in] alpha Relaxation parameter for this simulator.
+     * @param[in] resolution Resolution of this simulator.
+     * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
+     * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
+     * @return Pointer to the newly created module.
+    */
+    lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
                                             std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
