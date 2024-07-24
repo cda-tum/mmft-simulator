@@ -86,85 +86,27 @@ void lbmOocSimulator<T>::prepareLattice () {
     }
 
     std::cout << "[lbmSimulator] prepare lattice " << this->name << "... OK" << std::endl;
-}
 
-template<typename T>
-void lbmOocSimulator<T>::prepareCoupling() {
-    
-    std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLatticesVec;
-    std::vector<T> velFactors;
-    for (auto& [speciesId, adLattice] : adLattices) {
-        adLatticesVec.emplace_back(adLattices[speciesId].get());
-        //velFactors.emplace_back(this->converter->getConversionFactorVelocity() / this->adConverters[speciesId]->getConversionFactorVelocity());
-        velFactors.emplace_back(1.0);
-    }
-    olb::NavierStokesAdvectionDiffusionSingleCouplingGenerator2D<T,DESCRIPTOR> coupling(0, this->converter->getLatticeLength(this->cfdModule->getSize()[0]), 0, this->converter->getLatticeLength(this->cfdModule->getSize()[1]), velFactors);
-    this->lattice->addLatticeCoupling(coupling, adLatticesVec);
+    prepareCoupling();
+
     std::cout << "[lbmSimulator] prepare coupling " << this->name << "... OK" << std::endl;
 }
 
 template<typename T>
 void lbmOocSimulator<T>::setBoundaryValues (int iT) {
 
-    T pressureLow = -1.0;       
-    for (auto& [key, pressure] : this->pressures) {
-        if ( pressureLow < 0.0 ) {
-            pressureLow = pressure;
-        }
-        if ( pressure < pressureLow ) {
-            pressureLow = pressure;
-        }
-    }
-
     for (auto& [key, Opening] : this->moduleOpenings) {
         if (this->groundNodes.at(key)) {
-            T maxVelocity = (3./2.)*(this->flowRates[key]/(Opening.width));
-            T distance2Wall = this->getConverter().getConversionFactorLength()/2.;
-            this->flowProfiles.at(key) = std::make_shared<olb::Poiseuille2D<T>>(this->getGeometry(), key+3, this->getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
-            this->getLattice().defineU(this->getGeometry(), key+3, *this->flowProfiles.at(key));
+            this->setFlowProfile2D(key, Opening.width);
         } else {
-            T rhoV = this->getConverter().getLatticeDensityFromPhysPressure((this->pressures[key]));
-            this->densities.at(key) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
-            this->getLattice().defineRho(this->getGeometry(), key+3, *this->densities.at(key));
+            this->setPressure2D(key);
         }
-    }
-
-    std::set<int> inflowNodes;
-    std::set<int> outflowNodes;
-
-    // Check In-/Outflow
-    for (auto& [key, Opening] : this->moduleOpenings) {
-        if (this->flowRates.at(key) >= 0.0) {
-            inflowNodes.emplace(key);
-        } else if (this->flowRates.at(key) < 0.0) {
-            outflowNodes.emplace(key);
-        }
-    }
-    
-    // Set Boundary Concentrations
-    for (auto& [key, Opening] : this->moduleOpenings) {
-        if (inflowNodes.count(key)) {
-            for (auto& [speciesId, adLattice] : adLattices) {
-                olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
-                olb::AnalyticalConst2D<T,T> one( 1. );
-                olb::AnalyticalConst2D<T,T> inConc(0.1);
-                //olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
-                adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
-            }
-        } else if (outflowNodes.count(key)) {
-            for (auto& [speciesId, adLattice] : adLattices) {
-                olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
-            }
-        } else {
-            std::cerr << "Error: Invalid Flow Type Boundary Node." << std::endl;
-            exit(1);
-        }
-    }
-    
+        setConcentration2D(key);
+    }    
 }
 
 template<typename T>
-void lbmOocSimulator<T>::getResults (int iT) {
+void lbmOocSimulator<T>::storeCfdResults (int iT) {
     int input[1] = { };
     T output[10];
     
@@ -173,22 +115,12 @@ void lbmOocSimulator<T>::getResults (int iT) {
             this->meanPressures.at(key)->operator()(output, input);
             T newPressure =  output[0]/output[1];
             this->pressures.at(key) = newPressure;
-            if (iT % 1000 == 0) {
-                #ifdef VERBOSE
-                    this->meanPressures.at(key)->print();
-                #endif
-            }
         } else {
             this->fluxes.at(key)->operator()(output,input);
             this->flowRates.at(key) = output[0];
-            if (iT % 1000 == 0) {
-                #ifdef VERBOSE
-                    this->fluxes.at(key)->print();
-                #endif
-            }
         }
     }
-    /*
+    
     for (auto& [key, Opening] : this->moduleOpenings) {
         // If the node is an outflow, write the concentration value
         if (this->flowRates.at(key) < 0.0) {
@@ -201,7 +133,7 @@ void lbmOocSimulator<T>::getResults (int iT) {
             }
         }
     }
-    */
+    
 }
 
 template<typename T>
@@ -262,17 +194,17 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
 template<typename T>
 void lbmOocSimulator<T>::solve() {
     // theta = 10
+    this->setBoundaryValues(this->step);
     for (int iT = 0; iT < 10; ++iT){
-        this->setBoundaryValues(this->step);
-        writeVTK(this->step);
         this->lattice->collideAndStream();
+        this->lattice->executeCoupling();
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
         }
+        writeVTK(this->step);
         this->step += 1;
     }
-    this->lattice->executeCoupling();
-    getResults(this->step);
+    storeCfdResults(this->step);
 }
 
 template<typename T>
@@ -426,6 +358,45 @@ void lbmOocSimulator<T>::initConcentrationIntegralPlane(int adKey) {
             position, Opening.tangent, materials);
         meanConcentration.try_emplace(adKey, concentration);
         this->meanConcentrations.try_emplace(key, meanConcentration);
+    }
+}
+
+template<typename T>
+void lbmOocSimulator<T>::prepareCoupling() {
+    
+    std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLatticesVec;
+    std::vector<T> velFactors;
+    for (auto& [speciesId, adLattice] : adLattices) {
+        adLatticesVec.emplace_back(adLattices[speciesId].get());
+        //velFactors.emplace_back(this->converter->getConversionFactorVelocity() / this->adConverters[speciesId]->getConversionFactorVelocity());
+        velFactors.emplace_back(1.0);
+    }
+    olb::NavierStokesAdvectionDiffusionSingleCouplingGenerator2D<T,DESCRIPTOR> coupling(0, this->converter->getLatticeLength(this->cfdModule->getSize()[0]), 0, this->converter->getLatticeLength(this->cfdModule->getSize()[1]), velFactors);
+    this->lattice->addLatticeCoupling(coupling, adLatticesVec);
+}
+
+template<typename T>
+void lbmOocSimulator<T>::setConcentration2D (int key) {
+    // Set the boundary concentrations for inflows and outflows
+    // If the boundary is an inflow
+    if (this->flowRates.at(key) >= 0.0) {
+        for (auto& [speciesId, adLattice] : adLattices) {
+            olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
+            olb::AnalyticalConst2D<T,T> one( 1. );
+            olb::AnalyticalConst2D<T,T> inConc(0.1);
+            //olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
+            adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
+        }
+    }
+    // If the boundary is an outflow
+    else if (this->flowRates.at(key) < 0.0) {
+        for (auto& [speciesId, adLattice] : adLattices) {
+            olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
+        }
+    }
+    else {
+        std::cerr << "Error: Invalid Flow Type Boundary Node." << std::endl;
+        exit(1);
     }
 }
 
