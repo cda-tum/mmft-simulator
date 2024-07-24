@@ -20,4 +20,10 @@ class CFDSimulator;
     template<typename T>
     bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators, int iteration);
 
+    template<typename T>
+    void coupleNsAdResults(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
+
+    template<typename T>
+    bool conductADSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
+
 }   // namespace sim

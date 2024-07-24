@@ -36,9 +36,9 @@ namespace sim{
     template<typename T>
     void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
     {
+
         std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
         const auto& allNodes = this->moduleNetwork->getNodes();
-
         std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
 

@@ -260,6 +260,7 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
             T tau = simulator["tau"];
             int moduleId = simulator["moduleId"];
             std::unordered_map<int, arch::Opening<T>> Openings;
+            std::cout << "The type is: " << simulator["Type"] << std::endl;
             for (auto& opening : simulator["Openings"]) {
                 int nodeId = opening["node"];
                 std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
@@ -272,12 +273,26 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
+            else if (simulator["Type"] == "Mixing")
+            {
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
+                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+            }
             else if (simulator["Type"] == "Organ")
             {
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
                 std::string organStlFile = simulator["organStlFile"];
                 int tissueId = simulator["tissue"];
-                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), Openings, 
-                                                            charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")
