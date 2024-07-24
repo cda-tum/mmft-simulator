@@ -383,8 +383,7 @@ void lbmOocSimulator<T>::setConcentration2D (int key) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
             olb::AnalyticalConst2D<T,T> one( 1. );
-            olb::AnalyticalConst2D<T,T> inConc(0.1);
-            //olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
+            olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
             adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
         }
     }
