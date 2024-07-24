@@ -65,54 +65,11 @@ void lbmSimulator<T>::prepareLattice () {
 template<typename T>
 void lbmSimulator<T>::setBoundaryValues (int iT) {
 
-    T pressureLow = -1.0;       
-    for (auto& [key, pressure] : pressures) {
-        if ( pressureLow < 0.0 ) {
-            pressureLow = pressure;
-        }
-        if ( pressure < pressureLow ) {
-            pressureLow = pressure;
-        }
-    }
-
     for (auto& [key, Opening] : this->moduleOpenings) {
         if (this->groundNodes.at(key)) {
-            T maxVelocity = (3./2.)*(flowRates[key]/(Opening.width));
-            T distance2Wall = getConverter().getConversionFactorLength()/2.;
-            this->flowProfiles.at(key) = std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), key+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
-            getLattice().defineU(getGeometry(), key+3, *this->flowProfiles.at(key));
+            setFlowProfile2D(key, Opening.width);
         } else {
-            T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[key]));
-            this->densities.at(key) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
-            getLattice().defineRho(getGeometry(), key+3, *this->densities.at(key));
-        }
-    }
-
-}
-
-template<typename T>
-void lbmSimulator<T>::getResults (int iT) {
-    int input[1] = { };
-    T output[10];
-    
-    for (auto& [key, Opening] : this->moduleOpenings) {
-        if (this->groundNodes.at(key)) {
-            meanPressures.at(key)->operator()(output, input);
-            T newPressure =  output[0]/output[1];
-            pressures.at(key) = newPressure;
-            if (iT % 1000 == 0) {
-                #ifdef VERBOSE
-                    meanPressures.at(key)->print();
-                #endif
-            }
-        } else {
-            fluxes.at(key)->operator()(output,input);
-            flowRates.at(key) = output[0];
-            if (iT % 1000 == 0) {
-                #ifdef VERBOSE
-                    fluxes.at(key)->print();
-                #endif
-            }
+            setPressure2D(key);
         }
     }
 }
@@ -151,6 +108,13 @@ void lbmSimulator<T>::writeVTK (int iT) {
     if (iT %1000 == 0) {
         #ifdef VERBOSE
             std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
+            for (auto& [key, Opening] : this->moduleOpenings) {
+                if (this->groundNodes.at(key)) {
+                    meanPressures.at(key)->print();
+                } else {
+                    fluxes.at(key)->print();
+                }
+            } 
         #endif
     }
 
@@ -158,7 +122,7 @@ void lbmSimulator<T>::writeVTK (int iT) {
 
     if (iT%100 == 0) {
         if (converge->hasConverged()) {
-                isConverged = true;
+            isConverged = true;
         }
     }
 
@@ -167,13 +131,13 @@ void lbmSimulator<T>::writeVTK (int iT) {
 template<typename T>
 void lbmSimulator<T>::solve() {
     // theta = 10
-    for (int iT = 0; iT < 10; ++iT){      
-        this->setBoundaryValues(step);
-        writeVTK(step);          
+    this->setBoundaryValues(step);
+    for (int iT = 0; iT < 10; ++iT){                
         lattice->collideAndStream();
+        writeVTK(step);
         step += 1;
     }
-    getResults(step);
+    storeCfdResults(step);
 }
 
 template<typename T>
@@ -379,13 +343,45 @@ void lbmSimulator<T>::readOpenings () {
 }
 
 template<typename T>
-void lbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_) {
+void lbmSimulator<T>::storePressures(std::unordered_map<int, T> pressure_) {
     this->pressures = pressure_;
 }
 
 template<typename T>
-void lbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_) {
+void lbmSimulator<T>::storeFlowRates(std::unordered_map<int, T> flowRate_) {
     this->flowRates = flowRate_;
+}
+
+template<typename T>
+void lbmSimulator<T>::setFlowProfile2D (int openingKey, T openingWidth)  {
+    T maxVelocity = (3./2.)*(flowRates[openingKey]/(openingWidth));
+    T distance2Wall = getConverter().getConversionFactorLength()/2.;
+    this->flowProfiles.at(openingKey) = std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), openingKey+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
+    getLattice().defineU(getGeometry(), openingKey+3, *this->flowProfiles.at(openingKey));
+}
+
+template<typename T>
+void lbmSimulator<T>::setPressure2D (int openingKey)  {
+    T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[openingKey]));
+    this->densities.at(openingKey) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
+    getLattice().defineRho(getGeometry(), openingKey+3, *this->densities.at(openingKey));
+}
+
+template<typename T>
+void lbmSimulator<T>::storeCfdResults (int iT) {
+    int input[1] = { };
+    T output[10];
+    
+    for (auto& [key, Opening] : this->moduleOpenings) {
+        if (this->groundNodes.at(key)) {
+            meanPressures.at(key)->operator()(output, input);
+            T newPressure =  output[0]/output[1];
+            pressures.at(key) = newPressure;
+        } else {
+            fluxes.at(key)->operator()(output,input);
+            flowRates.at(key) = output[0];
+        }
+    }
 }
 
 }   // namespace arch

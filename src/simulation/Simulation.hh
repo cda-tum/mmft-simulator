@@ -826,7 +826,6 @@ namespace sim {
             for (auto& [key, cfdSimulator] : cfdSimulators) {
                 cfdSimulator->prepareGeometry();
                 cfdSimulator->prepareLattice();
-                cfdSimulator->prepareCoupling();
             }
         }
     }

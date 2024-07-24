@@ -87,6 +87,36 @@ protected:
         return *lattice;
     }
 
+    void setOutputDir();
+    
+    virtual void initValueContainers();
+
+    void initNsConverter(T dynViscosity, T density);
+
+    void initNsConvergeTracker();
+
+    virtual void prepareNsLattice(const T omega);
+
+    void initPressureIntegralPlane();
+
+    void initFlowRateIntegralPlane();
+
+    void initNsLattice(const T omega);
+
+    void readGeometryStl(const bool print);
+
+    void readOpenings();
+
+    void setFlowProfile2D(int key, T openingWidth);
+
+    void setPressure2D(int key);
+
+    /**
+     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
+     * @param[in] iT Iteration step.
+    */
+    void storeCfdResults(int iT);
+
 public:
     /**
      * @brief Constructor of an lbm module.
@@ -136,48 +166,22 @@ public:
     void solve();
 
     /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    void getResults(int iT);
-
-    /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
     void writeVTK(int iT);
 
-    void setOutputDir();
-    
-    virtual void initValueContainers();
-
-    void initNsConverter(T dynViscosity, T density);
-
-    void initNsConvergeTracker();
-
-    virtual void prepareNsLattice(const T omega);
-
-    void initPressureIntegralPlane();
-
-    void initFlowRateIntegralPlane();
-
-    void initNsLattice(const T omega);
-
-    void readGeometryStl(const bool print);
-
-    void readOpenings();
-
     /**
-     * @brief Set the pressures at the nodes on the module boundary.
+     * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
-    void setPressures(std::unordered_map<int, T> pressure);
+    void storePressures(std::unordered_map<int, T> pressure);
 
     /**
-     * @brief Set the flow rates at the nodes on the module boundary.
+     * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
      * @param[in] flowRate Map of flow rates and node ids.
      */
-    void setFlowRates(std::unordered_map<int, T> flowRate);
+    void storeFlowRates(std::unordered_map<int, T> flowRate);
 
     /**
      * @brief Get the pressures at the boundary nodes.

@@ -76,6 +76,35 @@ private:
         return *adLattices.at(key);
     }
 
+    void initValueContainers() override;
+
+    void initAdConverters(T density);
+
+    void initAdConvergenceTracker();
+
+    void readOrganStl();
+
+    void prepareNsLattice(const T omega) override;
+
+    void prepareAdLattice(const T omega, int speciesId);
+
+    void initConcentrationIntegralPlane(int adKey);
+
+    void initAdLattice(int adKey);
+
+    /**
+     * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
+    */
+    void prepareCoupling();
+
+    void setConcentration2D(int key);
+
+    /**
+     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
+     * @param[in] iT Iteration step.
+    */
+    void storeCfdResults(int iT);
+
 public:
     /**
      * @brief Constructor of an lbm module.
@@ -115,11 +144,6 @@ public:
     void prepareLattice() override;
 
     /**
-     * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
-    */
-    void prepareCoupling() override;
-
-    /**
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
@@ -129,29 +153,6 @@ public:
      * @brief Conducts the collide and stream operations of the lattice.
     */
     void solve();
-
-    void initValueContainers() override;
-
-    void initAdConverters(T density);
-
-    void initAdConvergenceTracker();
-
-    void readOrganStl();
-
-    void prepareNsLattice(const T omega) override;
-
-    void prepareAdLattice(const T omega, int speciesId);
-
-    void initConcentrationIntegralPlane(int adKey);
-
-    void initAdLattice(int adKey);
-
-
-    /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    void getResults(int iT);
 
     /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
