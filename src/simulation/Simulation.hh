@@ -408,6 +408,21 @@ namespace sim {
     }
 
     template<typename T>
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& Simulation<T>::getMixtureInjections() {
+        return mixtureInjections;
+    }
+
+    template<typename T>
+    CFDSimulator<T>* Simulation<T>::getCFDSimulator(int simulatorId) {
+        return cfdSimulators.at(simulatorId).get();
+    }
+
+    template<typename T>
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& Simulation<T>::getCFDSimulators() {
+        return cfdSimulators;
+    }
+
+    template<typename T>
     Fluid<T>* Simulation<T>::getContinuousPhase() {
         return fluids[continuousPhase].get();
     }
@@ -590,9 +605,7 @@ namespace sim {
             bool concentrationConverged = false;
             while (!concentrationConverged) {
                 concentrationConverged = conductADSimulation(cfdSimulators);
-                calculateNewMixtures(timestep);
-                this->mixingModel->updateNodeInflow(timestep, network);
-                updateCfdInfow(cfdSimulators);
+                this->mixingModel->propagateSpecies(network, this);
             }
         }
 
