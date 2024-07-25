@@ -44,7 +44,7 @@ using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
 using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 protected:
-    std::unordered_map<int, std::vector<T>> concentrations;   ///< Vector of concentration values at module nodes.
+    std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
 
     T adRelaxationTime;                         ///< Relaxation time (tau) for the OLB solver.
 
@@ -84,6 +84,11 @@ protected:
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
     */
     void prepareCoupling();
+
+    /**
+     * @brief Execute the coupling placed onto the NS lattice.
+    */
+    void executeCoupling() override;
 
     void setConcentration2D(int key);
 
@@ -138,10 +143,32 @@ public:
     void solve() override;
 
     /**
+     * @brief Conducts the collide and stream operations of the NS lattice.
+    */
+    void nsSolve() override;
+
+    /**
+     * @brief Conducts the collide and stream operations of the AD lattice(s).
+    */
+    void adSolve() override;
+
+    /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
     void writeVTK(int iT) override;
+
+    /**
+     * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
+     * @param[in] concentrations Map of concentrations and node ids.
+     */
+    void storeConcentrations(std::unordered_map<int, std::vector<T>> concentrations) override;
+
+    /**
+     * @brief Get the concentrations at the boundary nodes.
+     * @returns Concentrations
+     */
+    std::unordered_map<int, std::vector<T>> getConcentrations() const override;
 
     /**
      * @brief Returns whether the module has converged or not.

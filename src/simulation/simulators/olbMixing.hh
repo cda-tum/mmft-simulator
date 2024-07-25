@@ -188,6 +188,38 @@ void lbmMixingSimulator<T>::solve() {
 }
 
 template<typename T>
+void lbmMixingSimulator<T>::executeCoupling() {
+    this->lattice->executeCoupling();
+}
+
+
+template<typename T>
+void lbmMixingSimulator<T>::nsSolve() {
+    // theta = 10
+    this->setBoundaryValues(this->step);
+    for (int iT = 0; iT < 10; ++iT){
+        this->lattice->collideAndStream();
+        writeVTK(this->step);
+        this->step += 1;
+    }
+    storeCfdResults(this->step);
+}
+
+template<typename T>
+void lbmMixingSimulator<T>::adSolve() {
+    // theta = 10
+    this->setBoundaryValues(this->step);
+    for (int iT = 0; iT < 100; ++iT){
+        for (auto& [speciesId, adLattice] : adLattices) {
+            adLattice->collideAndStream();
+        }
+        writeVTK(this->step);
+        this->step += 1;
+    }
+    storeCfdResults(this->step);
+}
+
+template<typename T>
 void lbmMixingSimulator<T>::initValueContainers () {
     // Initialize pressure, flowRate and concentration value-containers
     for (auto& [key, node] : this->moduleOpenings) {
@@ -330,6 +362,16 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
         std::cerr << "Error: Invalid Flow Type Boundary Node." << std::endl;
         exit(1);
     }
+}
+
+template<typename T>
+void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::vector<T>> concentrations_) {
+    this->concentrations = concentrations_;
+}
+
+template<typename T>
+std::unordered_map<int, std::vector<T>> lbmMixingSimulator<T>::getConcentrations() const {
+    return this->concentrations;
 }
 
 }   // namespace arch

@@ -491,6 +491,25 @@ public:
     MixtureInjection<T>* getMixtureInjection(int injectionId);
 
     /**
+     * @brief Get injection
+     * @return Reference to the unordered map of MixtureInjections
+     */
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getMixtureInjections();
+
+    /**
+     * @brief Get injection
+     * @param simulatorId The id of the injection
+     * @return Pointer to injection with the corresponding id.
+     */
+    CFDSimulator<T>* getCFDSimulator(int simulatorId);
+
+    /**
+     * @brief Get injection
+     * @return Reference to the unordered map of MixtureInjections
+     */
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& getCFDSimulators();
+
+    /**
      * @brief Get the continuous phase.
      * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
      */
