@@ -45,6 +45,11 @@ protected:
 
     T alpha;                                ///< Relaxation factor for convergence between 1D and CFD simulation.
 
+    /**
+     * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
+    */
+    virtual void executeCoupling() { };
+
 public:
 
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, T alpha, ResistanceModel<T>* ResistanceModel);
@@ -127,6 +132,10 @@ public:
 
     virtual std::unordered_map<int, T> getFlowRates() const = 0;
 
+    virtual void storeConcentrations(std::unordered_map<int, std::vector<T>> concentrations) { }
+
+    virtual std::unordered_map<int, std::vector<T>> getConcentrations() const { return std::unordered_map<int, std::vector<T>>(); }
+
     virtual void setBoundaryValues(int iT) = 0;
 
     // virtual functions
@@ -135,9 +144,21 @@ public:
 
     virtual void prepareLattice() {}
 
-    virtual void writeVTK (int iT) {}; 
+    /**
+     * @brief Conducts the collide and stream operations of the NS lattice.
+    */
+    virtual void nsSolve() {}
+
+    /**
+     * @brief Conducts the collide and stream operations of the AD lattice(s).
+    */
+    virtual void adSolve() {}
+
+    virtual void writeVTK (int iT) {}
     
-    virtual void storeCfdResults (int iT) {}; 
+    virtual void storeCfdResults (int iT) {}
+
+    friend void coupleNsAdResults<T>(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
 
 };
 
