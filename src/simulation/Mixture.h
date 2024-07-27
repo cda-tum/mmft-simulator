@@ -90,6 +90,8 @@ public:
      */
     Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, Fluid<T>* carrierFluid);
 
+    bool operator== (const Mixture<T> &t);
+
     /**
      * @brief Get the id of this mixture
      * @return Unique identifier of the mixture.

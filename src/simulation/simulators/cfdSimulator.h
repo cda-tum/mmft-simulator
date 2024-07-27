@@ -132,9 +132,9 @@ public:
 
     virtual std::unordered_map<int, T> getFlowRates() const = 0;
 
-    virtual void storeConcentrations(std::unordered_map<int, std::vector<T>> concentrations) { }
+    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) { }
 
-    virtual std::unordered_map<int, std::vector<T>> getConcentrations() const { return std::unordered_map<int, std::vector<T>>(); }
+    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const { return std::unordered_map<int, std::unordered_map<int, T>>(); }
 
     virtual void setBoundaryValues(int iT) = 0;
 
