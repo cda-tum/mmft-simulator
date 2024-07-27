@@ -162,13 +162,13 @@ public:
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
      * @param[in] concentrations Map of concentrations and node ids.
      */
-    void storeConcentrations(std::unordered_map<int, std::vector<T>> concentrations) override;
+    void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) override;
 
     /**
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
-    std::unordered_map<int, std::vector<T>> getConcentrations() const override;
+    std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const override;
 
     /**
      * @brief Returns whether the module has converged or not.

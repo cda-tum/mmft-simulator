@@ -604,7 +604,9 @@ namespace sim {
             // Obtain overal steady-state concentration results
             bool concentrationConverged = false;
             while (!concentrationConverged) {
+                std::cout << "[Simulation] Conducting AD solve" << std::endl;
                 concentrationConverged = conductADSimulation(cfdSimulators);
+                std::cout << "[Simulation] Propagating Species" << std::endl;
                 this->mixingModel->propagateSpecies(network, this);
             }
         }

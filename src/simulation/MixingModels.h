@@ -213,6 +213,11 @@ public:
     void clean(arch::Network<T>* network);
 
     /**
+     * @brief Propagate all the species through a network for a steady-state simulation
+     */
+    void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
+
+    /**
      * @brief From the mixtureInjections and CFD simulators, generate temporary mxtures that 
      * flow into the network at correspondingnode entry points.
      * @param[in] sim Pointer to the simulation.
@@ -220,21 +225,16 @@ public:
     void initNodeOutflow(Simulation<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
     /**
-     * @brief Propagate all the species through a network for a steady-state simulation
+     * @brief Propagate the mixtures through the corresponding channel entirely, without considering time steps
      */
-    void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
+    void channelPropagation(arch::Network<T>* network);
 
     /**
      * @brief From the node's inflows, generate the node outflow
      */
-    void updateNodeInflow(arch::Network<T>* network);
+    bool updateNodeOutflow(Simulation<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
-    /**
-     * @brief Propagate the mixtures through the corresponding channel entirely, without considering time steps
-     */
-    bool channelPropagation(arch::Network<T>* network);
-
-    void storeConcentrations(Simulation<T>* sim);
+    void storeConcentrations(Simulation<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
 
     /**
      * @brief Print all mixtures and their positions in the network.
