@@ -174,7 +174,7 @@
             "mixtureInjections": [
                 {
                     "mixture": 0,
-                    "channel": 1,
+                    "channel": 4,
                     "t0": 0.0
                 }
             ]

@@ -190,6 +190,7 @@ void lbmMixingSimulator<T>::solve() {
 template<typename T>
 void lbmMixingSimulator<T>::executeCoupling() {
     this->lattice->executeCoupling();
+    std::cout << "[lbmSimulator] Execute NS-AD coupling " << this->name << "... OK" << std::endl;
 }
 
 
@@ -225,7 +226,11 @@ void lbmMixingSimulator<T>::initValueContainers () {
     for (auto& [key, node] : this->moduleOpenings) {
         this->pressures.try_emplace(key, (T) 0.0);
         this->flowRates.try_emplace(key, (T) 0.0);
-        this->concentrations.try_emplace(key, std::vector<T>(species.size(), 0.0));
+        std::unordered_map<int, T> tmpConcentrations;
+        for (auto& [speciesId, speciesPtr] : species) {
+            tmpConcentrations.try_emplace(speciesId, 0.0);
+        }
+        this->concentrations.try_emplace(key, tmpConcentrations);
     }
 }
 
@@ -365,12 +370,12 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::vector<T>> concentrations_) {
+void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations_) {
     this->concentrations = concentrations_;
 }
 
 template<typename T>
-std::unordered_map<int, std::vector<T>> lbmMixingSimulator<T>::getConcentrations() const {
+std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
 }
 

@@ -22,6 +22,17 @@ Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::un
                     largestMolecularSize(0.0) { }
 
 template<typename T>
+bool Mixture<T>::operator== (const Mixture<T> &t) {
+    if (species == t.species && 
+        specieConcentrations == t.specieConcentrations && 
+        viscosity == t.viscosity &&
+        density == t.density) { 
+        return true; 
+    }
+    return false;
+}
+
+template<typename T>
 int Mixture<T>::getId() const {
     return id;
 }
