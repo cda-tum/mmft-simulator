@@ -390,6 +390,7 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
 
     // Set the pressures and flow rates on the boundary nodes of the modules
     for (auto& cfdSimulator : cfdSimulators) {
+        T dt = 4.16667e-7;
         std::unordered_map<int, T> old_pressures = cfdSimulator.second->getPressures();
         std::unordered_map<int, T> old_flowrates = cfdSimulator.second->getFlowRates();
         std::unordered_map<int, T> pressures_ = cfdSimulator.second->getPressures();
@@ -397,11 +398,18 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
         for (auto& [key, node] : cfdSimulator.second->getModule()->getNodes()){
             // Communicate pressure to the module
             if (contains(conductingNodeIds, key)) {
+                int nodeId = key;
                 T old_pressure = old_pressures.at(key);
                 T new_pressure = node->getPressure();
                 T set_pressure = 0.0;
+                T dp_dt = 1000;
+                if (nodalError.count(key) && nodalError.at(nodeId).size() > 2) {
+                    dp_dt = (std::abs(nodalError.at(nodeId)[nodalError.at(nodeId).size() - 1] - nodalError.at(nodeId)[nodalError.at(nodeId).size() - 2]) / dt) + 1e-12;
+                }
                 if (old_pressure > 0 ) {
-                    set_pressure = old_pressure + cfdSimulator.second->getAlpha() * ( new_pressure - old_pressure );
+                    T relaxation = std::min(cfdSimulator.second->getAlpha()*(1.0/dp_dt), 0.0005);
+                    std::cout << "relaxation = " << relaxation << std::endl;
+                    set_pressure = old_pressure + ( new_pressure - old_pressure ) * relaxation;
                 } else {
                     set_pressure = new_pressure;
                 }
@@ -413,11 +421,18 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
             }
             // Communicate the flow rate to the module
             else if (contains(groundNodeIds, key)) {
+                int nodeId = key;
                 T old_flowRate = old_flowrates.at(key) ;
                 T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getOpenings().at(key).width;
                 T set_flowRate = 0.0;
+                T dp_dt = 1000;
+                if (nodalError.count(key) && nodalError.at(nodeId).size() > 2) {
+                    dp_dt = (std::abs(nodalError.at(nodeId)[nodalError.at(nodeId).size() - 1] - nodalError.at(nodeId)[nodalError.at(nodeId).size() - 2]) / dt) + 1e-12;
+                }
                 if (old_flowRate > 0 ) {
-                    set_flowRate = old_flowRate + 5 * cfdSimulator.second->getAlpha() *  ( new_flowRate - old_flowRate );
+                    T relaxation = std::min(cfdSimulator.second->getAlpha()*(1.0/dp_dt), 0.0005);
+                    std::cout << "relaxation = " << relaxation << std::endl;
+                    set_flowRate = old_flowRate + 5 * ( new_flowRate - old_flowRate ) * relaxation;
                 } else {
                     set_flowRate = new_flowRate;
                 }
@@ -475,8 +490,10 @@ void NodalAnalysis<T>::writeNorms() {
     std::ofstream outputFile;
     outputFile.open(outputFileName); // TODO maybe define this inside of the loop
     // Write the header to the CSV file TODO adapt this to fit the specific mixture
-    outputFile << "i,x_L1,x_L2,x_L_inf,z_L1,z_L2,z_L_inf,dL2x_dt\n";
+    //outputFile << "i,x_L1,x_L2,x_L_inf,z_L1,z_L2,z_L_inf,dL2x_dt\n";
+    outputFile << "i,n2,n8,n9,n4,n10,n11,n5,n12,n13,n7,n14,n15,sim0L2,sim1L2,sim2L2,sim3L2,x_L2\n";
     // Calculate and write the values to the file
+    /*
     while(i < minimum) {
         outputFile << i << ",";
         outputFile << std::setprecision(4) << L1_Error_x.at(i) << ",";
@@ -487,11 +504,33 @@ void NodalAnalysis<T>::writeNorms() {
         outputFile << std::setprecision(4) << L_inf_Error_z.at(i) << ",";
         outputFile << std::setprecision(4) << dL2_Error_x_dt.at(i) << "\n";
         i++;
+    }*/
+    while(i < minimum) {
+        outputFile << i << ",";
+        outputFile << std::setprecision(4) << nodalError[2].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[8].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[9].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[4].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[10].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[11].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[5].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[12].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[13].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[7].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[14].at(i) << ",";
+        outputFile << std::setprecision(4) << nodalError[15].at(i) << ",";
+        outputFile << std::setprecision(4) << simL2Error[0].at(i) << ",";
+        outputFile << std::setprecision(4) << simL2Error[1].at(i) << ",";
+        outputFile << std::setprecision(4) << simL2Error[2].at(i) << ",";
+        outputFile << std::setprecision(4) << simL2Error[3].at(i) << ",";
+        outputFile << std::setprecision(4) << L2_Error_x.at(i) << "\n";
+        i++;
     }
     // Close the file
     outputFile.close();
     
     std::cout << "CSV file has been generated " << std::endl;
+
 }
 
 template<typename T>

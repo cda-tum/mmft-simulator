@@ -13,6 +13,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Eigen/Dense"
+
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
 namespace arch {
 
 // Forward declared dependencies
@@ -176,6 +181,8 @@ private:
      * @brief Store the mixtures in this simulation in simulationResult.
     */
     void saveMixtures();
+
+    void storeErrors();
 
 public:
     /**

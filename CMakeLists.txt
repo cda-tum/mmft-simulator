@@ -47,6 +47,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
+find_package(benchmark REQUIRED)
+
 option(USE_ESSLBM "USE_ESSLBM" OFF)
 if(USE_ESSLBM)
     ADD_DEFINITIONS(-DUSE_ESSLBM)
@@ -128,6 +130,7 @@ add_executable(MMFTSim)
 target_sources(MMFTSim PUBLIC src/main.cpp)
 target_link_libraries(MMFTSim PUBLIC ${TARGET_NAME})
 
+
 if(USE_ESSLBM)
     target_link_libraries(MMFTSim PUBLIC ESS::ESSLbm)
 endif()
@@ -153,4 +156,13 @@ if(TEST)
     target_link_libraries(simulatorTest PUBLIC gtest simLib)
     target_link_libraries(simulatorTest PUBLIC gtest testLib)
     gtest_discover_tests(simulatorTest)
+
+    # Benchmarking
+    set(TARGET_NAME simulatorBenchmark)
+    add_executable(simulatorBenchmark)
+    target_sources(simulatorBenchmark PUBLIC benchmarks/benchmark.cpp)
+    target_link_libraries(simulatorBenchmark PUBLIC gtest gtest_main)
+    target_link_libraries(simulatorBenchmark PUBLIC gtest lbmLib)
+    target_link_libraries(simulatorBenchmark PUBLIC gtest simLib)
+    target_link_libraries(simulatorBenchmark PUBLIC benchmark::benchmark)
 endif()

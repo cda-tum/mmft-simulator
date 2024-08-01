@@ -80,6 +80,24 @@ private:
     void printSystem();
 
 public:
+
+    std::unordered_map<int, T> nodalResult = {  {2, 781.127}, // Simulator 0
+                                                {8, 698.430}, 
+                                                {9, 695.906}, 
+                                                {4, 604.131}, // Simulator 1
+                                                {10,552.155}, 
+                                                {11,540.361}, 
+                                                {5, 535.207}, // Simulator 2
+                                                {12,522.336}, 
+                                                {13,454.949}, 
+                                                {7, 371.017}, // Simulator 3
+                                                {14,355.554}, 
+                                                {15,217.834} };
+
+    std::unordered_map<int, std::vector<T>> nodalError;
+
+    std::unordered_map<int, std::vector<T>> simL2Error;
+
     /**
      * @brief Creates a NodalAnalysis object
      */

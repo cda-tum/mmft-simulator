@@ -464,6 +464,29 @@ namespace sim {
     }
 
     template<typename T>
+    void Simulation<T>::storeErrors() {
+        std::unordered_map<int, std::vector<int>> openingSets ( {{0, std::vector<int>({2, 8, 9})},
+                                                                {1, std::vector<int>({4, 10, 11})},
+                                                                {2, std::vector<int>({5, 12, 13})},
+                                                                {3, std::vector<int>({7, 14, 15})}});
+        for (auto [simKey, simNodes] : openingSets) {
+            Eigen::VectorXd diff = Eigen::VectorXd::Zero(16);
+            for (int nodeId : simNodes) {
+                T nodeError = nodalAnalysis->nodalResult[nodeId] - network->getNode(nodeId)->getPressure();
+                auto insert = nodalAnalysis->nodalError.try_emplace(nodeId, std::vector<T>(1, nodeError));
+                if (!insert.second) {
+                    nodalAnalysis->nodalError[nodeId].push_back(nodeError);
+                }
+                diff[nodeId] = nodeError;
+            }
+            auto insert = nodalAnalysis->simL2Error.try_emplace(simKey, std::vector<T>(1, diff.lpNorm<2>()));
+            if (!insert.second) {
+                nodalAnalysis->simL2Error[simKey].push_back(diff.lpNorm<2>());
+            }
+        }
+    }
+
+    template<typename T>
     void Simulation<T>::simulate() {
 
         // initialize the simulation
@@ -484,7 +507,8 @@ namespace sim {
 
         // Continuous Hybrid simulation
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
-            T alpha = 0.0002;
+            T dt = 4.16667e-7;
+            T alpha = 1.0;
             bool below = false;
             bool above = false;
             int iter = 0;
@@ -503,16 +527,18 @@ namespace sim {
                     // conduct CFD simulations
                     //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
 
-                    std::cout << "alpha:\t" << alpha << "\t L2:\t" << nodalAnalysis->getL2() << std::endl;
+                    //std::cout << "alpha:\t" << alpha << "\t L2:\t" << nodalAnalysis->getL2() << std::endl;
 
                     allConverged = conductCFDSimulation(cfdSimulators, 1, alpha);
                 
                     // compute nodal analysis again
                     //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
                     pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+                    storeErrors();
                     
                     if (nodalAnalysis->getL2() < 0.1) {
-                        alpha = 0.0003;
+                        //alpha = 0.0003;
                     }
                     if (nodalAnalysis->getL2() < 0.01) {
                         //alpha = 0.004;
