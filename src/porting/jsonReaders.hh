@@ -260,13 +260,13 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
             T tau = simulator["tau"];
             int moduleId = simulator["moduleId"];
             std::unordered_map<int, arch::Opening<T>> Openings;
-            std::cout << "The type is: " << simulator["Type"] << std::endl;
             for (auto& opening : simulator["Openings"]) {
                 int nodeId = opening["node"];
                 std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
                 arch::Opening<T> opening_(network->getNode(nodeId), normal, opening["width"]);
                 Openings.try_emplace(nodeId, opening_);
             }
+
             if(simulator["Type"] == "LBM")
             {
                 auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 

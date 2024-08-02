@@ -160,7 +160,7 @@ public:
 
     virtual bool hasAdConverged() const { return false; }
 
-    friend void coupleNsAdResults<T>(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
+    friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
 
 };
 

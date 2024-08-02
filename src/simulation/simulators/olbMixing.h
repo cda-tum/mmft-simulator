@@ -46,9 +46,9 @@ using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 protected:
     std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
 
-    T adRelaxationTime;                         ///< Relaxation time (tau) for the OLB solver.
-
     std::unordered_map<int, Specie<T>*> species;
+
+    T adRelaxationTime;                         ///< Relaxation time (tau) for the OLB solver.
 
     std::unordered_map<int, T> averageDensities;
     std::unordered_map<int, bool> custConverges;

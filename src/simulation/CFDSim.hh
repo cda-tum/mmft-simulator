@@ -28,7 +28,7 @@ namespace sim {
     }
 
     template<typename T>
-    void coupleNsAdResults(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators) {
+    void coupleNsAdLattices(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators) {
         
         // loop through modules and perform the coupling between the NS and AD lattices
         for (const auto& cfdSimulator : cfdSimulators) {
@@ -59,6 +59,7 @@ namespace sim {
             assert(cfdSimulator.second->getModule()->getModuleType() == arch::ModuleType::LBM);
             #elif USE_ESSLBM
             assert(cfdSimulator.second->getModule()->getModuleType() == arch::ModuleType::ESS_LBM);
+            throw std::runtime_error("Simulation of Advection Diffusion not defined for ESS LBM.");
             #endif
             cfdSimulator.second->adSolve();
 
