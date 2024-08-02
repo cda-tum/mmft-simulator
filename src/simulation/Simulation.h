@@ -318,6 +318,7 @@ public:
      * @param[in] name Name of the module.
      * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] module Shared pointer to the module on which this solver acts.
+     * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
      * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] charPhysLength Characteristic physical length of this simulator.
      * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
@@ -335,7 +336,10 @@ public:
      * @brief Adds a new module to the network.
      * @param[in] name Name of the module.
      * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+     * @param[in] tissueId The Id of the tissue that the organ in this nodule consists of.
+     * @param[in] organStlFile The location of the stl file describing the geometry of the organ.
      * @param[in] module Shared pointer to the module on which this solver acts.
+     * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
      * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] charPhysLength Characteristic physical length of this simulator.
      * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.

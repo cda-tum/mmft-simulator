@@ -132,9 +132,9 @@ template<typename T>
 void lbmSimulator<T>::solve() {
     // theta = 10
     this->setBoundaryValues(step);
-    for (int iT = 0; iT < 10; ++iT){                
+    for (int iT = 0; iT < 10; ++iT){    
+        writeVTK(step);            
         lattice->collideAndStream();
-        writeVTK(step);
         step += 1;
     }
     storeCfdResults(step);
