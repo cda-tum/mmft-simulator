@@ -545,35 +545,35 @@ namespace sim {
 
         // Continuous Hybrid simulation
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
-            if (network->getModules().size() > 0 ) {
-                bool allConverged = false;
-                bool pressureConverged = false;
-
-                // Initialization of CFD domains
-                //while (! allConverged) {
-                //    allConverged = conductCFDSimulation(cfdSimulators, 1);
-                //}
-
-                while (! allConverged || !pressureConverged) {
-                    //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
-
-                    // conduct CFD simulations
-                    //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                    allConverged = conductCFDSimulation(cfdSimulators, 10);
-                
-                    // compute nodal analysis again
-                    //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
-
-                }
-
-                #ifdef VERBOSE     
-                    if (pressureConverged && allConverged) {
-                        std::cout << "[Simulation] All pressures have converged." << std::endl;
-                    } 
-                    printResults();
-                #endif
+            
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
             }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            }
+
+            #ifdef VERBOSE     
+                if (pressureConverged && allConverged) {
+                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                } 
+                printResults();
+            #endif
+            
             saveState();
         }
 
@@ -585,13 +585,22 @@ namespace sim {
                 throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
             }
 
-            // Obtain overal steady-state flow result
             bool allConverged = false;
             bool pressureConverged = false;
+
+            // Initialization of NS CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            // Obtain overal steady-state flow result
             while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
                 allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
                 pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
             }
+
             #ifdef VERBOSE     
                 printResults();
                 std::cout << "[Simulation] All pressures have converged." << std::endl; 
@@ -599,7 +608,7 @@ namespace sim {
             saveState();
 
             // Couple the resulting CFD flow field to the AD fields
-            coupleNsAdResults(cfdSimulators);
+            coupleNsAdLattices(cfdSimulators);
 
             // Obtain overal steady-state concentration results
             bool concentrationConverged = false;
@@ -611,35 +620,34 @@ namespace sim {
 
         // OoC Hybrid simulation
         if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
-            if (network->getModules().size() > 0 ) {
-                bool allConverged = false;
-                bool pressureConverged = false;
 
-                // Initialization of CFD domains
-                while (! allConverged) {
-                    allConverged = conductCFDSimulation(cfdSimulators, 1);
-                }
-                
-                while (! allConverged || !pressureConverged) {
-                    //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
-
-                    // conduct CFD simulations
-                    //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                    allConverged = conductCFDSimulation(cfdSimulators, 10);
-                
-                    // compute nodal analysis again
-                    //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
-
-                }
-
-                #ifdef VERBOSE     
-                    if (pressureConverged && allConverged) {
-                        std::cout << "[Simulation] All pressures have converged." << std::endl;
-                    } 
-                    printResults();
-                #endif
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
             }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            }
+
+            #ifdef VERBOSE     
+                if (pressureConverged && allConverged) {
+                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                } 
+                printResults();
+            #endif
+
             saveState();
         }
 
