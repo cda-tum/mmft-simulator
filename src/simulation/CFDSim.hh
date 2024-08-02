@@ -62,7 +62,7 @@ namespace sim {
             #endif
             cfdSimulator.second->adSolve();
 
-            if (!cfdSimulator.second->hasConverged()) {
+            if (!cfdSimulator.second->hasAdConverged()) {
                 allConverge = false;
             }
             

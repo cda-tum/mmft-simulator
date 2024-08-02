@@ -153,7 +153,15 @@ void lbmMixingSimulator<T>::writeVTK (int iT) {
 
         // write vtk to file system
         this->vtkFile = olb::singleton::directories().getVtkOutDir() + "data/" + olb::createFileName( this->name, iT ) + ".vtm";
-        this->converge->takeValue(this->getLattice().getStatistics().getAverageEnergy(), print);
+        this->converge->takeValue(this->getLattice().getStatistics().getAverageEnergy(), !print);
+        for (auto& [key, adConverge] : adConverges) {
+            //adConverge->takeValue(getAdLattice(key).getStatistics().getAverageRho(), print);
+            T newRho = getAdLattice(key).getStatistics().getAverageRho();
+            if (std::abs(averageDensities.at(key) - newRho) < 1e-5) {
+                custConverges.at(key) = true;
+            }
+            averageDensities.at(key) = newRho;
+        }
     }
     if (iT %1000 == 0) {
         #ifdef VERBOSE
@@ -257,7 +265,9 @@ template<typename T>
 void lbmMixingSimulator<T>::initAdConvergenceTracker () {
     // Initialize a convergence tracker for concentrations
     for (auto& [speciesId, specie] : species) {
-        this->adConverges.try_emplace(speciesId, std::make_unique<olb::util::ValueTracer<T>> (this->stepIter, this->epsilon));
+        this->adConverges.try_emplace(speciesId, std::make_unique<olb::util::ValueTracer<T>> (1000, 1e-1));
+        this->averageDensities.try_emplace(speciesId, T(0.0));
+        this->custConverges.try_emplace(speciesId, false);
     }
 }
 
@@ -378,5 +388,16 @@ template<typename T>
 std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
 }
+
+template<typename T>
+bool lbmMixingSimulator<T>::hasAdConverged() const {
+    bool c = true;
+    for (auto& [key, converge] : custConverges) {
+        if (!converge) {
+            c = false;
+        }
+    }
+    return c;
+};
 
 }   // namespace arch

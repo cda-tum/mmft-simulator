@@ -50,6 +50,9 @@ protected:
 
     std::unordered_map<int, Specie<T>*> species;
 
+    std::unordered_map<int, T> averageDensities;
+    std::unordered_map<int, bool> custConverges;
+
     std::unordered_map<int, std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>>> adLattices;      ///< The LBM lattice on the geometry.
     std::unordered_map<int, std::unique_ptr<olb::util::ValueTracer<T>>> adConverges;            ///< Value tracer to track convergence.
     std::unordered_map<int, std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T, ADDESCRIPTOR>>> adConverters;      ///< Object that stores conversion factors from phyical to lattice parameters.
@@ -174,9 +177,7 @@ public:
      * @brief Returns whether the module has converged or not.
      * @returns Boolean for module convergence.
     */
-    bool hasAdConverged(int key) const {
-        return adConverges.at(key)->hasConverged();
-    };
+    bool hasAdConverged() const override;
 
 };
 
