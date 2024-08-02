@@ -36,6 +36,15 @@ namespace sim {
     }
 
     template<typename T>
+    Tissue<T>* Simulation<T>::addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM) {
+        auto id = tissues.size();
+        
+        auto result = tissues.insert_or_assign(id, std::make_shared<Tissue<T>>(id, species, Vmax, kM));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
     Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
@@ -208,6 +217,43 @@ namespace sim {
     }
 
     template<typename T>
+    lbmMixingSimulator<T>* Simulation<T>::addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {   
+        std::cout  << "Trying to add a mixing simulator" << std::endl;
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmMixingSimulator<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+    }
+
+    template<typename T>
+    lbmOocSimulator<T>* Simulation<T>::addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+    }
+
+    template<typename T>
     essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
                                                         T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
@@ -362,6 +408,21 @@ namespace sim {
     }
 
     template<typename T>
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& Simulation<T>::getMixtureInjections() {
+        return mixtureInjections;
+    }
+
+    template<typename T>
+    CFDSimulator<T>* Simulation<T>::getCFDSimulator(int simulatorId) {
+        return cfdSimulators.at(simulatorId).get();
+    }
+
+    template<typename T>
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& Simulation<T>::getCFDSimulators() {
+        return cfdSimulators;
+    }
+
+    template<typename T>
     Fluid<T>* Simulation<T>::getContinuousPhase() {
         return fluids[continuousPhase].get();
     }
@@ -484,35 +545,109 @@ namespace sim {
 
         // Continuous Hybrid simulation
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
-            if (network->getModules().size() > 0 ) {
-                bool allConverged = false;
-                bool pressureConverged = false;
-
-                // Initialization of CFD domains
-                while (! allConverged) {
-                    allConverged = conductCFDSimulation(cfdSimulators, 1);
-                }
-
-                while (! allConverged || !pressureConverged) {
-                    //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
-
-                    // conduct CFD simulations
-                    //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                    allConverged = conductCFDSimulation(cfdSimulators, 10);
-                
-                    // compute nodal analysis again
-                    //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
-
-                }
-
-                #ifdef VERBOSE     
-                    if (pressureConverged && allConverged) {
-                        std::cout << "[Simulation] All pressures have converged." << std::endl;
-                    } 
-                    printResults();
-                #endif
+            
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
             }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            }
+
+            #ifdef VERBOSE     
+                if (pressureConverged && allConverged) {
+                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                } 
+                printResults();
+            #endif
+            
+            saveState();
+        }
+
+        // Mixing Hybrid simulation
+        if (this->simType == Type::Hybrid && this->platform == Platform::Mixing) {
+
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
+            }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of NS CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            // Obtain overal steady-state flow result
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            }
+
+            #ifdef VERBOSE     
+                printResults();
+                std::cout << "[Simulation] All pressures have converged." << std::endl; 
+            #endif
+            saveState();
+
+            // Couple the resulting CFD flow field to the AD fields
+            coupleNsAdLattices(cfdSimulators);
+
+            // Obtain overal steady-state concentration results
+            bool concentrationConverged = false;
+            while (!concentrationConverged) {
+                concentrationConverged = conductADSimulation(cfdSimulators);
+                this->mixingModel->propagateSpecies(network, this);
+            }
+        }
+
+        // OoC Hybrid simulation
+        if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
+
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
+            }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            }
+
+            #ifdef VERBOSE     
+                if (pressureConverged && allConverged) {
+                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                } 
+                printResults();
+            #endif
+
             saveState();
         }
 
@@ -607,14 +742,15 @@ namespace sim {
         */
         if (simType == Type::Abstract && platform == Platform::Mixing) {
             T timestep = 0.0;
+                
+            // compute nodal analysis    
+            nodalAnalysis->conductNodalAnalysis();
 
             while(true) {
                 if (iteration >= 1000) {
                     throw "Max iterations exceeded.";
                     break;
                 }
-                // compute nodal analysis
-                nodalAnalysis->conductNodalAnalysis();
 
                 // Update and propagate the mixtures 
                 if (this->mixingModel->isInstantaneous()){
@@ -711,6 +847,64 @@ namespace sim {
         nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network);
 
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
+            
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
+
+            // Initialize the CFD simulators
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
+            }
+
+            // compute nodal analysis
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+            #endif
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            // Prepare CFD geometry and lattice
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+            #endif
+
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
+            }
+        }
+
+        if (this->simType == Type::Hybrid && this->platform == Platform::Mixing) {
+            
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
+
+            // Initialize the CFD simulators
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
+            }
+
+            // compute nodal analysis
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+            #endif
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            // Prepare CFD geometry and lattice
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+            #endif
+
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
+            }
+        }
+
+        if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
             
             #ifdef VERBOSE
                 std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;

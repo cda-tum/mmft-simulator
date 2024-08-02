@@ -68,7 +68,16 @@ template<typename T>
 class lbmSimulator;
 
 template<typename T>
+class lbmMixingSimulator;
+
+template<typename T>
+class lbmOocSimulator;
+
+template<typename T>
 class essLbmSimulator;
+
+template<typename T>
+class MembraneModel;
 
 template<typename T>
 class MixingModel;
@@ -85,6 +94,9 @@ class ResistanceModel;
 template<typename T>
 class Specie;
 
+template<typename T>
+class Tissue;
+
 enum class Type {
     Abstract,       ///< A simulation in the 1D abstraction level
     Hybrid,         ///< A simulation combining the 1D and CFD abstraction levels
@@ -94,7 +106,8 @@ enum class Type {
 enum class Platform {
     Continuous,     ///< A simulation with a single continuous fluid.
     BigDroplet,     ///< A simulation with droplets filling a channel cross-section
-    Mixing          ///< A simulation wit multiple miscible fluids.
+    Mixing,         ///< A simulation with multiple miscible fluids.
+    Ooc             ///< A simulation with organic tissue
 };
 
 /**
@@ -111,11 +124,13 @@ private:
     std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
     std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
     std::unordered_map<int, std::unique_ptr<Specie<T>>> species;                        ///< Species specified for the simulation.
+    std::unordered_map<int, std::shared_ptr<Tissue<T>>> tissues;                        ///< Tissues specified for the simulation.
     std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
     std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
     std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;
     ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
+    MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
     MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
@@ -209,6 +224,15 @@ public:
     Specie<T>* addSpecie(T diffusivity, T satConc);
 
     /**
+     * @brief Create tissue.
+     * @param[in] species Map of Species that interacts with this tissue.
+     * @param[in] Vmax
+     * @param[in] kM
+     * @return Pointer to created tissue.
+     */
+    Tissue<T>* addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM);
+
+    /**
      * @brief Create mixture.
      * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
      * @return Pointer to created mixture.
@@ -288,6 +312,45 @@ public:
     */
     lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
                                     T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+
+    /**
+     * @brief Adds a new module to the network.
+     * @param[in] name Name of the module.
+     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+     * @param[in] module Shared pointer to the module on which this solver acts.
+     * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
+     * @param[in] openings Map of openings corresponding to the nodes.
+     * @param[in] charPhysLength Characteristic physical length of this simulator.
+     * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
+     * @param[in] alpha Relaxation parameter for this simulator.
+     * @param[in] resolution Resolution of this simulator.
+     * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
+     * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
+     * @return Pointer to the newly created module.
+    */
+    lbmMixingSimulator<T>* addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+
+
+    /**
+     * @brief Adds a new module to the network.
+     * @param[in] name Name of the module.
+     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+     * @param[in] tissueId The Id of the tissue that the organ in this nodule consists of.
+     * @param[in] organStlFile The location of the stl file describing the geometry of the organ.
+     * @param[in] module Shared pointer to the module on which this solver acts.
+     * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
+     * @param[in] openings Map of openings corresponding to the nodes.
+     * @param[in] charPhysLength Characteristic physical length of this simulator.
+     * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
+     * @param[in] alpha Relaxation parameter for this simulator.
+     * @param[in] resolution Resolution of this simulator.
+     * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
+     * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
+     * @return Pointer to the newly created module.
+    */
+    lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.
@@ -430,6 +493,25 @@ public:
      * @return Pointer to injection with the corresponding id.
      */
     MixtureInjection<T>* getMixtureInjection(int injectionId);
+
+    /**
+     * @brief Get injection
+     * @return Reference to the unordered map of MixtureInjections
+     */
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getMixtureInjections();
+
+    /**
+     * @brief Get injection
+     * @param simulatorId The id of the injection
+     * @return Pointer to injection with the corresponding id.
+     */
+    CFDSimulator<T>* getCFDSimulator(int simulatorId);
+
+    /**
+     * @brief Get injection
+     * @return Reference to the unordered map of MixtureInjections
+     */
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& getCFDSimulators();
 
     /**
      * @brief Get the continuous phase.

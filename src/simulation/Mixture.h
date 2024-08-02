@@ -91,6 +91,11 @@ public:
     Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, Fluid<T>* carrierFluid);
 
     /**
+     * @brief Overload == operator to check if mixtures are equal or not
+     */
+    bool operator== (const Mixture<T> &t);
+
+    /**
      * @brief Get the id of this mixture
      * @return Unique identifier of the mixture.
      */

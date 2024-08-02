@@ -70,7 +70,7 @@ template<typename T>
 sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
-        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
+        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     if (jsonString["simulation"]["platform"] == "Continuous") {
         platform = sim::Platform::Continuous;
@@ -78,8 +78,10 @@ sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
         platform = sim::Platform::BigDroplet;
     } else if (jsonString["simulation"]["platform"] == "Mixing") {
         platform = sim::Platform::Mixing;
+    } else if (jsonString["simulation"]["platform"] == "Ooc") {
+        platform = sim::Platform::Ooc;
     } else {
-        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
+        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     simulation.setPlatform(platform);
     return platform;
@@ -143,6 +145,32 @@ void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
             T diffusivity = specie["diffusivity"];
             T satConc = specie["saturationConcentration"];
             simulation.addSpecie(diffusivity, satConc);
+        } else {
+            throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
+        }
+    }
+}
+
+template<typename T>
+void readTissues(json jsonString, sim::Simulation<T>& simulation) {
+    for (auto& tissue : jsonString["simulation"]["tissues"]) {
+        if (tissue.contains("species") && tissue.contains("Vmax") && tissue.contains("kM")) {
+            if (tissue["species"].size() == tissue["Vmax"].size() && tissue["species"].size() == tissue["kM"].size()) {
+                int counter = 0;
+                std::unordered_map<int, sim::Specie<T>*> species;
+                std::unordered_map<int, T> Vmax;
+                std::unordered_map<int, T> kM;
+                for (auto& specieId : tissue["species"]) {
+                    auto specie_ptr = simulation.getSpecie(specieId);
+                    species.try_emplace(specieId, specie_ptr);
+                    Vmax.try_emplace(specieId, tissue["Vmax"][counter]);
+                    kM.try_emplace(specieId, tissue["kM"][counter]);
+                    counter++;
+                }
+                simulation.addTissue(species, Vmax, kM);
+            } else {
+                throw std::invalid_argument("Please define a Vmax and kM value for each species.");
+            }
         } else {
             throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
         }
@@ -243,6 +271,28 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
             {
                 auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+            }
+            else if (simulator["Type"] == "Mixing")
+            {
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
+                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+            }
+            else if (simulator["Type"] == "Organ")
+            {
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
+                std::string organStlFile = simulator["organStlFile"];
+                int tissueId = simulator["tissue"];
+                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")
