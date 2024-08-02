@@ -68,8 +68,6 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Si
 
     std::vector<Mixture<T>> tmpMixtures;
 
-    std::cout << "[propagateSpecies] Define inflow volume" << std::endl;
-
     // Define total inflow volume at nodes
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId) ) {
@@ -84,21 +82,17 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Si
         }
     }
 
-    std::cout << "[propagateSpecies] Initialize the node inflow" << std::endl;
     // Initial node outflow from mixtureInjections and CFD simulators, stored in mixtureOutflowAtNode
     initNodeOutflow(sim, tmpMixtures);
 
-    std::cout << "[propagateSpecies] Channel propagation" << std::endl;
     // Propagate the mixtures through the entire channel, without considering time steps    
     channelPropagation(network);
 
     bool inflowUpdated = true;
     while (inflowUpdated) {
-        std::cout << "[propagateSpecies] Update node outflow" << std::endl;
         // From node inflow, generate the node's outflow
         inflowUpdated = updateNodeOutflow(sim, tmpMixtures);
         // Propagate the mixtures through the entire channel
-        std::cout << "[propagateSpecies] Channel propagation" << std::endl;
         channelPropagation(network);
     }
 
@@ -111,7 +105,6 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Si
 
 template<typename T>
 void InstantaneousMixingModel<T>::initNodeOutflow(Simulation<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
-    std::cout << "[initNodeOutflow] Add mixture injections" << std::endl;
     // Add mixture injections
     for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
         int tmpMixtureIndex = tmpMixtures.size();
@@ -120,7 +113,6 @@ void InstantaneousMixingModel<T>::initNodeOutflow(Simulation<T>* sim, std::vecto
         tmpMixtures.push_back(Mixture<T>(*sim->getMixture(mixtureInjection->getMixtureId())));
         mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
     }
-    std::cout << "[initNodeOutflow] Add CFD outflows" << std::endl;
     // Add CFD Simulator outflows
     for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
         for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
@@ -216,25 +208,18 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(Simulation<T>* sim, std::vec
 
 template<typename T>
 void InstantaneousMixingModel<T>::storeConcentrations(Simulation<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
-    for (auto& [nodeId, mixtureId] : mixtureOutflowAtNode) {
-        std::cout << "nodeId: " << nodeId << "\tmixtureId: " << mixtureId << std::endl;
-    }
-    std:: cout << "There are " << tmpMixtures.size() << " mixtures in tmpMixtures" <<std::endl;
     for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
         std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
-        std::cout << "The inflow nodes are: ";
         for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
             // If the node is an inflow
             if (cfdSimulator->getFlowRates().at(nodeId) > 0.0) {
-                std::cout << nodeId << " ";
-                /*
-                for (auto& [specieId, specieConcentration] : tmpMixtures[mixtureOutflowAtNode.at(nodeId)].getSpecieConcentrations()) {
-                    concentrations.at(nodeId).at(specieId) = specieConcentration;
+                if (mixtureOutflowAtNode.count(nodeId)) {
+                    for (auto& [specieId, specieConcentration] : tmpMixtures[mixtureOutflowAtNode.at(nodeId)].getSpecieConcentrations()) {
+                        concentrations.at(nodeId).at(specieId) = specieConcentration;
+                    }
                 }
-                */
             }
         }
-        std::cout << std::endl;
         cfdSimulator->storeConcentrations(concentrations);
     }
 }
