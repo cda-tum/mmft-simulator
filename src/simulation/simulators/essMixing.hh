@@ -1,4 +1,4 @@
-#include "essContinuous.h"
+#include "essMixing.h"
 #include <mpi.h>
 
 #include <iostream>
@@ -7,40 +7,42 @@
 namespace sim{
 
     template<typename T>
-    essLbmSimulator<T>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_,  std::unordered_map<int, arch::Opening<T>> openings_,
+    essLbmMixingSimulator<T>::essLbmMixingSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_,  std::unordered_map<int, arch::Opening<T>> openings_,
                                 ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) :
-            CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, alpha_, resistanceModel_), 
-            charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
-            epsilon(epsilon_), relaxationTime(relaxationTime_)
+            essLbmSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, alpha_, resolution_, epsilon_, relaxationTime_)
     {
         this->cfdModule->setModuleTypeEssLbm();
-        allNodes = cfdModule_->getNodes();
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setBoundaryValues(int iT)
+    void essLbmMixingSimulator<T>::setBoundaryValues(int iT)
     {
-        setFlowRates(flowRates);
-        setPressures(pressures);
+        this->storeFlowRates(this->flowRates);
+        this->storePressures(this->pressures);
+        storeConcentrations(concentrations);
     }
 
     template<typename T>
-    void essLbmSimulator<T>::storeCfdResults()
+    void essLbmMixingSimulator<T>::storeCfdResults()
     {
-        for(auto& [key,value] : solver_->getPressures())
-            pressures[key] = value;
-        for(auto& [key,value] : solver_->getFlowRates())
-            flowRates[key] = value;
+        for(auto& [key,value] : this->solver_->getPressures())
+            this->pressures[key] = value;
+        for(auto& [key,value] : this->solver_->getFlowRates())
+            this->flowRates[key] = value;
+        for(auto& [key,value] : std::dynamic_pointer_cast<ess::lbmMixingSolver>(this->solver_)->getConcentrations())
+            concentrations.at(0)[key] = value;
     }
 
     template<typename T>
-    void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
+    void essLbmMixingSimulator<T>::lbmInit(T dynViscosity, T density)
     {
 
         std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
         const auto& allNodes = this->moduleNetwork->getNodes();
         std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
+
+        T concentration = 1.0;
 
         for(auto& op : this->moduleOpenings)
         {
@@ -58,8 +60,10 @@ namespace sim{
             nodes.try_emplace(op.first, node);
         }
 
-        solver_ = std::make_shared<ess::lbmSolver>(work_dir, this->stlFile, openings, nodes, charPhysLength, charPhysVelocity, 1.0f / resolution, epsilon, relaxationTime, density, dynViscosity);
-        solver_->prepareLattice();
+        this->solver_ = std::make_shared<ess::lbmMixingSolver>(work_dir, this->stlFile, openings, nodes, this->charPhysLength, 
+                                                                this->charPhysVelocity, 1.0f / this->resolution, this->epsilon, 
+                                                                this->relaxationTime, density, dynViscosity, concentration);
+        this->solver_->prepareLattice();
 
         #ifdef DEBUG
         // There must be more than 1 node to have meaningful flow in the module domain
@@ -69,14 +73,17 @@ namespace sim{
         #endif
 
         // Initialize pressure, flowRate and resistance value-containers
+        concentrations.try_emplace(0, std::unordered_map<int,T>());
         for (auto& [key, node] : this->moduleOpenings)
         {
-            pressures.try_emplace(key, 0.0f);
-            flowRates.try_emplace(key, 0.0f);
+            this->pressures.try_emplace(key, 0.0f);
+            this->flowRates.try_emplace(key, 0.0f);
+            concentrations.at(0).try_emplace(key, 0.0f);
         }
 
-        setFlowRates(flowRates);
-        setPressures(pressures);
+        this->storeFlowRates(this->flowRates);
+        this->storePressures(this->pressures);
+        storeConcentrations(concentrations);
 
         #ifdef VERBOSE
             std::cout << "[essLbmModule] lbmInit " << this->name << "... OK" << std::endl;
@@ -84,52 +91,27 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::solve()
+    void essLbmMixingSimulator<T>::solve()
     {
-        solver_->solve(10, 10, 10);
-        storeCfdResults();
+        this->solver_->solve(10, 10, 10);
+        essLbmMixingSimulator<T>::storeCfdResults();
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_)
-    {
-        std::unordered_map<int, float> interface;
-        for(auto& [key, value] : pressure_)
-            interface.try_emplace(key, value);
-        pressures = pressure_;
-        solver_->setPressures(interface);
-    }
-
-    template<typename T>
-    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_)
+    void essLbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations_)
     {
         std::unordered_map<int, float> interface;
-        for(auto& [key, value] : flowRate_)
+        for(auto& [key, value] : concentrations_.at(0))
             interface.try_emplace(key, value);
-        flowRates = flowRate_;
-        solver_->setFlowRates(interface);
+        concentrations = concentrations_;
+        std::dynamic_pointer_cast<ess::lbmMixingSolver>(this->solver_)->setConcentrations(interface);
     }
 
     template<typename T>
-    std::unordered_map<int, T> essLbmSimulator<T>::getPressures() const {
-        return pressures;
+    std::unordered_map<int, std::unordered_map<int, T>> essLbmMixingSimulator<T>::getConcentrations() const {
+        return concentrations;
     }
 
 
-    template<typename T>
-    std::unordered_map<int, T> essLbmSimulator<T>::getFlowRates() const {
-        return flowRates;
-    }
-
-    template<typename T>
-    bool essLbmSimulator<T>::hasConverged() const
-    {
-        return solver_->hasConverged();
-    }
-
-    template<typename T>
-    void essLbmSimulator<T>::setVtkFolder(std::string vtkFolder_) {
-        this->vtkFolder = vtkFolder_;
-    }
 
 }   // namespace arch

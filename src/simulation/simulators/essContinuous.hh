@@ -19,8 +19,8 @@ namespace sim{
     template<typename T>
     void essLbmSimulator<T>::setBoundaryValues(int iT)
     {
-        setFlowRates(flowRates);
-        setPressures(pressures);
+        storeFlowRates(flowRates);
+        storePressures(pressures);
     }
 
     template<typename T>
@@ -74,8 +74,8 @@ namespace sim{
             flowRates.try_emplace(key, 0.0f);
         }
 
-        setFlowRates(flowRates);
-        setPressures(pressures);
+        storeFlowRates(flowRates);
+        storePressures(pressures);
 
         #ifdef VERBOSE
             std::cout << "[essLbmModule] lbmInit " << this->name << "... OK" << std::endl;
@@ -90,7 +90,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_)
+    void essLbmSimulator<T>::storePressures(std::unordered_map<int, T> pressure_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : pressure_)
@@ -100,7 +100,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_)
+    void essLbmSimulator<T>::storeFlowRates(std::unordered_map<int, T> flowRate_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : flowRate_)

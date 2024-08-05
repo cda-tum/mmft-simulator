@@ -14,6 +14,7 @@ set(HEADER_LIST
 
 if(USE_ESSLBM)
     target_sources(${TARGET_NAME} PUBLIC essContinuous.hh essContinuous.h)
+    target_sources(${TARGET_NAME} PUBLIC essDroplet.hh essDroplet.h)
     target_sources(${TARGET_NAME} PUBLIC essMixing.hh essMixing.h)
 endif()
 

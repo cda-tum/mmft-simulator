@@ -275,6 +275,28 @@ namespace sim {
         #endif
     }
 
+    template<typename T>
+    essLbmMixingSimulator<T>* Simulation<T>::addEssMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+                                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {
+        #ifdef USE_ESSLBM
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new essLbmMixingSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+        #else
+        throw std::invalid_argument("MMFT Simulator was not built using the ESS library.");
+        #endif
+    }
+
 
     template<typename T>
     void Simulation<T>::setPlatform(Platform platform_) {
@@ -649,6 +671,100 @@ namespace sim {
             #endif
 
             saveState();
+        }
+
+        // Drplet Hybrid simulation
+        if (this->simType == Type::Hybrid && this->platform == Platform::BigDroplet) {
+
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
+            }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of NS CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            // Obtain overal steady-state flow result
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            }
+
+            #ifdef VERBOSE
+                printResults();
+                std::cout << "[Simulation] All pressures have converged." << std::endl; 
+            #endif
+            saveState();
+
+            T nextTime = 0.0;
+
+            while (true) {
+                // update droplet resistances (in the first iteration no  droplets are inside the network)
+                updatedDropletResistances();
+
+                // conduct coupled simulation until an event should occur
+                while (time < nextTime) {
+                    // conduct CFD simulations
+                    conductCFDSimulation(cfdSimulators, 10);
+                    time += 10 * cfdSimulators.at(0)->getTimeStepSize();
+                    // compute nodal analysis again
+                    nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+                }   
+
+                // update droplets, i.e., their boundary flow rates
+                // loop over all droplets
+                dropletsAtBifurcation = false;
+                for (auto& [key, droplet] : droplets) {
+                    // only consider droplets inside the network
+                    if (droplet->getDropletState() != DropletState::NETWORK) {
+                        continue;
+                    }
+
+                    // set to true if droplet is at bifurcation
+                    if (droplet->isAtBifurcation()) {
+                        dropletsAtBifurcation = true;
+                    }
+
+                    // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
+                    // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
+                    // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
+                    droplet->updateBoundaries(*network);
+                }
+                // store simulation results of current state
+                saveState();
+                // compute events
+                auto events = computeEvents();
+                // sort events
+                // closest events in time with the highest priority come first
+                std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
+                    if (a->getTime() == b->getTime()) {
+                        return a->getPriority() < b->getPriority();  // ascending order (the lower the priority value, the higher the priority)
+                    }
+                    return a->getTime() < b->getTime();  // ascending order
+                });
+
+                // get next event or break loop, if no events remain
+                Event<T>* nextEvent = nullptr;
+                if (events.size() != 0) {
+                    nextEvent = events[0].get();
+                } else if (noCfdDroplets == 0){
+                    break;
+                }
+                // move droplets until event is reached
+                nextTime = nextEvent->getTime();
+                moveDroplets(nextEvent->getTime());
+
+                nextEvent->performEvent();
+
+                iteration++;
+            }
         }
 
         // Abstract Droplet simulation

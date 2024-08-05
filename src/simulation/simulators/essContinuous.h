@@ -40,7 +40,7 @@ namespace sim {
     */
     template<typename T>
     class essLbmSimulator : public CFDSimulator<T> {
-        private:
+        protected:
             int step = 0;                           ///< Iteration step of this module.
             int stepIter = 1000;                    ///< Number of iterations for the value tracer.
             int maxIter = 1e7;                      ///< Maximum total iterations.
@@ -92,21 +92,20 @@ namespace sim {
 
             /**
              * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-             * @param[in] iT Iteration step.
             */
-            void storeCfdResults();
+            virtual void storeCfdResults();
 
             /**
              * @brief Set the pressures at the nodes on the module boundary.
              * @param[in] pressure Map of pressures and node ids.
              */
-            void setPressures(std::unordered_map<int, T> pressure) override;
+            void storePressures(std::unordered_map<int, T> pressure) override;
 
             /**
              * @brief Set the flow rates at the nodes on the module boundary.
              * @param[in] flowRate Map of flow rates and node ids.
              */
-            void setFlowRates(std::unordered_map<int, T> flowRate) override;
+            void storeFlowRates(std::unordered_map<int, T> flowRate) override;
 
             /**
              * @brief Get the pressures at the boundary nodes.
