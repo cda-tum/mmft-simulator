@@ -65,7 +65,7 @@ namespace sim{
     }
 
     template<typename T>
-    int essLbmSimulator<T>::generateDroplet(sim::Droplet<T>* droplet, Node<T>* entrypoint) {
+    int essLbmDropletSimulator<T>::generateDroplet(sim::Droplet<T>* droplet, Node<T>* entrypoint) {
         int dropletId = 1;
         std::vector<T> nodePosition = (0.0, 0.0, 0.0);
         T density = 1.0;
@@ -77,7 +77,7 @@ namespace sim{
     }
 
     template<typename T>
-    int essLbmSimulator<T>::purgeDroplet(int dropletId) {
+    int essLbmDropletSimulator<T>::purgeDroplet(int dropletId) {
         dropletId = 1;
         assert(lbmDroplets.count(dropletId));
         lbmDroplets.at(dropletId)->setDropletState(sim::DropletState::NETWORK);
@@ -85,7 +85,7 @@ namespace sim{
     }
 
     template<typename T>
-    int essLbmSimulator<T>::addDroplet(int parentDropletId, T volumeParentDroplet, T volumeChildDroplet) {
+    int essLbmDropletSimulator<T>::addDroplet(int parentDropletId, T volumeParentDroplet, T volumeChildDroplet) {
         int dropletId = 2;
         lbmDroplets.try_emplace(dropletId, nullptr);
         // TODO: Add child droplet to droplet map in simulation object
@@ -93,10 +93,29 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::removeDroplet(int dropletId) {
-        assert(lbmDroplets.count(dropletId));
-        // TODO: Remove droplet from droplet map in simulation object
-        lbmDroplets.erase(dropletId);
+    void essLbmDropletSimulator<T>::addDropletInjection(T time, int nodeId, Droplet<T>* dropletPtr) {
+
+        /** TODO:
+         * A dropletInjection is appended to the vector for a bufferzone, 
+         * or the vector is created if it doesn't exist for the bufferzone.
+         * 
+         * If the vector already exists for the bufferzone, we should check that the inserted droplet
+         * does not collide with any of the droplets that are pending for insertion.
+         */
+    }
+
+    template<typename T>
+    void essLbmDropletSimulator<T>::dropletInsertionCheck(T time, int nodeId, Droplet<T>* dropletPtr) {
+
+        /** TODO: 
+         * Loop through all pending droplet insertions and check if the insertionTime falls within the
+         * simulation iteration window.
+         * 
+         * If not -> continue
+         * 
+         * If so -> generateDroplet() & remove dropletInsertion from map. If the vector size is zero, 
+         * remove map entry for specific buffer zone.
+         */
     }
 
 }   // namespace arch

@@ -4,7 +4,7 @@ namespace sim {
 
 template<typename T>
 DropletInjectionEvent<T>::DropletInjectionEvent(T time, DropletInjection<T>& injection) : 
-    Event<T>(time, 1), injection(injection) {}
+    Event<T>("Droplet Injection Event", time, 1), injection(injection) {}
 
 template<typename T>
 void DropletInjectionEvent<T>::performEvent() {
@@ -34,14 +34,8 @@ void DropletInjectionEvent<T>::performEvent() {
 }
 
 template<typename T>
-void DropletInjectionEvent<T>::print() {
-    std::cout << "\n Droplet Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
-}
-
-
-template<typename T>
 MixtureInjectionEvent<T>::MixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel) : 
-    Event<T>(time, 1), injection(injection), mixingModel(mixingModel) { }
+    Event<T>("Mixture Injection Event", time, 1), injection(injection), mixingModel(mixingModel) { }
 
 template<typename T>
 void MixtureInjectionEvent<T>::performEvent() {
@@ -52,11 +46,6 @@ void MixtureInjectionEvent<T>::performEvent() {
     mixingModel->injectMixtureInEdge(mixture, channel->getId());
 
     injection.setPerformed(true);
-}
-
-template<typename T>
-void MixtureInjectionEvent<T>::print() {
-    std::cout << "\n Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 
 }  // namespace sim

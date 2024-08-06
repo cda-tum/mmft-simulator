@@ -12,6 +12,7 @@ namespace sim {
 template<typename T>
 class Event {
   protected:
+    std::string eventName;
     T time;   ///< Time at which the event should take place, in s elapsed since the start of the simulation.
     int priority;  ///< Priority of the event.
 
@@ -20,7 +21,7 @@ class Event {
      * @param[in] time The time at which the event should take place, in s elapsed since the start of the simulation.
      * @param[in] priority Priority of an event, which is important when two events occur at the same time (the lower the value the higher the priority).
      */
-    Event(T time, int priority) : time(time), priority(priority) {}
+    Event(std::string name, T time, int priority) : eventName(name), time(time), priority(priority) {}
 
   public:
     /**
@@ -41,14 +42,16 @@ class Event {
     T getPriority() const { return priority; }
 
     /**
+     * @brief Function that prints the contents of this Event.
+    */
+    void print() {
+      std::cout << "\n" << name << " at t=" << time << " with priority " << priority << "\n" << std::endl;
+    }
+
+    /**
      * @brief Function that is called at the time of the event to perform the event.
      */
     virtual void performEvent() = 0;
-
-    /**
-     * @brief Function that prints the contents of this Event.
-    */
-    virtual void print() = 0;
 };
 
 /**
@@ -61,19 +64,12 @@ class TimeStepEvent : public Event<T> {
      * @brief Construct class to schedule a minimal tim estep event.
      * @param[in] time Time after minimal time step passed in s elapsed since the start of the simulation.
      */
-    TimeStepEvent(T time) : Event<T>(time, 2) { }
+    TimeStepEvent(T time) : Event<T>("Time Step Event", time, 2) { }
 
     /**
      * @brief Do nothing except for logging the event. As the event exists, the simulation will be forwarded to this time point in the simulation algorithm and therefore it is ensured that the simulation parameters at this point in time are calculated.
      */
     void performEvent() override { return; };
-
-    /**
-     * @brief Print the time step event
-     */
-    void print() override { 
-      std::cout << "\n Time Step Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
-    };
 };
 
 }  // namespace sim

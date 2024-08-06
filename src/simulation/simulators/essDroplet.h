@@ -43,7 +43,9 @@ namespace sim {
         private:
 
             std::unordered_map<int, T> bufferZones;                 ///< For each opening we need a buffer zone to generate droplet <nodeId, bufferLength>
-            std::unordered_map<int, sim::Droplet<T>*> lbmDroplets;  ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
+            std::unordered_map<int, arch::RectangularChannel<T>> virtualChannels;
+            std::unordered_map<int, sim::DropletInjection<T>> dropletInjections; ///< <nodeId/bufferId, vector of pending dropletInjections >
+            std::unordered_map<int, std::vector<sim::Droplet<T>*>> lbmDroplets;  ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
 
             std::shared_ptr<ess::lbmSolver> solver_;
 
@@ -88,8 +90,16 @@ namespace sim {
             int addDroplet(T dropletVolume, T viscosity, T density, T timeStamp, int channelId, T position);
 
             /**
-             * @brief Removes a droplet in the 1D solver, that got consumed in a merge operation
+             * @brief A droplet in the 1D solver was removed and needs to be injected at specified time at bufferzone with nodeId
+             * @param[in] time
+             * @param[in] nodeId
+             * @param[in] dropletPtr
              */
-            void removeDroplet(int dropletId);
+            void addDropletInjection(T time, int nodeId, Droplet<T>* dropletPtr);
+
+            /** TODO:
+             * 
+             */
+            std::unordered_map<int, std::vector<sim::Droplet<T>*>> getPendingDroplets();
     };
 }

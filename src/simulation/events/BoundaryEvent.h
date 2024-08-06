@@ -51,11 +51,6 @@ class BoundaryHeadEvent : public Event<T> {
      * @brief Perform the boundary head event.
      */
     void performEvent() override;
-
-    /**
-     * @brief Print the boundary head event.
-     */
-    void print() override;
 };
 
 /**
@@ -82,11 +77,6 @@ class BoundaryTailEvent : public Event<T> {
      * @brief Perform the boundary tail event.
      */
     void performEvent() override;
-
-    /**
-     * @brief print the boundary tail event.
-     */
-    void print() override;
 };
 
 }  // namespace sim

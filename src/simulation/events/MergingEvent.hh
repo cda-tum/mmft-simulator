@@ -4,7 +4,7 @@ namespace sim {
 
 template<typename T>
 MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, Simulation<T>& simulation) : 
-    Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), simulation(simulation) { }
+    Event<T>("Merge Bifurcation Event", time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), simulation(simulation) { }
 
 template<typename T>
 void MergeBifurcationEvent<T>::performEvent() {
@@ -48,13 +48,8 @@ void MergeBifurcationEvent<T>::performEvent() {
 }
 
 template<typename T>
-void MergeBifurcationEvent<T>::print() {
-    std::cout << "\n Merge Bifurcation Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
-}
-
-template<typename T>
 MergeChannelEvent<T>::MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, Simulation<T>& simulation) : 
-    Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), boundary1(boundary1), simulation(simulation) {}
+    Event<T>("Merge Channel Event", time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), boundary1(boundary1), simulation(simulation) {}
 
 template<typename T>
 void MergeChannelEvent<T>::performEvent() {
@@ -102,11 +97,6 @@ void MergeChannelEvent<T>::performEvent() {
     newDroplet->setDropletState(DropletState::NETWORK);
     droplet0.setDropletState(DropletState::SINK);
     droplet1.setDropletState(DropletState::SINK);
-}
-
-template<typename T>
-void MergeChannelEvent<T>::print() {
-    std::cout << "\n Merge Channel Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 
 }  // namespace sim

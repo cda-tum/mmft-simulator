@@ -91,7 +91,7 @@ private:
     std::unordered_map<int, std::shared_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
-    std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
+    std::unordered_map<int, std::shared_ptr<Module<T>>> modularReach;           ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     int virtualNodes = 0;
 
@@ -386,6 +386,16 @@ public:
      * @returns Modules.
     */
     const std::unordered_map<int, std::shared_ptr<Module<T>>>& getModules() const;
+
+    /**
+     * @brief Get a pointer to the module that contains the node with the specific id.
+    */
+    std::shared_ptr<Module<T>> getModuleAtNode(int nodeId) const;
+
+    /**
+     * @brief Is the node with the id on a module?
+    */
+    bool isModuleNode(int nodeId) const;
 
     /**
      * @brief Get the groups in the network.

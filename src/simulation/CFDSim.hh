@@ -72,4 +72,28 @@ namespace sim {
         return allConverge;
     }
 
+    template<typename T>
+    bool conductDropletSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators, int iteration) {
+
+        bool allConverge = true;
+
+        // loop through modules and perform the collide and stream operations
+        for (const auto& cfdSimulator : cfdSimulators) {
+
+            cfdSimulator.second->dropletInsertionCheck();
+            
+            // Assertion that the current module is of lbm type, and can conduct CFD simulations.
+            assert(cfdSimulator.second->getModule()->getModuleType() == arch::ModuleType::ESS_LBM);
+
+            cfdSimulator.second->solve();
+
+            if (!cfdSimulator.second->hasConverged()) {
+                allConverge = false;
+            }
+            
+        }
+
+        return allConverge;
+    }
+
 }   // namespace sim

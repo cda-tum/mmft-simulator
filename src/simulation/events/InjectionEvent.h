@@ -33,11 +33,6 @@ class DropletInjectionEvent : public Event<T> {
      * @brief Conducts the injection event.
      */
     void performEvent() override;
-
-    /**
-     * @brief Print the injection event.
-     */
-    void print() override;
 };
 
 /**
@@ -61,11 +56,6 @@ class MixtureInjectionEvent : public Event<T> {
      * @brief Conducts the injection event.
      */
     void performEvent() override;
-
-    /**
-     * @brief Print the injection event.
-     */
-    void print() override;
 };
 
 }  // namespace sim

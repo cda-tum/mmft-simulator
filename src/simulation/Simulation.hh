@@ -1060,11 +1060,24 @@ namespace sim {
         // set correct droplet resistances
         for (auto& [key, droplet] : droplets) {
             // only consider droplets that are inside the network (i.e., also trapped droplets)
-            if (droplet->getDropletState() == DropletState::INJECTION || droplet->getDropletState() == DropletState::SINK) {
+            if (droplet->getDropletState() == DropletState::INJECTION || 
+                droplet->getDropletState() == DropletState::SINK ||
+                droplet->getDropletState() == DropletState::VIRTUAL) {
                 continue;
             }
 
             droplet->addDropletResistance(*resistanceModel);
+        }
+
+        // add droplet resistances for virtual droplets to the non-virtual channel upstream
+        for (auto& [key, simulator] : cfdSimulators) {
+            for (auto& [nodeId, droplets] : simulator->getPendingDroplets()) {
+                auto channel = network->getChannelsAtNode(bufferId);
+                assert(channel.size == 1);  // There should only be 1 channel connected at module nodes
+                for (auto& droplet : droplets) {
+                    channel[0]->addDropletResistance(resistanceModel->getDropletResistance(channel[0], droplet, droplet->getVolume()))
+                }
+            }
         }
     }
 
@@ -1178,7 +1191,9 @@ namespace sim {
         // loop over all droplets
         for (auto& [key, droplet] : droplets) {
             // only consider droplets inside the network (but no trapped droplets)
-            if (droplet->getDropletState() != DropletState::NETWORK) {
+            if (droplet->getDropletState() == DropletState::INJECTION || 
+                droplet->getDropletState() == DropletState::SINK ||
+                droplet->getDropletState() == DropletState::TRAPPED) {
                 continue;
             }
 
@@ -1263,7 +1278,12 @@ namespace sim {
                     if (mergeDroplet == nullptr) {
                         // no merging will happen => BoundaryHeadEvent
                         if (!boundary->isInWaitState()) {
-                            events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *network));
+                            if (network.isModuleNode(referenceNode)) {
+                                int moduleId = network->getModuleAtNode(referenceNode);
+                                events.push_back(std::make_unique<CfdEvent<T>>(time, *droplet, referenceNode, *cfdSimulators.at(moduleId)));
+                            } else {
+                                events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *network));
+                            }
                         }
                     } else {
                         // merging of the actual droplet with the merge droplet will happen => MergeBifurcationEvent
@@ -1334,6 +1354,31 @@ namespace sim {
 
                     // add MergeChannelEvent
                     events.push_back(std::make_unique<MergeChannelEvent<T>>(time, *referenceDroplet, *droplet, *referenceBoundary, *boundary, *this));
+                }
+            }
+        }
+
+        // For all droplets listed in the cfdSimulators, we check if they are fully in the virtual channel or not yet.
+        // The corresponding event is added.
+        for (auto& [key, simulator] : cfdSimulators) {
+            for (auto& [nodeId, droplets] : simulator->getPendingDroplets()) {
+                auto channel = network->getChannelsAtNode(bufferId);
+                assert(channel.size() == 1);  // There should only be 1 channel connected at module nodes
+                for (auto& droplet : droplets) {
+                    assert(droplet->getBoundaries().size() == 2);
+                    assert(droplet->getDropletState() == DropletState::VIRTUAL);
+                    // The droplet is inside the virtual channel
+                    if (droplet->isInsideSingleChannel) {
+                        T position = (droplet->getBoundaries()[0]->getChannelPosition()->getPosition() + 
+                                      droplet->getBoundaries()[1]->getChannelPosition()->getPosition()) / 2.0;
+                        T time = std::abs(0.5-position)*simulator->getVirtualChannel(nodeId).getVolume() / channel[0]->getFlowRate();
+                        events.push_back(std::make_unique<CfdInjectionEvent<T>>(time, *droplet, nodeId, *simulator));
+                    } 
+                    // One boundary of the droplet still has to cross into the virtual channel
+                    else {
+                        T time = std::min(droplet->getBoundaries()[0]->getTime(), droplet->getBoundaries()[1]->getTime());
+                        events.push_back(std::make_unique<CfdChannelEvent<T>>(time, *droplet, nodeId, *simulator));
+                    }
                 }
             }
         }

@@ -509,6 +509,23 @@ const std::unordered_map<int, std::shared_ptr<Module<T>>>& Network<T>::getModule
 }
 
 template<typename T>
+std::shared_ptr<Module<T>> Network<T>::getModuleAtNode(int nodeId) const {
+    try {
+        return modularReach.at(nodeId);
+    } catch (const std::out_of_range& e) {
+        throw std::invalid_argument("Node with ID " + std::to_string(nodeId_) + " does not exist.");
+    }
+}
+
+template<typename T>
+bool Network<T>::isModuleNode(int nodeId) const {
+    if (modularReach.count(nodeId)) {
+        return true;
+    }
+    return false;
+}
+
+template<typename T>
 const std::unordered_map<int, std::unique_ptr<Group<T>>>& Network<T>::getGroups() const {
     return groups;
 }
