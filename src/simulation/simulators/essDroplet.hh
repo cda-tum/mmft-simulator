@@ -65,7 +65,8 @@ namespace sim{
     }
 
     template<typename T>
-    int essLbmDropletSimulator<T>::generateDroplet(sim::Droplet<T>* droplet, Node<T>* entrypoint) {
+    int essLbmDropletSimulator<T>::generateDroplet(sim::Droplet<T>* dropletPtr, Node<T>* entrypoint) {
+
         int dropletId = 1;
         std::vector<T> nodePosition = (0.0, 0.0, 0.0);
         T density = 1.0;
@@ -74,6 +75,17 @@ namespace sim{
         this->solver_->generateDroplet(dropletId, nodePosition, density, viscosity, volume);
         droplet->setDropletState(sim::DropletState::IDLE);
         lbmDroplets.try_emplace(dropletId, nullptr);
+    }
+
+    template<typename T>
+    void essLbmDropletSimulator<T>::eraseDroplet(int dropletId, int entrypointId) {        
+        for (auto& droplet : pendingDroplets.at(nodeId)) {
+            if (droplet->getId() == dropletId) {
+                pendingDroplets.erase(droplet);
+                return;
+            }
+        }
+        throw std::range_error("Droplet wasn't found in pendingDroplets.");
     }
 
     template<typename T>

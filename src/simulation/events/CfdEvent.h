@@ -22,6 +22,9 @@ template<typename T>
 class Droplet;
 
 template<typename T>
+class DropletBoundary;
+
+template<typename T>
 class essLbmDropletSimulator;
 
 template<typename T>
@@ -45,7 +48,7 @@ class CfdChannelEvent : public Event<T> {
      * @param nodeId Id of the node at which the droplet enters the Cfd domain.
      * @param simulator Simulator which the droplet enters.
      */
-    CfdChannelEvent(T time, Droplet<T>& droplet, int nodeId, const essLbmDropletSimulator<T>& simulator);
+    CfdChannelEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, int nodeId, const essLbmDropletSimulator<T>& simulator);
 
     /**
      * @brief Perform the Cfd event.

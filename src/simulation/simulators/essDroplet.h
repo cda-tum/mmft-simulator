@@ -36,16 +36,32 @@ class Opening;
 namespace sim {
 
     /**
+     * @brief A struct that contains all the necessary information to add a new droplet to the Abstract domain.
+     */
+    template<typename T>
+    struct ShadowDroplet {
+        T exitTime;
+        int nodeId;
+        T volume;
+        T density;
+        T viscosity;
+        arch::RectangularChannel<T>* channelPtr;
+        T head;
+        T tail;
+    };
+
+    /**
      * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
     */
     template<typename T>
     class essLbmDropletSimulator : public essLbmSimulator<T> {
         private:
 
+            std::vector<ShadowDroplet<T>> shadowDroplets;
             std::unordered_map<int, T> bufferZones;                 ///< For each opening we need a buffer zone to generate droplet <nodeId, bufferLength>
             std::unordered_map<int, arch::RectangularChannel<T>> virtualChannels;
             std::unordered_map<int, sim::DropletInjection<T>> dropletInjections; ///< <nodeId/bufferId, vector of pending dropletInjections >
-            std::unordered_map<int, std::vector<sim::Droplet<T>*>> lbmDroplets;  ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
+            std::unordered_map<int, std::vector<sim::Droplet<T>*>> pendingDroplets;  ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
 
             std::shared_ptr<ess::lbmSolver> solver_;
 
@@ -75,6 +91,11 @@ namespace sim {
             int generateDroplet(sim::Droplet<T>* droplet, Node<T>* entrypoint);
 
             /**
+             * @brief Erase a droplet from pendingDroplets
+             */
+            void eraseDroplet(int dropletId, int entrypointId);
+
+            /**
              * @brief Purge the droplet with Id in the buffer zone from the LBM solver
              * @return Opening id, where the droplet exits LBM domain.
              */
@@ -97,9 +118,12 @@ namespace sim {
              */
             void addDropletInjection(T time, int nodeId, Droplet<T>* dropletPtr);
 
-            /** TODO:
-             * 
+            /**
+             * @brief Returns the map of pending droplets, waiting to enter the CFD domain.
+             * @return The map of pending droplets.
              */
-            std::unordered_map<int, std::vector<sim::Droplet<T>*>> getPendingDroplets();
+            std::unordered_map<int, std::vector<sim::Droplet<T>*>> getPendingDroplets() {
+                return pendingDroplets;
+            }
     };
 }

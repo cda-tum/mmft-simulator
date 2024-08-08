@@ -98,6 +98,9 @@ template<typename T>
 class Specie;
 
 template<typename T>
+struct ShadowDroplet;
+
+template<typename T>
 class Tissue;
 
 enum class Type {

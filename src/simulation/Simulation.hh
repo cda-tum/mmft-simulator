@@ -709,6 +709,8 @@ namespace sim {
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
                 updatedDropletResistances();
 
+                nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
                 // conduct coupled simulation until an event should occur
                 while (time < nextTime) {
                     // conduct CFD simulations
@@ -716,50 +718,50 @@ namespace sim {
                     time += 10 * cfdSimulators.at(0)->getTimeStepSize();
                     // compute nodal analysis again
                     nodalAnalysis->conductNodalAnalysis(cfdSimulators);
-                }   
 
-                // update droplets, i.e., their boundary flow rates
-                // loop over all droplets
-                dropletsAtBifurcation = false;
-                for (auto& [key, droplet] : droplets) {
-                    // only consider droplets inside the network
-                    if (droplet->getDropletState() != DropletState::NETWORK) {
-                        continue;
+                    // update droplets, i.e., their boundary flow rates
+                    // loop over all droplets
+                    dropletsAtBifurcation = false;
+                    for (auto& [key, droplet] : droplets) {
+                        // only consider droplets inside the network
+                        if (droplet->getDropletState() != DropletState::NETWORK) {
+                            continue;
+                        }
+
+                        // set to true if droplet is at bifurcation
+                        if (droplet->isAtBifurcation()) {
+                            dropletsAtBifurcation = true;
+                        }
+
+                        // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
+                        // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
+                        // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
+                        droplet->updateBoundaries(*network);
                     }
+                    // store simulation results of current state
+                    saveState();
+                    // compute events
+                    auto events = computeEvents();
+                    // sort events
+                    // closest events in time with the highest priority come first
+                    std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
+                        if (a->getTime() == b->getTime()) {
+                            return a->getPriority() < b->getPriority();  // ascending order (the lower the priority value, the higher the priority)
+                        }
+                        return a->getTime() < b->getTime();  // ascending order
+                    });
 
-                    // set to true if droplet is at bifurcation
-                    if (droplet->isAtBifurcation()) {
-                        dropletsAtBifurcation = true;
+                    // get next event or break loop, if no events remain
+                    Event<T>* nextEvent = nullptr;
+                    if (events.size() != 0) {
+                        nextEvent = events[0].get();
+                    } else if (noCfdDroplets == 0){
+                        break;
                     }
-
-                    // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
-                    // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
-                    // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
-                    droplet->updateBoundaries(*network);
+                    // move droplets until event is reached
+                    nextTime = nextEvent->getTime();
+                    moveDroplets(nextEvent->getTime());
                 }
-                // store simulation results of current state
-                saveState();
-                // compute events
-                auto events = computeEvents();
-                // sort events
-                // closest events in time with the highest priority come first
-                std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
-                    if (a->getTime() == b->getTime()) {
-                        return a->getPriority() < b->getPriority();  // ascending order (the lower the priority value, the higher the priority)
-                    }
-                    return a->getTime() < b->getTime();  // ascending order
-                });
-
-                // get next event or break loop, if no events remain
-                Event<T>* nextEvent = nullptr;
-                if (events.size() != 0) {
-                    nextEvent = events[0].get();
-                } else if (noCfdDroplets == 0){
-                    break;
-                }
-                // move droplets until event is reached
-                nextTime = nextEvent->getTime();
-                moveDroplets(nextEvent->getTime());
 
                 nextEvent->performEvent();
 
@@ -1280,7 +1282,7 @@ namespace sim {
                         if (!boundary->isInWaitState()) {
                             if (network.isModuleNode(referenceNode)) {
                                 int moduleId = network->getModuleAtNode(referenceNode);
-                                events.push_back(std::make_unique<CfdEvent<T>>(time, *droplet, referenceNode, *cfdSimulators.at(moduleId)));
+                                events.push_back(std::make_unique<CfdChannelEvent<T>>(time, *droplet, *boundary, referenceNode, *cfdSimulators.at(moduleId)));
                             } else {
                                 events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *network));
                             }
@@ -1361,6 +1363,15 @@ namespace sim {
         // For all droplets listed in the cfdSimulators, we check if they are fully in the virtual channel or not yet.
         // The corresponding event is added.
         for (auto& [key, simulator] : cfdSimulators) {
+            // Loop through all droplets that recently exited the CFD domain and define them
+            for (auto& droplet : simulator->getShadowDroplets()) {
+                auto newDroplet = addDroplet(droplet.density, droplet.viscosity, droplet.volume);
+                newDroplet->setDropletState(DropletState::VIRTUAL);
+                newDroplet->addBoundary(droplet.channelPtr, droplet.head, false, BoundaryState::NORMAL);
+                newDroplet->addBoundary(droplet.channelPtr, droplet.tail, true, BoundaryState::NORMAL);
+            }
+            simulator->clearShadowDroplets();
+            // Loop through all droplets in the buffer zones towards CFD domain
             for (auto& [nodeId, droplets] : simulator->getPendingDroplets()) {
                 auto channel = network->getChannelsAtNode(bufferId);
                 assert(channel.size() == 1);  // There should only be 1 channel connected at module nodes
@@ -1376,10 +1387,20 @@ namespace sim {
                     } 
                     // One boundary of the droplet still has to cross into the virtual channel
                     else {
-                        T time = std::min(droplet->getBoundaries()[0]->getTime(), droplet->getBoundaries()[1]->getTime());
-                        events.push_back(std::make_unique<CfdChannelEvent<T>>(time, *droplet, nodeId, *simulator));
+                        for (auto& boundary : droplet->getBoundaries()) {
+                        if (boundary->getFlowRate() < 0) {
+                            double time = boundary->getTime();
+                            events.push_back(std::make_unique<CfdChannelEvent<T>>(time, *droplet, *boundary, nodeId, *simulator));
+                        }
                     }
                 }
+            }
+            // Loop through all droplets in buffer zones coming out of CFD domain
+            for (auto& [nodeId, droplets] : simulator->getPendingDroplets()) {
+                /** TODO:
+                 * Introduce newly created droplets back into the Abstract network.
+                 */
+                events.push_back(std::make_unique<CfdRemovalEvent<T>>(time, *droplet, *boundary, nodeId, *simulator));
             }
         }
 

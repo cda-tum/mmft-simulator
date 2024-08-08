@@ -4,21 +4,25 @@
 namespace sim {
 
 template<typename T>
-CfdChannelEvent<T>::CfdChannelEvent(T time, Droplet<T>& droplet, int nodeId, const essLbmDropletSimulator<T>& simulator) : 
+CfdChannelEvent<T>::CfdChannelEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, int nodeId, const essLbmDropletSimulator<T>& simulator) : 
     Event<T>("CFD Channel Event", time, 1), droplet(droplet), nodeId(nodeId), simulator(simulator) { }
 
 template<typename T>
 void CfdChannelEvent<T>::performEvent() {
 
-    /** TODO:
-     * The droplet is transferred to a virtual channel of the cfd Simulator
-     * 
-     * Set the droplet status to Virtual
-     * Add the droplet to pending droplets in the virtual channel of the node Id
-     * 
-     * If the droplet status is already virtual, it means that the tail boundary
-     * is now entering the virtual channel
-     */
+    const RectangularChannel<T>* channelPtr = simulator.getVirtualChannel(nodeId);
+
+    boundary.getChannelPosition().setChannel(channelPtr);
+    boundary.getChannelPosition().setPosition(0.0);
+    
+    // The head boundary of the droplet is entering the virtual channel
+    if (droplet.getDropletState() != DropletState::VIRTUAL) {
+        droplet.setDropletState(DropletState::VIRTUAL);
+    }
+
+    if (droplet.getVolume() > channelPtr->getVolume()) {
+        throw std::runtime_error("A droplet that entered a virtual channel could not be fully contained (droplet volume > channel volume).");
+    }
 }
 
 template<typename T>
@@ -28,13 +32,9 @@ CfdInjectionEvent<T>::CfdInjectionEvent(T time, Droplet<T>& droplet, int nodeId,
 template<typename T>
 void CfdInjectionEvent<T>::performEvent() {
 
-    /** TODO:
-     * This event is triggered when the droplet reaches 0.5 of virtual channel
-     * 
-     * Remove the droplet from pending droplets in the virtual channel
-     * Generate the droplet in the CFD domain.
-     */
-
+    droplet.setDropletState(DropletState::SINK);
+    simulator->generateDroplet(&droplet, nodeId);
+    simulator->eraseDroplet(droplet.getId(), nodeId);
 }
 
 }  // namespace sim
