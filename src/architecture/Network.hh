@@ -513,7 +513,7 @@ std::shared_ptr<Module<T>> Network<T>::getModuleAtNode(int nodeId) const {
     try {
         return modularReach.at(nodeId);
     } catch (const std::out_of_range& e) {
-        throw std::invalid_argument("Node with ID " + std::to_string(nodeId_) + " does not exist.");
+        throw std::invalid_argument("Node with ID " + std::to_string(nodeId) + " does not exist.");
     }
 }
 

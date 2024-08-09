@@ -36,21 +36,6 @@ class Opening;
 namespace sim {
 
     /**
-     * @brief A struct that contains all the necessary information to add a new droplet to the Abstract domain.
-     */
-    template<typename T>
-    struct ShadowDroplet {
-        T exitTime;
-        int nodeId;
-        T volume;
-        T density;
-        T viscosity;
-        arch::RectangularChannel<T>* channelPtr;
-        T head;
-        T tail;
-    };
-
-    /**
      * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
     */
     template<typename T>
@@ -60,8 +45,10 @@ namespace sim {
             std::vector<ShadowDroplet<T>> shadowDroplets;
             std::unordered_map<int, T> bufferZones;                 ///< For each opening we need a buffer zone to generate droplet <nodeId, bufferLength>
             std::unordered_map<int, arch::RectangularChannel<T>> virtualChannels;
+            std::unordered_map<int, arch::RectangularChannel<T>*> realChannels;
             std::unordered_map<int, sim::DropletInjection<T>> dropletInjections; ///< <nodeId/bufferId, vector of pending dropletInjections >
             std::unordered_map<int, std::vector<sim::Droplet<T>*>> pendingDroplets;  ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
+            std::unordered_map<int, std::vector<sim::Droplet<T>*>> createdDroplets;  ///< Map of droplets in the lbm zone <dropletId, dropletPointer>
 
             std::shared_ptr<ess::lbmSolver> solver_;
 

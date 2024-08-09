@@ -1,11 +1,13 @@
 set(SOURCE_LIST
     BoundaryEvent.hh
+    CfdEvent.hh
     InjectionEvent.hh
     MergingEvent.hh
 )
 
 set(HEADER_LIST
     BoundaryEvent.h
+    CfdEvent.h
     Event.h
     InjectionEvent.h
     MergingEvent.h

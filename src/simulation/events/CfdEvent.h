@@ -19,13 +19,13 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
+class CFDSimulator;
+
+template<typename T>
 class Droplet;
 
 template<typename T>
 class DropletBoundary;
-
-template<typename T>
-class essLbmDropletSimulator;
 
 template<typename T>
 class Event;
@@ -34,11 +34,12 @@ class Event;
  * @brief Class for a Cfd event that takes place when the boundary head reaches a Cfd module.
  */
 template<typename T>
-class CfdChannelEvent : public Event<T> {
+class CfdChannelInflowEvent : public Event<T> {
   private:
     Droplet<T>& droplet;                ///< Droplet for which the event should take place.
+    DropletBoundary<T>& boundary;       ///< Boundary of the droplet that is effected by the event.
     int nodeId;
-    const essLbmDropletSimulator<T>& simulator;    ///< Microfluidic biochip that is simulated.
+    CFDSimulator<T>& simulator;    ///< Microfluidic biochip that is simulated.
 
   public:
     /**
@@ -48,7 +49,34 @@ class CfdChannelEvent : public Event<T> {
      * @param nodeId Id of the node at which the droplet enters the Cfd domain.
      * @param simulator Simulator which the droplet enters.
      */
-    CfdChannelEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, int nodeId, const essLbmDropletSimulator<T>& simulator);
+    CfdChannelInflowEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, int nodeId, CFDSimulator<T>& simulator);
+
+    /**
+     * @brief Perform the Cfd event.
+     */
+    void performEvent() override;
+};
+
+/**
+ * @brief Class for a Cfd event that takes place when the boundary head reaches a Cfd module.
+ */
+template<typename T>
+class CfdChannelOutflowEvent : public Event<T> {
+  private:
+    Droplet<T>& droplet;                ///< Droplet for which the event should take place.
+    DropletBoundary<T>& boundary;       ///< Boundary of the droplet that is effected by the event.
+    int nodeId;
+    CFDSimulator<T>& simulator;    ///< Microfluidic biochip that is simulated.
+
+  public:
+    /**
+     * @brief Construct a new Cfd event.
+     * @param time Time at which the event should happen, in s elapsed since the start of the simulation.
+     * @param droplet Droplet for which the event should happen.
+     * @param nodeId Id of the node at which the droplet enters the Cfd domain.
+     * @param simulator Simulator which the droplet enters.
+     */
+    CfdChannelOutflowEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, int nodeId, CFDSimulator<T>& simulator);
 
     /**
      * @brief Perform the Cfd event.
@@ -64,7 +92,7 @@ class CfdInjectionEvent : public Event<T> {
   private:
     Droplet<T>& droplet;                ///< Droplet for which the event should take place.
     int nodeId;
-    const essLbmDropletSimulator<T>& simulator;    ///< Microfluidic biochip that is simulated.
+    CFDSimulator<T>& simulator;    ///< Microfluidic biochip that is simulated.
 
   public:
     /**
@@ -74,7 +102,7 @@ class CfdInjectionEvent : public Event<T> {
      * @param nodeId Id of the node at which the droplet enters the Cfd domain.
      * @param simulator Simulator which the droplet enters.
      */
-    CfdInjectionEvent(T time, Droplet<T>& droplet, int nodeId, const essLbmDropletSimulator<T>& simulator);
+    CfdInjectionEvent(T time, Droplet<T>& droplet, int nodeId, CFDSimulator<T>& simulator);
 
     /**
      * @brief Perform the Cfd event.

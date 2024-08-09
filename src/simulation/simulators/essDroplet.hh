@@ -104,30 +104,4 @@ namespace sim{
         return dropletId;
     }
 
-    template<typename T>
-    void essLbmDropletSimulator<T>::addDropletInjection(T time, int nodeId, Droplet<T>* dropletPtr) {
-
-        /** TODO:
-         * A dropletInjection is appended to the vector for a bufferzone, 
-         * or the vector is created if it doesn't exist for the bufferzone.
-         * 
-         * If the vector already exists for the bufferzone, we should check that the inserted droplet
-         * does not collide with any of the droplets that are pending for insertion.
-         */
-    }
-
-    template<typename T>
-    void essLbmDropletSimulator<T>::dropletInsertionCheck(T time, int nodeId, Droplet<T>* dropletPtr) {
-
-        /** TODO: 
-         * Loop through all pending droplet insertions and check if the insertionTime falls within the
-         * simulation iteration window.
-         * 
-         * If not -> continue
-         * 
-         * If so -> generateDroplet() & remove dropletInsertion from map. If the vector size is zero, 
-         * remove map entry for specific buffer zone.
-         */
-    }
-
 }   // namespace arch

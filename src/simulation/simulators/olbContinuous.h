@@ -246,6 +246,10 @@ public:
     T getEpsilon() const { 
         return epsilon; 
     };
+
+    T getTimeStepSize() {
+        return converter->getPhysDeltaT();
+    };
 };
 
 }   // namespace arch

@@ -20,6 +20,7 @@
 #include "simulation/Specie.h"
 #include "simulation/Tissue.h"
 #include "simulation/events/BoundaryEvent.h"
+#include "simulation/events/CfdEvent.h"
 #include "simulation/events/Event.h"
 #include "simulation/events/InjectionEvent.h"
 #include "simulation/events/MergingEvent.h"

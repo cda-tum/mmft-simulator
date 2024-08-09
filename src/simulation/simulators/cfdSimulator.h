@@ -25,6 +25,21 @@ struct Opening;
 namespace sim {
 
 /**
+ * @brief A struct that contains all the necessary information to add a new droplet to the Abstract domain.
+ */
+template<typename T>
+struct ShadowDroplet {
+    T exitTime;
+    int nodeId;
+    T volume;
+    T density;
+    T viscosity;
+    arch::RectangularChannel<T>* channelPtr;
+    T head;
+    T tail;
+};
+
+/**
  * @brief Class to specify a module, which is a functional component in a network.
 */
 template<typename T>
@@ -138,6 +153,8 @@ public:
 
     virtual void setBoundaryValues(int iT) = 0;
 
+    virtual T getTimeStepSize() = 0;
+
     // virtual functions
     
     virtual void prepareGeometry() {}
@@ -159,6 +176,53 @@ public:
     virtual void storeCfdResults (int iT) {}
 
     virtual bool hasAdConverged() const { return false; }
+
+    virtual int getNoDroplets() {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator."); return 0;
+    }
+
+    virtual int generateDroplet(sim::Droplet<T>* droplet, int bufferZone) {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator."); return 0;
+    }
+
+    virtual void addPendingDroplet(sim::Droplet<T>* droplet, int bufferZone) const {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator.");
+    }
+
+    virtual std::unordered_map<int, std::vector<sim::Droplet<T>*>> getPendingDroplets() const {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator.");
+        return std::unordered_map<int, std::vector<sim::Droplet<T>*>>();
+    }
+
+    virtual void erasePendingDroplet(int dropletId, int bufferZone) const {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator.");
+    }
+
+    virtual std::unordered_map<int, std::vector<sim::Droplet<T>*>> getCreatedDroplets() const {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator.");
+        return std::unordered_map<int, std::vector<sim::Droplet<T>*>>();
+    }
+
+    virtual void eraseCreatedDroplet(int dropletId, int bufferZone) const {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator.");
+    }
+
+    virtual std::vector<ShadowDroplet<T>> getShadowDroplets() const {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator.");
+        return std::vector<ShadowDroplet<T>>();
+    }
+
+    virtual void clearShadowDroplets() {
+        throw std::runtime_error("Tried to access droplets in a non-droplet simulator.");
+    }
+
+    virtual arch::RectangularChannel<T>* getVirtualChannel(int bufferZone) const {
+        throw std::runtime_error("Tried to access droplet definition in a non-droplet simulator."); return nullptr;
+    }
+
+    virtual arch::RectangularChannel<T>* getRealChannel(int bufferZone) const {
+        throw std::runtime_error("Tried to access droplet definition in a non-droplet simulator."); return nullptr;
+    }
 
     friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
 

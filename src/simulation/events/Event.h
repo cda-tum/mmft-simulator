@@ -45,7 +45,7 @@ class Event {
      * @brief Function that prints the contents of this Event.
     */
     void print() {
-      std::cout << "\n" << name << " at t=" << time << " with priority " << priority << "\n" << std::endl;
+      std::cout << "\n" << eventName << " at t=" << time << " with priority " << priority << "\n" << std::endl;
     }
 
     /**

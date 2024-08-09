@@ -95,10 +95,10 @@ template<typename T>
 class ResistanceModel;
 
 template<typename T>
-class Specie;
+struct ShadowDroplet;
 
 template<typename T>
-struct ShadowDroplet;
+class Specie;
 
 template<typename T>
 class Tissue;
@@ -220,6 +220,14 @@ public:
      * @return Pointer to created droplet.
      */
     Droplet<T>* addDroplet(int fluidId, T volume);
+
+    /**
+     * @brief Create droplet.
+     * @param[in] fluidId Unique identifier of the fluid the droplet consists of.
+     * @param[in] volume Volume of the fluid in m^3.
+     * @return Pointer to created droplet.
+     */
+    Droplet<T>* addDroplet(T density, T viscosity, T volume);
 
     /**
      * @brief Create specie.

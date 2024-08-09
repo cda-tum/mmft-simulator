@@ -15,6 +15,7 @@
 #include "simulation/Specie.hh"
 #include "simulation/Tissue.hh"
 #include "simulation/events/BoundaryEvent.hh"
+#include "simulation/events/CfdEvent.hh"
 #include "simulation/events/InjectionEvent.hh"
 #include "simulation/events/MergingEvent.hh"
 

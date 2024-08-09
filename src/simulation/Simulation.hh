@@ -27,6 +27,24 @@ namespace sim {
     }
 
     template<typename T>
+    Droplet<T>* Simulation<T>::addDroplet(T density, T viscosity, T volume) {
+        auto id = droplets.size();
+        Fluid<T>* fluidPtr = nullptr;
+
+        for (auto& [key, fluid] : fluids) {
+            if (std::abs(fluid->getDensity()-density) < 1e-5 && std::abs(fluid->getViscosity()-viscosity) < 5e-7) {
+                fluidPtr = fluid.get();
+                
+                auto result = droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluidPtr));
+
+                return result.first->second.get();
+            }
+        }
+
+        throw std::runtime_error("Could not match CFD droplet to fluid definition.");
+    }
+
+    template<typename T>
     Specie<T>* Simulation<T>::addSpecie(T diffusivity, T satConc) {
         auto id = species.size();
         
@@ -707,15 +725,18 @@ namespace sim {
 
             while (true) {
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
-                updatedDropletResistances();
+                updateDropletResistances();
 
                 nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+                Event<T>* nextEvent = nullptr;
 
                 // conduct coupled simulation until an event should occur
                 while (time < nextTime) {
                     // conduct CFD simulations
                     conductCFDSimulation(cfdSimulators, 10);
-                    time += 10 * cfdSimulators.at(0)->getTimeStepSize();
+                    T timestep = 10 * cfdSimulators.at(0)->getTimeStepSize();
+                    time += timestep;
                     // compute nodal analysis again
                     nodalAnalysis->conductNodalAnalysis(cfdSimulators);
 
@@ -751,17 +772,26 @@ namespace sim {
                         return a->getTime() < b->getTime();  // ascending order
                     });
 
+                    int cfdDroplets = 0;
+
+                    // Count the amount of droplets in cfd domains
+                    for (auto& [key, simulator] : cfdSimulators) {
+                        cfdDroplets += simulator->getNoDroplets();
+                    }
+
                     // get next event or break loop, if no events remain
-                    Event<T>* nextEvent = nullptr;
                     if (events.size() != 0) {
                         nextEvent = events[0].get();
-                    } else if (noCfdDroplets == 0){
-                        break;
+                    } else if (cfdDroplets == 0){
+                        return;
                     }
-                    // move droplets until event is reached
+                    // move droplets for the timestep
                     nextTime = nextEvent->getTime();
-                    moveDroplets(nextEvent->getTime());
+                    moveDroplets(timestep);
                 }
+
+                // move droplets until event is reached
+                moveDroplets(nextEvent->getTime());
 
                 nextEvent->performEvent();
 
@@ -1074,10 +1104,9 @@ namespace sim {
         // add droplet resistances for virtual droplets to the non-virtual channel upstream
         for (auto& [key, simulator] : cfdSimulators) {
             for (auto& [nodeId, droplets] : simulator->getPendingDroplets()) {
-                auto channel = network->getChannelsAtNode(bufferId);
-                assert(channel.size == 1);  // There should only be 1 channel connected at module nodes
+                auto channelPtr = simulator->getRealChannel(nodeId);
                 for (auto& droplet : droplets) {
-                    channel[0]->addDropletResistance(resistanceModel->getDropletResistance(channel[0], droplet, droplet->getVolume()))
+                    channelPtr->addDropletResistance(resistanceModel->getDropletResistance(channelPtr, droplet, droplet->getVolume()));
                 }
             }
         }
@@ -1280,9 +1309,9 @@ namespace sim {
                     if (mergeDroplet == nullptr) {
                         // no merging will happen => BoundaryHeadEvent
                         if (!boundary->isInWaitState()) {
-                            if (network.isModuleNode(referenceNode)) {
-                                int moduleId = network->getModuleAtNode(referenceNode);
-                                events.push_back(std::make_unique<CfdChannelEvent<T>>(time, *droplet, *boundary, referenceNode, *cfdSimulators.at(moduleId)));
+                            if (network->isModuleNode(referenceNode->getId())) {
+                                auto module = network->getModuleAtNode(referenceNode->getId());
+                                events.push_back(std::make_unique<CfdChannelInflowEvent<T>>(time, *droplet, *boundary, referenceNode->getId(), *cfdSimulators.at(module->getId())));
                             } else {
                                 events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *network));
                             }
@@ -1373,34 +1402,35 @@ namespace sim {
             simulator->clearShadowDroplets();
             // Loop through all droplets in the buffer zones towards CFD domain
             for (auto& [nodeId, droplets] : simulator->getPendingDroplets()) {
-                auto channel = network->getChannelsAtNode(bufferId);
-                assert(channel.size() == 1);  // There should only be 1 channel connected at module nodes
+                auto channelPtr = simulator->getRealChannel(nodeId);
                 for (auto& droplet : droplets) {
                     assert(droplet->getBoundaries().size() == 2);
                     assert(droplet->getDropletState() == DropletState::VIRTUAL);
                     // The droplet is inside the virtual channel
-                    if (droplet->isInsideSingleChannel) {
-                        T position = (droplet->getBoundaries()[0]->getChannelPosition()->getPosition() + 
-                                      droplet->getBoundaries()[1]->getChannelPosition()->getPosition()) / 2.0;
-                        T time = std::abs(0.5-position)*simulator->getVirtualChannel(nodeId).getVolume() / channel[0]->getFlowRate();
+                    if (droplet->isInsideSingleChannel()) {
+                        T position = (droplet->getBoundaries()[0]->getChannelPosition().getPosition() + 
+                                      droplet->getBoundaries()[1]->getChannelPosition().getPosition()) / 2.0;
+                        T time = std::abs(0.5-position)*simulator->getVirtualChannel(nodeId)->getVolume() / channelPtr->getFlowRate();
                         events.push_back(std::make_unique<CfdInjectionEvent<T>>(time, *droplet, nodeId, *simulator));
                     } 
                     // One boundary of the droplet still has to cross into the virtual channel
                     else {
                         for (auto& boundary : droplet->getBoundaries()) {
-                        if (boundary->getFlowRate() < 0) {
-                            double time = boundary->getTime();
-                            events.push_back(std::make_unique<CfdChannelEvent<T>>(time, *droplet, *boundary, nodeId, *simulator));
+                            if (boundary->getFlowRate() < 0) {
+                                double time = boundary->getTime();
+                                events.push_back(std::make_unique<CfdChannelInflowEvent<T>>(time, *droplet, *boundary, nodeId, *simulator));
+                            }
                         }
                     }
                 }
             }
             // Loop through all droplets in buffer zones coming out of CFD domain
-            for (auto& [nodeId, droplets] : simulator->getPendingDroplets()) {
-                /** TODO:
-                 * Introduce newly created droplets back into the Abstract network.
-                 */
-                events.push_back(std::make_unique<CfdRemovalEvent<T>>(time, *droplet, *boundary, nodeId, *simulator));
+            for (auto& [nodeId, droplets] : simulator->getCreatedDroplets()) {
+                for (auto& droplet : droplets) {
+                    for (auto& boundary : droplet->getBoundaries()) {
+                        events.push_back(std::make_unique<CfdChannelOutflowEvent<T>>(time, *droplet, *boundary, nodeId, *simulator));
+                    }
+                }
             }
         }
 
