@@ -124,7 +124,7 @@
     ]
 },
 "simulation": {
-    "platform": "Droplet",
+    "platform": "BigDroplet",
     "type": "Hybrid",
     "resistanceModel": "Poiseuille",
     "fluids": [

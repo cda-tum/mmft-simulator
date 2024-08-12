@@ -308,9 +308,11 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
             else if(simulator["Type"] == "ESS_Mixing")
             {
                 #ifdef USE_ESSLBM
+                /*
                 auto simulator = simulation.addEssMixingSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
+                */
                 #else
                 throw std::invalid_argument("The simulator was not build using the ESS library.");
                 #endif

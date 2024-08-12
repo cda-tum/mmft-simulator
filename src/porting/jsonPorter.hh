@@ -129,9 +129,11 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
             readSimulators<T>(jsonString, simulation, network_);
             network_->sortGroups();
         } else if (platform == sim::Platform::BigDroplet) {
-            throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
+            readSimulators<T>(jsonString, simulation, network_);
+            readDropletInjections<T>(jsonString, simulation, activeFixture);
+            network_->sortGroups();
         } else {
-            throw std::invalid_argument("Invalid platform for Hybrid simulation. Please select one of the following:\n\tcontinuous");
+            throw std::invalid_argument("Invalid platform for Hybrid simulation. Please select one of the following:\n\tContinuous\n\tMixing\n\tBigDroplet");
         }
 
         readPumps<T>(jsonString, network_);
