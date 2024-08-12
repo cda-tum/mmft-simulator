@@ -315,6 +315,28 @@ namespace sim {
         #endif
     }
 
+    template<typename T>
+    essLbmDropletSimulator<T>* Simulation<T>::addEssDropletSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+                                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {
+        #ifdef USE_ESSLBM
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new essLbmDropletSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+        #else
+        throw std::invalid_argument("MMFT Simulator was not built using the ESS library.");
+        #endif
+    }
+
 
     template<typename T>
     void Simulation<T>::setPlatform(Platform platform_) {

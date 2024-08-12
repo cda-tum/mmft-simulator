@@ -153,7 +153,7 @@ public:
 
     virtual void setBoundaryValues(int iT) = 0;
 
-    virtual T getTimeStepSize() = 0;
+    virtual T getTimeStepSize() { return 0.0; };
 
     // virtual functions
     

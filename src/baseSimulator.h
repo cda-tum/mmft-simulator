@@ -49,6 +49,6 @@
 
 #ifdef USE_ESSLBM
     #include "simulation/simulators/essContinuous.h"
-    //#include "simulation/simulators/essDroplet.h"
+    #include "simulation/simulators/essDroplet.h"
     #include "simulation/simulators/essMixing.h"
 #endif
