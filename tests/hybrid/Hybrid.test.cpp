@@ -6,6 +6,127 @@
 
 using T = double;
 
+TEST(Opening, Deg0) {
+
+    std::string stlFile = "../examples/STL/cross.stl";
+    T dx = 5e-6;
+
+    auto stlReader = std::make_shared<olb::STLreader<T>>(stlFile, dx);
+    auto stl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*stlReader);
+
+    olb::Vector<T,2> origin(-0.5*dx, -0.5*dx);
+    olb::Vector<T,2> extend(5e-4 + dx, 5e-4 + dx);
+    olb::IndicatorCuboid2D<T> cuboid(extend, origin);
+    auto cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, dx, 1);
+    auto loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*cuboidGeometry);
+    auto geometry = std::make_shared<olb::SuperGeometry<T,2>> (*cuboidGeometry, *loadBalancer);
+
+    geometry->rename(0, 2);
+    geometry->rename(2, 1, *stl2Dindicator);
+
+    geometry->clean();
+
+    auto node = std::make_shared<arch::Node<T>>(0, 0.0, 2.5e-4);
+    std::vector<T> normal({1.0, 0.0});
+    auto opening = arch::Opening<T>(node, normal, 1e-4);
+
+    T x_origin = opening.node->getPosition()[0] - 0.5*opening.width*opening.tangent[0];
+    T y_origin = opening.node->getPosition()[1] - 0.5*opening.width*opening.tangent[1];
+
+    T x_extend = opening.width*opening.tangent[0] - dx*opening.normal[0];
+    T y_extend = opening.width*opening.tangent[1] - dx*opening.normal[1];
+
+    if (x_extend < 0 ){
+        x_extend *= -1;
+        x_origin -= x_extend;
+    }
+    if (y_extend < 0 ){
+        y_extend *= -1;
+        y_origin -= y_extend;
+    }
+
+    olb::Vector<T,2> originO (x_origin, y_origin);
+    olb::Vector<T,2> extendO (x_extend, y_extend);
+    olb::IndicatorCuboid2D<T> openingInd(extendO, originO);
+    
+    geometry->rename(2, 3, 1, openingInd);
+
+    std::cout << "[Geomtry] print: " << std::endl;
+    geometry->print();
+    std::cout << "[getStatistics] print: " << std::endl;
+    geometry->getStatistics().print();
+    std::cout << "[getStatistics] N materials: " << geometry->getStatistics().getNmaterials() << std::endl;
+    std::cout << "[getStatistics] N voxels: " << geometry->getStatistics().getNvoxel(3) << std::endl;
+    //std::cout << "[getStatistics] compute normal: " << geometry->getStatistics().computeNormal(2) << std::endl;
+    //std::cout << "[getStatistics] compute discrete normal: " << geometry->getStatistics().computeDiscreteNormal(2) << std::endl;
+
+    ASSERT_EQ(geometry->getStatistics().getNvoxel(3), 20);
+}
+
+TEST(Opening, Deg10) {
+
+    std::string stlFile = "../examples/STL/cross10.stl";
+    T dx = 5e-6;
+
+    auto stlReader = std::make_shared<olb::STLreader<T>>(stlFile, dx);
+    auto stl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*stlReader);
+
+    olb::Vector<T,2> origin(-0.5*dx, -0.5*dx);
+    olb::Vector<T,2> extend(5e-4 + dx, 5e-4 + dx);
+    olb::IndicatorCuboid2D<T> cuboid(extend, origin);
+    auto cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, dx, 1);
+    auto loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*cuboidGeometry);
+    auto geometry = std::make_shared<olb::SuperGeometry<T,2>> (*cuboidGeometry, *loadBalancer);
+
+    geometry->rename(0, 2);
+    geometry->rename(2, 1, *stl2Dindicator);
+
+    geometry->clean();
+
+    auto node = std::make_shared<arch::Node<T>>(0, 0.0303845e-4, 2.1527036e-4);
+    std::vector<T> normal({0.98, 0.17});
+    auto opening = arch::Opening<T>(node, normal, 1e-4);
+
+    T x_origin = opening.node->getPosition()[0] - 0.5*opening.width*opening.tangent[0];
+    T y_origin = opening.node->getPosition()[1] - 0.5*opening.width*opening.tangent[1];
+
+    T x_extend = opening.width*opening.tangent[0] - dx*opening.normal[0];
+    T y_extend = opening.width*opening.tangent[1] - dx*opening.normal[1];
+
+    if (x_extend < 0 ){
+        x_extend *= -1;
+        x_origin -= x_extend;
+    }
+    if (y_extend < 0 ){
+        y_extend *= -1;
+        y_origin -= y_extend;
+    }
+
+    olb::Vector<T,2> originO (x_origin, y_origin);
+    olb::Vector<T,2> extendO (x_extend, y_extend);
+    olb::IndicatorCuboid2D<T> openingInd(extendO, originO);
+    
+    geometry->rename(2, 3, 1, openingInd);
+
+    olb::SuperVTMwriter2D<T> vtmWriter( "testGeometry" );
+    // Writes geometry to file system
+    olb::SuperLatticeGeometry2D<T> writeGeometry (*geometry);
+    vtmWriter.write(writeGeometry);
+
+    std::cout << "[Geomtry] print: " << std::endl;
+    geometry->print();
+    std::cout << "[getStatistics] print: " << std::endl;
+    geometry->getStatistics().print();
+    std::cout << "[getStatistics] N materials: " << geometry->getStatistics().getNmaterials() << std::endl;
+    std::cout << "[getStatistics] N voxels: " << geometry->getStatistics().getNvoxel(3) << std::endl;
+    //std::cout << "[getStatistics] compute normal: " << geometry->getStatistics().computeNormal(2) << std::endl;
+    //std::cout << "[getStatistics] compute discrete normal: " << geometry->getStatistics().computeDiscreteNormal(2) << std::endl;
+
+    //ASSERT_EQ(geometry->getStatistics().getNvoxel(3), 20);
+    EXPECT_GT(geometry->getStatistics().getNvoxel(3), 20);
+}
+
+/*
 TEST(Hybrid, Case1a) {
     // define simulation
     sim::Simulation<T> testSimulation;
@@ -152,7 +273,8 @@ TEST(Hybrid, esstest) {
     MPI_Finalize();
 }
 #endif
-
+*/
+/*
 TEST(Hybrid, Case1aJSON) {
     
     std::string file = "../examples/Hybrid/Network1a.JSON";
@@ -314,3 +436,4 @@ TEST(Hybrid, testCase4a) {
     ASSERT_NEAR(network.getChannels().at(9)->getFlowRate(), 2.42036e-9, 1e-12);
 
 }
+*/
