@@ -3,7 +3,6 @@
     #include <mpi.h>
 #endif
 #include "gtest/gtest.h"
-#include <iostream>
 
 using T = double;
 

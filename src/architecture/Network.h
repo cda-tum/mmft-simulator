@@ -232,7 +232,7 @@ public:
      * @brief Adds a new module to the network.
      * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
      * @param[in] size Absolute size of the module in m.
-     * @param[in] nodes Map of nodes that are on the module boundary.
+     * @param[in] nodes Vector of node id's of nodes that are on the module boundary.
      * @return Pointer to the newly created module.
     */
     Module<T>* addModule(std::vector<T> position,

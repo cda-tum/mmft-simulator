@@ -352,12 +352,7 @@ Module<T>* Network<T>::addModule(std::vector<T> position,
     auto id = modules.size();
     std::unordered_map<int, std::shared_ptr<Node<T>>> localNodes;
     for (int nodeId : nodeIds) {
-        try {
-            localNodes.try_emplace(nodeId, nodes.at(nodeId));
-        }
-        catch (const std::exception& e) {
-            std::cout << "Exception " << e.what() << std::endl;
-        }
+        localNodes.try_emplace(nodeId, nodes.at(nodeId));
     }
     auto addModule = new Module<T>(id, position, size, localNodes);
 
