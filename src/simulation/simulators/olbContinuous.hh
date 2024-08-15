@@ -278,11 +278,23 @@ void lbmSimulator<T>::initNsLattice (const T omega) {
 template<typename T>
 void lbmSimulator<T>::readGeometryStl (const T dx, const bool print) {
 
-    std::vector<T> correction ({0.0, 0.0});
+    T correction[2]= {0.0, 0.0};
 
     stlReader = std::make_shared<olb::STLreader<T>>(this->stlFile, dx);
     auto min = stlReader->getMesh().getMin();
     auto max = stlReader->getMesh().getMax();
+
+    if (max[0] - min[0] > this->cfdModule->getSize()[0] + 1e-9 ||
+        max[1] - min[1] > this->cfdModule->getSize()[1] + 1e-9) 
+    {
+        std::string sizeMessage;
+        sizeMessage =   "\nModule size:\t[" + std::to_string(this->cfdModule->getSize()[0]) + 
+                        ", " + std::to_string(this->cfdModule->getSize()[1]) + "]" +
+                        "\nSTL size:\t[" + std::to_string(max[0] - min[0]) + 
+                        ", " + std::to_string(max[1] - min[1]) + "]";
+
+        throw std::runtime_error("The module size is too small for the STL geometry." + sizeMessage);
+    }
 
     for (unsigned char d : {0, 1}) {
         if (fmod(min[d], dx) < 1e-12) {
@@ -328,11 +340,16 @@ template<typename T>
 void lbmSimulator<T>::readOpenings (const T dx) {
 
     int extendMargin = 4;
+    auto min = stlReader->getMesh().getMin();
+
+    T stlShift[2];
+    stlShift[0] = this->cfdModule->getPosition()[0] - min[0];
+    stlShift[1] = this->cfdModule->getPosition()[1] - min[1];
 
     for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
-        T x_origin =    Opening.node->getPosition()[0] - 0.5*extendMargin*dx;
-        T y_origin =   Opening.node->getPosition()[1] - 0.5*Opening.width;
+        T x_origin = Opening.node->getPosition()[0] -stlShift[0] -0.5*extendMargin*dx;
+        T y_origin = Opening.node->getPosition()[1] -stlShift[1] -0.5*Opening.width;
         
         // The unit vector pointing to the extend
         T x_extend = extendMargin*dx;
