@@ -16,6 +16,7 @@ struct Opening {
     std::vector<T> tangent;
     T width;
     T height;
+    T radial;
 
     /**
      * @brief Constructor of an opening.
@@ -31,7 +32,7 @@ struct Opening {
             T theta = 0.5*M_PI;
             tangent = { cos(theta)*normal_[0] - sin(theta)*normal_[1],
                         sin(theta)*normal_[0] + cos(theta)*normal_[1]};
-
+            radial = (-1) * atan2(normal_[1], normal_[0]);
         }
 };
 

@@ -31,15 +31,14 @@ template<typename T>
 void lbmSimulator<T>::prepareGeometry () {
 
     bool print = false;
+    T dx = getConverter().getConversionFactorLength();
 
     #ifdef VERBOSE
         print = true;
     #endif
 
-    readGeometryStl(print);
-    readOpenings();
-
-    this->geometry->clean(print);
+    readGeometryStl(dx, print);
+    readOpenings(dx);
     this->geometry->checkForErrors(print);
 
     if (print) {
@@ -277,9 +276,23 @@ void lbmSimulator<T>::initNsLattice (const T omega) {
 
 
 template<typename T>
-void lbmSimulator<T>::readGeometryStl (const bool print) {
+void lbmSimulator<T>::readGeometryStl (const T dx, const bool print) {
 
-    stlReader = std::make_shared<olb::STLreader<T>>(this->stlFile, converter->getConversionFactorLength());
+    std::vector<T> correction ({0.0, 0.0});
+
+    stlReader = std::make_shared<olb::STLreader<T>>(this->stlFile, dx);
+    auto min = stlReader->getMesh().getMin();
+    auto max = stlReader->getMesh().getMax();
+
+    for (unsigned char d : {0, 1}) {
+        if (fmod(min[d], dx) < 1e-12) {
+            if (fmod(max[d] + 0.5*dx, dx) < 1e-12) {
+                correction[d] = 0.25;
+            } else {
+                correction[d] = 0.5;
+            }
+        }
+    }
 
     if (print) {
         std::cout << "[lbmSimulator] reading STL file " << this->name << "... OK" << std::endl;
@@ -291,10 +304,10 @@ void lbmSimulator<T>::readGeometryStl (const bool print) {
         std::cout << "[lbmSimulator] create 2D indicator " << this->name << "... OK" << std::endl;
     }
 
-    olb::Vector<T,2> origin(-0.5*converter->getConversionFactorLength(), -0.5*converter->getConversionFactorLength());
-    olb::Vector<T,2> extend(this->cfdModule->getSize()[0] + converter->getConversionFactorLength(), this->cfdModule->getSize()[1] + converter->getConversionFactorLength());
+    olb::Vector<T,2> origin(min[0]-stlMargin*dx-correction[0]*dx, min[1]-stlMargin*dx-correction[1]*dx);
+    olb::Vector<T,2> extend(max[0]-min[0]+2*stlMargin*dx+2*correction[0]*dx, max[1]-min[1]+2*stlMargin*dx+2*correction[1]*dx);
     olb::IndicatorCuboid2D<T> cuboid(extend, origin);
-    cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, converter->getConversionFactorLength(), 1);
+    cuboidGeometry = std::make_shared<olb::CuboidGeometry2D<T>> (cuboid, dx, 1);
     loadBalancer = std::make_shared<olb::HeuristicLoadBalancer<T>> (*cuboidGeometry);
     geometry = std::make_shared<olb::SuperGeometry<T,2>> (*cuboidGeometry, *loadBalancer);
 
@@ -304,6 +317,7 @@ void lbmSimulator<T>::readGeometryStl (const bool print) {
 
     this->geometry->rename(0, 2);
     this->geometry->rename(2, 1, *stl2Dindicator);
+    this->geometry->clean(print);
 
     if (print) {
         std::cout << "[lbmSimulator] generate 2D geometry from STL  " << this->name << "... OK" << std::endl;
@@ -311,34 +325,24 @@ void lbmSimulator<T>::readGeometryStl (const bool print) {
 }
 
 template<typename T>
-void lbmSimulator<T>::readOpenings () {
+void lbmSimulator<T>::readOpenings (const T dx) {
+
+    int extendMargin = 4;
 
     for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
-        T x_origin =    Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0]
-                        - 0.5*Opening.width*Opening.tangent[0];
-        T y_origin =   Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1]
-                        - 0.5*Opening.width*Opening.tangent[1];
+        T x_origin =    Opening.node->getPosition()[0] - 0.5*extendMargin*dx;
+        T y_origin =   Opening.node->getPosition()[1] - 0.5*Opening.width;
         
         // The unit vector pointing to the extend
-        T x_extend = Opening.width*Opening.tangent[0] - converter->getConversionFactorLength()*Opening.normal[0];
-        T y_extend = Opening.width*Opening.tangent[1] - converter->getConversionFactorLength()*Opening.normal[1];
-
-        // Extend can only have positive values, hence the following transformation
-        if (x_extend < 0 ){
-            x_extend *= -1;
-            x_origin -= x_extend;
-        }
-        if (y_extend < 0 ){
-            y_extend *= -1;
-            y_origin -= y_extend;
-        }
+        T x_extend = extendMargin*dx;
+        T y_extend = Opening.width;
 
         olb::Vector<T,2> originO (x_origin, y_origin);
         olb::Vector<T,2> extendO (x_extend, y_extend);
-        olb::IndicatorCuboid2D<T> opening(extendO, originO);
+        olb::IndicatorCuboid2D<T> opening(extendO, originO, Opening.radial);
         
-        this->geometry->rename(2, key+3, 1, opening);
+        this->geometry->rename(2, key+3, opening);
     }
 }
 

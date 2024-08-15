@@ -37,18 +37,17 @@ template<typename T>
 void lbmOocSimulator<T>::prepareGeometry () {
 
     bool print = false;
+    T dx = this->getConverter().getConversionFactorLength();
 
     #ifdef VERBOSE
         print = true;
     #endif
 
-    this->readGeometryStl(print);
-    this->readOpenings();
-    readOrganStl();
-
+    this->readGeometryStl(dx, print);
+    this->readOpenings(dx);
+    readOrganStl(dx);
     this->geometry->clean(print);
     this->geometry->checkForErrors(print);
-
     #ifdef VERBOSE
         std::cout << "[lbmSimulator] prepare geometry " << this->name << "... OK" << std::endl;
     #endif
@@ -151,9 +150,9 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::readOrganStl () {
+void lbmOocSimulator<T>::readOrganStl (const T dx) {
     // Define Organ area
-    organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, this->converter->getConversionFactorLength());
+    organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, dx);
     organStl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*organStlReader);
     this->geometry->rename(1, 3, *organStl2Dindicator);
 }

@@ -57,7 +57,7 @@ private:
 
     T Vmax;
 
-    void readOrganStl();
+    void readOrganStl(const T dx);
 
     void prepareNsLattice(const T omega) override;
 

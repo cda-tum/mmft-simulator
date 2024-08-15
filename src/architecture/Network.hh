@@ -344,6 +344,36 @@ Module<T>* Network<T>::addModule(std::vector<T> position,
 }
 
 template<typename T>
+Module<T>* Network<T>::addModule(std::vector<T> position,
+                                 std::vector<T> size,
+                                 std::vector<int> nodeIds) 
+{
+    // create module
+    auto id = modules.size();
+    std::unordered_map<int, std::shared_ptr<Node<T>>> localNodes;
+    for (int nodeId : nodeIds) {
+        try {
+            localNodes.try_emplace(nodeId, nodes.at(nodeId));
+        }
+        catch (const std::exception& e) {
+            std::cout << "Exception " << e.what() << std::endl;
+        }
+    }
+    auto addModule = new Module<T>(id, position, size, localNodes);
+
+    // add this module to the reach of each node
+    for (auto& [k, node] : localNodes) {
+        modularReach.try_emplace(node->getId(), addModule);
+    }
+
+    // add module
+    modules.try_emplace(id, addModule);
+
+    return addModule;
+}
+
+
+template<typename T>
 bool Network<T>::hasNode(int nodeId_) const {
     return nodes.count(nodeId_);
 }
