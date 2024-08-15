@@ -45,6 +45,7 @@ using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
 using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
 protected:
+    int stlMargin = 1;
     int step = 0;                           ///< Iteration step of this module.
     int stepIter = 1000;                    ///< Number of iterations for the value tracer.
     int maxIter = 1e7;                      ///< Maximum total iterations.
@@ -102,10 +103,6 @@ protected:
     void initFlowRateIntegralPlane();
 
     void initNsLattice(const T omega);
-
-    void readGeometryStl(const bool print);
-
-    void readOpenings();
 
     void setFlowProfile2D(int key, T openingWidth);
 
@@ -182,6 +179,14 @@ public:
      * @param[in] flowRate Map of flow rates and node ids.
      */
     void storeFlowRates(std::unordered_map<int, T> flowRate);
+
+    auto& readGeometry() const {
+        return *geometry;
+    }
+
+    void readGeometryStl(const T dx, const bool print);
+
+    void readOpenings(const T dx);
 
     /**
      * @brief Get the pressures at the boundary nodes.

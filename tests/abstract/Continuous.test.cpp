@@ -61,24 +61,24 @@ TEST(Continuous, allResultValues) {
     // results
     result::SimulationResult<T>* result = testSimulation.getSimulationResults();
 
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node0->getId()), 0.0, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node1->getId()), 1000.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node2->getId()), 1000.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node3->getId()), 1000.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node4->getId()), 833.333333, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node5->getId()), 666.666667, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node6->getId()), 833.333333, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(node7->getId()), 0.0, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node0->getId()), 0.0, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node1->getId()), 1000.000000, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node2->getId()), 1000.000000, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node3->getId()), 1000.000000, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node4->getId()), 833.333333, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node5->getId()), 666.666667, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node6->getId()), 833.333333, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node7->getId()), 0.0, 5e-7);
 
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump0->getId()), -5.89653042e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump1->getId()), -1.17933205e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(pump2->getId()), -5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c1->getId()), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c2->getId()), 1.17935801e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c3->getId()), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c4->getId()), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c5->getId()), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(c6->getId()), 2.35871603e-09, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(pump0->getId()), -5.89653042e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(pump1->getId()), -1.17933205e-09, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(pump2->getId()), -5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(c1->getId()), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(c2->getId()), 1.17935801e-09, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(c3->getId()), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(c4->getId()), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(c5->getId()), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(c6->getId()), 2.35871603e-09, 5e-17);
 
 }
 
@@ -100,24 +100,24 @@ TEST(Continuous, jsonDefinition) {
     // results
     result::SimulationResult<T>* result = testSimulation.getSimulationResults();
     
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(0), 0.0, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(1), 1000.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(2), 1000.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(3), 1000.000000, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(4), 833.333333, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(5), 666.666667, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(6), 833.333333, 5e-7);
-    ASSERT_NEAR(result->getStates().at(0)->getPressures().at(7), 0.0, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(0), 0.0, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(1), 1000.000000, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(2), 1000.000000, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(3), 1000.000000, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(4), 833.333333, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(5), 666.666667, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(6), 833.333333, 5e-7);
+    EXPECT_NEAR(result->getStates().at(0)->getPressures().at(7), 0.0, 5e-7);
 
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(0), -5.89653042e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(1), -1.17933205e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(2), -5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(3), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(4), 1.17935801e-09, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(5), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(6), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(7), 5.89679007e-10, 5e-17);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(8), 2.35871603e-09, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(0), -5.89653042e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(1), -1.17933205e-09, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(2), -5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(3), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(4), 1.17935801e-09, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(5), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(6), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(7), 5.89679007e-10, 5e-17);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(8), 2.35871603e-09, 5e-17);
 
 }
 
@@ -190,18 +190,18 @@ TEST(Continuous, triangleNetwork) {
     result::SimulationResult<T>* result1 = testSimulation1.getSimulationResults();
     result::SimulationResult<T>* result2 = testSimulation2.getSimulationResults();
 
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node01->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node01->getId()),
                 result2->getStates().at(0)->getPressures().at(node02->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node11->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node11->getId()),
                 result2->getStates().at(0)->getPressures().at(node12->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node21->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node21->getId()),
                 result2->getStates().at(0)->getPressures().at(node22->getId()), 1e-16);
 
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(c11->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(c11->getId()),
                 -result2->getStates().at(0)->getFlowRates().at(c12->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(c21->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(c21->getId()),
                 -result2->getStates().at(0)->getFlowRates().at(c22->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(pump1->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(pump1->getId()),
                 result2->getStates().at(0)->getFlowRates().at(pump2->getId()), 1e-16);
 }
 
@@ -284,28 +284,28 @@ TEST(Continuous, Y_Network) {
     result::SimulationResult<T>* result1 = testSimulation1.getSimulationResults();
     result::SimulationResult<T>* result2 = testSimulation2.getSimulationResults();
 
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node01->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node01->getId()),
                 result2->getStates().at(0)->getPressures().at(node02->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node11->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node11->getId()),
                 result2->getStates().at(0)->getPressures().at(node12->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node21->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node21->getId()),
                 result2->getStates().at(0)->getPressures().at(node22->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node31->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node31->getId()),
                 result2->getStates().at(0)->getPressures().at(node32->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node41->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node41->getId()),
                 result2->getStates().at(0)->getPressures().at(node42->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getPressures().at(node51->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node51->getId()),
                 result2->getStates().at(0)->getPressures().at(node52->getId()), 1e-16);
     
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(c11->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(c11->getId()),
                 -result2->getStates().at(0)->getFlowRates().at(c12->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(c21->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(c21->getId()),
                 -result2->getStates().at(0)->getFlowRates().at(c22->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(c31->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(c31->getId()),
                 -result2->getStates().at(0)->getFlowRates().at(c32->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(pump11->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(pump11->getId()),
                 result2->getStates().at(0)->getFlowRates().at(pump12->getId()), 1e-16);
-    ASSERT_NEAR(result1->getStates().at(0)->getFlowRates().at(pump21->getId()),
+    EXPECT_NEAR(result1->getStates().at(0)->getFlowRates().at(pump21->getId()),
                 result2->getStates().at(0)->getFlowRates().at(pump22->getId()), 1e-16);
 
 }
@@ -328,13 +328,13 @@ TEST(Continuous, Network2) {
     // results
     result::SimulationResult<T>* result = testSimulation.getSimulationResults();
     
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(3), result->getStates().at(0)->getFlowRates().at(4), 5e-10);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(4), result->getStates().at(0)->getFlowRates().at(5), 5e-10);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(5), result->getStates().at(0)->getFlowRates().at(6), 5e-10);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(3), result->getStates().at(0)->getFlowRates().at(4), 5e-10);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(4), result->getStates().at(0)->getFlowRates().at(5), 5e-10);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(5), result->getStates().at(0)->getFlowRates().at(6), 5e-10);
 
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(9), result->getStates().at(0)->getFlowRates().at(10), 5e-10);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(10), result->getStates().at(0)->getFlowRates().at(11), 5e-10);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(9), result->getStates().at(0)->getFlowRates().at(10), 5e-10);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(10), result->getStates().at(0)->getFlowRates().at(11), 5e-10);
 
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(12), result->getStates().at(0)->getFlowRates().at(13), 5e-10);
-    ASSERT_NEAR(result->getStates().at(0)->getFlowRates().at(13), result->getStates().at(0)->getFlowRates().at(14), 5e-10);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(12), result->getStates().at(0)->getFlowRates().at(13), 5e-10);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(13), result->getStates().at(0)->getFlowRates().at(14), 5e-10);
 }
