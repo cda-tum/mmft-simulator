@@ -22,6 +22,13 @@ struct Opening;
 
 }
 
+namespace mmft {
+
+template<typename T>
+class Scheme;
+
+}
+
 namespace sim {
 
 /**
@@ -43,7 +50,7 @@ protected:
     std::unordered_map<int, arch::Opening<T>> moduleOpenings;             ///< Map of openings.
     std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver.
 
-    T alpha;                                ///< Relaxation factor for convergence between 1D and CFD simulation.
+    std::shared_ptr<mmft::Scheme<T>> updateScheme;
 
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
@@ -52,7 +59,7 @@ protected:
 
 public:
 
-    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, T alpha, ResistanceModel<T>* ResistanceModel);
+    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme, ResistanceModel<T>* ResistanceModel);
 
     /**
      * @brief Get id of the simulator.
@@ -110,7 +117,7 @@ public:
      * @brief Get the relaxation factor alpha.
      * @returns alpha.
     */
-    T getAlpha();
+    T getAlpha(int nodeId);
 
     // fully virtual functions
 

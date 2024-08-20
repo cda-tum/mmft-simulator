@@ -35,6 +35,16 @@ class Opening;
 
 }
 
+namespace mmft {
+
+template<typename T>
+class Scheme;
+
+template<typename T>
+class NaiveScheme;
+
+}
+
 namespace nodal {
 
 // Forward declared dependencies
@@ -137,6 +147,7 @@ private:
     ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
     MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
     MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
+    std::shared_ptr<mmft::Scheme<T>> updateScheme;
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
     int maxIterations = 1e5;
@@ -284,6 +295,8 @@ public:
      */
     Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
+    std::shared_ptr<mmft::Scheme<T>> setHybridScheme(T alpha, int theta);
+
     /**
      * @brief Create injection.
      * @param[in] dropletId Id of the droplet that should be injected.
@@ -311,14 +324,13 @@ public:
      * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] charPhysLength Characteristic physical length of this simulator.
      * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
-     * @param[in] alpha Relaxation parameter for this simulator.
      * @param[in] resolution Resolution of this simulator.
      * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
     lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
-                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+                                    T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.
@@ -329,14 +341,13 @@ public:
      * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] charPhysLength Characteristic physical length of this simulator.
      * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
-     * @param[in] alpha Relaxation parameter for this simulator.
      * @param[in] resolution Resolution of this simulator.
      * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
     lbmMixingSimulator<T>* addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
-                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
 
     /**
@@ -350,14 +361,13 @@ public:
      * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] charPhysLength Characteristic physical length of this simulator.
      * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
-     * @param[in] alpha Relaxation parameter for this simulator.
      * @param[in] resolution Resolution of this simulator.
      * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
     lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
-                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.
@@ -365,8 +375,8 @@ public:
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
-                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+                                        T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Set the platform of the simulation.

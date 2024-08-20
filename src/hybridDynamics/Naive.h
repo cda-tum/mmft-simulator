@@ -1,0 +1,29 @@
+/**
+ * @file Scheme.h
+ */
+
+#pragma once
+
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
+namespace mmft{
+
+/**
+ * @brief Update scheme that defines the update rules between Abstract and CFD for Hybrid simulation.
+ */
+template<typename T>
+class NaiveScheme : public Scheme<T> {
+
+public:
+
+    NaiveScheme(const std::unordered_map<int, std::shared_ptr<arch::Module<T>>>& modules, T alpha, int theta);
+
+    NaiveScheme(std::vector<int> nodeIds, T alpha, std::vector<int> moduleIds, int theta);
+
+    NaiveScheme(std::unordered_map<int, T> alpha, std::unordered_map<int, int> theta);
+
+};
+
+}   // namespace mmft

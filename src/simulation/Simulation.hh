@@ -199,13 +199,19 @@ namespace sim {
     }
 
     template<typename T>
+    std::shared_ptr<mmft::Scheme<T>> Simulation<T>::setHybridScheme(T alpha, int theta) {
+        updateScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, theta);
+        return updateScheme;
+    }
+
+    template<typename T>
     lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
-                                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+                                                    T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -218,13 +224,13 @@ namespace sim {
 
     template<typename T>
     lbmMixingSimulator<T>* Simulation<T>::addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
-                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {   
         std::cout  << "Trying to add a mixing simulator" << std::endl;
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmMixingSimulator<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+            auto addCfdSimulator = new lbmMixingSimulator<T>(id, name, stlFile, module, species, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -237,12 +243,12 @@ namespace sim {
 
     template<typename T>
     lbmOocSimulator<T>* Simulation<T>::addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
-                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -255,13 +261,13 @@ namespace sim {
 
     template<typename T>
     essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
-                                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+                                                        T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {
         #ifdef USE_ESSLBM
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -579,12 +585,12 @@ namespace sim {
 
             // Initialization of CFD domains
             while (! allConverged) {
-                allConverged = conductCFDSimulation(cfdSimulators, 1);
+                allConverged = conductCFDSimulation(cfdSimulators);
             }
 
             while (! allConverged || !pressureConverged) {
                 // conduct CFD simulations
-                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                allConverged = conductCFDSimulation(cfdSimulators);
                 // compute nodal analysis again
                 pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
 
@@ -613,13 +619,13 @@ namespace sim {
 
             // Initialization of NS CFD domains
             while (! allConverged) {
-                allConverged = conductCFDSimulation(cfdSimulators, 1);
+                allConverged = conductCFDSimulation(cfdSimulators);
             }
 
             // Obtain overal steady-state flow result
             while (! allConverged || !pressureConverged) {
                 // conduct CFD simulations
-                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                allConverged = conductCFDSimulation(cfdSimulators);
                 // compute nodal analysis again
                 pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
             }
@@ -654,12 +660,12 @@ namespace sim {
 
             // Initialization of CFD domains
             while (! allConverged) {
-                allConverged = conductCFDSimulation(cfdSimulators, 1);
+                allConverged = conductCFDSimulation(cfdSimulators);
             }
 
             while (! allConverged || !pressureConverged) {
                 // conduct CFD simulations
-                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                allConverged = conductCFDSimulation(cfdSimulators);
                 // compute nodal analysis again
                 pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
             }

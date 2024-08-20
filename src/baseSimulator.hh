@@ -20,6 +20,8 @@
 
 #include "nodalAnalysis/NodalAnalysis.hh"
 
+#include "hybridDynamics/Scheme.hh"
+
 #include "architecture/Channel.hh"
 #include "architecture/ChannelPosition.hh"
 #include "architecture/Edge.hh"

@@ -3,9 +3,13 @@
 namespace sim{ 
 
 template <typename T>
-CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, T alpha_, ResistanceModel<T>* resistanceModel_) :
-    id(id_), name(name_), stlFile(stlFile_), cfdModule(cfdModule_), moduleOpenings(openings_), alpha(alpha_)
+CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, ResistanceModel<T>* resistanceModel_) :
+    id(id_), name(name_), stlFile(stlFile_), cfdModule(cfdModule_), moduleOpenings(openings_), updateScheme(updateScheme_)
     { 
+        if (updateScheme == nullptr) {
+            throw std::runtime_error("Tried to define CFD Simulator with empty updateScheme.");
+        }
+
         // Create this module's network, required for initial condition
         moduleNetwork = std::make_shared<arch::Network<T>> (cfdModule_->getNodes());
 
@@ -60,8 +64,8 @@ std::string CFDSimulator<T>::getVtkFile() {
 }
 
 template <typename T>
-T CFDSimulator<T>::getAlpha() {
-    return alpha;
+T CFDSimulator<T>::getAlpha(int nodeId_) {
+    return updateScheme->getAlpha(nodeId_);
 }
 
 template<typename T>

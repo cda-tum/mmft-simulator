@@ -119,8 +119,8 @@ public:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
     lbmMixingSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, Specie<T>*> species,
-        std::unordered_map<int, arch::Opening<T>> openings, ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, 
-        T alpha, T resolution, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
+        std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme, ResistanceModel<T>* resistanceModel, T charPhysLenth, 
+        T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 
     /**
      * @brief Initialize an instance of the LBM solver for this module.

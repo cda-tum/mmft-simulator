@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators, int iteration, T alpha_) {
+    bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators) {
 
         bool allConverge = true;
 
@@ -16,7 +16,6 @@ namespace sim {
             #elif USE_ESSLBM
             assert(cfdSimulator.second->getModule()->getModuleType() == arch::ModuleType::ESS_LBM);
             #endif
-            cfdSimulator.second->setAlpha(alpha_);
             cfdSimulator.second->solve();
 
             if (!cfdSimulator.second->hasConverged()) {
