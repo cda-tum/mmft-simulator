@@ -103,6 +103,9 @@ template<typename T>
 void readSpecies (json jsonString, sim::Simulation<T>& simulation);
 
 template<typename T>
+void readTissues (json jsonString, sim::Simulation<T>& simulation);
+
+template<typename T>
 void readMixtures (json jsonString, sim::Simulation<T>& simulation);
 
 /**

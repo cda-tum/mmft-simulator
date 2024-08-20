@@ -19,7 +19,7 @@ TEST(DiffusiveMixing, case1) {
     T flowRate2 = 1e-10;
     T pecletNr1 = (flowRate1 / cHeight) / 1e-9; // (flowrate / height) / diffusivity
     T pecletNr2 = (flowRate2 / cHeight) / 1e-9; // (flowrate / height) / diffusivity
-    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    // EXPECT_NEAR(pecletNr, 30.0, 1e-7);
     int resolution = 100;
 
     // create necessary objects
@@ -133,7 +133,7 @@ TEST(DiffusiveMixing, case2) {
     T pecletNr4 = (flowRate4 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr5 = (flowRate5 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr6 = (flowRate6 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    // EXPECT_NEAR(pecletNr, 30.0, 1e-7);
     int resolution = 100;
 
     // create necessary objects
@@ -260,7 +260,7 @@ TEST(DiffusiveMixing, case3) {
     T pecletNr3 = (flowRate3 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr6 = (flowRate6 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr7 = (flowRate7 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    // EXPECT_NEAR(pecletNr, 30.0, 1e-7);
     int resolution = 1000;
 
     // create necessary objects
@@ -369,7 +369,7 @@ TEST(DiffusiveMixing, case4) {
     T pecletNr9 = (flowRate9 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr10 = (flowRate10 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr11 = (flowRate11 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    // EXPECT_NEAR(pecletNr, 30.0, 1e-7);
     int resolution = 1000;
 
     // create necessary objects
@@ -543,7 +543,7 @@ TEST(DiffusiveMixing, caseJeonEtAl) {
     T pecletNr10 = (flowRate10 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
     T pecletNr11 = (flowRate11 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
     T pecletNr12 = (flowRate12 / cHeight) / diffusivity; // (flowrate / height) / diffusivity
-    // ASSERT_NEAR(pecletNr, 30.0, 1e-7);
+    // EXPECT_NEAR(pecletNr, 30.0, 1e-7);
     int resolution = 1000;
 
     // create necessary objects

@@ -24,7 +24,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::getResults()
+    void essLbmSimulator<T>::storeCfdResults()
     {
         for(auto& [key,value] : solver_->getPressures())
             pressures[key] = value;
@@ -86,7 +86,7 @@ namespace sim{
     void essLbmSimulator<T>::solve()
     {
         solver_->solve(10, 10, 10);
-        getResults();
+        storeCfdResults();
     }
 
     template<typename T>

@@ -45,6 +45,11 @@ protected:
 
     T alpha;                                ///< Relaxation factor for convergence between 1D and CFD simulation.
 
+    /**
+     * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
+    */
+    virtual void executeCoupling() { };
+
 public:
 
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, T alpha, ResistanceModel<T>* ResistanceModel);
@@ -102,11 +107,6 @@ public:
     std::string getVtkFile();
 
     /**
-     * @brief Set the relaxation factor alpha.
-    */
-    void setAlpha(T alpha);
-
-    /**
      * @brief Get the relaxation factor alpha.
      * @returns alpha.
     */
@@ -124,13 +124,17 @@ public:
     */
     virtual bool hasConverged() const = 0;
 
-    virtual void setPressures(std::unordered_map<int, T> pressure) = 0;
+    virtual void storePressures(std::unordered_map<int, T> pressure) = 0;
 
     virtual std::unordered_map<int, T> getPressures() const = 0;
 
-    virtual void setFlowRates(std::unordered_map<int, T> flowRate) = 0;
+    virtual void storeFlowRates(std::unordered_map<int, T> flowRate) = 0;
 
     virtual std::unordered_map<int, T> getFlowRates() const = 0;
+
+    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) { }
+
+    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const { return std::unordered_map<int, std::unordered_map<int, T>>(); }
 
     virtual void setBoundaryValues(int iT) = 0;
 
@@ -140,9 +144,23 @@ public:
 
     virtual void prepareLattice() {}
 
-    virtual void writeVTK (int iT) {}; 
+    /**
+     * @brief Conducts the collide and stream operations of the NS lattice.
+    */
+    virtual void nsSolve() {}
+
+    /**
+     * @brief Conducts the collide and stream operations of the AD lattice(s).
+    */
+    virtual void adSolve() {}
+
+    virtual void writeVTK (int iT) {}
     
-    virtual void getResults (int iT) {}; 
+    virtual void storeCfdResults (int iT) {}
+
+    virtual bool hasAdConverged() const { return false; }
+
+    friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
 
 };
 

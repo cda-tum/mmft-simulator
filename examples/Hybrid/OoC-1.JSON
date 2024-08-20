@@ -1,0 +1,253 @@
+{	
+"network": {
+    "nodes": [
+        {   
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 1e-3,
+            "y": 2e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 1e-3,
+            "y": 1e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 1e-3,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 2e-3,
+            "y": 2e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 1.75e-3,
+            "y": 1e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 2e-3,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 2e-3,
+            "y": 1.25e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 2e-3,
+            "y": 0.75e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 2.25e-3,
+            "y": 1e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 3e-3,
+            "y": 1e-3,
+            "z": 0.0,
+            "ground": true
+        }
+    ],
+    "channels": [
+        {	
+            "node1": 0,
+            "node2": 1,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 0,
+            "node2": 2,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 0,
+            "node2": 3,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 1,
+            "node2": 4,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 2,
+            "node2": 5,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 3,
+            "node2": 6,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 4,
+            "node2": 7,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 6,
+            "node2": 8,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 9,
+            "node2": 10,
+            "width": 1e-4,
+            "height": 1e-4
+        }
+    ],
+    "modules": [
+        {
+            "position": [1.75e-3, 0.75e-3],
+            "size": [5e-4, 5e-4],
+            "nodes": [5, 7, 8, 9]
+        }
+    ]
+},
+"simulation": {
+    "platform": "Ooc",
+    "type": "Hybrid",
+    "resistanceModel": "Poiseuille",
+    "mixingModel": "Instantaneous",
+    "fluids": [
+        {	
+            "name": "Water",
+            "concentration": 1,
+            "density": 1000,           
+            "viscosity": 0.001
+        }
+    ],    
+    "tissues": [
+        {
+            "name": "Liver",
+            "species": [0],
+            "Vmax": [0.1571428],
+            "kM": [0.022285714]
+        }
+    ],
+    "species": [
+        {
+            "name": "O2",
+            "diffusivity": 1e-8,
+            "saturationConcentration": 1.0,
+            "molecularSize": 0.0
+        }
+    ],
+    "mixtures": [
+        {
+            "species": [0],
+            "concentrations": [1.0]
+        }
+    ],
+    "pumps": [
+        {	
+            "channel":0,
+            "type": "PumpPressure",
+            "deltaP": 1000
+        },
+        {	
+            "channel":1,
+            "type": "PumpPressure",
+            "deltaP": 1000
+        },
+        {	
+            "channel":2,
+            "type": "PumpPressure",
+            "deltaP": 1000
+        }
+    ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0,
+            "mixtureInjections": [
+                {
+                    "mixture": 0,
+                    "channel": 1,
+                    "t0": 0.0
+                }
+            ]
+        }
+    ],
+    "activeFixture": 0,
+    "settings": {
+        "simulators": [
+            {	
+                "Type": "Organ",
+                "name": "Liver-Test",
+                "stlFile": "../examples/STL/cross.stl",
+                "tissue": 0,
+                "organStlFile": "../examples/STL/cube.stl",
+                "charPhysLength": 1e-4,
+                "charPhysVelocity": 1e-1,
+                "alpha": 0.1,
+                "resolution": 20,
+                "epsilon": 1e-1,
+                "tau": 0.55,
+                "moduleId": 0,
+                "Openings": [
+                    {	
+                        "node": 5,
+                        "normal": {
+                            "x": 1.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    },
+                    {	
+                        "node": 7,
+                        "normal": {
+                            "x": 0.0,
+                            "y": -1.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    },
+                    {	
+                        "node": 8,
+                        "normal": {
+                            "x": 0.0,
+                            "y": 1.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    },
+                    {	
+                        "node": 9,
+                        "normal": {
+                            "x": -1.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "width": 1e-4,
+                        "height": 1e-4
+                    }
+                ]
+            }
+        ]
+    }
+}
+}

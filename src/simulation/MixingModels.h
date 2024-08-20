@@ -90,6 +90,11 @@ public:
     MixingModel();
 
     /**
+     * @brief Propagate all the species through a network for a steady-state simulation
+     */
+    virtual void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) = 0;
+
+    /**
      * @brief Returns the current minimal timestep.
      * @return The minimal timestep in s.
     */
@@ -157,7 +162,7 @@ class InstantaneousMixingModel : public MixingModel<T> {
 private:
 
     std::unordered_map<int, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;     ///< Unordered map to track mixtures flowing into nodes <nodeId <mixtureId, inflowVolume>>
-    std::unordered_map<int, int> mixtureOutflowAtNode;                              ///< Unordered map to track mixtures flowing out of nodes.
+    std::unordered_map<int, int> mixtureOutflowAtNode;                              ///< Unordered map to track mixtures flowing out of nodes <nodeId, mixtureId>.
     std::unordered_map<int, T> totalInflowVolumeAtNode;                             ///< Unordered map to track the total volumetric flow entering a node.
     std::unordered_map<int, bool> createMixture;                                    ///< Unordered map to track whether a new mixture is created at a node.
 
@@ -208,6 +213,30 @@ public:
     void clean(arch::Network<T>* network);
 
     /**
+     * @brief Propagate all the species through a network for a steady-state simulation
+     */
+    void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
+
+    /**
+     * @brief From the mixtureInjections and CFD simulators, generate temporary mxtures that 
+     * flow into the network at correspondingnode entry points.
+     * @param[in] sim Pointer to the simulation.
+     */
+    void initNodeOutflow(Simulation<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+
+    /**
+     * @brief Propagate the mixtures through the corresponding channel entirely, without considering time steps
+     */
+    void channelPropagation(arch::Network<T>* network);
+
+    /**
+     * @brief From the node's inflows, generate the node outflow
+     */
+    bool updateNodeOutflow(Simulation<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+
+    void storeConcentrations(Simulation<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
+
+    /**
      * @brief Print all mixtures and their positions in the network.
     */
     void printMixturesInNetwork();
@@ -253,6 +282,11 @@ public:
     void generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     void topologyAnalysis(arch::Network<T>* network, int nodeId);
+
+    /**
+     * @brief Propagate all the species through a network for a steady-state simulation
+     */
+    void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
     
     void printTopology();
 

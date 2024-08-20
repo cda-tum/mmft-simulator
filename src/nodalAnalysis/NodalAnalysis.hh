@@ -71,10 +71,7 @@ void NodalAnalysis<T>::clear() {
 
     A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
     z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
-    x.resize(nNodesAndPressurePumps);
-
-    xPrev.resize(nNodesAndPressurePumps);
-    zPrev.resize(nNodesAndPressurePumps);
+    x = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
 
     A.setZero();
     z.setZero();
@@ -332,7 +329,7 @@ void NodalAnalysis<T>::initGroundNodes(std::unordered_map<int, std::unique_ptr<s
                 flowRates_.at(nodeId) = flowRate;
             }
             cfdSimulator->setGroundNodes(groundNodes);
-            cfdSimulator->setFlowRates(flowRates_);
+            cfdSimulator->storeFlowRates(flowRates_);
             cfdSimulator->setInitialized(true);
         }
     }
@@ -443,8 +440,8 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
                 }
             }
         }
-        cfdSimulator.second->setPressures(pressures_);
-        cfdSimulator.second->setFlowRates(flowRates_);
+        cfdSimulator.second->storePressures(pressures_);
+        cfdSimulator.second->storeFlowRates(flowRates_);
     }
 }
 
