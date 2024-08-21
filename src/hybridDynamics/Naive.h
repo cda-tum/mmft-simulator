@@ -8,6 +8,13 @@
 #include <unordered_map>
 #include <vector>
 
+namespace arch {
+
+template<typename T>
+class Module;
+
+}
+
 namespace mmft{
 
 /**
@@ -18,11 +25,11 @@ class NaiveScheme : public Scheme<T> {
 
 public:
 
-    NaiveScheme(const std::unordered_map<int, std::shared_ptr<arch::Module<T>>>& modules, T alpha, int theta);
+    NaiveScheme(const std::unordered_map<int, std::shared_ptr<arch::Module<T>>>& modules, T alpha, T beta, int theta);
 
-    NaiveScheme(std::vector<int> nodeIds, T alpha, std::vector<int> moduleIds, int theta);
+    NaiveScheme(std::vector<int> nodeIds, std::vector<int> moduleIds, T alpha, T beta, int theta);
 
-    NaiveScheme(std::unordered_map<int, T> alpha, std::unordered_map<int, int> theta);
+    NaiveScheme(std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, std::unordered_map<int, int> theta);
 
 };
 

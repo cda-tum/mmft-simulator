@@ -47,8 +47,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
-find_package(benchmark REQUIRED)
-
 option(USE_ESSLBM "USE_ESSLBM" OFF)
 if(USE_ESSLBM)
     ADD_DEFINITIONS(-DUSE_ESSLBM)
@@ -156,8 +154,12 @@ if(TEST)
     target_link_libraries(simulatorTest PUBLIC gtest simLib)
     target_link_libraries(simulatorTest PUBLIC gtest testLib)
     gtest_discover_tests(simulatorTest)
+endif()
 
-    # Benchmarking
+# create benchmarks
+option(BENCHMARK "Configure for building benchmarks")
+if(BENCHMARK)
+    find_package(benchmark REQUIRED)
     set(TARGET_NAME simulatorBenchmark)
     add_executable(simulatorBenchmark)
     target_sources(simulatorBenchmark PUBLIC benchmarks/benchmark.cpp)

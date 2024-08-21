@@ -199,8 +199,8 @@ namespace sim {
     }
 
     template<typename T>
-    std::shared_ptr<mmft::Scheme<T>> Simulation<T>::setHybridScheme(T alpha, int theta) {
-        updateScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, theta);
+    std::shared_ptr<mmft::Scheme<T>> Simulation<T>::setHybridScheme(T alpha, T beta, int theta) {
+        updateScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, beta, theta);
         return updateScheme;
     }
 

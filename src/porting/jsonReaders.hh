@@ -249,12 +249,13 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
         } else {
             vtkFolder = "./tmp/";
         }
+        T alpha = jsonString["simulation"]["settings"]["simulators"][0]["alpha"];
+        simulation.setHybridScheme(alpha, 5*alpha, 10);
         for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
             std::string name = simulator["name"];
             std::string stlFile = simulator["stlFile"];
             T charPhysLength = simulator["charPhysLength"];
             T charPhysVelocity = simulator["charPhysVelocity"];
-            T alpha = simulator["alpha"];
             T resolution = simulator["resolution"];
             T epsilon = simulator["epsilon"];
             T tau = simulator["tau"];

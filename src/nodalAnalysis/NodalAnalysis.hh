@@ -404,8 +404,7 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
                     dp_dt = (std::abs(nodalError.at(nodeId)[nodalError.at(nodeId).size() - 1] - nodalError.at(nodeId)[nodalError.at(nodeId).size() - 2]) / dt) + 1e-12;
                 }
                 if (old_pressure > 0 ) {
-                    T relaxation = std::min(cfdSimulator.second->getAlpha(nodeId)*(1.0/dp_dt), 0.0005);
-                    std::cout << "relaxation = " << relaxation << std::endl;
+                    T relaxation = cfdSimulator.second->getAlpha(nodeId);
                     set_pressure = old_pressure + ( new_pressure - old_pressure ) * relaxation;
                 } else {
                     set_pressure = new_pressure;
@@ -427,9 +426,8 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
                     dp_dt = (std::abs(nodalError.at(nodeId)[nodalError.at(nodeId).size() - 1] - nodalError.at(nodeId)[nodalError.at(nodeId).size() - 2]) / dt) + 1e-12;
                 }
                 if (old_flowRate > 0 ) {
-                    T relaxation = std::min(cfdSimulator.second->getAlpha(nodeId)*(1.0/dp_dt), 0.0005);
-                    std::cout << "relaxation = " << relaxation << std::endl;
-                    set_flowRate = old_flowRate + 5 * ( new_flowRate - old_flowRate ) * relaxation;
+                    T relaxation = cfdSimulator.second->getBeta(nodeId);
+                    set_flowRate = old_flowRate + ( new_flowRate - old_flowRate ) * relaxation;
                 } else {
                     set_flowRate = new_flowRate;
                 }

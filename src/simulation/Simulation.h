@@ -295,7 +295,7 @@ public:
      */
     Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
-    std::shared_ptr<mmft::Scheme<T>> setHybridScheme(T alpha, int theta);
+    std::shared_ptr<mmft::Scheme<T>> setHybridScheme(T alpha, T beta, int theta);
 
     /**
      * @brief Create injection.

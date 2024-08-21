@@ -68,6 +68,11 @@ T CFDSimulator<T>::getAlpha(int nodeId_) {
     return updateScheme->getAlpha(nodeId_);
 }
 
+template <typename T>
+T CFDSimulator<T>::getBeta(int nodeId_) {
+    return updateScheme->getBeta(nodeId_);
+}
+
 template<typename T>
 void CFDSimulator<T>::setGroundNodes(std::unordered_map<int, bool> groundNodes_){
     this->groundNodes = groundNodes_;

@@ -119,6 +119,12 @@ public:
     */
     T getAlpha(int nodeId);
 
+    /**
+     * @brief Get the relaxation factor beta.
+     * @returns beta.
+    */
+    T getBeta(int nodeId);
+
     // fully virtual functions
 
     virtual void lbmInit(T dynViscosity, T density) = 0;
