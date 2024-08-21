@@ -1045,7 +1045,7 @@ namespace sim {
             }
         }
 
-        if (this->simType == Type::Hybrid && this->platform == Platform::Mixing) {
+        if (this->simType == Type::Hybrid && this->platform == Platform::BigDroplet) {
             
             #ifdef VERBOSE
                 std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
