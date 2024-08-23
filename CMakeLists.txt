@@ -40,7 +40,8 @@ FetchContent_Declare(
 )
 FetchContent_Declare(
     lbm
-    URL https://www.openlb.net/wp-content/uploads/2022/04/olb-1.5r0.tgz
+    GIT_REPOSITORY https://gitlab.com/openlb/release.git
+    GIT_TAG 1.7.0
     PATCH_COMMAND ${lbm_patch}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""

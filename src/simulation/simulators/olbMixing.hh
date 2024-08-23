@@ -361,7 +361,7 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
     // If the boundary is an inflow
     if (this->flowRates.at(key) >= 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
-            olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
+            olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, this->getGeometry(), key+3);
             olb::AnalyticalConst2D<T,T> one( 1. );
             olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
             adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
