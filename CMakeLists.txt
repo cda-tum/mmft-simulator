@@ -97,6 +97,15 @@ set(EXTERNAL_SOURCE_LIST
     ${EXTERNAL_DIR}/zlib/trees.c
     ${EXTERNAL_DIR}/zlib/uncompr.c
     ${EXTERNAL_DIR}/zlib/zutil.c
+    ${EXTERNAL_DIR}/tinyxml/tinyxml.cpp
+    ${EXTERNAL_DIR}/tinyxml/tinyxml.cpp
+    ${EXTERNAL_DIR}/tinyxml/tinyxml.cpp
+)
+
+set(LBM_SOURCE_LIST
+    ${lbm_SOURCE_DIR}/src/communication/mpiManager.cpp
+    ${lbm_SOURCE_DIR}/src/io/ostreamManager.cpp
+    ${lbm_SOURCE_DIR}/src/core/olbInit.cpp
 )
 
 option(VERBOSE "Verbose" ON)
@@ -105,6 +114,7 @@ IF(VERBOSE)
 ENDIF()
 
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
+target_sources(lbmLib PUBLIC ${LBM_SOURCE_LIST})
 
 target_include_directories(
     lbmLib PUBLIC ${lbm_SOURCE_DIR}/src
