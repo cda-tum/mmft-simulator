@@ -14,13 +14,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(PLATFORM_CPU_SISD)
 set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
 
-IF (WIN32)
-    set(patch_file ${CMAKE_CURRENT_BINARY_DIR}/_deps/lbm-src/src/core/singleton.h)
-    set(lbm_patch sed -i -f ${CMAKE_CURRENT_SOURCE_DIR}/script.sed ${patch_file})
-ELSE()
-    set(lbm_patch )
-ENDIF()
-
 # download external libraries
 include(FetchContent)
 FetchContent_Declare(
@@ -112,6 +105,8 @@ option(VERBOSE "Verbose" ON)
 IF(VERBOSE)
     ADD_DEFINITIONS(-DVERBOSE)
 ENDIF()
+
+target_compile_definitions(lbmLib PRIVATE M_PI=3.1415926535897932384626433832795)
 
 target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
 target_sources(lbmLib PUBLIC ${LBM_SOURCE_LIST})
