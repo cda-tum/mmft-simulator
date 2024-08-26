@@ -49,9 +49,6 @@ class SimulationResult;
 namespace sim {
 
 // Forward declared dependencies
-template<typename T, int DIM>
-class CFDSimulator;
-
 template<typename T>
 class CFDSimulator;
 
@@ -66,12 +63,6 @@ class Event;
 
 template<typename T>
 class Fluid;
-
-template<typename T, int DIM>
-class lbmSimulator;
-
-template<typename T, int DIM>
-class essLbmSimulator;
 
 template<typename T>
 class lbmSimulator;

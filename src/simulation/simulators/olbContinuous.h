@@ -62,14 +62,19 @@ protected:
     T epsilon;                              ///< Convergence criterion.
     T relaxationTime;                       ///< Relaxation time (tau) for the OLB solver.
 
-    std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
-
     std::shared_ptr<olb::STLreader<T>> stlReader;
+    std::shared_ptr<olb::IndicatorF2DfromIndicatorF3D<T>> stl2Dindicator;
     std::shared_ptr<olb::LoadBalancer<T>> loadBalancer;             ///< Loadbalancer for geometries in multiple cuboids.
-    std::shared_ptr<olb::CuboidGeometry<T,DIM>> cuboidGeometry;       ///< The geometry in a single cuboid.
-    std::shared_ptr<olb::SuperGeometry<T,DIM>> geometry;              ///< The final geometry of the channels.
-    std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
+    std::shared_ptr<olb::CuboidGeometry<T,2>> cuboidGeometry;       ///< The geometry in a single cuboid.
+    std::shared_ptr<olb::SuperGeometry<T,2>> geometry;              ///< The final geometry of the channels.
     std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
+    std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
+
+    std::unordered_map<int, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
+    std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>> densities;
+    std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
+    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
+    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
 
     auto& getConverter() {
         return *converter;

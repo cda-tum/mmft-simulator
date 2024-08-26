@@ -3,8 +3,6 @@
 //namespace py = pybind11;
 #include <iostream>
 
-#define DIMENSION 2
-
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
 

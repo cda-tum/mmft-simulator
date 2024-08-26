@@ -67,22 +67,6 @@ void readModules(json jsonString, arch::Network<T>& network) {
 }
 
 template<typename T>
-void readModules(json jsonString, arch::Network<T>& network) {
-    for (auto& module : jsonString["network"]["modules"]) {
-        if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
-            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
-        }
-        std::vector<T> position = { module["position"][0], module["position"][1] };
-        std::vector<T> size = { module["size"][0], module["size"][1] };
-        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
-        for (auto& nodeId : module["nodes"]) {
-            Nodes.try_emplace(nodeId, network.getNode(nodeId));
-        }
-        network.addModule(position, size, std::move(Nodes));
-    }
-}
-
-template<typename T>
 sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
