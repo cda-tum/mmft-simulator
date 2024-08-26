@@ -39,7 +39,7 @@ namespace sim {
      * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
     */
     template<typename T>
-    class essLbmSimulator : public CFDSimulator<T> {
+    class essLbmSimulator3D : public CFDSimulator<T> {
         private:
             int step = 0;                           ///< Iteration step of this module.
             int stepIter = 1000;                    ///< Number of iterations for the value tracer.
@@ -70,7 +70,7 @@ namespace sim {
              * @param[in] nodes Map of nodes that are on the boundary of the module.
              * @param[in] openings Map of the in-/outlets of the module.
             */
-            essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule,  std::unordered_map<int, arch::Opening<T>> openings_,
+            essLbmSimulator3D(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule,  std::unordered_map<int, arch::Opening<T>> openings_,
                             ResistanceModel<T>* resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
             /**
              * @brief Initialize an instance of the LBM solver for this module.

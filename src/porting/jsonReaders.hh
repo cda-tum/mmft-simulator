@@ -269,7 +269,7 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
 
             if(simulator["Type"] == "LBM")
             {
-                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                auto simulator = simulation.addLbmSimulator3D(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
@@ -279,7 +279,7 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
                     species.try_emplace(specieId, speciePtr.get());
                 }
-                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+                auto simulator = simulation.addLbmMixingSimulator2D(name, stlFile, network->getModule(moduleId), species,
                                                             Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
@@ -291,14 +291,14 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 }
                 std::string organStlFile = simulator["organStlFile"];
                 int tissueId = simulator["tissue"];
-                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+                auto simulator = simulation.addLbmOocSimulator2D(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
                                                             Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
-                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                auto simulator = simulation.addEssLbmSimulator3D(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
                 #else

@@ -32,7 +32,7 @@ namespace sim {
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmMixingSimulator : public lbmSimulator<T> {
+class lbmMixingSimulator2D : public lbmSimulator2D<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
@@ -118,7 +118,7 @@ public:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmMixingSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, Specie<T>*> species,
+    lbmMixingSimulator2D(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, Specie<T>*> species,
         std::unordered_map<int, arch::Opening<T>> openings, ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, 
         T alpha, T resolution, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 

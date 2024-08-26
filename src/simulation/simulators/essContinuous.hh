@@ -7,7 +7,7 @@
 namespace sim{
 
     template<typename T>
-    essLbmSimulator<T>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_,  std::unordered_map<int, arch::Opening<T>> openings_,
+    essLbmSimulator3D<T>::essLbmSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_,  std::unordered_map<int, arch::Opening<T>> openings_,
                                 ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) :
             CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, alpha_, resistanceModel_), 
             charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
@@ -17,14 +17,14 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setBoundaryValues(int iT)
+    void essLbmSimulator3D<T>::setBoundaryValues(int iT)
     {
         setFlowRates(flowRates);
         setPressures(pressures);
     }
 
     template<typename T>
-    void essLbmSimulator<T>::storeCfdResults()
+    void essLbmSimulator3D<T>::storeCfdResults()
     {
         for(auto& [key,value] : solver_->getPressures())
             pressures[key] = value;
@@ -33,7 +33,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::lbmInit(T dynViscosity, T density)
+    void essLbmSimulator3D<T>::lbmInit(T dynViscosity, T density)
     {
 
         std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
@@ -83,14 +83,14 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::solve()
+    void essLbmSimulator3D<T>::solve()
     {
         solver_->solve(10, 10, 10);
         storeCfdResults();
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setPressures(std::unordered_map<int, T> pressure_)
+    void essLbmSimulator3D<T>::setPressures(std::unordered_map<int, T> pressure_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : pressure_)
@@ -100,7 +100,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setFlowRates(std::unordered_map<int, T> flowRate_)
+    void essLbmSimulator3D<T>::setFlowRates(std::unordered_map<int, T> flowRate_)
     {
         std::unordered_map<int, float> interface;
         for(auto& [key, value] : flowRate_)
@@ -110,24 +110,24 @@ namespace sim{
     }
 
     template<typename T>
-    std::unordered_map<int, T> essLbmSimulator<T>::getPressures() const {
+    std::unordered_map<int, T> essLbmSimulator3D<T>::getPressures() const {
         return pressures;
     }
 
 
     template<typename T>
-    std::unordered_map<int, T> essLbmSimulator<T>::getFlowRates() const {
+    std::unordered_map<int, T> essLbmSimulator3D<T>::getFlowRates() const {
         return flowRates;
     }
 
     template<typename T>
-    bool essLbmSimulator<T>::hasConverged() const
+    bool essLbmSimulator3D<T>::hasConverged() const
     {
         return solver_->hasConverged();
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setVtkFolder(std::string vtkFolder_) {
+    void essLbmSimulator3D<T>::setVtkFolder(std::string vtkFolder_) {
         this->vtkFolder = vtkFolder_;
     }
 

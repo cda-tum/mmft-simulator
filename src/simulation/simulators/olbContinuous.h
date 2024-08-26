@@ -39,21 +39,17 @@ namespace sim {
 template<typename T>
 class lbmSimulator : public CFDSimulator<T> {
 
-using DESCRIPTOR = olb::descriptors::D2Q9<>;
-using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
-using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
-using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
-
 protected:
     int stlMargin = 1;
     int step = 0;                           ///< Iteration step of this module.
     int stepIter = 1000;                    ///< Number of iterations for the value tracer.
     int maxIter = 1e7;                      ///< Maximum total iterations.
     int theta = 10;                         ///< Number of OLB iterations per communication iteration.
-    std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes.
-    std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes.
     
     bool isConverged = false;               ///< Has the module converged?
+
+    std::unordered_map<int, T> pressures;   ///< Map of pressure values at module nodes.
+    std::unordered_map<int, T> flowRates;   ///< Map of flowRate values at module nodes.
     
     T charPhysLength;                       ///< Characteristic physical length (= width, usually).
     T charPhysVelocity;                     ///< Characteristic physical velocity (expected maximal velocity).
@@ -63,58 +59,32 @@ protected:
     T relaxationTime;                       ///< Relaxation time (tau) for the OLB solver.
 
     std::shared_ptr<olb::STLreader<T>> stlReader;
-    std::shared_ptr<olb::IndicatorF2DfromIndicatorF3D<T>> stl2Dindicator;
-    std::shared_ptr<olb::LoadBalancer<T>> loadBalancer;             ///< Loadbalancer for geometries in multiple cuboids.
-    std::shared_ptr<olb::CuboidGeometry<T,2>> cuboidGeometry;       ///< The geometry in a single cuboid.
-    std::shared_ptr<olb::SuperGeometry<T,2>> geometry;              ///< The final geometry of the channels.
-    std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
-    std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
-
-    std::unordered_map<int, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
-    std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>> densities;
-    std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
-
-    auto& getConverter() {
-        return *converter;
-    }
-
-    auto& getGeometry() {
-        return *geometry;
-    }
-
-    auto& getLattice() {
-        return *lattice;
-    }
+    std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.=
 
     void setOutputDir();
     
     virtual void initValueContainers();
 
-    void initNsConverter(T dynViscosity, T density);
+    virtual void initNsConverter(T dynViscosity, T density) = 0;
 
     void initNsConvergeTracker();
 
-    virtual void prepareNsLattice(const T omega);
+    virtual void prepareNsLattice(const T omega) = 0;
 
-    void initPressureIntegralPlane();
+    virtual void initPressureIntegralPlane() = 0;
 
-    void initFlowRateIntegralPlane();
+    virtual void initFlowRateIntegralPlane() = 0;
 
-    void initNsLattice(const T omega);
-
-    void setFlowProfile2D(int key, T openingWidth);
-
-    void setPressure2D(int key);
+    virtual void initNsLattice(const T omega) = 0;
 
     /**
      * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
      * @param[in] iT Iteration step.
     */
-    void storeCfdResults(int iT);
+    virtual void storeCfdResults(int iT) = 0;
 
-public:
+    virtual void collideAndStream() = 0;
+
     /**
      * @brief Constructor of an lbm module.
      * @param[in] id Id of the module.
@@ -134,6 +104,8 @@ public:
     lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
         ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
+public:
+
     /**
      * @brief Initialize an instance of the LBM solver for this module.
      * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
@@ -152,12 +124,6 @@ public:
     void prepareLattice() override;
 
     /**
-     * @brief Set the boundary values on the lattice at the module nodes.
-     * @param[in] iT Iteration step.
-    */
-    void setBoundaryValues(int iT) override;
-
-    /**
      * @brief Conducts the collide and stream operations of the lattice.
     */
     void solve();
@@ -166,7 +132,7 @@ public:
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
-    void writeVTK(int iT);
+    virtual void writeVTK(int iT) = 0;
 
     /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
@@ -180,13 +146,9 @@ public:
      */
     void storeFlowRates(std::unordered_map<int, T> flowRate);
 
-    auto& readGeometry() const {
-        return *geometry;
-    }
+    virtual void readGeometryStl(const T dx, const bool print) = 0;
 
-    void readGeometryStl(const T dx, const bool print);
-
-    void readOpenings(const T dx);
+    virtual void readOpenings(const T dx, const bool print) = 0;
 
     /**
      * @brief Get the pressures at the boundary nodes.
@@ -251,6 +213,177 @@ public:
     T getEpsilon() const { 
         return epsilon; 
     };
+
+    virtual T getDx() = 0;
+
+    virtual T getOmega() = 0;
+};
+
+template<typename T>
+class lbmSimulator2D : public lbmSimulator<T> {
+
+using DESCRIPTOR = olb::descriptors::D2Q9<>;
+using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
+using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
+using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
+
+protected:
+
+    std::shared_ptr<olb::IndicatorF2DfromIndicatorF3D<T>> stl2Dindicator;
+
+    std::shared_ptr<olb::LoadBalancer<T>> loadBalancer;             ///< Loadbalancer for geometries in multiple cuboids.
+    std::shared_ptr<olb::CuboidGeometry<T,2>> cuboidGeometry;       ///< The geometry in a single cuboid.
+    std::shared_ptr<olb::SuperGeometry<T,2>> geometry;              ///< The final geometry of the channels.
+    std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
+    
+    std::unordered_map<int, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
+    std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>> densities;
+
+    std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
+    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
+    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
+
+    auto& getConverter() {
+        return *converter;
+    }
+
+    auto& getGeometry() {
+        return *geometry;
+    }
+
+    auto& getLattice() {
+        return *lattice;
+    }
+
+    void setFlowProfile2D(int key, T openingWidth);
+
+    void setPressure2D(int key);
+
+    void initNsConverter(T dynViscosity, T density) override;
+
+    void prepareNsLattice(const T omega) override;
+
+    void initNsLattice(const T omega) override;
+
+    void initPressureIntegralPlane() override;
+
+    void initFlowRateIntegralPlane() override;
+    
+    void collideAndStream() override { lattice->collideAndStream(); }
+
+    void storeCfdResults(int iT);
+
+public:
+
+    lbmSimulator2D(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
+        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
+
+    /**
+     * @brief Set the boundary values on the lattice at the module nodes.
+     * @param[in] iT Iteration step.
+    */
+    void setBoundaryValues(int iT) override;
+
+    /**
+     * @brief Write the vtk file with results of the CFD simulation to file system.
+     * @param[in] iT Iteration step.
+    */
+    virtual void writeVTK(int iT) override;
+
+    auto& readGeometry() const {
+        return *geometry;
+    }
+
+    void readGeometryStl(const T dx, const bool print) override;
+
+    void readOpenings(const T dx, const bool print) override;
+
+    T getDx() override { return converter->getConversionFactorLength(); }
+
+    T getOmega() override { return converter->getLatticeRelaxationFrequency(); }
+
+};
+
+template<typename T>
+class lbmSimulator3D : public lbmSimulator<T> {
+
+using DESCRIPTOR = olb::descriptors::D3Q19<>;
+using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
+using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
+using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
+
+protected:
+
+    std::shared_ptr<olb::LoadBalancer<T>> loadBalancer;             ///< Loadbalancer for geometries in multiple cuboids.
+    std::shared_ptr<olb::CuboidGeometry<T,3>> cuboidGeometry;       ///< The geometry in a single cuboid.
+    std::shared_ptr<olb::SuperGeometry<T,3>> geometry;              ///< The final geometry of the channels.
+    std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
+    
+    std::unordered_map<int, std::shared_ptr<olb::RectanglePoiseuille3D<T>>> flowProfiles;
+    std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst3D<T,T>>> densities;
+
+    std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
+    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity3D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
+    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure3D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
+
+    auto& getConverter() {
+        return *converter;
+    }
+
+    auto& getGeometry() {
+        return *geometry;
+    }
+
+    auto& getLattice() {
+        return *lattice;
+    }
+
+    void setFlowProfile3D(int key, T openingWidth);
+
+    void setPressure3D(int key);
+
+    void initNsConverter(T dynViscosity, T density) override;
+
+    void prepareNsLattice(const T omega) override;
+
+    void initNsLattice(const T omega) override;
+
+    void initPressureIntegralPlane() override;
+
+    void initFlowRateIntegralPlane() override;
+
+    void collideAndStream() override { lattice->collideAndStream(); }
+
+    void storeCfdResults(int iT);
+
+public:
+    
+    lbmSimulator3D(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
+        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
+
+    /**
+     * @brief Set the boundary values on the lattice at the module nodes.
+     * @param[in] iT Iteration step.
+    */
+    void setBoundaryValues(int iT) override;
+
+    /**
+     * @brief Write the vtk file with results of the CFD simulation to file system.
+     * @param[in] iT Iteration step.
+    */
+    virtual void writeVTK(int iT) override;
+
+    auto& readGeometry() const {
+        return *geometry;
+    }
+
+    void readGeometryStl(const T dx, const bool print) override;
+
+    void readOpenings(const T dx, const bool print) override;
+
+    T getDx() override { return converter->getConversionFactorLength(); }
+
+    T getOmega() override { return converter->getLatticeRelaxationFrequency(); }
 };
 
 }   // namespace arch

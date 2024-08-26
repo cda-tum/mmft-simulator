@@ -50,9 +50,9 @@ protected:
     */
     virtual void executeCoupling() { };
 
-public:
-
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, T alpha, ResistanceModel<T>* ResistanceModel);
+
+public:
 
     /**
      * @brief Get id of the simulator.

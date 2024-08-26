@@ -65,16 +65,19 @@ template<typename T>
 class Fluid;
 
 template<typename T>
-class lbmSimulator;
+class lbmSimulator2D;
 
 template<typename T>
-class lbmMixingSimulator;
+class lbmMixingSimulator2D;
 
 template<typename T>
-class lbmOocSimulator;
+class lbmOocSimulator2D;
 
 template<typename T>
-class essLbmSimulator;
+class lbmSimulator3D;
+
+template<typename T>
+class essLbmSimulator3D;
 
 template<typename T>
 class MembraneModel;
@@ -310,7 +313,20 @@ public:
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+    lbmSimulator2D<T>* addLbmSimulator2D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+                                    T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+
+    /**
+     * @brief Adds a new module to the network.
+     * @param[in] name Name of the module.
+     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+     * @param[in] module Shared pointer to the module on which this solver acts.
+     * @param[in] openings Map of openings corresponding to the nodes.
+     * @param[in] alpha Relaxation parameter for this simulator.
+     * @param[in] parameters Parameters to set LBM simulation.
+     * @return Pointer to the newly created module.
+    */
+    lbmSimulator3D<T>* addLbmSimulator3D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
                                     T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
@@ -328,7 +344,7 @@ public:
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmMixingSimulator<T>* addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+    lbmMixingSimulator2D<T>* addLbmMixingSimulator2D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
                                             std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
 
@@ -349,7 +365,7 @@ public:
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
      * @return Pointer to the newly created module.
     */
-    lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+    lbmOocSimulator2D<T>* addLbmOocSimulator2D(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
                                             std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
@@ -358,7 +374,7 @@ public:
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+    essLbmSimulator3D<T>* addEssLbmSimulator3D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
                                         T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
