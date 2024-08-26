@@ -1,7 +1,6 @@
 //#include <pybind11/pybind11.h>
 
 //namespace py = pybind11;
-
 #include <iostream>
 
 #define DIMENSION 2
@@ -39,7 +38,12 @@ int main(int argc, char const* argv []) {
     // Print the results
     testSimulation.getSimulationResults()->printStates();
 
-    porting::resultToJSON<T>("result.json", &testSimulation );
+    //std::cout << "Write diffusive mixtures" << std::endl;
+    //testSimulation.getSimulationResults()->writeMixture(1);
+
+    #ifdef USE_ESSLBM
+    MPI_Finalize();
+    #endif
 
     #ifdef USE_ESSLBM
     MPI_Finalize();

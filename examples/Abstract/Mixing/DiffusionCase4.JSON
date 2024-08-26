@@ -1,0 +1,338 @@
+{	
+"network": {
+    "nodes": [
+        {   
+            "x": 1e-3,
+            "y": 0.0,
+            "z": 0.0
+        },
+        {   
+            "x": 1e-3,
+            "y": 2e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 1e-3,
+            "y": 4e-3,
+            "z": 0.0
+        },    
+        {   
+            "x": 1e-3,
+            "y": 6e-3,
+            "z": 0.0
+        },    
+        {   
+            "x": 3e-3,
+            "y": 1e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 3e-3,
+            "y": 5e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 5e-3,
+            "y": 3e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 7e-3,
+            "y": 1e-3,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 7e-3,
+            "y": 3e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 7e-3,
+            "y": 5e-3,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 9e-3,
+            "y": 3e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 11e-3,
+            "y": 2e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 11e-3,
+            "y": 3e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 11e-3,
+            "y": 4e-3,
+            "z": 0.0
+        },
+        {   
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 0.0,
+            "y": 2e-3,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 0.0,
+            "y": 4e-3,
+            "z": 0.0,
+            "ground": true
+        },        
+        {   
+            "x": 0.0,
+            "y": 6e-3,
+            "z": 0.0,
+            "ground": true
+        },        
+        {   
+            "x": 12e-3,
+            "y": 2e-3,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 12e-3,
+            "y": 3e-3,
+            "z": 0.0,
+            "ground": true
+        },
+        {   
+            "x": 12e-3,
+            "y": 4e-3,
+            "z": 0.0,
+            "ground": true
+        }
+    ],
+    "channels": [
+        {	
+            "node1": 0,
+            "node2": 4,
+            "width": 1e-4,
+            "height": 1e-4
+        },   
+        {	
+            "node1": 1,
+            "node2": 4,
+            "width": 1e-4,
+            "height": 1e-4
+        },       
+        {	
+            "node1": 2,
+            "node2": 5,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 3,
+            "node2": 5,
+            "width": 1e-4,
+            "height": 1e-4
+        },   
+        {	
+            "node1": 4,
+            "node2": 6,
+            "width": 1e-4,
+            "height": 1e-4
+        },   
+        {	
+            "node1": 5,
+            "node2": 6,
+            "width": 1e-4,
+            "height": 1e-4
+        },       
+        {	
+            "node1": 6,
+            "node2": 8,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 8,
+            "node2": 7,
+            "width": 1e-4,
+            "height": 1e-4
+        },     
+        {	
+            "node1": 8,
+            "node2": 9,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 10,
+            "node2": 8,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 11,
+            "node2": 10,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 12,
+            "node2": 10,
+            "width": 1e-4,
+            "height": 1e-4
+        },        
+        {	
+            "node1": 13,
+            "node2": 10,
+            "width": 1e-4,
+            "height": 1e-4
+        },
+        {	
+            "node1": 14,
+            "node2": 0,
+            "width": 1e-4,
+            "height": 1e-4
+        },   
+        {	
+            "node1": 15,
+            "node2": 1,
+            "width": 1e-4,
+            "height": 1e-4
+        },       
+        {	
+            "node1": 16,
+            "node2": 2,
+            "width": 1e-4,
+            "height": 1e-4
+        },       
+        {	
+            "node1": 17,
+            "node2": 3,
+            "width": 1e-4,
+            "height": 1e-4
+        },
+        {	
+            "node1": 18,
+            "node2": 11,
+            "width": 1e-4,
+            "height": 1e-4
+        },   
+        {	
+            "node1": 19,
+            "node2": 12,
+            "width": 1e-4,
+            "height": 1e-4
+        },       
+        {	
+            "node1": 20,
+            "node2": 13,
+            "width": 1e-4,
+            "height": 1e-4
+        }
+    ]
+},
+"simulation": {
+    "platform": "Mixing",
+    "type": "Abstract",
+    "resistanceModel": "Poiseuille",
+    "mixingModel": "Diffusion",
+    "fluids": [
+        {	
+            "name": "Water",
+            "concentration": 1,
+            "density": 1e3,           
+            "viscosity": 1e-3
+        }
+    ],
+    "species": [
+        {
+            "name": "C",
+            "diffusivity": 1e-8,
+            "saturationConcentration": 1.0,
+            "molecularSize": 0.0
+        }
+    ],
+    "mixtures": [
+        {
+            "species": [0],
+            "concentrations": [1.0]
+        }
+    ],
+    "pumps": [
+        {	
+            "channel":13,
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
+        },
+        {
+            "channel":14,
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
+        },
+        {
+            "channel":15,
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
+        },
+        {	
+            "channel":16,
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
+        },
+        {
+            "channel":17,
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
+        },
+        {
+            "channel":18,
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
+        },
+        {
+            "channel":19,
+            "type": "PumpFlowrate",
+            "flowRate": 1e-10
+        }
+    ],
+    "fixtures": [
+        {
+            "name": "Setup #1",
+            "phase": 0,
+            "mixtureInjections": [
+                {
+                    "mixture": 0,
+                    "channel": 1,
+                    "t0": 0.0
+                },
+                {
+                    "mixture": 0,
+                    "channel": 3,
+                    "t0": 0.0
+                },
+                {
+                    "mixture": 0,
+                    "channel": 10,
+                    "t0": 0.0
+                },
+                {
+                    "mixture": 0,
+                    "channel": 12,
+                    "t0": 0.0
+                }
+            ]
+        }
+    ],
+    "activeFixture": 0,
+    "settings": {
+    }
+}
+}

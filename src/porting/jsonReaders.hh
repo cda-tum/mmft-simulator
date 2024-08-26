@@ -4,31 +4,65 @@ namespace porting {
 
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
+    int nodeId = 0;
+    int virtualNodes = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
-        if (!node.contains("x") || !node.contains("y")) {
-            throw std::invalid_argument("Node is ill-defined. Please define:\nx\ny");
-        }
-        bool ground = false;
-        if(node.contains("ground")) {
-            ground = node["ground"];
-        }
-        auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
-        if(node.contains("sink")) {
-            if (node["sink"]) {
-                network.setSink(addedNode->getId());
+        
+        if (node.contains("virtual") && node["virtual"]) {
+            nodeId++;
+            virtualNodes++;
+            continue;
+        } else {
+            if (!node.contains("x") || !node.contains("y")) {
+                throw std::invalid_argument("Node is ill-defined. Please define:\nx\ny");
             }
+            bool ground = false;
+            if(node.contains("ground")) {
+                ground = node["ground"];
+            }
+            auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
+            if(node.contains("sink")) {
+                if (node["sink"]) {
+                    network.setSink(addedNode->getId());
+                }
+            }
+            nodeId++;
+        }
+    }
+    network.setVirtualNodes(virtualNodes);
+}
+
+template<typename T>
+void readChannels(json jsonString, arch::Network<T>& network) {
+    int channelId = 0;
+    for (auto& channel : jsonString["network"]["channels"]) {
+        if (channel.contains("virtual") && channel["virtual"]) {
+            channelId++;
+            continue;
+        } else {
+            if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
+                throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+            }
+            arch::ChannelType type = arch::ChannelType::NORMAL;
+            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            channelId++;
         }
     }
 }
 
 template<typename T>
-void readChannels(json jsonString, arch::Network<T>& network) {
-    for (auto& channel : jsonString["network"]["channels"]) {
-        if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
-            throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+void readModules(json jsonString, arch::Network<T>& network) {
+    for (auto& module : jsonString["network"]["modules"]) {
+        if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
+            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
         }
-        arch::ChannelType type = arch::ChannelType::NORMAL;
-        network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
+        std::vector<T> position = { module["position"][0], module["position"][1] };
+        std::vector<T> size = { module["size"][0], module["size"][1] };
+        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
+        for (auto& nodeId : module["nodes"]) {
+            Nodes.try_emplace(nodeId, network.getNode(nodeId));
+        }
+        network.addModule(position, size, std::move(Nodes));
     }
 }
 
@@ -52,7 +86,7 @@ template<typename T>
 sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
-        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
+        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     if (jsonString["simulation"]["platform"] == "Continuous") {
         platform = sim::Platform::Continuous;
@@ -60,8 +94,10 @@ sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
         platform = sim::Platform::BigDroplet;
     } else if (jsonString["simulation"]["platform"] == "Mixing") {
         platform = sim::Platform::Mixing;
+    } else if (jsonString["simulation"]["platform"] == "Ooc") {
+        platform = sim::Platform::Ooc;
     } else {
-        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing");
+        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     simulation.setPlatform(platform);
     return platform;
@@ -132,6 +168,32 @@ void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
+void readTissues(json jsonString, sim::Simulation<T>& simulation) {
+    for (auto& tissue : jsonString["simulation"]["tissues"]) {
+        if (tissue.contains("species") && tissue.contains("Vmax") && tissue.contains("kM")) {
+            if (tissue["species"].size() == tissue["Vmax"].size() && tissue["species"].size() == tissue["kM"].size()) {
+                int counter = 0;
+                std::unordered_map<int, sim::Specie<T>*> species;
+                std::unordered_map<int, T> Vmax;
+                std::unordered_map<int, T> kM;
+                for (auto& specieId : tissue["species"]) {
+                    auto specie_ptr = simulation.getSpecie(specieId);
+                    species.try_emplace(specieId, specie_ptr);
+                    Vmax.try_emplace(specieId, tissue["Vmax"][counter]);
+                    kM.try_emplace(specieId, tissue["kM"][counter]);
+                    counter++;
+                }
+                simulation.addTissue(species, Vmax, kM);
+            } else {
+                throw std::invalid_argument("Please define a Vmax and kM value for each species.");
+            }
+        } else {
+            throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
+        }
+    }
+}
+
+template<typename T>
 void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
     for (auto& mixture : jsonString["simulation"]["mixtures"]) {
         if (mixture.contains("species") && mixture.contains("concentrations")) {
@@ -145,7 +207,13 @@ void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
                     concentrations.try_emplace(specie, mixture["concentrations"][counter]);
                     counter++;
                 }
-                simulation.addMixture(species, concentrations);
+                if (simulation.getMixingModel()->isInstantaneous()) {
+                    simulation.addMixture(species, concentrations);
+                } else if (simulation.getMixingModel()->isDiffusive()) {
+                    simulation.addDiffusiveMixture(species, concentrations);
+                } else {
+                    throw std::invalid_argument("Please define a mixing model before adding mixtures.");
+                }
             } else {
                 throw std::invalid_argument("Wrongly defined mixture. Please provide as many concentrations as species.");
             }
@@ -162,7 +230,6 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
             int fluid = injection["fluid"];
             T volume = injection["volume"];
             auto newDroplet = simulation.addDroplet(fluid, volume);
-            //int dropletId = injection["droplet"];
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
             T injectionPosition = injection["pos"];
@@ -220,6 +287,28 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
             {
                 auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+            }
+            else if (simulator["Type"] == "Mixing")
+            {
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
+                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+            }
+            else if (simulator["Type"] == "Organ")
+            {
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
+                std::string organStlFile = simulator["organStlFile"];
+                int tissueId = simulator["tissue"];
+                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")
@@ -286,12 +375,12 @@ template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     sim::ResistanceModel<T>* resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
-        if (jsonString["simulation"]["resistanceModel"] == "1D") {
+        if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
             resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
-            throw std::invalid_argument("Invalid resistance model. Options are:\n1D\nPoiseuille");
+            throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
@@ -305,8 +394,10 @@ void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
             mixingModel = new sim::InstantaneousMixingModel<T>();
+        } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
+            mixingModel = new sim::DiffusionMixingModel<T>();
         } else {
-            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous");
+            throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous\nDiffusion");
         }
     } else {
         throw std::invalid_argument("No mixing model defined.");

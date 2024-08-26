@@ -126,7 +126,7 @@
     ]
 },
 "simulation": {
-    "workDirectory": "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/build/",
+    "workDirectory": "/home/michel/Git/mmft-hybrid-simulator/build/tmp",
     "platform": "Continuous",
     "type": "Hybrid",
     "resistanceModel": "Poiseuille",

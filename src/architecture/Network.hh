@@ -199,6 +199,26 @@ Node<T>* Network<T>::addNode(T x_, T y_, bool ground_) {
 }
 
 template<typename T>
+Node<T>* Network<T>::addNode(int nodeId, T x_, T y_, bool ground_) {
+    auto result = nodes.insert({nodeId, std::make_unique<Node<T>>(nodeId, x_, y_, ground_)});
+
+    if (result.second) {
+        // insertion happened and we have to add an additional entry into the reach
+        reach.insert_or_assign(nodeId, std::unordered_map<int, RectangularChannel<T>*>{});
+    } else {
+        std::out_of_range(  "Could not add Node " + std::to_string(nodeId) + " at (" + std::to_string(x_) +
+                            ", " + std::to_string(y_) + "). Nodes out of bounds.");
+    }
+
+    if (ground_) {
+        groundNodes.emplace(result.first->second.get());
+    }
+
+    // return raw pointer to the node
+    return result.first->second.get();
+}
+
+template<typename T>
 RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type) {
     // create channel
     auto nodeA = nodes.at(nodeAId);
@@ -214,6 +234,25 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height
 
     // add channel
     channels.try_emplace(id, addChannel);
+
+    return addChannel;
+}
+
+template<typename T>
+RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, int channelId) {
+    // create channel
+    auto nodeA = nodes.at(nodeAId);
+    auto nodeB = nodes.at(nodeBId);
+    auto addChannel = new RectangularChannel<T>(channelId, nodeA, nodeB, width, height);
+
+    // add to network as long as channel is still a valid pointer
+    reach.at(nodeAId).try_emplace(channelId, addChannel);
+    reach.at(nodeBId).try_emplace(channelId, addChannel);
+
+    addChannel->setChannelType(type);
+
+    // add channel
+    channels.try_emplace(channelId, addChannel);
 
     return addChannel;
 }
@@ -305,6 +344,31 @@ Module<T>* Network<T>::addModule(std::vector<T> position,
 }
 
 template<typename T>
+Module<T>* Network<T>::addModule(std::vector<T> position,
+                                 std::vector<T> size,
+                                 std::vector<int> nodeIds) 
+{
+    // create module
+    auto id = modules.size();
+    std::unordered_map<int, std::shared_ptr<Node<T>>> localNodes;
+    for (int nodeId : nodeIds) {
+        localNodes.try_emplace(nodeId, nodes.at(nodeId));
+    }
+    auto addModule = new Module<T>(id, position, size, localNodes);
+
+    // add this module to the reach of each node
+    for (auto& [k, node] : localNodes) {
+        modularReach.try_emplace(node->getId(), addModule);
+    }
+
+    // add module
+    modules.try_emplace(id, addModule);
+
+    return addModule;
+}
+
+
+template<typename T>
 bool Network<T>::hasNode(int nodeId_) const {
     return nodes.count(nodeId_);
 }
@@ -319,6 +383,11 @@ template<typename T>
 void Network<T>::setGround(int nodeId_) {
     nodes.at(nodeId_)->setGround(true);
     groundNodes.emplace(nodes.at(nodeId_).get());
+}
+
+template<typename T>
+void Network<T>::setVirtualNodes(int virtualNodes_) {
+    this->virtualNodes = virtualNodes_;
 }
 
 template<typename T>
@@ -359,6 +428,21 @@ bool Network<T>::isGround(int nodeId_) const {
 }
 
 template<typename T>
+bool Network<T>::isChannel(int edgeId_) const {
+    return channels.count(edgeId_);
+}
+
+template<typename T>
+bool Network<T>::isPressurePump(int edgeId_) const {
+    return pressurePumps.count(edgeId_);
+}
+
+template<typename T>
+bool Network<T>::isFlowRatePump(int edgeId_) const {
+    return flowRatePumps.count(edgeId_);
+}
+
+template<typename T>
 std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
     if (nodes.count(nodeId)) {
         return nodes.at(nodeId);
@@ -370,6 +454,11 @@ std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
 template<typename T>
 const std::unordered_map<int, std::shared_ptr<Node<T>>>& Network<T>::getNodes() const {
     return nodes;
+}
+
+template<typename T>
+int Network<T>::getVirtualNodes() const {
+    return virtualNodes;
 }
 
 template<typename T>
@@ -394,6 +483,16 @@ std::set<Node<T>*> Network<T>::getGroundNodes() const {
 template<typename T>
 RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
     return channels.at(channelId_).get();
+}
+
+template<typename T>
+PressurePump<T>* Network<T>::getPressurePump(int pumpId_) const {
+    return pressurePumps.at(pumpId_).get();
+}
+
+template<typename T>
+FlowRatePump<T>* Network<T>::getFlowRatePump(int pumpId_) const {
+    return flowRatePumps.at(pumpId_).get();
 }
 
 template<typename T>
@@ -620,6 +719,35 @@ bool Network<T>::isNetworkValid() {
     }
 
     return true;
+}
+
+template<typename T>
+void Network<T>::print() {
+    std::string printNodes = "";
+    std::string printChannels = "";
+    std::string printModules = "";
+
+    for (auto const& [k, v] : nodes) {
+        printNodes.append(" " + std::to_string(v->getId()));
+    }
+
+    for (auto const& [k, v] : channels) {
+        printChannels.append("\t id: " + std::to_string(v->getId()) 
+                            + "\t nA: " + std::to_string(v->getNodeA())
+                            + "\t nB: " + std::to_string(v->getNodeB()) + "\n");
+    }
+
+    for (auto const& [k, v] : modules) {
+        printModules.append("\t id: " + std::to_string(v->getId()) + "\t nodes:");
+        for (auto const& [kN, vN] : v->getNodes()) {
+            printModules.append(" " + std::to_string(vN->getId()));
+        }
+    }
+
+    std::cout << "The network consists of the following components:\n" << std::endl;
+    std::cout << "Nodes: " << printNodes << "\n" << std::endl;
+    std::cout << "Channels:\n" << printChannels << std::endl;
+    std::cout << "Modules:\n" << printModules << std::endl;
 }
 
 }   // namespace arch

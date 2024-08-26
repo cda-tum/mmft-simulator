@@ -3,7 +3,7 @@
 "simulation": {
     "platform": "Mixing",
     "type": "Abstract",
-    "resistanceModel": "1D",
+    "resistanceModel": "Rectangular",
     "mixingModel": "Instantaneous",
     "fluids": [
         {	

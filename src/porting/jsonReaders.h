@@ -34,6 +34,12 @@ template<typename T, int DIM>
 class essLbmSimulator;
 
 template<typename T>
+class lbmSimulator;
+
+template<typename T>
+class essLbmSimulator;
+
+template<typename T>
 class Simulation;
 
 enum class Type;
@@ -101,6 +107,9 @@ void readDroplets (json jsonString, sim::Simulation<T>& simulation);
 
 template<typename T>
 void readSpecies (json jsonString, sim::Simulation<T>& simulation);
+
+template<typename T>
+void readTissues (json jsonString, sim::Simulation<T>& simulation);
 
 template<typename T>
 void readMixtures (json jsonString, sim::Simulation<T>& simulation);

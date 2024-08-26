@@ -82,7 +82,7 @@
 "simulation": {
     "platform": "BigDroplet",
     "type": "Abstract",
-    "resistanceModel": "1D",
+    "resistanceModel": "Rectangular",
     "fluids": [
         {	
             "name": "Water",

@@ -36,16 +36,16 @@ namespace sim {
 /**
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
-template<typename T, int DIM>
-class lbmSimulatorBase : public CFDSimulator<T, DIM> {
+template<typename T>
+class lbmSimulator : public CFDSimulator<T> {
 
-using DESCRIPTOR = std::conditional_t<
-                    DIM == 2, 
-                    olb::descriptors::D2Q9<>,
-                    olb::descriptors::D3Q19<>
-                    >;
+using DESCRIPTOR = olb::descriptors::D2Q9<>;
+using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
+using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
+using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
 protected:
+    int stlMargin = 1;
     int step = 0;                           ///< Iteration step of this module.
     int stepIter = 1000;                    ///< Number of iterations for the value tracer.
     int maxIter = 1e7;                      ///< Maximum total iterations.
@@ -83,9 +83,50 @@ protected:
         return *lattice;
     }
 
-public:
+    void setOutputDir();
+    
+    virtual void initValueContainers();
 
-    lbmSimulatorBase(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
+    void initNsConverter(T dynViscosity, T density);
+
+    void initNsConvergeTracker();
+
+    virtual void prepareNsLattice(const T omega);
+
+    void initPressureIntegralPlane();
+
+    void initFlowRateIntegralPlane();
+
+    void initNsLattice(const T omega);
+
+    void setFlowProfile2D(int key, T openingWidth);
+
+    void setPressure2D(int key);
+
+    /**
+     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
+     * @param[in] iT Iteration step.
+    */
+    void storeCfdResults(int iT);
+
+public:
+    /**
+     * @brief Constructor of an lbm module.
+     * @param[in] id Id of the module.
+     * @param[in] name Name of the module.
+     * @param[in] pos Absolute position of the module in _m_, from the bottom left corner of the microfluidic device.
+     * @param[in] size Size of the module in _m_.
+     * @param[in] nodes Map of nodes that are on the boundary of the module.
+     * @param[in] openings Map of the in-/outlets of the module.
+     * @param[in] stlFile STL file that describes the geometry of the CFD domain.
+     * @param[in] charPhysLength Characteristic physical length of the geometry of the module in _m_.
+     * @param[in] charPhysVelocity Characteristic physical velocity of the flow in the module in _m/s_.
+     * @param[in] alpha Relaxation factor for the iterative updates between the 1D and CFD solvers.
+     * @param[in] resolution Resolution of the CFD mesh in gridpoints per charPhysLength.
+     * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
+     * @param[in] relaxationTime Relaxation time tau for the LBM solver.
+    */
+    lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
         ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
@@ -96,21 +137,51 @@ public:
     void lbmInit(T dynViscosity, T density) override;
 
     /**
+     * @brief Prepare the LBM geometry of this instance.
+    */
+    void prepareGeometry() override;
+
+    /**
+     * @brief Prepare the LBM lattice on the LBM geometry.
+    */
+    void prepareLattice() override;
+
+    /**
+     * @brief Set the boundary values on the lattice at the module nodes.
+     * @param[in] iT Iteration step.
+    */
+    void setBoundaryValues(int iT) override;
+
+    /**
      * @brief Conducts the collide and stream operations of the lattice.
     */
     void solve();
 
     /**
-     * @brief Set the pressures at the nodes on the module boundary.
-     * @param[in] pressure Map of pressures and node ids.
-     */
-    void setPressures(std::unordered_map<int, T> pressure);
+     * @brief Write the vtk file with results of the CFD simulation to file system.
+     * @param[in] iT Iteration step.
+    */
+    void writeVTK(int iT);
 
     /**
-     * @brief Set the flow rates at the nodes on the module boundary.
+     * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
+     * @param[in] pressure Map of pressures and node ids.
+     */
+    void storePressures(std::unordered_map<int, T> pressure);
+
+    /**
+     * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
      * @param[in] flowRate Map of flow rates and node ids.
      */
-    void setFlowRates(std::unordered_map<int, T> flowRate);
+    void storeFlowRates(std::unordered_map<int, T> flowRate);
+
+    auto& readGeometry() const {
+        return *geometry;
+    }
+
+    void readGeometryStl(const T dx, const bool print);
+
+    void readOpenings(const T dx);
 
     /**
      * @brief Get the pressures at the boundary nodes.
@@ -177,142 +248,4 @@ public:
     };
 };
 
-/**
- * @brief Class that defines the lbm interface for 2D lbm simulations
-*/
-template<typename T>
-class lbmSimulator<T, 2> : public lbmSimulatorBase<T, 2>{
-
-using DESCRIPTOR =  olb::descriptors::D2Q9<>;
-using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
-using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
-using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
-
-private: 
-    std::shared_ptr<olb::IndicatorF2DfromIndicatorF3D<T>> stl2Dindicator;
-    std::unordered_map<int, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
-    std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>> densities;
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
-
-public:
-
-    /**
-     * @brief Constructor of an lbm module.
-     * @param[in] id Id of the module.
-     * @param[in] name Name of the module.
-     * @param[in] pos Absolute position of the module in _m_, from the bottom left corner of the microfluidic device.
-     * @param[in] size Size of the module in _m_.
-     * @param[in] nodes Map of nodes that are on the boundary of the module.
-     * @param[in] openings Map of the in-/outlets of the module.
-     * @param[in] stlFile STL file that describes the geometry of the CFD domain.
-     * @param[in] charPhysLength Characteristic physical length of the geometry of the module in _m_.
-     * @param[in] charPhysVelocity Characteristic physical velocity of the flow in the module in _m/s_.
-     * @param[in] alpha Relaxation factor for the iterative updates between the 1D and CFD solvers.
-     * @param[in] resolution Resolution of the CFD mesh in gridpoints per charPhysLength.
-     * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
-     * @param[in] relaxationTime Relaxation time tau for the LBM solver.
-    */
-    lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
-        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
-
-    /**
-     * @brief Prepare the 2D geometry of this LBM instance.
-    */
-    void prepareGeometry() override;
-
-    /**
-     * @brief Prepare the 2D LBM lattice on the 2D geometry.
-    */
-    void prepareLattice() override;
-
-    /**
-     * @brief Set the boundary values on the lattice at the module nodes.
-     * @param[in] iT Iteration step.
-    */
-    void setBoundaryValues(int iT) override;
-
-    /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    void getResults(int iT);
-
-    /**
-     * @brief Write the vtk file with results of the CFD simulation to file system.
-     * @param[in] iT Iteration step.
-    */
-    void writeVTK(int iT);
-
-};
-
-/**
- * @brief Class that defines the lbm interface for 3D lbm simulations
-*/
-template<typename T>
-class lbmSimulator<T, 3> : public lbmSimulatorBase<T, 3>{
-    
-using DESCRIPTOR =  olb::descriptors::D3Q19<>;
-using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
-using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
-using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
-
-private: 
-    std::shared_ptr<olb::IndicatorF3D<T>> stl3Dindicator;
-    std::unordered_map<int, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
-    std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst3D<T,T>>> densities;
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity3D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure3D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
-
-public:
-
-    /**
-     * @brief Constructor of an lbm module.
-     * @param[in] id Id of the module.
-     * @param[in] name Name of the module.
-     * @param[in] pos Absolute position of the module in _m_, from the bottom left corner of the microfluidic device.
-     * @param[in] size Size of the module in _m_.
-     * @param[in] nodes Map of nodes that are on the boundary of the module.
-     * @param[in] openings Map of the in-/outlets of the module.
-     * @param[in] stlFile STL file that describes the geometry of the CFD domain.
-     * @param[in] charPhysLength Characteristic physical length of the geometry of the module in _m_.
-     * @param[in] charPhysVelocity Characteristic physical velocity of the flow in the module in _m/s_.
-     * @param[in] alpha Relaxation factor for the iterative updates between the 1D and CFD solvers.
-     * @param[in] resolution Resolution of the CFD mesh in gridpoints per charPhysLength.
-     * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
-     * @param[in] relaxationTime Relaxation time tau for the LBM solver.
-    */
-    lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
-        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime=0.932);
-
-    /**
-     * @brief Prepare the 3D geometry of this LBM instance.
-    */
-    void prepareGeometry() override;
-
-    /**
-     * @brief Prepare the 3D LBM lattice on the 3D geometry.
-    */
-    void prepareLattice() override;
-
-    /**
-     * @brief Set the boundary values on the lattice at the module nodes.
-     * @param[in] iT Iteration step.
-    */
-    void setBoundaryValues(int iT) override;
-
-    /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    void getResults(int iT);
-
-    /**
-     * @brief Write the vtk file with results of the CFD simulation to file system.
-     * @param[in] iT Iteration step.
-    */
-    void writeVTK(int iT);
-
-};
-
-}   // namespace sim
+}   // namespace arch

@@ -36,12 +36,10 @@ namespace sim {
     }
 
     template<typename T>
-    Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
-        auto id = mixtures.size();
-
-        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
-
-        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
+    Tissue<T>* Simulation<T>::addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM) {
+        auto id = tissues.size();
+        
+        auto result = tissues.insert_or_assign(id, std::make_shared<Tissue<T>>(id, species, Vmax, kM));
 
         return result.first->second.get();
     }
@@ -59,6 +57,93 @@ namespace sim {
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
         auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
+        auto id = mixtures.size();
+
+        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+
+        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations) {
+        auto id = mixtures.size();
+
+        std::unordered_map<int, Specie<T>*> species;
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
+
+        for (auto& [specieId, concentration] : specieConcentrations) {
+            std::function<T(T)> zeroFunc = [](T) -> T { return 0.0; };
+            std::vector<T> zeroVec = {T(0.0)};
+            species.try_emplace(specieId, getSpecie(specieId));
+            specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
+        }
+
+        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
+        auto id = mixtures.size();
+
+        std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
+
+        for (auto& [specieId, concentration] : specieConcentrations) {
+            std::function<T(T)> zeroFunc = [](T) -> T { return 0.0; };
+            std::vector<T> zeroVec = {T(0.0)};
+            specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
+        }
+
+        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions) {
+        auto id = mixtures.size();
+
+        std::unordered_map<int, Specie<T>*> species;
+        std::unordered_map<int, T> specieConcentrations;
+
+        for (auto& [specieId, distribution] : specieDistributions) {
+            species.try_emplace(specieId, getSpecie(specieId));
+            specieConcentrations.try_emplace(specieId, T(0));
+        }
+
+        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
+
+        return result.first->second.get();
+    }
+
+    template<typename T>
+    Mixture<T>* Simulation<T>::addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions) {
+        auto id = mixtures.size();
+
+        std::unordered_map<int, T> specieConcentrations;
+
+        for (auto& [specieId, distribution] : specieDistributions) {
+            specieConcentrations.try_emplace(specieId, T(0));
+        }
+
+        Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
+
+        auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
         return result.first->second.get();
     }
@@ -91,23 +176,36 @@ namespace sim {
     }
 
     template<typename T>
-    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int channelId, T injectionTime) {
+    MixtureInjection<T>* Simulation<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
         auto id = mixtureInjections.size();
-        auto channel = network->getChannel(channelId);
 
-        auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
-
-        return result.first->second.get();
+        if (network->isChannel(edgeId)) {
+            auto channel = network->getChannel(edgeId);
+            auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            return result.first->second.get();
+            
+        } else if (network->isPressurePump(edgeId)) {
+            auto pump = network->getPressurePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        } else if (network->isFlowRatePump(edgeId)) {
+            auto pump = network->getFlowRatePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        }
+        return nullptr;
     }
 
     template<typename T>
-    lbmSimulator<T,DIMENSION>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+    lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
                                                     T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmSimulator<T,DIMENSION>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -119,14 +217,51 @@ namespace sim {
     }
 
     template<typename T>
-    essLbmSimulator<T,DIMENSION>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
-                                                        T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+    lbmMixingSimulator<T>* Simulation<T>::addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {   
+        std::cout  << "Trying to add a mixing simulator" << std::endl;
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmMixingSimulator<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+    }
+
+    template<typename T>
+    lbmOocSimulator<T>* Simulation<T>::addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
+    {
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+    }
+
+    template<typename T>
+    essLbmSimulator<T>* Simulation<T>::addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
+                                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau)
     {
         #ifdef USE_ESSLBM
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new essLbmModule<T,DIMENSION>(id, name, stlFile, openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -273,8 +408,28 @@ namespace sim {
     }
 
     template<typename T>
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& Simulation<T>::getMixtureInjections() {
+        return mixtureInjections;
+    }
+
+    template<typename T>
+    CFDSimulator<T>* Simulation<T>::getCFDSimulator(int simulatorId) {
+        return cfdSimulators.at(simulatorId).get();
+    }
+
+    template<typename T>
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& Simulation<T>::getCFDSimulators() {
+        return cfdSimulators;
+    }
+
+    template<typename T>
     Fluid<T>* Simulation<T>::getContinuousPhase() {
         return fluids[continuousPhase].get();
+    }
+
+    template<typename T>
+    MixingModel<T>* Simulation<T>::getMixingModel() {
+        return mixingModel;
     }
 
     template<typename T>
@@ -382,7 +537,7 @@ namespace sim {
         // * save state
         if (simType == Type::Abstract && platform == Platform::Continuous) {
             // compute nodal analysis
-            nodal::conductNodalAnalysis(network);
+            nodalAnalysis->conductNodalAnalysis();
 
             // store simulation results of current state
             saveState();
@@ -390,35 +545,109 @@ namespace sim {
 
         // Continuous Hybrid simulation
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
-            if (network->getModules().size() > 0 ) {
-                bool allConverged = false;
-                bool pressureConverged = false;
-
-                // Initialization of CFD domains
-                while (! allConverged) {
-                    allConverged = conductCFDSimulation(cfdSimulators, 1);
-                }
-
-                while (! allConverged || !pressureConverged) {
-                    //std::cout << "######################## Simulation Iteration no. " << iter << " ####################" << std::endl;
-
-                    // conduct CFD simulations
-                    //std::cout << "[Simulation] Conduct CFD simulation " << iter <<"..." << std::endl;
-                    allConverged = conductCFDSimulation(cfdSimulators, 10);
-                
-                    // compute nodal analysis again
-                    //std::cout << "[Simulation] Conduct nodal analysis " << iter <<"..." << std::endl;
-                    pressureConverged = nodal::conductNodalAnalysis(this->network, cfdSimulators);
-
-                }
-
-                #ifdef VERBOSE     
-                    if (pressureConverged && allConverged) {
-                        std::cout << "[Simulation] All pressures have converged." << std::endl;
-                    } 
-                    printResults();
-                #endif
+            
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
             }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            }
+
+            #ifdef VERBOSE     
+                if (pressureConverged && allConverged) {
+                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                } 
+                printResults();
+            #endif
+            
+            saveState();
+        }
+
+        // Mixing Hybrid simulation
+        if (this->simType == Type::Hybrid && this->platform == Platform::Mixing) {
+
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
+            }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of NS CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            // Obtain overal steady-state flow result
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            }
+
+            #ifdef VERBOSE     
+                printResults();
+                std::cout << "[Simulation] All pressures have converged." << std::endl; 
+            #endif
+            saveState();
+
+            // Couple the resulting CFD flow field to the AD fields
+            coupleNsAdLattices(cfdSimulators);
+
+            // Obtain overal steady-state concentration results
+            bool concentrationConverged = false;
+            while (!concentrationConverged) {
+                concentrationConverged = conductADSimulation(cfdSimulators);
+                this->mixingModel->propagateSpecies(network, this);
+            }
+        }
+
+        // OoC Hybrid simulation
+        if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
+
+            // Catch runtime error, not enough CFD simulators.
+            if (network->getModules().size() <= 0 ) {
+                throw std::runtime_error("There are no CFD simulators defined for the Hybrid simulation.");
+            }
+
+            bool allConverged = false;
+            bool pressureConverged = false;
+
+            // Initialization of CFD domains
+            while (! allConverged) {
+                allConverged = conductCFDSimulation(cfdSimulators, 1);
+            }
+
+            while (! allConverged || !pressureConverged) {
+                // conduct CFD simulations
+                allConverged = conductCFDSimulation(cfdSimulators, 10);
+                // compute nodal analysis again
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            }
+
+            #ifdef VERBOSE     
+                if (pressureConverged && allConverged) {
+                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                } 
+                printResults();
+            #endif
+
             saveState();
         }
 
@@ -446,7 +675,7 @@ namespace sim {
                 // update droplet resistances (in the first iteration no  droplets are inside the network)
                 updateDropletResistances();
                 // compute nodal analysis
-                nodal::conductNodalAnalysis(network);
+                nodalAnalysis->conductNodalAnalysis();
                 // update droplets, i.e., their boundary flow rates
                 // loop over all droplets
                 dropletsAtBifurcation = false;
@@ -479,7 +708,7 @@ namespace sim {
                     return a->getTime() < b->getTime();  // ascending order
                 });
 
-                #ifdef VERBOSE     
+                #ifdef DEBUG     
                     for (auto& event : events) {
                         event->print();
                     }
@@ -513,17 +742,22 @@ namespace sim {
         */
         if (simType == Type::Abstract && platform == Platform::Mixing) {
             T timestep = 0.0;
+                
+            // compute nodal analysis    
+            nodalAnalysis->conductNodalAnalysis();
 
             while(true) {
                 if (iteration >= 1000) {
                     throw "Max iterations exceeded.";
                     break;
                 }
-                // compute nodal analysis
-                nodal::conductNodalAnalysis(network);
 
                 // Update and propagate the mixtures 
-                calculateNewMixtures(timestep);
+                if (this->mixingModel->isInstantaneous()){
+                    calculateNewMixtures(timestep);
+                } else if (this->mixingModel->isDiffusive()) {
+                    this->mixingModel->updateMinimalTimeStep(network);
+                }
                 
                 // store simulation results of current state
                 saveState();
@@ -540,7 +774,7 @@ namespace sim {
                     return a->getTime() < b->getTime();  // ascending order
                 });
 
-                #ifdef VERBOSE  
+                #ifdef DEBUG  
                 for (auto& event : events) {
                     event->print();
                 }
@@ -555,8 +789,12 @@ namespace sim {
 
                 timestep = nextEvent->getTime();
                 time += nextEvent->getTime();
-
-                this->mixingModel->updateNodeInflow(timestep, network);
+                
+                if (this->mixingModel->isInstantaneous()){
+                    this->mixingModel->updateNodeInflow(timestep, network);
+                } else if (this->mixingModel->isDiffusive()) {
+                    this->mixingModel->updateMixtures(timestep, network, this, mixtures);
+                }
                 
                 nextEvent->performEvent();
                 iteration++;
@@ -579,12 +817,6 @@ namespace sim {
         for (auto& [key, channel] : network->getChannels()) {
             std::cout << "[Result] Channel " << channel->getId() << " has a flow rate of " << channel->getFlowRate() << " m^3/s.\n";
         }
-        /*
-        std::cout << "\n";
-        // print the resistances in all channels
-        for (auto& [key, channel] : network->getChannels()) {
-            std::cout << "[Result] Channel " << channel->getId() << " has a resistance of " << channel->getResistance() << " Pas/L.\n";
-        }*/
         std::cout << std::endl;
     }
 
@@ -612,6 +844,8 @@ namespace sim {
             channel->setDropletResistance(0.0);
         }
 
+        nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network);
+
         if (this->simType == Type::Hybrid && this->platform == Platform::Continuous) {
             
             #ifdef VERBOSE
@@ -628,7 +862,65 @@ namespace sim {
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodal::conductNodalAnalysis(this->network, cfdSimulators);
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            // Prepare CFD geometry and lattice
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+            #endif
+
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
+            }
+        }
+
+        if (this->simType == Type::Hybrid && this->platform == Platform::Mixing) {
+            
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
+
+            // Initialize the CFD simulators
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
+            }
+
+            // compute nodal analysis
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+            #endif
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            // Prepare CFD geometry and lattice
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+            #endif
+
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
+            }
+        }
+
+        if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
+            
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
+
+            // Initialize the CFD simulators
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
+            }
+
+            // compute nodal analysis
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+            #endif
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE
@@ -665,6 +957,7 @@ namespace sim {
 
         std::unordered_map<int, T> savePressures;
         std::unordered_map<int, T> saveFlowRates;
+        std::unordered_map<int, std::string> vtkFiles;
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
         std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
         std::unordered_map<int, int> filledEdges;
@@ -683,6 +976,11 @@ namespace sim {
         }
         for (auto& [id, pump] : network->getPressurePumps()) {
             saveFlowRates.try_emplace(pump->getId(), pump->getFlowRate());
+        }
+
+        // vtk Files
+        for (auto& [id, simulator] : this->cfdSimulators) {
+            vtkFiles.try_emplace(simulator->getId(), simulator->getVtkFile());
         }
 
         // droplet positions
@@ -737,7 +1035,11 @@ namespace sim {
         
         // state
         if (platform == Platform::Continuous) {
-            simulationResult->addState(time, savePressures, saveFlowRates);
+            if (simType == Type::Abstract){
+                simulationResult->addState(time, savePressures, saveFlowRates);
+            } else if (simType == Type::Hybrid) {
+                simulationResult->addState(time, savePressures, saveFlowRates, vtkFiles);
+            }
         } else if (platform == Platform::BigDroplet) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
         } else if (platform == Platform::Mixing) {

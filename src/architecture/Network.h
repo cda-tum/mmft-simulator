@@ -93,6 +93,8 @@ private:
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
     std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
+    int virtualNodes = 0;
+
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
      * @param[in] id Id of the node that is visited.
@@ -149,6 +151,11 @@ public:
     Node<T>* addNode(T x, T y, bool ground=false);
 
     /**
+     * @brief Adds a new node to the network.
+    */
+    Node<T>* addNode(int nodeId, T x, T y, bool ground=false);
+
+    /**
      * @brief Adds a new channel to the chip.
      * @param[in] nodeAId Id of the node at one end of the channel.
      * @param[in] nodeBId Id of the node at the other end of the channel.
@@ -170,6 +177,17 @@ public:
      * @return Id of the newly created channel.
      */
     RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type);
+
+    /**
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @return Id of the newly created channel.
+     */
+    RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, int channelId);
 
     /**
      * @brief Adds a new channel to the chip.
@@ -212,6 +230,17 @@ public:
 
     /**
      * @brief Adds a new module to the network.
+     * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
+     * @param[in] size Absolute size of the module in m.
+     * @param[in] nodes Vector of node id's of nodes that are on the module boundary.
+     * @return Pointer to the newly created module.
+    */
+    Module<T>* addModule(std::vector<T> position,
+                         std::vector<T> size,
+                         std::vector<int> nodes);
+
+    /**
+     * @brief Adds a new module to the network.
     */
     int addModule();
 
@@ -232,7 +261,13 @@ public:
      * @brief Sets a node as the ground node, i.e., this node has a pressure value of 0 and acts as a reference node for all other nodes.
      * @param[in] nodeId Id of the node that should be the ground node of the network.
      */
-    void setGround(int nodeId);    
+    void setGround(int nodeId);   
+
+    /**
+     * @brief Sets the amount of virtual nodes read from the GUI.
+     * @param[in] virtualNodes Amount of virtual nodes.
+     */
+    void setVirtualNodes(int virtualNodes);
 
     /**
      * @brief Turns a channel with the specific id into a pressurepump with given pressure.
@@ -269,6 +304,21 @@ public:
     bool isGround(int nodeId) const;
 
     /**
+     * @brief Checks and returns if an edge is a channel
+    */
+    bool isChannel(int edgeId) const;
+
+    /**
+     * @brief Checks and returns if an edge is a pressure pump
+    */
+    bool isPressurePump(int edgeId) const;
+
+    /**
+     * @brief Checks and returns if an edge is a flowRate pump
+    */
+    bool isFlowRatePump(int edgeId) const;
+
+    /**
      * @brief Get a pointer to the node with the specific id.
     */
     std::shared_ptr<Node<T>>& getNode(int nodeId);
@@ -292,9 +342,25 @@ public:
     std::set<Node<T>*> getGroundNodes() const;
 
     /**
+     * @brief Returns the amount of virtual nodes given by the GUI.
+     * @return Amount of virtual nodes in the original network.
+     */
+    int getVirtualNodes() const;
+
+    /**
      * @brief Get a pointer to the channel with the specific id.
     */
     RectangularChannel<T>* getChannel(int channelId) const;
+
+    /**
+     * @brief Get a pointer to the pressure pump with the specific id.
+    */
+    PressurePump<T>* getPressurePump(int pumpId) const;
+
+    /**
+     * @brief Get a pointer to the flowrate pump with the specific id.
+    */
+    FlowRatePump<T>* getFlowRatePump(int pumpId) const;
 
     /**
      * @brief Get the channels of the network.
@@ -353,6 +419,11 @@ public:
      * @return If the network is valid.
      */
     bool isNetworkValid();
+
+    /**
+     * @brief Prints the contents of this network
+     */
+    void print();
 };
 
 }   // namespace arch
