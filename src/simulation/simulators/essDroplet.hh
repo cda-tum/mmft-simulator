@@ -70,7 +70,9 @@ namespace sim{
     int essLbmDropletSimulator<T>::generateDroplet(sim::Droplet<T>* dropletPtr, int bufferZone) {
 
         T volume = dropletPtr->getVolume();
-        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->generateDroplet(bufferZone, volume);
+        T viscosity = dropletPtr->getFluid()->getViscosity();
+        T density = dropletPtr->getFluid()->getDensity();
+        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->generateDroplet(bufferZone, volume, viscosity, density);
     }
 
     template<typename T>

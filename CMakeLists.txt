@@ -118,7 +118,7 @@ add_library(${TARGET_NAME})
 add_subdirectory(src)
 
 if(USE_ESSLBM)
-    target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
+    target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm CUDA::cudart)
 endif()
 
 # create executable and tests (if build as main project)
