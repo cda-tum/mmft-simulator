@@ -1074,6 +1074,35 @@ namespace sim {
             }
         }
 
+        if (this->simType == Type::Hybrid && this->platform == Platform::Mixing) {
+            
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Initialize CFD simulators..." << std::endl;
+            #endif
+
+            // Initialize the CFD simulators
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->lbmInit(fluids[continuousPhase]->getViscosity(),
+                                fluids[continuousPhase]->getDensity());
+            }
+
+            // compute nodal analysis
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
+            #endif
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+
+            // Prepare CFD geometry and lattice
+            #ifdef VERBOSE
+                std::cout << "[Simulation] Prepare CFD geometry and lattice..." << std::endl;
+            #endif
+
+            for (auto& [key, cfdSimulator] : cfdSimulators) {
+                cfdSimulator->prepareGeometry();
+                cfdSimulator->prepareLattice();
+            }
+        }
+
         if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
             
             #ifdef VERBOSE
