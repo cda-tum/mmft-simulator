@@ -111,16 +111,16 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
         readResistanceModel<T>(jsonString, simulation);
 
         if (platform == sim::Platform::Continuous) {
-            readUpdateScheme(jsonString, simulation);
             readSimulators<T>(jsonString, simulation, network_);
+            readUpdateScheme(jsonString, simulation);
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
             readMixingModel<T>(jsonString, simulation);
             readSpecies<T>(jsonString, simulation);
             readMixtures<T>(jsonString, simulation);
             readMixtureInjections<T>(jsonString, simulation, activeFixture);
-            readUpdateScheme(jsonString, simulation);
             readSimulators<T>(jsonString, simulation, network_);
+            readUpdateScheme(jsonString, simulation);
             network_->sortGroups();
         } else if (platform == sim::Platform::Ooc) {
             readMixingModel<T>(jsonString, simulation);
@@ -128,8 +128,8 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
             readMixtures<T>(jsonString, simulation);
             readMixtureInjections<T>(jsonString, simulation, activeFixture);
             readTissues<T>(jsonString, simulation);
-            readUpdateScheme(jsonString, simulation);
             readSimulators<T>(jsonString, simulation, network_);
+            readUpdateScheme(jsonString, simulation);
             network_->sortGroups();
         } else if (platform == sim::Platform::BigDroplet) {
             throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");

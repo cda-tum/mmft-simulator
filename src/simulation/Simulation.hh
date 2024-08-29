@@ -202,8 +202,8 @@ namespace sim {
     std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(T alpha, T beta, int theta) {
         auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, beta, theta);
         for (auto& [key, simulator] : cfdSimulators) {
-            simulator->setUpdateScheme(naiveScheme);
             updateSchemes.try_emplace(simulator->getId(), naiveScheme);
+            simulator->setUpdateScheme(updateSchemes.at(simulator->getId()));
         }
         return naiveScheme;
     }
@@ -211,16 +211,16 @@ namespace sim {
     template<typename T>
     std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(int moduleId, T alpha, T beta, int theta) {
         auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModule(moduleId), alpha, beta, theta);
-        cfdSimulators.at(moduleId)->setUpdateScheme(naiveScheme);
         updateSchemes.try_emplace(moduleId, naiveScheme);
+        cfdSimulators.at(moduleId)->setUpdateScheme(updateSchemes.at(moduleId));
         return naiveScheme;
     }
 
     template<typename T>
     std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(int moduleId, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta) {
         auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModule(moduleId), alpha, beta, theta);
-        cfdSimulators.at(moduleId)->setUpdateScheme(naiveScheme);
         updateSchemes.try_emplace(moduleId, naiveScheme);
+        cfdSimulators.at(moduleId)->setUpdateScheme(updateSchemes.at(moduleId));
         return naiveScheme;
     }
 

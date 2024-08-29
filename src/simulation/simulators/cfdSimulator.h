@@ -136,7 +136,7 @@ public:
     /**
      * @brief Set the update scheme for Abstract-CFD coupling for this simulator.
      */
-    void setUpdateScheme(std::shared_ptr<mmft::Scheme<T>> updateScheme);
+    void setUpdateScheme(const std::shared_ptr<mmft::Scheme<T>>& updateScheme);
 
     /**
      * @brief Set the path, where vtk output from the simulator should be stored.

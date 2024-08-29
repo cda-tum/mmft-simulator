@@ -57,7 +57,7 @@ void CFDSimulator<T>::setInitialized(bool initialization_) {
 }
 
 template <typename T>
-void CFDSimulator<T>::setUpdateScheme(std::shared_ptr<mmft::Scheme<T>> updateScheme_) {
+void CFDSimulator<T>::setUpdateScheme(const std::shared_ptr<mmft::Scheme<T>>& updateScheme_) {
     this->updateScheme = updateScheme_;
 }
 
