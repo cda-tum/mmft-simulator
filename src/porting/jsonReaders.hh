@@ -318,20 +318,20 @@ void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
     } 
     else {
         if (jsonString["simulation"]["updateScheme"]["scheme"] == "Naive") {
-            if (jsonString["simulation"]["updateScheme"]["scheme"].contains("alpha") && 
-                jsonString["simulation"]["updateScheme"]["scheme"].contains("beta") &&
-                jsonString["simulation"]["updateScheme"]["scheme"].contains("theta")) 
+            if (jsonString["simulation"]["updateScheme"].contains("alpha") && 
+                jsonString["simulation"]["updateScheme"].contains("beta") &&
+                jsonString["simulation"]["updateScheme"].contains("theta")) 
             {
-                T alpha = jsonString["simulation"]["updateScheme"]["scheme"]["alpha"];
-                T beta = jsonString["simulation"]["updateScheme"]["scheme"]["beta"];
-                int theta = jsonString["simulation"]["updateScheme"]["scheme"]["theta"];
+                T alpha = jsonString["simulation"]["updateScheme"]["alpha"];
+                T beta = jsonString["simulation"]["updateScheme"]["beta"];
+                int theta = jsonString["simulation"]["updateScheme"]["theta"];
                 simulation.setNaiveHybridScheme(alpha, beta, theta);
                 return;
             } 
             else {
+                int moduleCounter = 0;
                 for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
                     if (simulator.contains("alpha") && simulator.contains("beta") && simulator.contains("theta")) {
-                        int moduleCounter = 0;
                         if (simulator["alpha"].is_number() && simulator["beta"].is_number()) {
                             T alpha = simulator["alpha"];
                             T beta = simulator["beta"];
@@ -344,10 +344,14 @@ void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
                             int theta = simulator["theta"];
                             for (auto& opening : simulator["Openings"]) {
                                 alpha.try_emplace(opening["node"], simulator["alpha"][nodeCounter]);
-                                alpha.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
+                                beta.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
                                 nodeCounter++;
+                                std::cout << "Adding: " << moduleCounter << ", " << alpha[opening["node"]] << ", " << beta[opening["node"]]
+                                << ", " << theta << std::endl;
                             }
                             simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                        } else {
+                            throw std::invalid_argument("alpha, beta or theta values are either not or ill-defined for Naive update scheme.");
                         }
                         moduleCounter++;
                     } else {
@@ -355,6 +359,8 @@ void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
                     }
                 }
             }
+        } else {
+            throw std::invalid_argument("Update scheme was not set.");
         }
     }
 }
