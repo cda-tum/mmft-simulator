@@ -371,7 +371,7 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
                 T new_pressure = node->getPressure();
                 T set_pressure = 0.0;
                 if (old_pressure > 0 ) {
-                    set_pressure = old_pressure + cfdSimulator.second->getAlpha() * ( new_pressure - old_pressure );
+                    set_pressure = old_pressure + cfdSimulator.second->getAlpha(key) * ( new_pressure - old_pressure );
                 } else {
                     set_pressure = new_pressure;
                 }
@@ -387,7 +387,7 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
                 T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getOpenings().at(key).width;
                 T set_flowRate = 0.0;
                 if (old_flowRate > 0 ) {
-                    set_flowRate = old_flowRate + 5 * cfdSimulator.second->getAlpha() *  ( new_flowRate - old_flowRate );
+                    set_flowRate = old_flowRate + 5 * cfdSimulator.second->getAlpha(key) *  ( new_flowRate - old_flowRate );
                 } else {
                     set_flowRate = new_flowRate;
                 }

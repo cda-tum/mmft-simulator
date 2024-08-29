@@ -14,6 +14,7 @@ TEST(Hybrid, Case1a) {
 
     // define network
     arch::Network<T> network;
+    testSimulation.setNetwork(&network);
     
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -68,7 +69,6 @@ TEST(Hybrid, Case1a) {
     std::string stlFile = "../examples/STL/cross.stl";
     T charPhysLength = 1e-4;
     T charPhysVelocity = 1e-1;
-    T alpha = 0.1;
     T resolution = 20;
     T epsilon = 1e-1;
     T tau = 0.55;
@@ -78,7 +78,8 @@ TEST(Hybrid, Case1a) {
     Openings.try_emplace(8, arch::Opening<T>(network.getNode(8), std::vector<T>({0.0, 1.0}), 1e-4));
     Openings.try_emplace(9, arch::Opening<T>(network.getNode(9), std::vector<T>({-1.0, 0.0}), 1e-4));
 
-    testSimulation.addLbmSimulator(name, stlFile, network.getModule(m0->getId()), Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+    testSimulation.addLbmSimulator(name, stlFile, network.getModule(m0->getId()), Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+    testSimulation.setNaiveHybridScheme(0.1, 0.5, 10);
     network.sortGroups();
 
     // pressure pump
@@ -90,7 +91,6 @@ TEST(Hybrid, Case1a) {
     network.isNetworkValid();
     
     // Simulate
-    testSimulation.setNetwork(&network);
     testSimulation.simulate();
 
     EXPECT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-2);
