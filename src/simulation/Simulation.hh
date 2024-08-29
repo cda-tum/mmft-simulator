@@ -199,9 +199,29 @@ namespace sim {
     }
 
     template<typename T>
-    std::shared_ptr<mmft::Scheme<T>> Simulation<T>::setHybridScheme(T alpha, T beta, int theta) {
-        updateScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, beta, theta);
-        return updateScheme;
+    std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(T alpha, T beta, int theta) {
+        auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, beta, theta);
+        for (auto& [key, simulator] : cfdSimulators) {
+            simulator->setUpdateScheme(naiveScheme);
+            updateSchemes.try_emplace(simulator->getId(), naiveScheme);
+        }
+        return naiveScheme;
+    }
+
+    template<typename T>
+    std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(int moduleId, T alpha, T beta, int theta) {
+        auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModule(moduleId), alpha, beta, theta);
+        cfdSimulators.at(moduleId)->setUpdateScheme(naiveScheme);
+        updateSchemes.try_emplace(moduleId, naiveScheme);
+        return naiveScheme;
+    }
+
+    template<typename T>
+    std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(int moduleId, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta) {
+        auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModule(moduleId), alpha, beta, theta);
+        cfdSimulators.at(moduleId)->setUpdateScheme(naiveScheme);
+        updateSchemes.try_emplace(moduleId, naiveScheme);
+        return naiveScheme;
     }
 
     template<typename T>
@@ -211,7 +231,7 @@ namespace sim {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -230,7 +250,7 @@ namespace sim {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmMixingSimulator<T>(id, name, stlFile, module, species, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            auto addCfdSimulator = new lbmMixingSimulator<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -248,7 +268,7 @@ namespace sim {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -267,7 +287,7 @@ namespace sim {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, updateScheme, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            auto addCfdSimulator = new essLbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
 
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
@@ -531,29 +551,6 @@ namespace sim {
     }
 
     template<typename T>
-    void Simulation<T>::storeErrors() {
-        std::unordered_map<int, std::vector<int>> openingSets ( {{0, std::vector<int>({2, 8, 9})},
-                                                                {1, std::vector<int>({4, 10, 11})},
-                                                                {2, std::vector<int>({5, 12, 13})},
-                                                                {3, std::vector<int>({7, 14, 15})}});
-        for (auto [simKey, simNodes] : openingSets) {
-            Eigen::VectorXd diff = Eigen::VectorXd::Zero(16);
-            for (int nodeId : simNodes) {
-                T nodeError = nodalAnalysis->nodalResult[nodeId] - network->getNode(nodeId)->getPressure();
-                auto insert = nodalAnalysis->nodalError.try_emplace(nodeId, std::vector<T>(1, nodeError));
-                if (!insert.second) {
-                    nodalAnalysis->nodalError[nodeId].push_back(nodeError);
-                }
-                diff[nodeId] = nodeError;
-            }
-            auto insert = nodalAnalysis->simL2Error.try_emplace(simKey, std::vector<T>(1, diff.lpNorm<2>()));
-            if (!insert.second) {
-                nodalAnalysis->simL2Error[simKey].push_back(diff.lpNorm<2>());
-            }
-        }
-    }
-
-    template<typename T>
     void Simulation<T>::simulate() {
 
         // initialize the simulation
@@ -678,7 +675,6 @@ namespace sim {
             #endif
 
             saveState();
-            nodalAnalysis->writeNorms();
         }
 
         // Abstract Droplet simulation

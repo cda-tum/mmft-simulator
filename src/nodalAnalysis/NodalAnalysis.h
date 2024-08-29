@@ -44,18 +44,6 @@ private:
     Eigen::MatrixXd A;      // matrix A = [G, B; C, D]
     Eigen::VectorXd z;      // vector z = [i; e]
     Eigen::VectorXd x;      // vector x = [v; j]
-    
-    Eigen::VectorXd xPrev;
-    Eigen::VectorXd zPrev;
-
-    std::vector<T> L1_Error_x;
-    std::vector<T> L2_Error_x;
-    std::vector<T> dL2_Error_x_dt;
-    std::vector<T> L_inf_Error_x;
-
-    std::vector<T> L1_Error_z;
-    std::vector<T> L2_Error_z;
-    std::vector<T> L_inf_Error_z;
 
     std::unordered_set<int> conductingNodeIds;
     std::unordered_map<int, int> groundNodeIds;
@@ -80,24 +68,6 @@ private:
     void printSystem();
 
 public:
-
-    std::unordered_map<int, T> nodalResult = {  {2, 781.127}, // Simulator 0
-                                                {8, 698.430}, 
-                                                {9, 695.906}, 
-                                                {4, 604.131}, // Simulator 1
-                                                {10,552.155}, 
-                                                {11,540.361}, 
-                                                {5, 535.207}, // Simulator 2
-                                                {12,522.336}, 
-                                                {13,454.949}, 
-                                                {7, 371.017}, // Simulator 3
-                                                {14,355.554}, 
-                                                {15,217.834} };
-
-    std::unordered_map<int, std::vector<T>> nodalError;
-
-    std::unordered_map<int, std::vector<T>> simL2Error;
-
     /**
      * @brief Creates a NodalAnalysis object
      */
@@ -119,10 +89,6 @@ public:
      * @param[in] cfdSimulators The cfd simulators for a hybrid simulation
      */
     bool conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
-
-    void writeNorms();
-
-    T getL2();
 
 };
 

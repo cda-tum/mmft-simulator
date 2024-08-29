@@ -49,7 +49,6 @@ protected:
     int step = 0;                           ///< Iteration step of this module.
     int stepIter = 1000;                    ///< Number of iterations for the value tracer.
     int maxIter = 1e7;                      ///< Maximum total iterations.
-    int theta = 1;                          ///< Number of OLB iterations per communication iteration.
     std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes.
     std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes.
     
@@ -132,17 +131,36 @@ public:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
     lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
+        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932);
+
+    /**
+     * @brief Constructor of an lbm module.
+     * @param[in] id Id of the module.
+     * @param[in] name Name of the module.
+     * @param[in] pos Absolute position of the module in _m_, from the bottom left corner of the microfluidic device.
+     * @param[in] size Size of the module in _m_.
+     * @param[in] nodes Map of nodes that are on the boundary of the module.
+     * @param[in] openings Map of the in-/outlets of the module.
+     * @param[in] stlFile STL file that describes the geometry of the CFD domain.
+     * @param[in] charPhysLength Characteristic physical length of the geometry of the module in _m_.
+     * @param[in] charPhysVelocity Characteristic physical velocity of the flow in the module in _m/s_.
+     * @param[in] alpha Relaxation factor for the iterative updates between the 1D and CFD solvers.
+     * @param[in] resolution Resolution of the CFD mesh in gridpoints per charPhysLength.
+     * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
+     * @param[in] relaxationTime Relaxation time tau for the LBM solver.
+    */
+    lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
         std::shared_ptr<mmft::Scheme<T>> updateScheme, ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
-     * @brief Initialize an instance of the LBM solver for this module.
+     * @brief Initialize an instance of the LBM solver for this simulator.
      * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
      * @param[in] density Density of the simulated fluid in _kg / m^3_.
     */
     void lbmInit(T dynViscosity, T density) override;
 
     /**
-     * @brief Prepare the LBM geometry of this instance.
+     * @brief Prepare the LBM geometry of this simulator.
     */
     void prepareGeometry() override;
 

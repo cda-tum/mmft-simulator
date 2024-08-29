@@ -6,19 +6,6 @@
 
 using T = double;
 
-void BM_empty(benchmark::State& state) {
-  std::vector<int> x_vec;
-  for (auto _ : state) {
-    int x;
-    for (x = 0; x < 200; ++x) {
-      x *= 2;
-    }
-    x_vec.push_back(x);
-  }
-}
-BENCHMARK(BM_empty);
-
-
 void BM_simRun(benchmark::State& state) {
 
   std::string file = "../examples/Hybrid/Network4a.JSON";
@@ -33,6 +20,5 @@ void BM_simRun(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_simRun);
-
 
 BENCHMARK_MAIN(); 

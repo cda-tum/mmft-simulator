@@ -1,5 +1,6 @@
 set(SOURCE_LIST
     Scheme.hh
+    Naive.hh
 )
 
 set(HEADER_LIST

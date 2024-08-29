@@ -111,6 +111,7 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
         readResistanceModel<T>(jsonString, simulation);
 
         if (platform == sim::Platform::Continuous) {
+            readUpdateScheme(jsonString, simulation);
             readSimulators<T>(jsonString, simulation, network_);
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
@@ -118,6 +119,7 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
             readSpecies<T>(jsonString, simulation);
             readMixtures<T>(jsonString, simulation);
             readMixtureInjections<T>(jsonString, simulation, activeFixture);
+            readUpdateScheme(jsonString, simulation);
             readSimulators<T>(jsonString, simulation, network_);
             network_->sortGroups();
         } else if (platform == sim::Platform::Ooc) {
@@ -126,6 +128,7 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
             readMixtures<T>(jsonString, simulation);
             readMixtureInjections<T>(jsonString, simulation, activeFixture);
             readTissues<T>(jsonString, simulation);
+            readUpdateScheme(jsonString, simulation);
             readSimulators<T>(jsonString, simulation, network_);
             network_->sortGroups();
         } else if (platform == sim::Platform::BigDroplet) {

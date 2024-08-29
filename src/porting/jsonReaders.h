@@ -141,11 +141,19 @@ void readContinuousPhase (json jsonString, sim::Simulation<T>& simulation, int a
 /**
  * @brief Construct and stores the CFD modules simulators that are included in the network as defined by the json string
  * @param[in] jsonString json string
+ * @param[in] simulation simulation object
  * @param[in] network pointer to the network
- * @param[in] activeFixture active fixture
 */
 template<typename T>
 void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network);
+
+/**
+ * @brief Construct and stores the update scheme that is used for the Abstract-CFD coupling.
+ * @param[in] jsonString json string
+ * @param[in] simulation simulation object
+*/
+template<typename T>
+void readUpdateScheme (json jsonString, sim::Simulation<T>& simulation);
 
 /**
  * @brief Sets channels in the network to pressure or flow rate pump, as defined by the json string

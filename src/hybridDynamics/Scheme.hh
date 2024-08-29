@@ -21,6 +21,22 @@ Scheme<T>::Scheme(const std::unordered_map<int, std::shared_ptr<arch::Module<T>>
     }
 }
 
+template<typename T>
+Scheme<T>::Scheme(const std::shared_ptr<arch::Module<T>> module_, T alpha_, T beta_, int theta_) 
+{
+    for (auto& [nodeId, node] : module_->getNodes()) {
+        alpha.try_emplace(nodeId, alpha_);
+        beta.try_emplace(nodeId, beta_);
+    }
+    theta.try_emplace(module_->getId(), theta_);
+}
+
+template<typename T>
+Scheme<T>::Scheme(const std::shared_ptr<arch::Module<T>> module_, std::unordered_map<int, T> alpha_, std::unordered_map<int, T> beta_, int theta_) :
+    alpha(alpha_), beta(beta_)
+{
+    theta.try_emplace(module_->getId(), theta_);
+}
 
 template<typename T>
 void Scheme<T>::setAlpha(T alpha_) {

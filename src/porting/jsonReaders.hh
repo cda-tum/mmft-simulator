@@ -249,8 +249,6 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
         } else {
             vtkFolder = "./tmp/";
         }
-        T alpha = jsonString["simulation"]["settings"]["simulators"][0]["alpha"];
-        simulation.setHybridScheme(alpha, 5*alpha, 10);
         for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
             std::string name = simulator["name"];
             std::string stlFile = simulator["stlFile"];
@@ -307,6 +305,58 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 #endif
             }
         }
+}
+
+template<typename T>
+void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
+
+    /*  Legacy definition of update scheme for hybrid simulation
+        Will be deprecated in next release. */
+    if (!jsonString["simulation"].contains("updateScheme")) {
+        T alpha = jsonString["simulation"]["settings"]["simulators"][0]["alpha"];
+        simulation.setNaiveHybridScheme(alpha, 5*alpha, 10);
+    } 
+    else {
+        if (jsonString["simulation"]["updateScheme"]["scheme"] == "Naive") {
+            if (jsonString["simulation"]["updateScheme"]["scheme"].contains("alpha") && 
+                jsonString["simulation"]["updateScheme"]["scheme"].contains("beta") &&
+                jsonString["simulation"]["updateScheme"]["scheme"].contains("theta")) 
+            {
+                T alpha = jsonString["simulation"]["updateScheme"]["scheme"]["alpha"];
+                T beta = jsonString["simulation"]["updateScheme"]["scheme"]["beta"];
+                int theta = jsonString["simulation"]["updateScheme"]["scheme"]["theta"];
+                simulation.setNaiveHybridScheme(alpha, beta, theta);
+                return;
+            } 
+            else {
+                for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
+                    if (simulator.contains("alpha") && simulator.contains("beta") && simulator.contains("theta")) {
+                        int moduleCounter = 0;
+                        if (simulator["alpha"].is_number() && simulator["beta"].is_number()) {
+                            T alpha = simulator["alpha"];
+                            T beta = simulator["beta"];
+                            int theta = simulator["theta"];
+                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                        } else if (simulator["alpha"].is_array() && simulator["beta"].is_array()) {
+                            int nodeCounter = 0;
+                            std::unordered_map<int, T> alpha;
+                            std::unordered_map<int, T> beta;
+                            int theta = simulator["theta"];
+                            for (auto& opening : simulator["Openings"]) {
+                                alpha.try_emplace(opening["node"], simulator["alpha"][nodeCounter]);
+                                alpha.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
+                                nodeCounter++;
+                            }
+                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                        }
+                        moduleCounter++;
+                    } else {
+                        throw std::invalid_argument("alpha, beta or theta values are either not or ill-defined for Naive update scheme.");
+                    }
+                }
+            }
+        }
+    }
 }
 
 template<typename T>

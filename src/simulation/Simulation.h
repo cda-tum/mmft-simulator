@@ -13,11 +13,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Eigen/Dense"
-
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-
 namespace arch {
 
 // Forward declared dependencies
@@ -37,6 +32,7 @@ class Opening;
 
 namespace mmft {
 
+// Forward declared dependencies
 template<typename T>
 class Scheme;
 
@@ -135,7 +131,7 @@ private:
     Type simType = Type::Abstract;                                                      ///< The type of simulation that is being done.                                      
     Platform platform = Platform::Continuous;                                           ///< The microfluidic platform that is simulated in this simulation.
     arch::Network<T>* network;                                                          ///< Network for which the simulation should be conducted.
-    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis;
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis;                             ///< The nodal analysis object, used to conduct abstract simulation.
     std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
     std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
     std::unordered_map<int, std::unique_ptr<Specie<T>>> species;                        ///< Species specified for the simulation.
@@ -143,11 +139,11 @@ private:
     std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
     std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
-    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;            ///< The set of CFD simulators, that conduct CFD simulations on <arch::Module>.
     ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
     MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
     MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
-    std::shared_ptr<mmft::Scheme<T>> updateScheme;
+    std::unordered_map<int, std::shared_ptr<mmft::Scheme<T>>> updateSchemes;            ///< The update scheme for Abstract-CFD coupling
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
     int maxIterations = 1e5;
@@ -207,8 +203,6 @@ private:
      * @brief Store the mixtures in this simulation in simulationResult.
     */
     void saveMixtures();
-
-    void storeErrors();
 
 public:
     /**
@@ -295,7 +289,32 @@ public:
      */
     Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
-    std::shared_ptr<mmft::Scheme<T>> setHybridScheme(T alpha, T beta, int theta);
+    /**
+     * @brief Define and set the naive update scheme for a hybrid simulation.
+     * @param[in] alpha The relaxation value for the pressure value update for all nodes.
+     * @param[in] beta The relaxation value for the flow rate value update for all nodes.
+     * @param[in] theta The amount of LBM stream and collide cycles between updates for all modules.
+     * @returns A shared_ptr to the created naive update scheme.
+     */
+    std::shared_ptr<mmft::NaiveScheme<T>> setNaiveHybridScheme(T alpha, T beta, int theta);
+
+    /**
+     * @brief Define and set the naive update scheme for a hybrid simulation.
+     * @param[in] alpha The relaxation value for the pressure value update for all nodes of the module.
+     * @param[in] beta The relaxation value for the flow rate value update for all nodes of the module.
+     * @param[in] theta The amount of LBM stream and collide cycles between updates for the modules.
+     * @returns A shared_ptr to the created naive update scheme.
+     */
+    std::shared_ptr<mmft::NaiveScheme<T>> setNaiveHybridScheme(int moduleId, T alpha, T beta, int theta);
+
+    /**
+     * @brief Define and set the naive update scheme for a hybrid simulation.
+     * @param[in] alpha The relaxation value for the pressure value update for all nodes of the module.
+     * @param[in] beta The relaxation value for the flow rate value update for all nodes of the module.
+     * @param[in] theta The amount of LBM stream and collide cycles between updates for the modules.
+     * @returns A shared_ptr to the created naive update scheme.
+     */
+    std::shared_ptr<mmft::NaiveScheme<T>> setNaiveHybridScheme(int moduleId, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
 
     /**
      * @brief Create injection.
@@ -317,8 +336,8 @@ public:
     MixtureInjection<T>* addMixtureInjection(int mixtureId, int channelId, T injectionTime);
 
     /**
-     * @brief Adds a new module to the network.
-     * @param[in] name Name of the module.
+     * @brief Adds a new simulator to the network.
+     * @param[in] name Name of the simulator.
      * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
@@ -327,14 +346,14 @@ public:
      * @param[in] resolution Resolution of this simulator.
      * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
-     * @return Pointer to the newly created module.
+     * @return Pointer to the newly created simulator.
     */
     lbmSimulator<T>* addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
                                     T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
-     * @brief Adds a new module to the network.
-     * @param[in] name Name of the module.
+     * @brief Adds a new simulator to the network.
+     * @param[in] name Name of the simulator.
      * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
@@ -344,15 +363,15 @@ public:
      * @param[in] resolution Resolution of this simulator.
      * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
-     * @return Pointer to the newly created module.
+     * @return Pointer to the newly created simulator.
     */
     lbmMixingSimulator<T>* addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
                                             std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
 
     /**
-     * @brief Adds a new module to the network.
-     * @param[in] name Name of the module.
+     * @brief Adds a new simulator to the network.
+     * @param[in] name Name of the simulator.
      * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] tissueId The Id of the tissue that the organ in this nodule consists of.
      * @param[in] organStlFile The location of the stl file describing the geometry of the organ.
@@ -364,18 +383,18 @@ public:
      * @param[in] resolution Resolution of this simulator.
      * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
-     * @return Pointer to the newly created module.
+     * @return Pointer to the newly created simulator.
     */
     lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
                                             std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
-     * @brief Adds a new module to the network.
-     * @param[in] name Name of the module.
+     * @brief Adds a new simulator to the network.
+     * @param[in] name Name of the simulator.
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+    essLbmSimulator<T>* addEssLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
                                         T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
@@ -440,8 +459,7 @@ public:
 
     /**
      * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
-     * 
-     * @param timeStep Time step in s for which the new mixtures state should be calculated.
+     * @param[in] timeStep Time step in s for which the new mixtures state should be calculated.
      */
     void calculateNewMixtures(double timeStep);
 
@@ -592,12 +610,13 @@ public:
     Fluid<T>* mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1);
 
     /**
-     * @brief Creates a new droplet from two existing droplets.
-     Please note that this only creates a new droplet inside the simulation, but the actual boundaries have to be set separately, which is usually done inside the corresponding merge events.
-        * @param droplet0Id Id of the first droplet.
-        * @param droplet1Id Id of the second droplet.
-        * @return Pointer to new droplet.
-        */
+     * @brief Creates a new droplet from two existing droplets. Please note that this only creates a new 
+     * droplet inside the simulation, but the actual boundaries have to be set separately, which is usually 
+     * done inside the corresponding merge events.
+     * @param droplet0Id Id of the first droplet.
+     * @param droplet1Id Id of the second droplet.
+     * @return Pointer to new droplet.
+     */
     Droplet<T>* mergeDroplets(int droplet0Id, int droplet1Id);
 
     /**
