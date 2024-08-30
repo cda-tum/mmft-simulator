@@ -32,7 +32,7 @@ namespace sim {
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmMixingSimulator2D : public lbmSimulator2D<T> {
+class lbmMixingSimulator : public lbmSimulator<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;

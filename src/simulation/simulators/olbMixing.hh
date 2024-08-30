@@ -4,7 +4,7 @@
 namespace sim{
 
 template<typename T>
-lbmMixingSimulator2D<T>::lbmMixingSimulator2D (
+lbmMixingSimulator<T>::lbmMixingSimulator (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, Specie<T>*> species_,
     std::unordered_map<int, arch::Opening<T>> openings_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, 
     T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
@@ -28,7 +28,7 @@ lbmMixingSimulator<T>::lbmMixingSimulator (
 } 
 
 template<typename T>
-void lbmMixingSimulator2D<T>::lbmInit (T dynViscosity, T density) {
+void lbmMixingSimulator<T>::lbmInit (T dynViscosity, T density) {
 
     this->setOutputDir();
     initValueContainers();
@@ -43,7 +43,7 @@ void lbmMixingSimulator2D<T>::lbmInit (T dynViscosity, T density) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::prepareLattice () {
+void lbmMixingSimulator<T>::prepareLattice () {
 
     /**
      * Prepare the NS lattice
@@ -84,7 +84,7 @@ void lbmMixingSimulator2D<T>::prepareLattice () {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::setBoundaryValues (int iT) {
+void lbmMixingSimulator<T>::setBoundaryValues (int iT) {
 
     for (auto& [key, Opening] : this->moduleOpenings) {
         if (this->groundNodes.at(key)) {
@@ -97,7 +97,7 @@ void lbmMixingSimulator2D<T>::setBoundaryValues (int iT) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::storeCfdResults (int iT) {
+void lbmMixingSimulator<T>::storeCfdResults (int iT) {
     int input[1] = { };
     T output[10];
     
@@ -128,7 +128,7 @@ void lbmMixingSimulator2D<T>::storeCfdResults (int iT) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::writeVTK (int iT) {
+void lbmMixingSimulator<T>::writeVTK (int iT) {
 
     bool print = false;
     #ifdef VERBOSE
@@ -191,7 +191,7 @@ void lbmMixingSimulator2D<T>::writeVTK (int iT) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::solve() {
+void lbmMixingSimulator<T>::solve() {
     // theta = 10
     this->setBoundaryValues(this->step);
     for (int iT = 0; iT < 10; ++iT){
@@ -207,14 +207,14 @@ void lbmMixingSimulator2D<T>::solve() {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::executeCoupling() {
+void lbmMixingSimulator<T>::executeCoupling() {
     this->lattice->executeCoupling();
     std::cout << "[lbmSimulator] Execute NS-AD coupling " << this->name << "... OK" << std::endl;
 }
 
 
 template<typename T>
-void lbmMixingSimulator2D<T>::nsSolve() {
+void lbmMixingSimulator<T>::nsSolve() {
     // theta = 10
     this->setBoundaryValues(this->step);
     for (int iT = 0; iT < 10; ++iT){
@@ -226,7 +226,7 @@ void lbmMixingSimulator2D<T>::nsSolve() {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::adSolve() {
+void lbmMixingSimulator<T>::adSolve() {
     // theta = 10
     this->setBoundaryValues(this->step);
     for (int iT = 0; iT < 100; ++iT){
@@ -240,7 +240,7 @@ void lbmMixingSimulator2D<T>::adSolve() {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::initValueContainers () {
+void lbmMixingSimulator<T>::initValueContainers () {
     // Initialize pressure, flowRate and concentration value-containers
     for (auto& [key, node] : this->moduleOpenings) {
         this->pressures.try_emplace(key, (T) 0.0);
@@ -254,7 +254,7 @@ void lbmMixingSimulator2D<T>::initValueContainers () {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::initAdConverters (T density) {
+void lbmMixingSimulator<T>::initAdConverters (T density) {
     for (auto& [speciesId, specie] : species) {
         std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> tempAD = std::make_shared<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T,ADDESCRIPTOR>> (
             this->resolution,
@@ -273,7 +273,7 @@ void lbmMixingSimulator2D<T>::initAdConverters (T density) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::initAdConvergenceTracker () {
+void lbmMixingSimulator<T>::initAdConvergenceTracker () {
     // Initialize a convergence tracker for concentrations
     for (auto& [speciesId, specie] : species) {
         this->adConverges.try_emplace(speciesId, std::make_unique<olb::util::ValueTracer<T>> (1000, 1e-1));
@@ -283,7 +283,7 @@ void lbmMixingSimulator2D<T>::initAdConvergenceTracker () {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::prepareAdLattice (const T adOmega, int speciesId) {
+void lbmMixingSimulator<T>::prepareAdLattice (const T adOmega, int speciesId) {
 
     std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
 
@@ -324,7 +324,7 @@ void lbmMixingSimulator2D<T>::prepareAdLattice (const T adOmega, int speciesId) 
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::initAdLattice(int adKey) {
+void lbmMixingSimulator<T>::initAdLattice(int adKey) {
     const T adOmega = getAdConverter(adKey).getLatticeRelaxationFrequency();
     getAdLattice(adKey).template setParameter<olb::descriptors::OMEGA>(adOmega);
     getAdLattice(adKey).template setParameter<olb::collision::TRT::MAGIC>(1./12.);
@@ -332,7 +332,7 @@ void lbmMixingSimulator2D<T>::initAdLattice(int adKey) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::initConcentrationIntegralPlane(int adKey) {
+void lbmMixingSimulator<T>::initConcentrationIntegralPlane(int adKey) {
 
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
@@ -353,7 +353,7 @@ void lbmMixingSimulator2D<T>::initConcentrationIntegralPlane(int adKey) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::prepareCoupling() {
+void lbmMixingSimulator<T>::prepareCoupling() {
     
     std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLatticesVec;
     std::vector<T> velFactors;
@@ -367,7 +367,7 @@ void lbmMixingSimulator2D<T>::prepareCoupling() {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::setConcentration2D (int key) {
+void lbmMixingSimulator<T>::setConcentration2D (int key) {
     // Set the boundary concentrations for inflows and outflows
     // If the boundary is an inflow
     if (this->flowRates.at(key) >= 0.0) {
@@ -391,17 +391,17 @@ void lbmMixingSimulator2D<T>::setConcentration2D (int key) {
 }
 
 template<typename T>
-void lbmMixingSimulator2D<T>::storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations_) {
+void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations_) {
     this->concentrations = concentrations_;
 }
 
 template<typename T>
-std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator2D<T>::getConcentrations() const {
+std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
 }
 
 template<typename T>
-bool lbmMixingSimulator2D<T>::hasAdConverged() const {
+bool lbmMixingSimulator<T>::hasAdConverged() const {
     bool c = true;
     for (auto& [key, converge] : custConverges) {
         if (!converge) {

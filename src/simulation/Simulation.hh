@@ -231,8 +231,11 @@ namespace sim {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmSimulator<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-
+            #if DIMENSION == 2
+            lbmSimulator<T>* addCfdSimulator = new lbmSimulator2D<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            #elif DIMENSION == 3
+            lbmSimulator<T>* addCfdSimulator = new lbmSimulator3D<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            #endif
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
 
@@ -250,8 +253,11 @@ namespace sim {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmMixingSimulator<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-
+            #if DIMENSION == 2
+            auto addCfdSimulator = new lbmMixingSimulator2D<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            #elif DIMENSION == 3
+            auto addCfdSimulator = new lbmMixingSimulator3D<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            #endif
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
 
@@ -268,8 +274,11 @@ namespace sim {
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            auto addCfdSimulator = new lbmOocSimulator<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-
+            #if DIMENSION == 2
+            auto addCfdSimulator = new lbmOocSimulator2D<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            #elif DIMENSION == 3
+            auto addCfdSimulator = new lbmOocSimulator3D<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            #endif
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
 

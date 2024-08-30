@@ -49,3 +49,13 @@ int main(int argc, char const* argv []) {
 
     return 0;
 }
+
+/**
+#if DIMENSION == 2
+    std::cout << "The dimension is 2" << std::endl;
+#endif
+
+#if DIMENSION == 3
+    std::cout << "The dimension is 3" << std::endl;
+#endif
+ */

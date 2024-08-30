@@ -24,6 +24,16 @@
 #include "simulation/events/InjectionEvent.h"
 #include "simulation/events/MergingEvent.h"
 
+#if DIMENSION == 2
+#include "simulation/simulators/olbContinuous2D.h"
+#include "simulation/simulators/olbMixing2D.h"
+#include "simulation/simulators/olbOoc2D.h"
+#elif DIMENSION == 3
+#include "simulation/simulators/olbContinuous3D.h"
+#include "simulation/simulators/olbMixing3D.h"
+#include "simulation/simulators/olbOoc3D.h"
+#endif
+
 #include "nodalAnalysis/NodalAnalysis.h"
 
 #include "hybridDynamics/Scheme.h"

@@ -4,7 +4,7 @@
 namespace sim{
 
 template<typename T>
-lbmOocSimulator2D<T>::lbmOocSimulator2D (
+lbmOocSimulator<T>::lbmOocSimulator (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<Tissue<T>> tissue_, std::string organStlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, 
     std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_,
     ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
@@ -28,7 +28,7 @@ lbmOocSimulator<T>::lbmOocSimulator (
 } 
 
 template<typename T>
-void lbmOocSimulator2D<T>::lbmInit (T dynViscosity, T density) {
+void lbmOocSimulator<T>::lbmInit (T dynViscosity, T density) {
 
     this->setOutputDir();
     this->initValueContainers();
@@ -45,7 +45,7 @@ void lbmOocSimulator2D<T>::lbmInit (T dynViscosity, T density) {
 }
 
 template<typename T>
-void lbmOocSimulator2D<T>::prepareGeometry () {
+void lbmOocSimulator<T>::prepareGeometry () {
 
     bool print = false;
     T dx = this->getConverter().getConversionFactorLength();
@@ -65,7 +65,7 @@ void lbmOocSimulator2D<T>::prepareGeometry () {
 }
 
 template<typename T>
-void lbmOocSimulator2D<T>::prepareLattice () {
+void lbmOocSimulator<T>::prepareLattice () {
 
     /**
      * Prepare the NS lattice
@@ -106,7 +106,7 @@ void lbmOocSimulator2D<T>::prepareLattice () {
 }
 
 template<typename T>
-void lbmOocSimulator2D<T>::writeVTK (int iT) {
+void lbmOocSimulator<T>::writeVTK (int iT) {
 
     bool print = false;
     #ifdef VERBOSE
@@ -161,7 +161,7 @@ void lbmOocSimulator2D<T>::writeVTK (int iT) {
 }
 
 template<typename T>
-void lbmOocSimulator2D<T>::readOrganStl (const T dx) {
+void lbmOocSimulator<T>::readOrganStl (const T dx) {
     // Define Organ area
     organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, dx);
     organStl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*organStlReader);
@@ -169,7 +169,7 @@ void lbmOocSimulator2D<T>::readOrganStl (const T dx) {
 }
 
 template<typename T>
-void lbmOocSimulator2D<T>::prepareNsLattice (const T omega) {
+void lbmOocSimulator<T>::prepareNsLattice (const T omega) {
 
     this->lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(this->getGeometry());
 
@@ -199,7 +199,7 @@ void lbmOocSimulator2D<T>::prepareNsLattice (const T omega) {
 }
 
 template<typename T>
-void lbmOocSimulator2D<T>::prepareAdLattice (const T adOmega, int speciesId) {
+void lbmOocSimulator<T>::prepareAdLattice (const T adOmega, int speciesId) {
 
     std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
 

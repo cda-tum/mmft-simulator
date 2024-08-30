@@ -36,7 +36,7 @@ class Tissue;
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmOocSimulator2D : public lbmMixingSimulator2D<T> {
+class lbmOocSimulator : public lbmMixingSimulator<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;

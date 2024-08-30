@@ -76,19 +76,16 @@ template<typename T>
 class Fluid;
 
 template<typename T>
-class lbmSimulator2D;
+class lbmSimulator;
 
 template<typename T>
-class lbmMixingSimulator2D;
+class lbmMixingSimulator;
 
 template<typename T>
-class lbmOocSimulator2D;
+class lbmOocSimulator;
 
 template<typename T>
-class lbmSimulator3D;
-
-template<typename T>
-class essLbmSimulator3D;
+class essLbmSimulator;
 
 template<typename T>
 class MembraneModel;
