@@ -14,12 +14,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(PLATFORM_CPU_SISD)
 set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
 
-IF (WIN32)
-    set(patch_file ${CMAKE_CURRENT_BINARY_DIR}/_deps/lbm-src/src/core/singleton.h)
-    set(lbm_patch sed -i -f ${CMAKE_CURRENT_SOURCE_DIR}/script.sed ${patch_file})
-ELSE()
-    set(lbm_patch )
-ENDIF()
+#IF (WIN32)
+#    set(patch_file ${CMAKE_CURRENT_BINARY_DIR}/_deps/lbm-src/src/core/singleton.h)
+#    set(lbm_patch sed -i -f ${CMAKE_CURRENT_SOURCE_DIR}/script.sed ${patch_file})
+#ELSE()
+#    set(lbm_patch )
+#ENDIF()
 
 # download external libraries
 include(FetchContent)
