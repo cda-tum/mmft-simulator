@@ -26,6 +26,9 @@
 
 #include "nodalAnalysis/NodalAnalysis.h"
 
+#include "hybridDynamics/Scheme.h"
+#include "hybridDynamics/Naive.h"
+
 #include "architecture/Channel.h"
 #include "architecture/ChannelPosition.h"
 #include "architecture/Edge.h"

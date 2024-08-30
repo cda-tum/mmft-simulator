@@ -3,8 +3,8 @@
 namespace sim{ 
 
 template <typename T>
-CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, T alpha_, ResistanceModel<T>* resistanceModel_) :
-    id(id_), name(name_), stlFile(stlFile_), cfdModule(cfdModule_), moduleOpenings(openings_), alpha(alpha_)
+CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, ResistanceModel<T>* resistanceModel_) :
+    id(id_), name(name_), stlFile(stlFile_), cfdModule(cfdModule_), moduleOpenings(openings_)
     { 
         // Create this module's network, required for initial condition
         moduleNetwork = std::make_shared<arch::Network<T>> (cfdModule_->getNodes());
@@ -22,6 +22,13 @@ CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_,
             channel->setResistance(resistance);
         }
     }
+
+template <typename T>
+CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, ResistanceModel<T>* resistanceModel_) :
+    CFDSimulator<T> (id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_)
+{ 
+    updateScheme = updateScheme_;
+}
 
 template<typename T>
 int CFDSimulator<T>::getId() const {
@@ -49,6 +56,11 @@ void CFDSimulator<T>::setInitialized(bool initialization_) {
     this->initialized = initialization_;
 }
 
+template <typename T>
+void CFDSimulator<T>::setUpdateScheme(const std::shared_ptr<mmft::Scheme<T>>& updateScheme_) {
+    this->updateScheme = updateScheme_;
+}
+
 template<typename T>
 void CFDSimulator<T>::setVtkFolder(std::string vtkFolder_) {
     this->vtkFolder = vtkFolder_;
@@ -60,8 +72,13 @@ std::string CFDSimulator<T>::getVtkFile() {
 }
 
 template <typename T>
-T CFDSimulator<T>::getAlpha() {
-    return alpha;
+T CFDSimulator<T>::getAlpha(int nodeId_) {
+    return updateScheme->getAlpha(nodeId_);
+}
+
+template <typename T>
+T CFDSimulator<T>::getBeta(int nodeId_) {
+    return updateScheme->getBeta(nodeId_);
 }
 
 template<typename T>

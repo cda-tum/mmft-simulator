@@ -91,7 +91,6 @@ PYBIND11_MODULE(pysimulator, m) {
 									std::vector<T> widths,
 									T charPhysLength,
 									T charPhysVelocity,
-									T alpha,
 									T resolution,
 									T epsilon,
 									T tau) {
@@ -113,7 +112,7 @@ PYBIND11_MODULE(pysimulator, m) {
 			}
 			
 			return simulation.addLbmSimulator(	name, stlFile, simulation.getNetwork()->getModule(moduleId), openings, charPhysLength,
-												charPhysVelocity, alpha, resolution, epsilon, tau)->getId();
+												charPhysVelocity, resolution, epsilon, tau)->getId();
 
 			}, "Add a LBM simulator to the simulation.")
 		.def("injectDroplet", [](sim::Simulation<T> &simulation, int dropletId, T injectionTime, int channelId, T injectionPosition) {
@@ -127,6 +126,9 @@ PYBIND11_MODULE(pysimulator, m) {
 		.def("setPoiseuilleResistanceModel", [](sim::Simulation<T> & simulation) {
 				sim::ResistanceModelPoiseuille<T>* resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
 				simulation.setResistanceModel(resistanceModel);
+			})
+		.def("setNaiveScheme", [](sim::Simulation<T> & simulation, T alpha, T beta, int theta) {
+				simulation.setNaiveHybridScheme(alpha, beta, theta);
 			})
 		.def("simulate", &sim::Simulation<T>::simulate)
 		.def("print", &sim::Simulation<T>::printResults)

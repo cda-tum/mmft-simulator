@@ -254,7 +254,6 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
             std::string stlFile = simulator["stlFile"];
             T charPhysLength = simulator["charPhysLength"];
             T charPhysVelocity = simulator["charPhysVelocity"];
-            T alpha = simulator["alpha"];
             T resolution = simulator["resolution"];
             T epsilon = simulator["epsilon"];
             T tau = simulator["tau"];
@@ -269,8 +268,8 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
 
             if(simulator["Type"] == "LBM")
             {
-                auto simulator = simulation.addLbmSimulator3D(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
-                                                            charPhysVelocity, alpha, resolution, epsilon, tau);
+                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                                                            charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if (simulator["Type"] == "Mixing")
@@ -279,8 +278,8 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
                     species.try_emplace(specieId, speciePtr.get());
                 }
-                auto simulator = simulation.addLbmMixingSimulator2D(name, stlFile, network->getModule(moduleId), species,
-                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if (simulator["Type"] == "Organ")
@@ -291,21 +290,73 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 }
                 std::string organStlFile = simulator["organStlFile"];
                 int tissueId = simulator["tissue"];
-                auto simulator = simulation.addLbmOocSimulator2D(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
-                                                            Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
+                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
-                auto simulator = simulation.addEssLbmSimulator3D(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
-                                                            charPhysVelocity, alpha, resolution, epsilon, tau);
+                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                                                            charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
                 #else
                 throw std::invalid_argument("The simulator was not build using the ESS library.");
                 #endif
             }
         }
+}
+
+template<typename T>
+void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
+
+    /*  Legacy definition of update scheme for hybrid simulation
+        Will be deprecated in next release. */
+    if (!jsonString["simulation"].contains("updateScheme")) {
+        T alpha = jsonString["simulation"]["settings"]["simulators"][0]["alpha"];
+        simulation.setNaiveHybridScheme(alpha, 5*alpha, 10);
+    } 
+    else {
+        if (jsonString["simulation"]["updateScheme"]["scheme"] == "Naive") {
+            if (jsonString["simulation"]["updateScheme"]["scheme"].contains("alpha") && 
+                jsonString["simulation"]["updateScheme"]["scheme"].contains("beta") &&
+                jsonString["simulation"]["updateScheme"]["scheme"].contains("theta")) 
+            {
+                T alpha = jsonString["simulation"]["updateScheme"]["scheme"]["alpha"];
+                T beta = jsonString["simulation"]["updateScheme"]["scheme"]["beta"];
+                int theta = jsonString["simulation"]["updateScheme"]["scheme"]["theta"];
+                simulation.setNaiveHybridScheme(alpha, beta, theta);
+                return;
+            } 
+            else {
+                for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
+                    if (simulator.contains("alpha") && simulator.contains("beta") && simulator.contains("theta")) {
+                        int moduleCounter = 0;
+                        if (simulator["alpha"].is_number() && simulator["beta"].is_number()) {
+                            T alpha = simulator["alpha"];
+                            T beta = simulator["beta"];
+                            int theta = simulator["theta"];
+                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                        } else if (simulator["alpha"].is_array() && simulator["beta"].is_array()) {
+                            int nodeCounter = 0;
+                            std::unordered_map<int, T> alpha;
+                            std::unordered_map<int, T> beta;
+                            int theta = simulator["theta"];
+                            for (auto& opening : simulator["Openings"]) {
+                                alpha.try_emplace(opening["node"], simulator["alpha"][nodeCounter]);
+                                alpha.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
+                                nodeCounter++;
+                            }
+                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                        }
+                        moduleCounter++;
+                    } else {
+                        throw std::invalid_argument("alpha, beta or theta values are either not or ill-defined for Naive update scheme.");
+                    }
+                }
+            }
+        }
+    }
 }
 
 template<typename T>
