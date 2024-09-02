@@ -15,7 +15,7 @@ add_compile_definitions(PLATFORM_CPU_SISD)
 IF (!WIN32)
     set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
 ELSE()
-    set(CMAKE_CXX_FLAGS "-Wall -march=native -fexceptions")
+    set(CMAKE_CXX_FLAGS "-Wall -march=native -fcxx-exceptions")
 ENDIF()
 
 # download external libraries
