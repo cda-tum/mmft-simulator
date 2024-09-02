@@ -18,7 +18,7 @@ namespace sim{
     void essLbmDropletSimulator<T>::lbmInit(T dynViscosity, T density)
     {
 
-        std::string work_dir = "/home/michel/Git/mmft-hybrid-simulator/build/";
+        std::string work_dir = "/home/alexander.stadik/ALSIM/Automate/mmft-hybrid-simulator/build/";
         const auto& allNodes = this->moduleNetwork->getNodes();
         std::unordered_map<int, ess::BoundaryNode> nodes(allNodes.size());
         std::unordered_map<int, ess::Opening> openings;
@@ -51,6 +51,11 @@ namespace sim{
         assert(this->moduleOpenings.size() == this->cfdModule->getNodes().size());
         #endif
 
+        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->setCouplingMatrix(0.0f,6.0f,6.0f,0.0f);
+        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->setEquationOfState(1,1);
+        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->setWettingModel(0,1,0.0f,1.0f);
+        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->setMinimalDropletVolume(3*this->charPhysLength*this->charPhysLength*this->charPhysLength);
+
         // Initialize pressure, flowRate and resistance value-containers
         for (auto& [key, node] : this->moduleOpenings)
         {
@@ -70,7 +75,7 @@ namespace sim{
     int essLbmDropletSimulator<T>::generateDroplet(sim::Droplet<T>* dropletPtr, int bufferZone) {
 
         T volume = dropletPtr->getVolume();
-        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->generateDroplet(bufferZone, volume);
+        std::dynamic_pointer_cast<ess::lbmDropletSolver>(this->solver_)->generateDroplet(bufferZone, volume, 1.0f,1.0f);
     }
 
     template<typename T>
