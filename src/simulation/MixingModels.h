@@ -60,6 +60,12 @@ struct FlowSection {
 };
 
 template<typename T>
+struct HybridFlowSection : public FlowSection<T> {
+    T hybridResolution;
+    std::vector<T> concentrations; // Alternatively we could see this as one flow section that contains all concnetrations across the connection (maybe as a vector)
+};
+
+template<typename T>
 struct FlowSectionInput {
     T startWidth;
     T endWidth;
@@ -290,11 +296,11 @@ public:
     
     void printTopology();
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolution(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
 
     void clean(arch::Network<T>* network);

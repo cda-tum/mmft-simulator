@@ -446,7 +446,7 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                 std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
                 for (auto& specieId : presentSpecies) {
                     T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
-                    std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
+                    std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolution(
                         channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
                         pecletNr, outflowDistributions.at(channel->getId()), mixtures);
                     newDistributions.try_emplace(specieId, analyticalResult);
@@ -668,14 +668,14 @@ void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, Simula
 }
 
 template<typename T>
-std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
+std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getAnalyticalFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
     T a_0 = 0.0;
     std::vector<T> segmentedResult;
 
     for (const auto& parameter : parameters) {
         for (int n = 1; n < resolution; n++) {
             T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth)); 
-                segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
         }
     }
 
@@ -698,7 +698,7 @@ std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getA
 }
 
 template<typename T> 
-std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
     // From Channel Start to Channel End for complex input
     std::vector<T> segmentedResult;
     T a_0 = 0.0;
@@ -792,7 +792,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
 // From Channel Start to Channel End for complex input
 template<typename T>
-std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolution(
     T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
     T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures) { 
     
@@ -843,8 +843,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         }
     }
 
-    auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalSolutionConstant(channelLength, channelWidth, 1000, pecletNr, constantFlowSections);
-    auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalSolutionFunction(channelLength, channelWidth, 1000, pecletNr, functionFlowSections, fConstant);
+    auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalFunction(channelLength, channelWidth, resolution, pecletNr, constantFlowSections);
+    auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalFunction(channelLength, channelWidth, resolution, pecletNr, functionFlowSections, fConstant);
 
     segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
 
@@ -852,6 +852,70 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
     return {fFunction, segmentedResultFunction, a_0};
 
+}
+
+template<typename T>
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionHybrid(
+    T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
+    T pecletNr, const HybridFlowSection<T>& hybridFlowSection, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures) { 
+    
+    T dw = getConverter().getConversionFactorLength();
+    T distance2Wall = dw / 2.0;
+    
+    std::vector<T> segmentedResult;
+    std::vector<T> a_n_values(resolution, 0.0);
+    // T f_sum = 0.0;
+    T a_0 = 0.0;
+
+    for (size_t i = 0; i < hybridFlowSection.concentrations.size() - 1; ++i) { // the connection to the walls on either side is missing
+
+        T width1 = distance2Wall + i * dw; // TODO maybe rename this variable
+        T concentration1 = hybridFlowSection.concentrations[i];
+        T width2 = distance2Wall + (i + 1) * dw; // TODO maybe rename this variable
+        T concentration2 = hybridFlowSection.concentrations[i + 1];
+
+        T linearSegmentFactor = (concentration2 - ((concentration1 * width2) / width1)) / (1 - (width2 / width1));
+        T linearSegmentSlope = (concentration1 - linearSegmentFactor) / width1;
+
+        a_0 += 2 * linearSegmentFactor * (width2 - width1) + linearSegmentSlope * (pow(width2, 2) - pow(width1, 2));
+
+        for (int n = 1; n < resolution; n++) {
+            T a_n = 2 / (n * M_PI) * std::sin(n * M_PI * width2) * (linearSegmentFactor + linearSegmentSlope * width2) + 2 / pow((n * M_PI), 2) * linearSegmentSlope * std::cos(n * M_PI * width2)
+                - 2 / (n * M_PI) * std::sin(n * M_PI * width1) * (linearSegmentFactor + linearSegmentSlope * width1) - 2 / pow((n * M_PI), 2) * linearSegmentSlope * std::cos(n * M_PI * width1);
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+            // TODO should I initialize f_sum here?
+            // f_sum += a_n * std::cos(n * M_PI * (w)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth));
+            a_n_values[n] += a_n; // TODO should this be += or =?
+        }
+    }
+
+    // add the connection to the sides
+    // start segment
+    T concentrationStart = hybridFlowSections.concentrations[0];
+    a_0 += 2 * (concentrationStart * distance2Wall); // assuming the width is always defined between 0 and 1
+    for (int n = 1; n < resolution; n++) {
+        T a_n_start = (2/(n * M_PI)) * concentrationStart * std::sin(n * M_PI * distance2Wall);
+        a_n_values[n] += a_n_start;
+        segmentedResult.insert(segmentedResult.begin(), a_n_start * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+    }
+    // end segment
+    T concentrationEnd = hybridFlowSections.concentrations[hybridFlowSections.concentrations.size() - 1];
+    a_0 += 2 * (concentrationEnd * (1 - (1 - distance2Wall)));  // assuming the width is always defined between 0 and 1
+    for (int n = 1; n < resolution; n++) {
+        T a_n_end += (2/(n * M_PI)) * concentrationEnd * (std::sin(n * M_PI * (distance2Wall)) - std::sin(n * M_PI * (1 - distance2Wall)));
+        a_n_values[n] += a_n_end;
+        segmentedResult.push_back(a_n_end * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+    }
+
+    auto functionHybrid = [a_0, a_n_values, channelLength, channelWidth, resolution, pecletNr](T w) { // This returns C(w, l_1)
+        T f_sum = 0.0;
+        for (int n = 1; n < resolution; n++) {
+            f_sum += a_n_values[n] * std::cos(n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength / channelWidth));
+        }
+        return 0.5 * a_0 + f_sum;
+    };
+
+    return {functionHybrid, segmentedResult, a_0};
 }
 
 
