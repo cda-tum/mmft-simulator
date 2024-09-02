@@ -303,6 +303,11 @@ public:
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolution(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
 
+    std::tuple<std::function<T(T)>,std::vector<T>,T> getAnalyticalSolutionHybrid(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
+        T pecletNr, const HybridFlowSection<T>& hybridFlowSection, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures);
+
+    std::tuple<std::function<T(T)>, std::vector<T>, T> getAnalyticalSolutionHybridInput(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+
     void clean(arch::Network<T>* network);
 
     void printMixturesInNetwork();

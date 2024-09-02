@@ -122,7 +122,7 @@ void InstantaneousMixingModel<T>::initNodeOutflow(Simulation<T>* sim, std::vecto
                 int tmpMixtureId = std::numeric_limits<int>::max();
                 std::unordered_map<int, Specie<T>*> species;
                 std::unordered_map<int, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
-                for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
+                for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) { // this needs to be replicated in the diffusive mixing mode as well
                     species.try_emplace(speciesId, sim->getSpecie(speciesId));
                 }
                 Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase());
@@ -918,7 +918,68 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
     return {functionHybrid, segmentedResult, a_0};
 }
 
+template<typename T>
+std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getAnalyticalSolutionHybridInput(
+    T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
+    T a_0 = 0.0;
+    std::vector<T> segmentedResult;
 
+    for (const auto& parameter : parameters) {
+        for (int n = 1; n < resolution; n++) {
+            // T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
+            T a_n = 1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.endWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.endWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) 
+                + 120 * a * parameter.endWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + c * pow(n * M_PI, 4) * pow(parameter.endWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.endWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.endWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.endWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.endWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) - 24 * parameter.b * parameter.endWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.endWidth + parameter.e * pow(n * M_PI, 2))))
+                -
+                (1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.startWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.startWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) 
+                + 120 * a * parameter.startWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + c * pow(n * M_PI, 4) * pow(parameter.startWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.startWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.startWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.startWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.startWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) - 24 * parameter.b * parameter.endWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.endWidth + parameter.e * pow(n * M_PI, 2))))); 
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+        }
+    }
+
+    for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
+            // a_0 += 2 * parameter.concentrationAtChannelEnd  * (parameter.endWidth - parameter.startWidth);
+            a_0 += parameter.a / 6 * pow(parameter.endWidth, 6) + parameter.b / 5 * pow(parameter.endWidth, 5) + parameter.c / 4 * pow(parameter.endWidth, 4) + parameter.d / 3 * pow(parameter.endWidth, 3) + parameter.e / 2 * pow(parameter.endWidth, 2) + parameter.f * parameter.endWidth
+                - (parameter.a / 6 * pow(parameter.startWidth, 6) + parameter.b / 5 * pow(parameter.startWidth, 5) + parameter.c / 4 * pow(parameter.startWidth, 4) + parameter.d / 3 * pow(parameter.startWidth, 3) + parameter.e / 2 * pow(parameter.startWidth, 2) + parameter.f * parameter.startWidth);
+        }
+
+    auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters](T w) { // This returns C(w, l_1)
+        T f_sum = 0.0;
+
+        for (const auto& parameter : parameters) {
+            for (int n = 1; n < resolution; n++) {
+                T a_n = 1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.endWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.endWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) 
+                + 120 * a * parameter.endWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + c * pow(n * M_PI, 4) * pow(parameter.endWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.endWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.endWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.endWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.endWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) - 24 * parameter.b * parameter.endWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.endWidth + parameter.e * pow(n * M_PI, 2))))
+                -
+                (1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.startWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.startWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) 
+                + 120 * a * parameter.startWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + c * pow(n * M_PI, 4) * pow(parameter.startWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.startWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.startWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.startWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.startWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) - 24 * parameter.b * parameter.startWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.startWidth + parameter.e * pow(n * M_PI, 2)))));
+
+                f_sum += a_n * std::cos(n * M_PI * (w)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth));
+            }
+        }
+        return 0.5 * a_0 + f_sum;
+    };
+    return {f, segmentedResult, a_0};
+}
 
 template<typename T>
 void DiffusionMixingModel<T>::printTopology() {
