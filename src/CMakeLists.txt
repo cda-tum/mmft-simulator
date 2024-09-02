@@ -9,6 +9,7 @@ set(HEADER_LIST
 # add subdirectories
 add_subdirectory(nodalAnalysis)
 add_subdirectory(architecture)
+add_subdirectory(hybridDynamics)
 add_subdirectory(simulation)
 add_subdirectory(olbProcessors)
 add_subdirectory(porting)

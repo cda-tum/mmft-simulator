@@ -42,26 +42,26 @@ TEST(Topology, case1) {
     sim::DiffusionMixingModel<T> mixingModel;
     mixingModel.topologyAnalysis(&network, node2->getId());
 
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 0.0, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 2.3561945, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 3.9269908, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 0.0, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 2.3561945, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 3.9269908, 1e-7);
 
-    ASSERT_EQ(mixingModel.getOutflowDistributions().size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 2);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).at(1).channelId, 1);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(1).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(1).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(1).flowRate, network.getChannel(1)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 2);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).at(1).channelId, 1);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(1).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(1).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(1).flowRate, network.getChannel(1)->getFlowRate(), 1e-12);
 
 }
 
@@ -103,27 +103,27 @@ TEST(Topology, case2) {
     sim::DiffusionMixingModel<T> mixingModel;
     mixingModel.topologyAnalysis(&network, node1->getId());
 
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 3.1415927, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 5.4977871, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 0.7853982, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 3.1415927, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 5.4977871, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 0.7853982, 1e-7);
 
-    ASSERT_EQ(mixingModel.getOutflowDistributions().size(), 2);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(1).size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(1).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionEnd, 0.5, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, 0.5, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().size(), 2);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(1).size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(1).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionEnd, 0.5, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, 0.5, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
 
 }
 
@@ -173,34 +173,34 @@ TEST(Topology, case3) {
     T r2 = network.getChannel(2)->getFlowRate()/network.getChannel(0)->getFlowRate();
     T r3 = network.getChannel(3)->getFlowRate()/network.getChannel(0)->getFlowRate();
     
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 3);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 3.1415927, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 5.4977871, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 0.0, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(2).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(2).radialAngle, 0.7853982, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 3);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 3.1415927, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 5.4977871, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 0.0, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(2).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(2).radialAngle, 0.7853982, 1e-7);
 
-    ASSERT_EQ(mixingModel.getOutflowDistributions().size(), 3);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(1).size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(1).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionEnd, r1, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).flowRate, r1*network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, r1, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, r1+r2, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, r2*network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, r1+r2, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, r3*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().size(), 3);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(1).size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(1).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionEnd, r1, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).flowRate, r1*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, r1, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, r1+r2, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, r2*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, r1+r2, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, r3*network.getChannel(0)->getFlowRate(), 1e-12);
 
 }
 
@@ -246,33 +246,33 @@ TEST(Topology, case4) {
     sim::DiffusionMixingModel<T> mixingModel;
     mixingModel.topologyAnalysis(&network, node2->getId());
     
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 2.3561945, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).at(1).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(1).radialAngle, 3.9269908, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 5.4977871, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 0.7853982, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 2.3561945, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).at(1).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(1).radialAngle, 3.9269908, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 5.4977871, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 0.7853982, 1e-7);
 
-    ASSERT_EQ(mixingModel.getOutflowDistributions().size(), 2);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 2);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, 0.5, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, 0.5, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(1).channelId, 1);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).flowRate, network.getChannel(1)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().size(), 2);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 2);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(2).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).sectionEnd, 0.5, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(2).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, 0.5, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, 0.5*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(1).channelId, 1);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).flowRate, network.getChannel(1)->getFlowRate(), 1e-12);
 
 }
 
@@ -318,32 +318,32 @@ TEST(Topology, case5) {
     sim::DiffusionMixingModel<T> mixingModel;
     mixingModel.topologyAnalysis(&network, node3->getId());
 
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 3);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 0.0, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 2.3561945, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 3.1415927, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(2).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(2).radialAngle, 3.9269908, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().size(), 2);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 3);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 0.0, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 2.3561945, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(1).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(1).radialAngle, 3.1415927, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(2).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(2).radialAngle, 3.9269908, 1e-7);
 
-    ASSERT_EQ(mixingModel.getOutflowDistributions().size(), 1);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 3);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(1).channelId, 1);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).flowRate, network.getChannel(1)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(2).channelId, 2);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(2).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(2).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(2).flowRate, network.getChannel(2)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().size(), 1);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 3);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(1).channelId, 1);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).flowRate, network.getChannel(1)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(2).channelId, 2);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(2).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(2).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(2).flowRate, network.getChannel(2)->getFlowRate(), 1e-12);
 
 }
 
@@ -389,38 +389,38 @@ TEST(Topology, case6) {
     sim::DiffusionMixingModel<T> mixingModel;
     mixingModel.topologyAnalysis(&network, node3->getId());
 
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().size(), 4);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(2).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(3).size(), 1);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 0.0, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 2.3561945, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(2).at(0).inFlow, false);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(2).at(0).radialAngle, 3.1415927, 1e-7);
-    ASSERT_EQ(mixingModel.getConcatenatedFlows().at(3).at(0).inFlow, true);
-    ASSERT_NEAR(mixingModel.getConcatenatedFlows().at(3).at(0).radialAngle, 3.9269908, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().size(), 4);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(2).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(3).size(), 1);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(0).at(0).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(0).at(0).radialAngle, 0.0, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(1).at(0).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(1).at(0).radialAngle, 2.3561945, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(2).at(0).inFlow, false);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(2).at(0).radialAngle, 3.1415927, 1e-7);
+    EXPECT_EQ(mixingModel.getConcatenatedFlows().at(3).at(0).inFlow, true);
+    EXPECT_NEAR(mixingModel.getConcatenatedFlows().at(3).at(0).radialAngle, 3.9269908, 1e-7);
 
-    ASSERT_EQ(mixingModel.getOutflowDistributions().size(), 2);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 2);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(1).size(), 2);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 0.8, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, 0.8*network.getChannel(0)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(3).at(1).channelId, 2);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionStart, 1./5., 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).flowRate, (4./5.)*network.getChannel(2)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(1).at(0).channelId, 2);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionStart, 0.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionEnd, 1./5., 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).flowRate, (1./5.)*network.getChannel(2)->getFlowRate(), 1e-12);
-    ASSERT_EQ(mixingModel.getOutflowDistributions().at(1).at(1).channelId, 0);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(1).sectionStart, 0.8, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(1).sectionEnd, 1.0, 1e-12);
-    ASSERT_NEAR(mixingModel.getOutflowDistributions().at(1).at(1).flowRate, 0.2*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().size(), 2);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).size(), 2);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(1).size(), 2);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(0).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).sectionEnd, 0.8, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(0).flowRate, 0.8*network.getChannel(0)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(3).at(1).channelId, 2);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionStart, 1./5., 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(3).at(1).flowRate, (4./5.)*network.getChannel(2)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(1).at(0).channelId, 2);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionStart, 0.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).sectionEnd, 1./5., 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(0).flowRate, (1./5.)*network.getChannel(2)->getFlowRate(), 1e-12);
+    EXPECT_EQ(mixingModel.getOutflowDistributions().at(1).at(1).channelId, 0);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(1).sectionStart, 0.8, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(1).sectionEnd, 1.0, 1e-12);
+    EXPECT_NEAR(mixingModel.getOutflowDistributions().at(1).at(1).flowRate, 0.2*network.getChannel(0)->getFlowRate(), 1e-12);
 
 }

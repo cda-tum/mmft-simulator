@@ -39,6 +39,11 @@
 *.JSON
 test.py
 
+# Visualization files
+*.vtk
+*.vtm
+*.vti
+
 # Exclude directories
 build/
 external/*/
@@ -46,3 +51,4 @@ external/*/
 .vscode
 images/*
 examples/*
+tmp/
