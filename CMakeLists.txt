@@ -60,6 +60,10 @@ endif()
 add_library(lbmLib)
 target_compile_features(lbmLib PRIVATE cxx_std_17)
 
+set(LBM_HEADER_LIST
+    incl/unistd.h
+)
+
 set(LBM_SOURCE_LIST
     ${lbm_SOURCE_DIR}/src/communication/mpiManager.cpp
     ${lbm_SOURCE_DIR}/src/io/ostreamManager.cpp
@@ -71,10 +75,11 @@ IF(VERBOSE)
     ADD_DEFINITIONS(-DVERBOSE)
 ENDIF()
 
-target_sources(lbmLib PUBLIC ${LBM_SOURCE_LIST})
+target_sources(lbmLib PUBLIC ${LBM_HEADER_LIST} ${LBM_SOURCE_LIST})
 
 target_include_directories(
     lbmLib PUBLIC ${lbm_SOURCE_DIR}/src
+    incl
     ${lbm_SOURCE_DIR}/external/tinyxml
     ${lbm_SOURCE_DIR}/external/zlib
 )
