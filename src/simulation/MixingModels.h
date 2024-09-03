@@ -34,6 +34,9 @@ class Simulation;
 template<typename T>
 class Specie;
 
+template<typename T>
+class lbmSimulator;
+
 // Structure to define the mixture inflow into a node
 template<typename T>
 struct MixtureInFlow {
@@ -264,9 +267,19 @@ private:
     std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
     void generateInflows();
 
+    lbmSimulator<T>* simulator; // Pointer to the lbmSimulator
+    // std::shared_ptr<lbmSimulator<T>> simulator; 
+
 public:
 
     DiffusionMixingModel();
+
+    // DiffusionMixingModel(lbmSimulator<T>* simulator);
+
+    // /**
+    //  * @brief Set the simulator for the hybrid mixing simulation.
+    // */
+    // void setSimulator(lbmSimulator<T>* simulator_);
 
     /**
      * @brief Create and/or propagate mixtures into channels downstream.
@@ -304,7 +317,7 @@ public:
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
 
     std::tuple<std::function<T(T)>,std::vector<T>,T> getAnalyticalSolutionHybrid(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
-        T pecletNr, const HybridFlowSection<T>& hybridFlowSection, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures);
+        T pecletNr, const HybridFlowSection<T>& hybridFlowSection, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, T dx);
 
     std::tuple<std::function<T(T)>, std::vector<T>, T> getAnalyticalSolutionHybridInput(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 

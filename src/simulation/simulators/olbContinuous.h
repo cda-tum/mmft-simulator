@@ -269,6 +269,14 @@ public:
     T getEpsilon() const { 
         return epsilon; 
     };
+    
+    /**
+     * @brief Get the distance between lattice nodes.
+     * @returns dx.
+    */
+    T getDx()  {
+        return getConverter().getConversionFactorLenght();
+    };
 };
 
 }   // namespace arch
