@@ -4,10 +4,93 @@
 namespace sim{
 
 template<typename T>
-lbmSimulator2D<T>::lbmSimulator2D(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
-                                    ResistanceModel<T>* resistanceModel, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T relaxationTime) :
-    lbmSimulator<T>(id, name, stlFile, cfdModule, openings, resistanceModel, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, relaxationTime) { }
+lbmSimulator2D<T>::lbmSimulator2D (
+    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
+    ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_) : 
+        CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_), 
+        charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
+        epsilon(epsilon_), relaxationTime(relaxationTime_)
+{ 
+    this->cfdModule->setModuleTypeLbm();
+} 
 
+template<typename T>
+lbmSimulator2D<T>::lbmSimulator2D (
+    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
+    std::shared_ptr<mmft::Scheme<T>> updateScheme_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_) : 
+        lbmSimulator(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, resolution_, epsilon_, relaxationTime_)
+{ 
+    this->updateScheme = updateScheme_;
+} 
+
+template<typename T>
+void lbmSimulator2D<T>::lbmInit (T dynViscosity, T density) {
+
+    setOutputDir();
+    initValueContainers();
+    initNsConverter(dynViscosity, density);
+    initNsConvergeTracker();    
+
+    #ifdef VERBOSE
+        std::cout << "[lbmSimulator] lbmInit " << this->name << "... OK" << std::endl;
+    #endif
+}
+
+template<typename T>
+void lbmSimulator2D<T>::prepareGeometry () {
+
+    bool print = false;
+    T dx = getDx();
+
+    #ifdef VERBOSE
+        print = true;
+    #endif
+
+    readGeometryStl(dx, print);
+    readOpenings(dx, print);
+
+    if (print) {
+        std::cout << "[lbmSimulator] prepare geometry " << this->name << "... OK" << std::endl;
+    }
+}
+
+template<typename T>
+void lbmSimulator2D<T>::prepareLattice () {
+
+    const T omega = getOmega();
+
+    prepareNsLattice(omega);
+    initPressureIntegralPlane();
+    initFlowRateIntegralPlane();
+    initNsLattice(omega);
+
+    #ifdef VERBOSE
+        std::cout << "[lbmSimulator] prepare lattice " << this->name << "... OK" << std::endl;
+    #endif
+}
+
+template<typename T>
+void lbmSimulator2D<T>::solve() {
+    // theta = 10
+    this->setBoundaryValues(step);
+    for (int iT = 0; iT < 10; ++iT){    
+        this->writeVTK(step);            
+        collideAndStream();
+        step += 1;
+    }
+    storeCfdResults(step);
+}
+
+template<typename T>
+void lbmSimulator2D<T>::initValueContainers () {
+
+    // Initialize pressure and flow rate value-containers
+    for (auto& [key, node] : this->moduleOpenings) {
+        pressures.try_emplace(key, (T) 0.0);
+        flowRates.try_emplace(key, (T) 0.0);
+    }
+
+}
 
 template<typename T>
 void lbmSimulator2D<T>::setBoundaryValues (int iT) {
@@ -22,7 +105,7 @@ void lbmSimulator2D<T>::setBoundaryValues (int iT) {
 }
 
 template<typename T>
-void lbmSimulator2D<T>::setFlowProfile2D (int openingKey, T openingWidth)  {
+void lbmSimulator2D<T>::setFlowProfile (int openingKey, T openingWidth)  {
     T maxVelocity = (3./2.)*(this->flowRates[openingKey]/(openingWidth));
     T distance2Wall = getConverter().getConversionFactorLength()/2.;
     this->flowProfiles.at(openingKey) = std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), openingKey+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
@@ -30,7 +113,7 @@ void lbmSimulator2D<T>::setFlowProfile2D (int openingKey, T openingWidth)  {
 }
 
 template<typename T>
-void lbmSimulator2D<T>::setPressure2D (int openingKey)  {
+void lbmSimulator2D<T>::setPressure (int openingKey)  {
     T rhoV = getConverter().getLatticeDensityFromPhysPressure(this->pressures[openingKey]);
     this->densities.at(openingKey) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
     getLattice().defineRho(getGeometry(), openingKey+3, *this->densities.at(openingKey));

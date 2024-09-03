@@ -12,7 +12,6 @@
 #include "simulation/MixtureInjection.h"
 #include "simulation/MixingModels.h"
 #include "simulation/ResistanceModels.h"
-#include "simulation/Simulation.h"
 #include "simulation/simulators/cfdSimulator.h"
 #include "simulation/simulators/olbContinuous.h"
 #include "simulation/simulators/olbMixing.h"
@@ -25,13 +24,13 @@
 #include "simulation/events/MergingEvent.h"
 
 #if DIMENSION == 2
-#include "simulation/simulators/olbContinuous2D.h"
-#include "simulation/simulators/olbMixing2D.h"
-#include "simulation/simulators/olbOoc2D.h"
+#include "simulation/simulators/2D/olbContinuous2D.h"
+#include "simulation/simulators/2D/olbMixing2D.h"
+#include "simulation/simulators/2D/olbOoc2D.h"
 #elif DIMENSION == 3
-#include "simulation/simulators/olbContinuous3D.h"
-#include "simulation/simulators/olbMixing3D.h"
-#include "simulation/simulators/olbOoc3D.h"
+#include "simulation/simulators/3D/olbContinuous3D.h"
+#include "simulation/simulators/3D/olbMixing3D.h"
+#include "simulation/simulators/3D/olbOoc3D.h"
 #endif
 
 #include "nodalAnalysis/NodalAnalysis.h"
@@ -63,3 +62,5 @@
     #include "simulation/simulators/essContinuous.h"
     #include "simulation/simulators/essMixing.h"
 #endif
+
+#include "simulation/Simulation.h"
