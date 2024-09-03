@@ -62,9 +62,9 @@ protected:
         return *lattice;
     }
 
-    void setFlowProfile3D(int key, T openingWidth);
+    void setFlowProfile(int key, T openingWidth);
 
-    void setPressure3D(int key);
+    void setPressure(int key);
 
     void initNsConverter(T dynViscosity, T density) override;
 

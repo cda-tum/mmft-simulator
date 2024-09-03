@@ -21,7 +21,7 @@ void lbmSimulator3D<T>::setBoundaryValues (int iT) {
 }
 
 template<typename T>
-void lbmSimulator3D<T>::setFlowProfile3D (int openingKey, T openingWidth)  {
+void lbmSimulator3D<T>::setFlowProfile (int openingKey, T openingWidth)  {
     T maxVelocityFactor = getConverter().getLatticeVelocity((3./2.)*(this->flowRates[openingKey]/(openingWidth)));
     std::vector<T> maxVelocity = {  maxVelocityFactor*this->moduleOpenings.at(openingKey).normal[0],
                                     maxVelocityFactor*this->moduleOpenings.at(openingKey).normal[1],
@@ -32,7 +32,7 @@ void lbmSimulator3D<T>::setFlowProfile3D (int openingKey, T openingWidth)  {
 }
 
 template<typename T>
-void lbmSimulator3D<T>::setPressure3D (int openingKey)  {
+void lbmSimulator3D<T>::setPressure (int openingKey)  {
     T rhoV = getConverter().getLatticeDensityFromPhysPressure(this->pressures[openingKey]);
     this->densities.at(openingKey) = std::make_shared<olb::AnalyticalConst3D<T,T>>(rhoV);
     getLattice().defineRho(getGeometry(), openingKey+3, *this->densities.at(openingKey));

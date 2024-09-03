@@ -164,9 +164,9 @@ public:
         geometry->checkForErrors(print);
     }
 
-    T getDx() override { return converter->getConversionFactorLength(); }
+    T getDx() { return converter->getConversionFactorLength(); }
 
-    T getOmega() override { return converter->getLatticeRelaxationFrequency(); }
+    T getOmega() { return converter->getLatticeRelaxationFrequency(); }
 
 };
 

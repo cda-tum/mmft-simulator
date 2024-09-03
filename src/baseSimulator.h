@@ -13,9 +13,7 @@
 #include "simulation/MixingModels.h"
 #include "simulation/ResistanceModels.h"
 #include "simulation/simulators/cfdSimulator.h"
-#include "simulation/simulators/olbContinuous.h"
-#include "simulation/simulators/olbMixing.h"
-#include "simulation/simulators/olbOoc.h"
+#include "simulation/simulators/olbSim.h"
 #include "simulation/Specie.h"
 #include "simulation/Tissue.h"
 #include "simulation/events/BoundaryEvent.h"
@@ -24,10 +22,12 @@
 #include "simulation/events/MergingEvent.h"
 
 #if DIMENSION == 2
+#include "simulation/simulators/2D/2D.h"
 #include "simulation/simulators/2D/olbContinuous2D.h"
 #include "simulation/simulators/2D/olbMixing2D.h"
 #include "simulation/simulators/2D/olbOoc2D.h"
 #elif DIMENSION == 3
+#include "simulation/simulators/3D/3D.h"
 #include "simulation/simulators/3D/olbContinuous3D.h"
 #include "simulation/simulators/3D/olbMixing3D.h"
 #include "simulation/simulators/3D/olbOoc3D.h"

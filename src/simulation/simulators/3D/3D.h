@@ -68,19 +68,30 @@ protected:
 
 public:
 
+
     Sim3D()
 
     auto& readGeometry() const {
         return *geometry;
     }
 
-    void readGeometryStl3D(const T dx, const bool print);
+    void readGeometryStl3D(const T dx, const bool print) 
+    {
+        /**
+         * TODO: Thought I already had defined this somewhere?
+         */
+    }
 
-    void readOpenings3D(const T dx, const bool print);
+    void readOpenings2D(const T dx, const bool print) 
+    {
+        /**
+         * TODO: Thought I already had defined this somewhere?
+         */
+    }
 
-    T getDx() override { return converter->getConversionFactorLength(); }
+    T getDx() { return converter->getConversionFactorLength(); }
 
-    T getOmega() override { return converter->getLatticeRelaxationFrequency(); }
+    T getOmega() { return converter->getLatticeRelaxationFrequency(); }
 
 };
 

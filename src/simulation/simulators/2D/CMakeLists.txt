@@ -5,6 +5,7 @@ set(SOURCE_LIST
 )
 
 set(HEADER_LIST
+    2D.h
     olbContinuous2D.h
     olbMixing2D.h
     olbOoc2D.h

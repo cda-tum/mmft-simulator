@@ -36,10 +36,9 @@ class Tissue;
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmOocSimulator2D : public lbmOocSimulator<T> {
+class lbmOocSimulator2D : public lbmMixingSimulator2D<T> {
 
 private:
-
 
     std::shared_ptr<Tissue<T>> tissue;
     std::string organStlFile;                   ///< The STL file of the CFD domain.
@@ -51,9 +50,9 @@ private:
 
     void readOrganStl(const T dx);
 
-    void prepareNsLattice(const T omega) final;
+    void prepareNsLattice(const T omega) override;
 
-    void prepareAdLattice(const T omega, int speciesId) final;
+    void prepareAdLattice(const T omega, int speciesId);
 
 public:
     /**
