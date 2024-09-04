@@ -218,8 +218,18 @@ public:
      */
     virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
     { 
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
+        throw std::runtime_error("The function getConcentrations is undefined for this CFD simulator.");
         return std::unordered_map<int, std::unordered_map<int, T>>(); 
+    }
+
+    /**
+     * @brief Get the concentrations at the boundary nodes.
+     * @returns Concentrations
+     */
+    virtual std::unordered_map<int, std::unordered_map<int, std::vector<T>>> getNodeConcentrationFields() const 
+    { 
+        throw std::runtime_error("The function getNodeConcentrationFields is undefined for this CFD simulator.");
+        return std::unordered_map<int, std::unordered_map<int, std::vector<T>>>(); 
     }
 
     /**

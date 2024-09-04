@@ -401,6 +401,11 @@ std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getCo
 }
 
 template<typename T>
+std::unordered_map<int, std::unordered_map<int, std::vector<T>>> lbmMixingSimulator<T>::getNodeConcentrationFields() const {
+    return this->nodeConcentrationFields;
+}
+
+template<typename T>
 bool lbmMixingSimulator<T>::hasAdConverged() const {
     bool c = true;
     for (auto& [key, converge] : custConverges) {

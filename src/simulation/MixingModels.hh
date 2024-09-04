@@ -4,6 +4,7 @@
 #include <deque>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #define M_PI 3.14159265358979323846
 
@@ -433,6 +434,7 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
 template<typename T>
 void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
     // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
+    // TODO pass the resolution!
     // It is unlikely that this exact mixture, with same species and functions already exists
     for (auto& nodeId : mixingNodes) {
         // Perform topoology analysis at node, to know how the inflow sections and their relative order.
@@ -466,6 +468,35 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                 this->injectMixtureInEdge(newMixture->getId(), channelId);
             }
         }
+    }
+    // Define the outflow of the CFD simulators for diffusive mixing
+    // These nodes are not defined as mixing nodes but they might still have a complex concentration distribution
+    for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
+            std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFields = cfdSimulator->getNodeConcentrationFields();
+            
+        for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
+            // If the node is an inflow
+            for (auto& [channelId, channel] : network->getChannels()) { // There is only one channel connected to a node at a CFD hybrid node connection
+                if (cfdSimulator->getFlowRates().at(nodeId) > 0.0 && channel->getNodeA() == nodeId) {
+                    // TODO generate newDistributions or something where we can store the concentrations, maybe even add this to the unordered map we created above? 
+
+                    std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
+                    for (const auto& [specieId, concentrationField] : concentrationFields.at(nodeId)) {
+                        T dx = concentrationField.size(); // TODO this is the length of the vector of the concentrations
+                        T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                        std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionHybrid(
+                            channel->getLength(), channel->getFlowRate(), channel->getWidth(), 100, pecletNr, concentrationField, dx);
+                        newDistributions.try_emplace(specieId, analyticalResult);
+                    }
+                    //Create new DiffusiveMixture
+                    DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
+                    newMixture->setNonConstant();
+                    this->injectMixtureInEdge(newMixture->getId(), channelId);
+                }
+                // TODO add how the concentration is then stored again
+            }
+        }
+        // cfdSimulator->storeConcentrations(concentrations);
     }
 } 
 
@@ -865,8 +896,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
 template<typename T>
 std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionHybrid(
-    T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
-    T pecletNr, const HybridFlowSection<T>& hybridFlowSection, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, T dx) { 
+    T channelLength, T currChannelFlowRate, T channelWidth, int resolution, T pecletNr, std::vector<T> concentrationField, T dx) { 
     
     // T dw = getConverter().getConversionFactorLength();
     // T dw = simulator->getDx();
@@ -877,12 +907,12 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
     // T f_sum = 0.0;
     T a_0 = 0.0;
 
-    for (size_t i = 0; i < hybridFlowSection.concentrations.size() - 1; ++i) { // the connection to the walls on either side is missing
+    for (size_t i = 0; i < concentrationField.size() - 1; ++i) { // the connection to the walls on either side is missing
 
         T width1 = distance2Wall + i * dx; // TODO maybe rename this variable
-        T concentration1 = hybridFlowSection.concentrations[i];
+        T concentration1 = concentrationField[i];
         T width2 = distance2Wall + (i + 1) * dx; // TODO maybe rename this variable
-        T concentration2 = hybridFlowSection.concentrations[i + 1];
+        T concentration2 = concentrationField[i + 1];
 
         T linearSegmentFactor = (concentration2 - ((concentration1 * width2) / width1)) / (1 - (width2 / width1));
         T linearSegmentSlope = (concentration1 - linearSegmentFactor) / width1;
@@ -901,7 +931,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
     // add the connection to the sides
     // start segment
-    T concentrationStart = hybridFlowSection.concentrations[0];
+    T concentrationStart = concentrationField[0];
     T startWidth = 0.0; // TODO check if this can have another value and if so pass via the HybridFlowSection struct
     a_0 += 2 * (concentrationStart * (distance2Wall - startWidth));
     for (int n = 1; n < resolution; n++) {
@@ -910,8 +940,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         segmentedResult.insert(segmentedResult.begin(), a_n_start * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
     }
     // end segment
-    T concentrationEnd = hybridFlowSection.concentrations[hybridFlowSection.concentrations.size() - 1];
-    T endWidth = dx * hybridFlowSection.concentrations.size();
+    T concentrationEnd = concentrationField[concentrationField.size() - 1];
+    T endWidth = dx * concentrationField.size();
     a_0 += 2 * (concentrationEnd * (endWidth - (endWidth - distance2Wall)));  // assuming the width is always defined between 0 and 1
     for (int n = 1; n < resolution; n++) {
         T a_n_end = (2/(n * M_PI)) * concentrationEnd * (std::sin(n * M_PI * endWidth) - std::sin(n * M_PI * (endWidth - distance2Wall)));

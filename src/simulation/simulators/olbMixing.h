@@ -45,6 +45,7 @@ using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 protected:
     std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
+    std::unordered_map<int, std::unordered_map<int, std::vector<T>>> nodeConcentrationFields;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, <conc>>>
 
     std::unordered_map<int, Specie<T>*> species;
 
@@ -192,6 +193,12 @@ public:
      * @returns Concentrations
      */
     std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const override;
+
+    /**
+     * @brief Get the concentration field at the boundary nodes, i.e., the concentration at each grid end point in the lattice.
+     * @returns Concentration vectors
+     */
+    std::unordered_map<int, std::unordered_map<int, std::vector<T>>> getNodeConcentrationFields() const override;
 
     /**
      * @brief Returns whether the module has converged or not.
