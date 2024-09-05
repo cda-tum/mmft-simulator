@@ -26,11 +26,12 @@
 #include "simulation/simulators/2D/olbContinuous2D.h"
 #include "simulation/simulators/2D/olbMixing2D.h"
 #include "simulation/simulators/2D/olbOoc2D.h"
-#elif DIMENSION == 3
+#endif
+#if DIMENSION == 3
 #include "simulation/simulators/3D/3D.h"
 #include "simulation/simulators/3D/olbContinuous3D.h"
-#include "simulation/simulators/3D/olbMixing3D.h"
-#include "simulation/simulators/3D/olbOoc3D.h"
+//#include "simulation/simulators/3D/olbMixing3D.h"
+//#include "simulation/simulators/3D/olbOoc3D.h"
 #endif
 
 #include "nodalAnalysis/NodalAnalysis.h"
@@ -48,9 +49,16 @@
 #include "architecture/Node.h"
 #include "architecture/PressurePump.h"
 
+#if DIMENSION == 2
 #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
 #include "olbProcessors/saturatedFluxPostProcessor2D.h"
-#include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux2D.h"
+#endif
+#if DIMENSION == 3
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor3D.h"
+#include "olbProcessors/saturatedFluxPostProcessor2D.h"
+//#include "olbProcessors/setFunctionalRegularizedHeatFlux3D.h"
+#endif
 
 #include "porting/jsonPorter.h"
 #include "porting/jsonReaders.h"

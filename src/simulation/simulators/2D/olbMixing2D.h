@@ -32,7 +32,16 @@ namespace sim {
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmMixingSimulator2D : lbmSimulator2D {
+class lbmMixingSimulator2D : public lbmSimulator2D<T> {
+
+using DESCRIPTOR = olb::descriptors::D2Q9<>;
+using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
+using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
+using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
+
+using ADDESCRIPTOR = olb::descriptors::D2Q5<olb::descriptors::VELOCITY>;
+using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
+using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 protected:
     std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
@@ -63,23 +72,19 @@ protected:
         return *adLattices.at(key);
     }
 
-    void setConcentration2D(int key);
+    void initValueContainers() final;
 
     void initAdConvergenceTracker();
 
-    void storeAdResults(int nodeId);
+    void initAdConverters(T density);
 
-    void initValueContainers() final;
+    virtual void prepareAdLattice(const T omega, int speciesId);
 
-    void initAdConverters(T density) final;
+    void initConcentrationIntegralPlane();
 
-    void prepareAdLattice(const T omega, int speciesId) final;
+    void initAdLattice(int adKey);
 
-    void initConcentrationIntegralPlane() final;
-
-    void initAdLattice(int adKey) final;
-
-    void prepareCoupling() final;
+    void prepareCoupling();
 
     /**
      * @brief Execute the coupling placed onto the NS lattice.
@@ -89,9 +94,13 @@ protected:
     /**
      * @brief Execute the coupling placed onto the NS lattice.
     */
-    void collideAndStreamAD() final;
+    void collideAndStreamAD();
+
+    void setConcentration2D(int key);
 
     void storeCfdResults(int nodeId) final;
+
+    void storeAdResults(int nodeId, int iT);
 
 public:
 
@@ -140,17 +149,17 @@ public:
      * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
      * @param[in] density Density of the simulated fluid in _kg / m^3_.
     */
-    void lbmInit(T dynViscosity, T density) final;
+    void lbmInit(T dynViscosity, T density) override;
 
     /**
      * @brief Prepare the LBM geometry of this simulator.
     */
-    void prepareGeometry() final;
+    void prepareGeometry() override;
 
     /**
      * @brief Prepare the LBM lattice on the LBM geometry.
     */
-    void prepareLattice() final;
+    void prepareLattice() override;
 
     /**
      * @brief Set the boundary values on the lattice at the module nodes.
@@ -183,11 +192,11 @@ public:
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
-    void writeVTK(int iT) final;
+    void writeVTK(int iT) override;
 
-    T getAdOmega(int key) final { return adConverters.at(key)->getLatticeRelaxationFrequency(); }
+    T getAdOmega(int key) { return adConverters.at(key)->getLatticeRelaxationFrequency(); }
 
-    std::unordered_map<int, T> getAdOmegas() final;
+    std::unordered_map<int, T> getAdOmegas();
 
     /**
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.

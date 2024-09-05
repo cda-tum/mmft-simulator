@@ -268,9 +268,16 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
 
             if(simulator["Type"] == "LBM")
             {
-                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                #if DIMENSION == 2
+                auto simulator = simulation.addLbmSimulator2D(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
+                #endif
+                #if DIMENSION == 3
+                auto simulator = simulation.addLbmSimulator3D(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                                                            charPhysVelocity, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+                #endif
             }
             else if (simulator["Type"] == "Mixing")
             {
@@ -278,9 +285,19 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
                     species.try_emplace(specieId, speciePtr.get());
                 }
-                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+                #if DIMENSION == 2
+                auto simulator = simulation.addLbmMixingSimulator2D(name, stlFile, network->getModule(moduleId), species,
                                                             Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
+                #endif
+                #if DIMENSION == 3
+                /**
+                 * TODO:
+                 */
+                // auto simulator = simulation.addLbmMixingSimulator3D(name, stlFile, network->getModule(moduleId), species,
+                //                                             Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+                // simulator->setVtkFolder(vtkFolder);
+                #endif
             }
             else if (simulator["Type"] == "Organ")
             {
@@ -290,9 +307,19 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                 }
                 std::string organStlFile = simulator["organStlFile"];
                 int tissueId = simulator["tissue"];
-                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+                #if DIMENSION == 2
+                auto simulator = simulation.addLbmOocSimulator2D(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
                                                             Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
+                #endif
+                #if DIMENSION == 3
+                /** TODO:
+                 * 
+                 */
+                // auto simulator = simulation.addLbmOocSimulator3D(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+                //                                             Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+                // simulator->setVtkFolder(vtkFolder);
+                #endif
             }
             else if(simulator["Type"] == "ESS_LBM")
             {

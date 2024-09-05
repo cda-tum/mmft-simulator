@@ -29,27 +29,32 @@ class Opening;
 namespace sim {
 
 template<typename T>
-class lbmSimulator2D : public olbSim<T>, Sim2D<T> {
+class lbmSimulator2D : public olbSim<T>, public Sim2D<T> {
+
+using DESCRIPTOR = olb::descriptors::D2Q9<>;
+using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
+using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
+using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
 protected:
+
+    void initValueContainers() override;
+
+    void initNsConverter(T dynViscosity, T density);
+
+    virtual void prepareNsLattice(const T omega);
+
+    void initPressureIntegralPlane();
+
+    void initFlowRateIntegralPlane();
+
+    void initNsLattice(const T omega);
+    
+    void collideAndStream() override { this->lattice->collideAndStream(); }
 
     void setFlowProfile(int key, T openingWidth);
 
     void setPressure(int key);
-
-    void initNsConverter(T dynViscosity, T density) final;
-
-    void prepareNsLattice(const T omega) final;
-
-    void initNsLattice(const T omega) final;
-
-    void initPressureIntegralPlane() final;
-
-    void initFlowRateIntegralPlane() final;
-
-    void initValueContainers() final;
-    
-    void collideAndStream() final { lattice->collideAndStream(); }
 
     void storeCfdResults(int iT);
 
@@ -99,38 +104,38 @@ public:
      * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
      * @param[in] density Density of the simulated fluid in _kg / m^3_.
     */
-    void lbmInit(T dynViscosity, T density) final;
+    void lbmInit(T dynViscosity, T density) override;
 
     /**
      * @brief Prepare the LBM geometry of this simulator.
     */
-    void prepareGeometry() final;
+    void prepareGeometry() override;
 
     /**
      * @brief Prepare the LBM lattice on the LBM geometry.
     */
-    void prepareLattice() final;
-
-    /**
-     * @brief Conducts the collide and stream operations of the lattice.
-    */
-    void solve() final;
+    void prepareLattice() override;
 
     /**
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
-    void setBoundaryValues(int iT) final;
+    void setBoundaryValues(int iT) override;
+    
+    /**
+     * @brief Conducts the collide and stream operations of the lattice.
+    */
+    void solve() override;
 
     /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
-    virtual void writeVTK(int iT) final;
+    virtual void writeVTK(int iT) override;
 
-    void readGeometryStl(const T dx, const bool print) final;
+    void readGeometryStl(const T dx, const bool print);
 
-    void readOpenings(const T dx, const bool print) final;
+    void readOpenings(const T dx, const bool print);
 
 };
 

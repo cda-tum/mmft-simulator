@@ -36,7 +36,16 @@ class Tissue;
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmOocSimulator3D : public lbmOocSimulator<T> {
+class lbmOocSimulator3D : public lbmMixingSimulator3D<T> {
+
+using DESCRIPTOR = olb::descriptors::D3Q19<>;
+using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
+using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
+using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
+
+using ADDESCRIPTOR = olb::descriptors::D3Q7<olb::descriptors::VELOCITY>;
+using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
+using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 private:
 
@@ -51,7 +60,7 @@ private:
 
     void prepareNsLattice(const T omega) override;
 
-    void prepareAdLattice(const T omega, int speciesId);
+    void prepareAdLattice(const T omega, int speciesId) override;
 
 public:
     /**

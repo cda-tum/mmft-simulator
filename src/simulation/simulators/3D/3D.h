@@ -36,10 +36,6 @@ using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
 using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
 using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
 
-using ADDESCRIPTOR = olb::descriptors::D3Q7<olb::descriptors::VELOCITY>;
-using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
-using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
-
 protected:
 
     std::shared_ptr<olb::LoadBalancer<T>> loadBalancer;             ///< Loadbalancer for geometries in multiple cuboids.
@@ -68,25 +64,10 @@ protected:
 
 public:
 
-
-    Sim3D()
+    Sim3D() { };
 
     auto& readGeometry() const {
         return *geometry;
-    }
-
-    void readGeometryStl3D(const T dx, const bool print) 
-    {
-        /**
-         * TODO: Thought I already had defined this somewhere?
-         */
-    }
-
-    void readOpenings2D(const T dx, const bool print) 
-    {
-        /**
-         * TODO: Thought I already had defined this somewhere?
-         */
     }
 
     T getDx() { return converter->getConversionFactorLength(); }

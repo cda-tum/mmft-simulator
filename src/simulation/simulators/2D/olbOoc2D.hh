@@ -4,11 +4,11 @@
 namespace sim{
 
 template<typename T>
-lbmOocSimulator2D<T>::lbmOocSimulator (
+lbmOocSimulator2D<T>::lbmOocSimulator2D (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<Tissue<T>> tissue_, std::string organStlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, 
     std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_,
     ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
-        lbmMixingSimulator<T>(id_, name_, stlFile_, cfdModule_, species_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
+        lbmMixingSimulator2D<T>(id_, name_, stlFile_, cfdModule_, species_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
                               resolution_, epsilon_, relaxationTime_, adRelaxationTime_), 
         tissue(tissue_), organStlFile(organStlFile_) 
 {
@@ -17,11 +17,11 @@ lbmOocSimulator2D<T>::lbmOocSimulator (
 } 
 
 template<typename T>
-lbmOocSimulator2D<T>::lbmOocSimulator (
+lbmOocSimulator2D<T>::lbmOocSimulator2D (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<Tissue<T>> tissue_, std::string organStlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, 
     std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, 
     ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
-        lbmOocSimulator<T>(id_, name_, stlFile_, tissue_, organStlFile_, cfdModule_, species_, openings_, updateScheme_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
+        lbmOocSimulator2D<T>(id_, name_, stlFile_, tissue_, organStlFile_, cfdModule_, species_, openings_, updateScheme_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
                               resolution_, epsilon_, relaxationTime_, adRelaxationTime_)
 {
     this->updateScheme = updateScheme_;
@@ -86,9 +86,7 @@ void lbmOocSimulator2D<T>::prepareLattice () {
      */
     this->initPressureIntegralPlane();
     this->initFlowRateIntegralPlane();
-    for (auto& [adKey, LatticeAD] : this->adLattices) {
-        this->initConcentrationIntegralPlane(adKey);
-    }
+    this->initConcentrationIntegralPlane();
 
     /**
      * Initialize the lattices
@@ -237,10 +235,10 @@ void lbmOocSimulator2D<T>::prepareAdLattice (const T adOmega, int speciesId) {
     }
 
     // Add wall boundary
-    olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, this->fluxWall.at(0), this->fluxWall.at(0));
+    olb::setFunctionalRegularizedHeatFluxBoundary2D<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, this->fluxWall.at(0), this->fluxWall.at(0));
 
     // Add Tissue boundary
-    olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, &Vmax, tissue->getkM(speciesId));
+    olb::setFunctionalRegularizedHeatFluxBoundary2D<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, &Vmax, tissue->getkM(speciesId));
 
     this->adLattices.try_emplace(speciesId, adLattice);
 

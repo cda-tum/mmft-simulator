@@ -1,8 +1,5 @@
 #pragma once
 
-#include <olb2D.h>
-#include <olb2D.hh>
-
 namespace olb {
 
 ////////  SaturationFluxProcessor2D ////////////////////////////

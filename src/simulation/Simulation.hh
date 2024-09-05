@@ -225,17 +225,15 @@ namespace sim {
     }
 
     template<typename T>
-    lbmSimulator<T>* Simulation<T>::addLbmSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+    lbmSimulator2D<T>* Simulation<T>::addLbmSimulator2D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
                                                     T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {
+        #if DIMENSION == 2
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            #if DIMENSION == 2
-            lbmSimulator<T>* addCfdSimulator = new lbmSimulator2D<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            #elif DIMENSION == 3
-            lbmSimulator<T>* addCfdSimulator = new lbmSimulator3D<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            #endif
+            auto addCfdSimulator = new lbmSimulator2D<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
 
@@ -243,21 +241,20 @@ namespace sim {
         } else {
             throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
         }
+        #endif
+        return nullptr;
     }
 
     template<typename T>
-    lbmMixingSimulator<T>* Simulation<T>::addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+    lbmMixingSimulator2D<T>* Simulation<T>::addLbmMixingSimulator2D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
                                                         std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {   
-        std::cout  << "Trying to add a mixing simulator" << std::endl;
+        #if DIMENSION == 2
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            #if DIMENSION == 2
             auto addCfdSimulator = new lbmMixingSimulator2D<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            #elif DIMENSION == 3
-            auto addCfdSimulator = new lbmMixingSimulator3D<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            #endif
+
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
 
@@ -265,20 +262,20 @@ namespace sim {
         } else {
             throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
         }
+        #endif
+        return nullptr;
     }
 
     template<typename T>
-    lbmOocSimulator<T>* Simulation<T>::addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+    lbmOocSimulator2D<T>* Simulation<T>::addLbmOocSimulator2D(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
                                                         std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
     {
+        #if DIMENSION == 2
         if (resistanceModel != nullptr) {
             // create Simulator
             auto id = cfdSimulators.size();
-            #if DIMENSION == 2
             auto addCfdSimulator = new lbmOocSimulator2D<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            #elif DIMENSION == 3
-            auto addCfdSimulator = new lbmOocSimulator3D<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            #endif
+
             // add Simulator
             cfdSimulators.try_emplace(id, addCfdSimulator);
 
@@ -286,6 +283,71 @@ namespace sim {
         } else {
             throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
         }
+        #endif
+        return nullptr;
+    }
+
+    template<typename T>
+    lbmSimulator3D<T>* Simulation<T>::addLbmSimulator3D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings, 
+                                                    T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+    {
+        #if DIMENSION == 3
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmSimulator3D<T>(id, name, stlFile, module, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+        #endif
+        return nullptr;
+    }
+
+    template<typename T>
+    lbmMixingSimulator3D<T>* Simulation<T>::addLbmMixingSimulator3D(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+    {   
+        #if DIMENSION == 3
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmMixingSimulator3D<T>(id, name, stlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+        #endif
+        return nullptr;
+    }
+
+    template<typename T>
+    lbmOocSimulator3D<T>* Simulation<T>::addLbmOocSimulator3D(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                                        std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
+    {
+        #if DIMENSION == 3
+        if (resistanceModel != nullptr) {
+            // create Simulator
+            auto id = cfdSimulators.size();
+            auto addCfdSimulator = new lbmOocSimulator3D<T>(id, name, stlFile, tissues.at(tissueId), organStlFile, module, species, openings, resistanceModel, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+
+            // add Simulator
+            cfdSimulators.try_emplace(id, addCfdSimulator);
+
+            return addCfdSimulator;
+        } else {
+            throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
+        }
+        #endif
+        return nullptr;
     }
 
     template<typename T>

@@ -6,11 +6,12 @@
 
 #define M_PI 3.14159265358979323846
 
-#include <vector>
-#include <unordered_map>
+#include <filesystem>
 #include <memory>
 #include <math.h>
 #include <iostream>
+#include <vector>
+#include <unordered_map>
 
 #if DIMENSION == 2
 #include <olb2D.h>
@@ -55,11 +56,11 @@ struct lbmParameters {
      * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
      * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
     */
-    lbmParameters(T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T tau) :
+    lbmParameters(T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T tau_) :
         charPhysLength(charPhysLength_), 
         charPhysVelocity(charPhysVelocity_), 
         resolution(resolution_), 
-        epsilon(epsilon_)
+        epsilon(epsilon_),
         tau(tau_) { }
 };
 
@@ -99,24 +100,8 @@ protected:
     void initNsConvergeTracker() {
         converge = std::make_unique<olb::util::ValueTracer<T>> (stepIter, epsilon);
     }
-    
+
     virtual void initValueContainers() = 0;
-
-    /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    virtual void storeCfdResults(int iT);
-
-    virtual void initNsConverter(T dynViscosity, T density) = 0;
-
-    virtual void prepareNsLattice(const T omega) = 0;
-
-    virtual void initPressureIntegralPlane() = 0;
-
-    virtual void initFlowRateIntegralPlane() = 0;
-
-    virtual void initNsLattice(const T omega) = 0;
 
     virtual void collideAndStream() = 0;
 
@@ -136,32 +121,18 @@ protected:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
-        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932);
+    olbSim(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
+        ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_=0.932) : 
+        CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_), 
+        charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), epsilon(epsilon_), relaxationTime(relaxationTime_) { };
 
 public:
-
-    /**
-     * @brief Prepare the LBM lattice on the LBM geometry.
-    */
-    void prepareLattice() override;
-
-    /**
-     * @brief Conducts the collide and stream operations of the lattice.
-    */
-    void solve();
-
-    /**
-     * @brief Write the vtk file with results of the CFD simulation to file system.
-     * @param[in] iT Iteration step.
-    */
-    virtual void writeVTK(int iT) = 0;
 
     /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
-    void storePressures(std::unordered_map<int, T> pressure) {
+    void storePressures(std::unordered_map<int, T> pressure_) {
         this->pressures = pressure_;
     }
 
@@ -169,7 +140,7 @@ public:
      * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
      * @param[in] flowRate Map of flow rates and node ids.
      */
-    void storeFlowRates(std::unordered_map<int, T> flowRate) {
+    void storeFlowRates(std::unordered_map<int, T> flowRate_) {
         this->flowRates = flowRate_;
     }
 

@@ -38,6 +38,15 @@ class Tissue;
 template<typename T>
 class lbmOocSimulator2D : public lbmMixingSimulator2D<T> {
 
+using DESCRIPTOR = olb::descriptors::D2Q9<>;
+using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
+using BGKdynamics = olb::BGKdynamics<T,DESCRIPTOR>;
+using BounceBack = olb::BounceBack<T,DESCRIPTOR>;
+
+using ADDESCRIPTOR = olb::descriptors::D2Q5<olb::descriptors::VELOCITY>;
+using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
+using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
+
 private:
 
     std::shared_ptr<Tissue<T>> tissue;
@@ -52,7 +61,7 @@ private:
 
     void prepareNsLattice(const T omega) override;
 
-    void prepareAdLattice(const T omega, int speciesId);
+    void prepareAdLattice(const T omega, int speciesId) override;
 
 public:
     /**
