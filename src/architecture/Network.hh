@@ -62,8 +62,8 @@ Network<T>::Network(std::string jsonFile) {
     for (auto& channel : jsonString["Network"]["Channels"]) {
         RectangularChannel<T>* addChannel = nullptr;
         if (channel.contains("pieces")) {
-            std::vector<Line_segment<T,2>*> line_segments;
-            std::vector<Arc<T,2>*> arcs;
+            std::vector<Line_segment<T>*> line_segments;
+            std::vector<Arc<T>*> arcs;
             for (auto& piece : channel["pieces"]) {
                 std::vector<T> start(2);
                 std::vector<T> end(2);
@@ -85,7 +85,7 @@ Network<T>::Network(std::string jsonFile) {
                         end[0] = piece["line_segment"]["end"][0];
                         end[1] = piece["line_segment"]["end"][1];
                     }
-                    Line_segment<T,2>* addLineSeg = new Line_segment<T,2> (start, end);
+                    Line_segment<T>* addLineSeg = new Line_segment<T> (start, end);
                     line_segments.emplace_back(std::move(addLineSeg));
                 } else if (piece.contains("arc")) {
                     if (piece["arc"]["start"] == 0) {
@@ -106,7 +106,7 @@ Network<T>::Network(std::string jsonFile) {
                     }
                     center[0] = piece["arc"]["center"][0];
                     center[1] = piece["arc"]["center"][1];
-                    Arc<T,2>* addArc = new Arc<T,2> (piece["arc"]["right"], start, end, center);
+                    Arc<T>* addArc = new Arc<T> (piece["arc"]["right"], start, end, center);
                     arcs.emplace_back(std::move(addArc));
                 }
             }

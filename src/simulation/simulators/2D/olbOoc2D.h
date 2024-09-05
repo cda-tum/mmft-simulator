@@ -36,7 +36,7 @@ class Tissue;
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
 template<typename T>
-class lbmOocSimulator : public lbmMixingSimulator<T> {
+class lbmOocSimulator2D : public lbmMixingSimulator2D<T> {
 
 using DESCRIPTOR = olb::descriptors::D2Q9<>;
 using NoDynamics = olb::NoDynamics<T,DESCRIPTOR>;
@@ -61,7 +61,7 @@ private:
 
     void prepareNsLattice(const T omega) override;
 
-    void prepareAdLattice(const T omega, int speciesId);
+    void prepareAdLattice(const T omega, int speciesId) override;
 
 public:
     /**
@@ -80,7 +80,7 @@ public:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmOocSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<Tissue<T>> tissue, std::string organStlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
+    lbmOocSimulator2D(int id, std::string name, std::string stlFile, std::shared_ptr<Tissue<T>> tissue, std::string organStlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
         std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, arch::Opening<T>> openings, ResistanceModel<T>* resistanceModel, 
         T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 
@@ -100,7 +100,7 @@ public:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmOocSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<Tissue<T>> tissue, std::string organStlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
+    lbmOocSimulator2D(int id, std::string name, std::string stlFile, std::shared_ptr<Tissue<T>> tissue, std::string organStlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
         std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme, ResistanceModel<T>* resistanceModel, 
         T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 
@@ -109,23 +109,23 @@ public:
      * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.
      * @param[in] density Density of the simulated fluid in _kg / m^3_.
     */
-    void lbmInit(T dynViscosity, T density) override;
+    void lbmInit(T dynViscosity, T density) final;
 
     /**
      * @brief Prepare the LBM geometry of this instance.
     */
-    void prepareGeometry() override;
+    void prepareGeometry() final;
 
     /**
      * @brief Prepare the LBM lattice on the LBM geometry.
     */
-    void prepareLattice() override;
+    void prepareLattice() final;
 
     /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
-    void writeVTK(int iT);
+    void writeVTK(int iT) final;
 
 };
 

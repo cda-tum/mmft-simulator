@@ -4,14 +4,37 @@ namespace arch {
 
 template<typename T>
 Node<T>::Node(int id_, T x_, T y_, bool ground_) : 
-    id(id_), ground(ground_) { 
-        pos.push_back(x_);
-        pos.push_back(y_);
-    }
+    id(id_), ground(ground_) 
+{ 
+    pos[0] = x_;
+    pos[1] = y_;
+    pos[2] = T(0.0);
+}
+
+template<typename T>
+Node<T>::Node(int id_, T x_, T y_, T z_, bool ground_) : 
+    id(id_), ground(ground_) 
+{ 
+    pos[0] = x_;
+    pos[1] = y_;
+    pos[2] = z_;
+}
 
 template<typename T>
 void Node<T>::setPosition(std::vector<T> pos_) {
-    this->pos =  pos_;
+    if (pos_.size() == 2) {
+        std::copy(pos_.begin(), pos_.begin() + 1, pos.begin());
+        pos[2] = T(0.0);
+    } else if (pos_.size() == 3) {
+        std::copy(pos_.begin(), pos_.begin() + 2, pos.begin());
+    } else {
+        throw std::domain_error("Node position should have two or three elements.");
+    }
+}
+
+template<typename T>
+void Node<T>::setPosition(std::array<T,3> pos_) {
+    this->pos = pos_;
 }
 
 template<typename T>
@@ -25,7 +48,7 @@ int Node<T>::getId() const {
 }
 
 template<typename T>
-std::vector<T> Node<T>::getPosition() const {
+std::array<T,3> Node<T>::getPosition() const {
     return pos;
 }
 

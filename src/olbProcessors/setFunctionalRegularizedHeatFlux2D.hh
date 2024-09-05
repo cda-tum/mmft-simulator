@@ -1,7 +1,4 @@
-#include "setFunctionalRegularizedHeatFlux.h"
-
-#include <olb2D.h>
-#include <olb2D.hh>
+#include "setFunctionalRegularizedHeatFlux2D.h"
 
 namespace olb {
 
@@ -13,18 +10,18 @@ namespace olb {
 
 // Initialising the FunctionalRegularizedHeatFluxBoundary on the superLattice domain
 template<typename T, typename DESCRIPTOR, typename MixinDynamics>
-void setFunctionalRegularizedHeatFluxBoundary(SuperLattice<T, DESCRIPTOR>& sLattice, T omega, SuperGeometry<T,2>& superGeometry, int material, T *Vmax, T *Km) 
+void setFunctionalRegularizedHeatFluxBoundary2D(SuperLattice<T, DESCRIPTOR>& sLattice, T omega, SuperGeometry<T,2>& superGeometry, int material, T *Vmax, T *Km) 
 {
-  setFunctionalRegularizedHeatFluxBoundary<T,DESCRIPTOR,MixinDynamics>(sLattice, omega, superGeometry.getMaterialIndicator(material), Vmax, Km);
+  setFunctionalRegularizedHeatFluxBoundary2D<T,DESCRIPTOR,MixinDynamics>(sLattice, omega, superGeometry.getMaterialIndicator(material), Vmax, Km);
 }
 
 // Initializing the FunctionalRegularizedHeatFluxBoundary on the superLattice domain
 template<typename T, typename DESCRIPTOR, typename MixinDynamics>
-void setFunctionalRegularizedHeatFluxBoundary(SuperLattice<T, DESCRIPTOR>& sLattice, T omega, FunctorPtr<SuperIndicatorF2D<T>>&& indicator, T *Vmax, T *Km)
+void setFunctionalRegularizedHeatFluxBoundary2D(SuperLattice<T, DESCRIPTOR>& sLattice, T omega, FunctorPtr<SuperIndicatorF2D<T>>&& indicator, T *Vmax, T *Km)
 {
   int _overlap = 1;
   for (int iCloc = 0; iCloc < sLattice.getLoadBalancer().size(); ++iCloc) {
-    setFunctionalRegularizedHeatFluxBoundary<T,DESCRIPTOR,MixinDynamics>(sLattice.getBlock(iCloc), omega,
+    setFunctionalRegularizedHeatFluxBoundary2D<T,DESCRIPTOR,MixinDynamics>(sLattice.getBlock(iCloc), omega,
     indicator->getBlockIndicatorF(iCloc), Vmax, Km);
   }
   // Adds needed Cells to the Communicator _commBC in SuperLattice
@@ -34,7 +31,7 @@ void setFunctionalRegularizedHeatFluxBoundary(SuperLattice<T, DESCRIPTOR>& sLatt
 
 // Set FunctionalRegularizedHeatFluxBoundary for indicated cells inside the block domain
 template<typename T, typename DESCRIPTOR, typename MixinDynamics>
-void setFunctionalRegularizedHeatFluxBoundary(BlockLattice<T,DESCRIPTOR>& block, T omega, BlockIndicatorF2D<T>& indicator, T *Vmax, T *Km)
+void setFunctionalRegularizedHeatFluxBoundary2D(BlockLattice<T,DESCRIPTOR>& block, T omega, BlockIndicatorF2D<T>& indicator, T *Vmax, T *Km)
 {
   using namespace boundaryhelper;
   auto& blockGeometryStructure = indicator.getBlockGeometry();

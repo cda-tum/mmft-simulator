@@ -1,14 +1,14 @@
-#include "olbOoc.h"
+#include "olbOoc3D.h"
 #include <filesystem>
 
 namespace sim{
 
 template<typename T>
-lbmOocSimulator<T>::lbmOocSimulator (
+lbmOocSimulator3D<T>::lbmOocSimulator3D (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<Tissue<T>> tissue_, std::string organStlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, 
     std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_,
     ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
-        lbmMixingSimulator<T>(id_, name_, stlFile_, cfdModule_, species_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
+        lbmMixingSimulator3D<T>(id_, name_, stlFile_, cfdModule_, species_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
                               resolution_, epsilon_, relaxationTime_, adRelaxationTime_), 
         tissue(tissue_), organStlFile(organStlFile_) 
 {
@@ -17,18 +17,18 @@ lbmOocSimulator<T>::lbmOocSimulator (
 } 
 
 template<typename T>
-lbmOocSimulator<T>::lbmOocSimulator (
+lbmOocSimulator3D<T>::lbmOocSimulator3D (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<Tissue<T>> tissue_, std::string organStlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, 
     std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, 
     ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
-        lbmOocSimulator<T>(id_, name_, stlFile_, tissue_, organStlFile_, cfdModule_, species_, openings_, updateScheme_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
+        lbmOocSimulator3D<T>(id_, name_, stlFile_, tissue_, organStlFile_, cfdModule_, species_, openings_, updateScheme_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
                               resolution_, epsilon_, relaxationTime_, adRelaxationTime_)
 {
     this->updateScheme = updateScheme_;
 } 
 
 template<typename T>
-void lbmOocSimulator<T>::lbmInit (T dynViscosity, T density) {
+void lbmOocSimulator3D<T>::lbmInit (T dynViscosity, T density) {
 
     this->setOutputDir();
     this->initValueContainers();
@@ -45,7 +45,7 @@ void lbmOocSimulator<T>::lbmInit (T dynViscosity, T density) {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::prepareGeometry () {
+void lbmOocSimulator3D<T>::prepareGeometry () {
 
     bool print = false;
     T dx = this->getConverter().getConversionFactorLength();
@@ -55,7 +55,7 @@ void lbmOocSimulator<T>::prepareGeometry () {
     #endif
 
     this->readGeometryStl(dx, print);
-    this->readOpenings(dx);
+    this->readOpenings(dx, print);
     readOrganStl(dx);
     this->geometry->clean(print);
     this->geometry->checkForErrors(print);
@@ -65,7 +65,7 @@ void lbmOocSimulator<T>::prepareGeometry () {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::prepareLattice () {
+void lbmOocSimulator3D<T>::prepareLattice () {
 
     /**
      * Prepare the NS lattice
@@ -86,9 +86,7 @@ void lbmOocSimulator<T>::prepareLattice () {
      */
     this->initPressureIntegralPlane();
     this->initFlowRateIntegralPlane();
-    for (auto& [adKey, LatticeAD] : this->adLattices) {
-        this->initConcentrationIntegralPlane(adKey);
-    }
+    this->initConcentrationIntegralPlane();
 
     /**
      * Initialize the lattices
@@ -106,17 +104,17 @@ void lbmOocSimulator<T>::prepareLattice () {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::writeVTK (int iT) {
+void lbmOocSimulator3D<T>::writeVTK (int iT) {
 
     bool print = false;
     #ifdef VERBOSE
         print = true;
     #endif
 
-    olb::SuperVTMwriter2D<T> vtmWriter( this->name );
+    olb::SuperVTMwriter3D<T> vtmWriter( this->name );
     // Writes geometry to file system
     if (iT == 0) {
-        olb::SuperLatticeGeometry2D<T,DESCRIPTOR> writeGeometry (this->getLattice(), this->getGeometry());
+        olb::SuperLatticeGeometry3D<T,DESCRIPTOR> writeGeometry (this->getLattice(), this->getGeometry());
         vtmWriter.write(writeGeometry);
         vtmWriter.createMasterFile();
         this->vtkFile = olb::singleton::directories().getVtkOutDir() + olb::createFileName( this->name ) + ".pvd";
@@ -124,9 +122,9 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
 
     if (iT % 1000 == 0) {
         
-        olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(this->getLattice(), this->getConverter());
-        olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(this->getLattice(), this->getConverter());
-        olb::SuperLatticeDensity2D<T,DESCRIPTOR> latDensity(this->getLattice());
+        olb::SuperLatticePhysVelocity3D<T,DESCRIPTOR> velocity(this->getLattice(), this->getConverter());
+        olb::SuperLatticePhysPressure3D<T,DESCRIPTOR> pressure(this->getLattice(), this->getConverter());
+        olb::SuperLatticeDensity3D<T,DESCRIPTOR> latDensity(this->getLattice());
         vtmWriter.addFunctor(velocity);
         vtmWriter.addFunctor(pressure);
         vtmWriter.addFunctor(latDensity);
@@ -135,7 +133,7 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
         
         // write all concentrations
         for (auto& [speciesId, adLattice] : this->adLattices) {
-            olb::SuperLatticeDensity2D<T,ADDESCRIPTOR> concentration( this->getAdLattice(speciesId) );
+            olb::SuperLatticeDensity3D<T,ADDESCRIPTOR> concentration( this->getAdLattice(speciesId) );
             concentration.getName() = "concentration " + std::to_string(speciesId);
             vtmWriter.write(concentration, iT);
         }
@@ -161,22 +159,21 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::readOrganStl (const T dx) {
+void lbmOocSimulator3D<T>::readOrganStl (const T dx) {
     // Define Organ area
     organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, dx);
-    organStl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*organStlReader);
-    this->geometry->rename(1, 3, *organStl2Dindicator);
+    this->geometry->rename(1, 3, *organStlReader);
 }
 
 template<typename T>
-void lbmOocSimulator<T>::prepareNsLattice (const T omega) {
+void lbmOocSimulator3D<T>::prepareNsLattice (const T omega) {
 
     this->lattice = std::make_shared<olb::SuperLattice<T, DESCRIPTOR>>(this->getGeometry());
 
     // Initial conditions
     std::vector<T> velocity(T(0), T(0));
-    olb::AnalyticalConst2D<T,T> rhoF(1);
-    olb::AnalyticalConst2D<T,T> uF(velocity);
+    olb::AnalyticalConst3D<T,T> rhoF(1);
+    olb::AnalyticalConst3D<T,T> uF(velocity);
 
     // Set lattice dynamics
     this->lattice->template defineDynamics<NoDynamics>(this->getGeometry(), 0);
@@ -199,15 +196,15 @@ void lbmOocSimulator<T>::prepareNsLattice (const T omega) {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::prepareAdLattice (const T adOmega, int speciesId) {
+void lbmOocSimulator3D<T>::prepareAdLattice (const T adOmega, int speciesId) {
 
     std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice = std::make_shared<olb::SuperLattice<T,ADDESCRIPTOR>>(this->getGeometry());
 
     // Initial conditions
     std::vector<T> zeroVelocity(T(0), T(0));
-    olb::AnalyticalConst2D<T,T> rhoF(1);
-    olb::AnalyticalConst2D<T,T> rhoZero(0);
-    olb::AnalyticalConst2D<T,T> uZero(zeroVelocity);
+    olb::AnalyticalConst3D<T,T> rhoF(1);
+    olb::AnalyticalConst3D<T,T> rhoZero(0);
+    olb::AnalyticalConst3D<T,T> uZero(zeroVelocity);
 
     // Set AD lattice dynamics
     adLattice->template defineDynamics<NoADDynamics>(this->getGeometry(), 0);
@@ -237,10 +234,10 @@ void lbmOocSimulator<T>::prepareAdLattice (const T adOmega, int speciesId) {
     }
 
     // Add wall boundary
-    olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, this->fluxWall.at(0), this->fluxWall.at(0));
+    olb::setFunctionalRegularizedHeatFluxBoundary3D<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 2, this->fluxWall.at(0), this->fluxWall.at(0));
 
     // Add Tissue boundary
-    olb::setFunctionalRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, &Vmax, tissue->getkM(speciesId));
+    olb::setFunctionalRegularizedHeatFluxBoundary3D<T,ADDESCRIPTOR>(*adLattice, adOmega, this->getGeometry(), 3, &Vmax, tissue->getkM(speciesId));
 
     this->adLattices.try_emplace(speciesId, adLattice);
 

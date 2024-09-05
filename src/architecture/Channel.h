@@ -38,12 +38,12 @@ enum class ChannelShape {
 /**
  * @brief A struct that defines a straight channel segment
 */
-template<typename T, int DIM>
+template<typename T>
 struct Line_segment {
-    std::vector<T> start;
-    std::vector<T> end;
+    std::array<T,3> start;
+    std::array<T,3> end;
 
-    Line_segment(std::vector<T> start, std::vector<T> end);
+    Line_segment(std::array<T,3> start, std::array<T,3> end);
     
     /**
      * @brief Returns the length of this line segment.
@@ -55,14 +55,14 @@ struct Line_segment {
 /**
  * @brief A struct that defines an arc channel segment
 */
-template<typename T, int DIM>
+template<typename T>
 struct Arc {
     bool right;
-    std::vector<T> start;
-    std::vector<T> end;
-    std::vector<T> center;
+    std::array<T,3> start;
+    std::array<T,3> end;
+    std::array<T,3> center;
 
-    Arc(bool right, std::vector<T> start, std::vector<T> end, std::vector<T> center);
+    Arc(bool right, std::array<T,3> start, std::array<T,3> end, std::array<T,3> center);
 
     /**
      * @brief Returns the length of this arc.
@@ -82,8 +82,8 @@ class Channel : public Edge<T>{
         ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular.
         ChannelType type = ChannelType::NORMAL;     ///< What kind of channel it is.
         
-        std::vector<std::unique_ptr<Line_segment<T,2>>> line_segments;      ///< Straight line segments in the channel.
-        std::vector<std::unique_ptr<Arc<T,2>>> arcs;                        ///< Arcs in the channel.
+        std::vector<std::shared_ptr<Line_segment<T>>> line_segments;      ///< Straight line segments in the channel.
+        std::vector<std::shared_ptr<Arc<T>>> arcs;                        ///< Arcs in the channel.
 
     public:
         /**
@@ -95,8 +95,8 @@ class Channel : public Edge<T>{
          * @param[in] arcs The arcs of this channel.
         */
         Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, 
-                std::vector<Line_segment<T,2>*> line_segments,
-                std::vector<Arc<T,2>*> arcs);
+                std::vector<Line_segment<T>*> line_segments,
+                std::vector<Arc<T>*> arcs);
 
         /**
          * @brief Constructor of a channel connecting two-nodes.
@@ -219,8 +219,8 @@ class RectangularChannel : public Channel<T> {
          * @param[in] height The height of the channel cross-section.
         */
         RectangularChannel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, 
-                std::vector<Line_segment<T,2>*> line_segments,
-                std::vector<Arc<T,2>*> arcs, T width, T height);
+                std::vector<Line_segment<T>*> line_segments,
+                std::vector<Arc<T>*> arcs, T width, T height);
 
         /**
          * @brief Set width of rectangular channel.

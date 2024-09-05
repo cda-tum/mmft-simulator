@@ -123,10 +123,32 @@ endif()
 
 # create executable and tests (if build as main project)
 
+#set (DIM "BOTH")
+#IF(2D)
+#    set(DIM "2D")
+#ELSEIF(3D)
+#    set(DIM "3D")
+#ENDIF()
+
+#IF((DIM EQUAL "2D") OR (DIM EQUAL "BOTH"))
+
 # main executable
-add_executable(MMFTSim)
-target_sources(MMFTSim PUBLIC src/main.cpp)
-target_link_libraries(MMFTSim PUBLIC ${TARGET_NAME})
+add_executable(MMFTSim2D)
+target_compile_definitions(MMFTSim2D PUBLIC DIMENSION=2)
+target_sources(MMFTSim2D PUBLIC src/main.cpp)
+target_link_libraries(MMFTSim2D PUBLIC ${TARGET_NAME})
+
+#ENDIF()
+
+#IF((DIM EQUAL "3D") OR (DIM EQUAL "BOTH"))
+
+# main executable
+add_executable(MMFTSim3D)
+target_compile_definitions(MMFTSim3D PUBLIC DIMENSION=3)
+target_sources(MMFTSim3D PUBLIC src/main.cpp)
+target_link_libraries(MMFTSim3D PUBLIC ${TARGET_NAME})
+
+#ENDIF()
 
 if(USE_ESSLBM)
     target_link_libraries(MMFTSim PUBLIC ESS::ESSLbm)

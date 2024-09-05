@@ -43,5 +43,19 @@ int main(int argc, char const* argv []) {
     MPI_Finalize();
     #endif
 
+    #ifdef USE_ESSLBM
+    MPI_Finalize();
+    #endif
+
     return 0;
 }
+
+/**
+#if DIMENSION == 2
+    std::cout << "The dimension is 2" << std::endl;
+#endif
+
+#if DIMENSION == 3
+    std::cout << "The dimension is 3" << std::endl;
+#endif
+ */

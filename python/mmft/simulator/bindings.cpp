@@ -1,6 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#define DIMENSION 2
+
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
 

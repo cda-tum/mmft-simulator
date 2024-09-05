@@ -15,7 +15,7 @@ template<typename T>
 class Node {
 private:
     int const id;
-    std::vector<T> pos;
+    std::array<T,3> pos;
     T pressure = 0;
     bool ground = false;
     bool sink = false;
@@ -30,10 +30,24 @@ public:
     Node(int id, T x, T y, bool ground=false);
 
     /**
+     * @brief Constructor of the node.
+     * @param[in] id Id of the node.
+     * @param[in] x Absolute x position of the node.
+     * @param[in] y Absolute y position of the node.
+    */
+    Node(int id, T x, T y, T z, bool ground=false);
+
+    /**
      * @brief Get position of the node.
      * @param[in] pos Vector of the absolute position of the node.
     */
     void setPosition(std::vector<T> pos);
+
+    /**
+     * @brief Get position of the node.
+     * @param[in] pos Vector of the absolute position of the node.
+    */
+    void setPosition(std::array<T,3> pos);
 
     /**
      * @brief Set pressure level at the node.
@@ -75,7 +89,7 @@ public:
      * @brief Get position of the node.
      * @returns Absolute position of the node
     */
-    std::vector<T> getPosition() const;
+    std::array<T,3> getPosition() const;
 
     /**
      * @brief Get pressure level at node.

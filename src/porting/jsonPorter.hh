@@ -79,6 +79,7 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
     simulation.setNetwork(network_);
 
     readFluids<T>(jsonString, simulation);
+    readResistanceModel<T>(jsonString, simulation);
 
     // Read an Abstract simulation definition
     if (simType == sim::Type::Abstract) {
