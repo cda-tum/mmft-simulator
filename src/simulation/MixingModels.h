@@ -318,7 +318,7 @@ public:
 
     std::tuple<std::function<T(T)>,std::vector<T>,T> getAnalyticalSolutionHybrid(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, T pecletNr, std::vector<T> concentrationField, T dx);
 
-    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int numFourierTerms);
+    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, T channelWidth, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int numFourierTerms);
     
     std::tuple<std::function<T(T)>, std::vector<T>, T> getAnalyticalSolutionHybridInput(T channelLength, T channelWidth, int numFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
