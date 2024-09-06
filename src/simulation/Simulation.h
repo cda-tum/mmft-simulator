@@ -147,12 +147,12 @@ private:
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
     int maxIterations = 1e5;
-    int globalSteps = 0;
     T maximalAdaptiveTimeStep = 0;                                                      ///< Maximal adaptive time step that is applied when droplets change the channel.
     T time = 0.0;                                                                       ///< Current time of the simulation.
     T dt = 0.01;
     T writeInterval = 0.1;
     T tMax = 100;
+    bool writePpm = true;
     bool eventBasedWriting = false;
     bool dropletsAtBifurcation = false;                                  ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
     std::unique_ptr<result::SimulationResult<T>> simulationResult = nullptr;
@@ -600,8 +600,16 @@ public:
      */
     result::SimulationResult<T>* getSimulationResults();
 
+    /**
+     * @brief Get the global bounds of pressure values in the CFD simulators.
+     * @return A tuple with the global bounds for pressure values <pMin, pMax>
+     */
     std::tuple<T, T> getGlobalPressureBounds();
     
+    /**
+     * @brief Get the global bounds of velocity magnitude values in the CFD simulators.
+     * @return A tuple with the global bounds for velocity magnitude values <velMin, velMax>
+     */
     std::tuple<T, T> getGlobalVelocityBounds();
 
     /**
@@ -635,8 +643,14 @@ public:
      */
     void printResults();
 
+    /**
+     * @brief Write the pressure field in .ppm image format for all cfdSimulators
+     */
     void writePressurePpm(std::tuple<T, T> bounds, int resolution=600);
 
+    /**
+     * @brief Write the velocity field in .ppm image format for all cfdSimulators
+     */
     void writeVelocityPpm(std::tuple<T, T> bounds, int resolution=600);
 };
 

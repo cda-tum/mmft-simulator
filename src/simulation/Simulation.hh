@@ -625,16 +625,18 @@ namespace sim {
 
             }
 
-            writePressurePpm(getGlobalPressureBounds());
-            writeVelocityPpm(getGlobalVelocityBounds());
-
             #ifdef VERBOSE     
                 if (pressureConverged && allConverged) {
                     std::cout << "[Simulation] All pressures have converged." << std::endl;
                 } 
                 printResults();
             #endif
-            
+
+            if (writePpm) {
+                writePressurePpm(getGlobalPressureBounds());
+                writeVelocityPpm(getGlobalVelocityBounds());
+            }
+
             saveState();
         }
 
@@ -666,6 +668,12 @@ namespace sim {
                 printResults();
                 std::cout << "[Simulation] All pressures have converged." << std::endl; 
             #endif
+
+            if (writePpm) {
+                writePressurePpm(getGlobalPressureBounds());
+                writeVelocityPpm(getGlobalVelocityBounds());
+            }
+
             saveState();
 
             // Couple the resulting CFD flow field to the AD fields
@@ -708,6 +716,11 @@ namespace sim {
                 } 
                 printResults();
             #endif
+
+            if (writePpm) {
+                writePressurePpm(getGlobalPressureBounds());
+                writeVelocityPpm(getGlobalVelocityBounds());
+            }
 
             saveState();
         }
@@ -1294,6 +1307,7 @@ namespace sim {
     template<typename T>
     void Simulation<T>::writePressurePpm(std::tuple<T, T> bounds, int resolution) {
         for (auto& [key, simulator] : cfdSimulators) {
+            // 0.98 and 1.02 factors are there to account for artifical black pixels that might show
             simulator->writePressurePpm(0.98*std::get<0>(bounds), 1.02*std::get<1>(bounds), resolution);
         }
     }
@@ -1301,6 +1315,7 @@ namespace sim {
     template<typename T>
     void Simulation<T>::writeVelocityPpm(std::tuple<T, T> bounds, int resolution) {
         for (auto& [key, simulator] : cfdSimulators) {
+            // 0.98 and 1.02 factors are there to account for artifical black pixels that might show
             simulator->writeVelocityPpm(0.98*std::get<0>(bounds), 1.02*std::get<1>(bounds), resolution);
         }
     }
