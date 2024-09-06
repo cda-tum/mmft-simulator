@@ -147,6 +147,7 @@ private:
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
     int maxIterations = 1e5;
+    int globalSteps = 0;
     T maximalAdaptiveTimeStep = 0;                                                      ///< Maximal adaptive time step that is applied when droplets change the channel.
     T time = 0.0;                                                                       ///< Current time of the simulation.
     T dt = 0.01;
@@ -599,6 +600,10 @@ public:
      */
     result::SimulationResult<T>* getSimulationResults();
 
+    std::tuple<T, T> getGlobalPressureBounds();
+    
+    std::tuple<T, T> getGlobalVelocityBounds();
+
     /**
      * @brief Creates a new fluid out of two existing fluids.
      * @param fluid0Id Id of the first fluid.
@@ -629,6 +634,10 @@ public:
      * @brief Print the results as pressure at the nodes and flow rates at the channels
      */
     void printResults();
+
+    void writePressurePpm(std::tuple<T, T> bounds, int resolution=600);
+
+    void writeVelocityPpm(std::tuple<T, T> bounds, int resolution=600);
 };
 
 }   // namespace sim

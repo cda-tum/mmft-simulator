@@ -270,6 +270,34 @@ public:
     }
     
     /**
+     * @brief Write the vtk file with results of the CFD simulation to file system.
+     * @param[in] iT Iteration step.
+    */
+    virtual void writePressurePpm (T min, T max, int imgResolution=600)
+    {
+        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Write the vtk file with results of the CFD simulation to file system.
+     * @param[in] iT Iteration step.
+    */
+    virtual void writeVelocityPpm (T min, T max, int imgResolution=600)
+    {
+        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+    }
+
+    virtual std::tuple<T, T> getPressureBounds()
+    {
+        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+    }
+
+    virtual std::tuple<T, T> getVelocityBounds()
+    {
+        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+    }
+
+    /**
      * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
      * @param[in] iT Iteration step.
     */

@@ -184,7 +184,11 @@ public:
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
-    void writeVTK(int iT);
+    void writeVTK(int iT) override;
+
+    void writePressurePpm (T min, T max, int imgResolution) override;
+
+    void writeVelocityPpm (T min, T max, int imgResolution) override;
 
     /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
@@ -269,6 +273,10 @@ public:
     T getEpsilon() const { 
         return epsilon; 
     };
+
+    std::tuple<T, T> getPressureBounds() override;
+
+    std::tuple<T, T> getVelocityBounds() override;
 };
 
 }   // namespace arch
