@@ -836,8 +836,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
 // From Channel Start to Channel End for complex input
 template<typename T>
-std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolution( // TODO rename speciesId to specieId
-    T channelLength, T currChannelFlowRate, T channelWidth, int numFourierTerms, int speciesId, 
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolution(
+    T channelLength, T currChannelFlowRate, T channelWidth, int numFourierTerms, int specieId, 
     T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures) { 
     
     T prevEndWidth = 0.0;
@@ -863,18 +863,18 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         } else {
             T mixtureId = this->filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
             DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
-            if (diffusiveMixture->getSpecieConcentrations().find(speciesId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
+            if (diffusiveMixture->getSpecieConcentrations().find(specieId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
                 T concentration = 0.0;
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
             } else if (diffusiveMixture->getIsConstant()) { 
-                T concentration = diffusiveMixture->getConcentrationOfSpecie(speciesId); 
+                T concentration = diffusiveMixture->getConcentrationOfSpecie(specieId); 
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)}); 
             } else {
-                auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(speciesId);
+                auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(specieId);
                 // std::function<T(T)> concentrationFunction = specieDistribution.first;
                 // std::vector<T> segmentedResults = specieDistribution.second;
                 std::function<T(T)> concentrationFunction = std::get<0>(specieDistribution);
@@ -961,34 +961,30 @@ std::vector<T> DiffusionMixingModel<T>::defineConcentrationNodeFieldForCfdInput(
     // To adhere to the conservation of mass, the sum of concentration passed must be equal to that represented by the concentration function across the width.
     // For this piecewise linerar interpolation is employed.
     std::vector<T> concentrationField;
-    if (!this->filledEdges.count(flowSection.channelId)){
+    T mixtureId = this->filledEdges.at(channelId); // get the diffusive mixture at a specific channelId
+    DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
+    if (diffusiveMixture->getSpecieConcentrations().find(specieId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
+        // here we could distinguish between constant and non-constant concentration
         concentrationField = std::vector<T>(resolutionIntoCfd, 0.0);
+    } else if (diffusiveMixture->getIsConstant()) { 
+        T concentration = diffusiveMixture->getConcentrationOfSpecie(specieId);
+        concentrationField = std::vector<T>(resolutionIntoCfd, concentration);
     } else {
-        T mixtureId = this->filledEdges.at(channelId); // get the diffusive mixture at a specific channelId
-        DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
-        if (diffusiveMixture->getSpecieConcentrations().find(specieId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
-            // here we could distinguish between constant and non-constant concentration
-            concentrationField = std::vector<T>(resolutionIntoCfd, 0.0);
-        } else if (diffusiveMixture->getIsConstant()) { 
-            T concentration = diffusiveMixture->getConcentrationOfSpecie(specieId);
-            concentrationField = std::vector<T>(resolutionIntoCfd, concentration);
-        } else {
-            auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(specieId);
-            std::vector<T> segmentedResult = std::get<1>(specieDistribution);
-            T a_0_old = std::get<2>(specieDistribution);
-            for (int i = 0; i < resolutionIntoCfd - 1; i++) {
-                T segmentWidth = channelWidth / resolutionIntoCfd;
-                T start = i * segmentWidth;
-                T end = (i + 1) * segmentWidth; 
-                // now we to integrate the function over the width of each dx
-                T concentration = 0.5 * M_PI * a_0_old * (end - start); 
-                for (long unsigned int n = 0; n < segmentedResult.size(); n++) { 
-                    int oldN = (n % (numFourierTerms - 1)) + 1;
-                    concentration += segmentedResult[n] / oldN * (std::sin(oldN * M_PI * end) - std::sin(oldN * M_PI * start));
-                }
-                concentrationField.push_back(concentration);
-            }   
-        }
+        auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(specieId);
+        std::vector<T> segmentedResult = std::get<1>(specieDistribution);
+        T a_0_old = std::get<2>(specieDistribution);
+        for (int i = 0; i < resolutionIntoCfd - 1; i++) {
+            T segmentWidth = channelWidth / resolutionIntoCfd;
+            T start = i * segmentWidth;
+            T end = (i + 1) * segmentWidth; 
+            // now we to integrate the function over the width of each dx
+            T concentration = 0.5 * M_PI * a_0_old * (end - start); 
+            for (long unsigned int n = 0; n < segmentedResult.size(); n++) { 
+                int oldN = (n % (numFourierTerms - 1)) + 1;
+                concentration += segmentedResult[n] / oldN * (std::sin(oldN * M_PI * end) - std::sin(oldN * M_PI * start));
+            }
+            concentrationField.push_back(concentration);
+        }   
     }
     return concentrationField;
 }
