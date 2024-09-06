@@ -213,6 +213,15 @@ public:
     }
 
     /**
+     * @brief Store the abstract concentration fields at the nodes on the module boundary in the simulator.
+     * @param[in] concentrationFieldsOut Map consisting of species id and a vector of concentrations at each grid point and node ids.
+     */
+    virtual void storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut) 
+    {
+        throw std::runtime_error("The function storeNodeConcentrationFields is undefined for this CFD simulator.");
+    }
+
+    /**
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */

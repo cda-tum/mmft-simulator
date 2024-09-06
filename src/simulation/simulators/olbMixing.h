@@ -189,6 +189,13 @@ public:
     void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) override;
 
     /**
+     * @brief Store the abstract concentration fields at the nodes on the module boundary in the simulator.
+     * @param[in] concentrations Map of concentration vectors and node ids for each speciesId.
+     */
+    void storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> nodeConcentrationFields) override;
+
+
+    /**
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */

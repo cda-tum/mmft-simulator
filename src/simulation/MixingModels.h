@@ -62,7 +62,7 @@ struct FlowSection {
     T width;
 };
 
-template<typename T>
+template<typename T> // TODO this is redundant -> remove
 struct HybridFlowSection : public FlowSection<T> {
     T hybridResolution;
     std::vector<T> concentrations; // Alternatively we could see this as one flow section that contains all concnetrations across the connection (maybe as a vector)
@@ -318,6 +318,8 @@ public:
 
     std::tuple<std::function<T(T)>,std::vector<T>,T> getAnalyticalSolutionHybrid(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, T pecletNr, std::vector<T> concentrationField, T dx);
 
+    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int resolution);
+    
     std::tuple<std::function<T(T)>, std::vector<T>, T> getAnalyticalSolutionHybridInput(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
     void clean(arch::Network<T>* network);
