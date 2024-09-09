@@ -470,7 +470,6 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
     }
     // Define the outflow of the CFD simulators for diffusive mixing
     // These nodes are not defined as mixing nodes but they might still have a complex concentration distribution
-    std::unordered_map<int, std::unordered_map<int, std::vector<T>>>  concentrationFieldsOut; // TODO check if I should do this here? maybe i should just .clean() and predefine this in the .h file
     for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
         std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsIn = cfdSimulator->getNodeConcentrationFields();
             
@@ -1087,6 +1086,7 @@ void DiffusionMixingModel<T>::clean(arch::Network<T>* network) {
             }
         }
     }
+    concentrationFieldsOut.clear();
 }
 
 template<typename T>

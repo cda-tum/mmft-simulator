@@ -265,6 +265,7 @@ private:
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
     std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
+    std::unordered_map<int, std::unordered_map<int, std::vector<T>>>  concentrationFieldsOut; ///< Defines which concentration fields are defined at nodes at the interface between 1D into CFD <channelId, <specieId, concentrationField>>
     void generateInflows();
 
     lbmSimulator<T>* simulator; // Pointer to the lbmSimulator
