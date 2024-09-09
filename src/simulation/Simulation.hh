@@ -489,6 +489,38 @@ namespace sim {
     }
 
     template<typename T>
+    std::tuple<T, T> Simulation<T>::getGlobalPressureBounds() {
+        T minP = std::numeric_limits<T>::max();
+        T maxP = 0.0;
+        for (auto& [key, simulator] : cfdSimulators) {
+            auto localBounds = simulator->getPressureBounds();
+            if (std::get<0>(localBounds) < minP) {
+                minP = std::get<0>(localBounds);
+            }
+            if (std::get<1>(localBounds) > maxP) {
+                maxP = std::get<1>(localBounds);
+            }
+        }
+        return std::tuple<T, T> {minP, maxP};
+    }
+    
+    template<typename T>
+    std::tuple<T, T> Simulation<T>::getGlobalVelocityBounds() {
+        T minVel = std::numeric_limits<T>::max();
+        T maxVel = 0.0;
+        for (auto& [key, simulator] : cfdSimulators) {
+            auto localBounds = simulator->getVelocityBounds();
+            if (std::get<0>(localBounds) < minVel) {
+                minVel = std::get<0>(localBounds);
+            }
+            if (std::get<1>(localBounds) > maxVel) {
+                maxVel = std::get<1>(localBounds);
+            }
+        }
+        return std::tuple<T, T> {minVel, maxVel};
+    }
+
+    template<typename T>
     Fluid<T>* Simulation<T>::mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1) {
         // check if fluids are identically (no merging needed) and if they exist
         if (fluid0Id == fluid1Id) {
@@ -599,7 +631,12 @@ namespace sim {
                 } 
                 printResults();
             #endif
-            
+
+            if (writePpm) {
+                writePressurePpm(getGlobalPressureBounds());
+                writeVelocityPpm(getGlobalVelocityBounds());
+            }
+
             saveState();
         }
 
@@ -631,6 +668,12 @@ namespace sim {
                 printResults();
                 std::cout << "[Simulation] All pressures have converged." << std::endl; 
             #endif
+
+            if (writePpm) {
+                writePressurePpm(getGlobalPressureBounds());
+                writeVelocityPpm(getGlobalVelocityBounds());
+            }
+
             saveState();
 
             // Couple the resulting CFD flow field to the AD fields
@@ -673,6 +716,11 @@ namespace sim {
                 } 
                 printResults();
             #endif
+
+            if (writePpm) {
+                writePressurePpm(getGlobalPressureBounds());
+                writeVelocityPpm(getGlobalVelocityBounds());
+            }
 
             saveState();
         }
@@ -1254,6 +1302,22 @@ namespace sim {
         }
 
         return events;
+    }
+
+    template<typename T>
+    void Simulation<T>::writePressurePpm(std::tuple<T, T> bounds, int resolution) {
+        for (auto& [key, simulator] : cfdSimulators) {
+            // 0.98 and 1.02 factors are there to account for artifical black pixels that might show
+            simulator->writePressurePpm(0.98*std::get<0>(bounds), 1.02*std::get<1>(bounds), resolution);
+        }
+    }
+
+    template<typename T>
+    void Simulation<T>::writeVelocityPpm(std::tuple<T, T> bounds, int resolution) {
+        for (auto& [key, simulator] : cfdSimulators) {
+            // 0.98 and 1.02 factors are there to account for artifical black pixels that might show
+            simulator->writeVelocityPpm(0.98*std::get<0>(bounds), 1.02*std::get<1>(bounds), resolution);
+        }
     }
 
 }   /// namespace sim

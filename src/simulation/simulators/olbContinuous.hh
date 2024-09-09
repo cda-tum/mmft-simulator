@@ -137,11 +137,32 @@ void lbmSimulator<T>::writeVTK (int iT) {
 }
 
 template<typename T>
+void lbmSimulator<T>::writePressurePpm (T min, T max, int imgResolution) {
+    // Color map options are 'earth'|'water'|'air'|'fire'|'leeloo'
+    std::string colorMap = "leeloo";
+    olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(getLattice(), getConverter());
+    olb::BlockReduction2D2D<T> planeReductionP(pressure, imgResolution);
+    olb::BlockGifWriter<T> ppmWriter(colorMap);
+    ppmWriter.write(planeReductionP, min, max, step, this->name+"_pressure_");
+}
+
+template<typename T>
+void lbmSimulator<T>::writeVelocityPpm (T min, T max, int imgResolution) {
+    // Color map options are 'earth'|'water'|'air'|'fire'|'leeloo'
+    std::string colorMap = "leeloo";
+    olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLattice(), getConverter());
+    olb::SuperEuklidNorm2D<T, DESCRIPTOR> normVel( velocity );   
+    olb::BlockReduction2D2D<T> planeReductionVel(normVel, imgResolution);
+    olb::BlockGifWriter<T> ppmWriter(colorMap);
+    ppmWriter.write(planeReductionVel, min, max, step, this->name+"_velocity_");
+}
+
+template<typename T>
 void lbmSimulator<T>::solve() {
     int theta = this->updateScheme->getTheta(this->cfdModule->getId());
     this->setBoundaryValues(step);
     for (int iT = 0; iT < theta; ++iT){    
-        writeVTK(step);            
+        writeVTK(step);       
         lattice->collideAndStream();
         step += 1;
     }
@@ -412,6 +433,33 @@ void lbmSimulator<T>::storeCfdResults (int iT) {
             flowRates.at(key) = output[0];
         }
     }
+}
+
+template<typename T>
+std::tuple<T, T> lbmSimulator<T>::getPressureBounds() {
+    olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(getLattice(), getConverter());
+    olb::SuperMin2D<T> minPressureF( pressure, getGeometry(), 1);
+    olb::SuperMax2D<T> maxPressureF( pressure, getGeometry(), 1);
+    int input[0];
+    T minPressure[1];
+    T maxPressure[1];
+    minPressureF( minPressure, input );
+    maxPressureF( maxPressure, input );
+    return std::tuple<T, T> {minPressure[0], maxPressure[0]};
+}
+
+template<typename T>
+std::tuple<T, T> lbmSimulator<T>::getVelocityBounds() {
+    olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLattice(), getConverter());
+    olb::SuperEuklidNorm2D<T, DESCRIPTOR> normVel( velocity );   
+    olb::SuperMin2D<T> minVelF( normVel, getGeometry(), 1);
+    olb::SuperMax2D<T> maxVelF( normVel, getGeometry(), 1);
+    int input[0];
+    T minVel[1];
+    T maxVel[1];
+    minVelF( minVel, input );
+    maxVelF( maxVel, input );
+    return std::tuple<T, T> {minVel[0], maxVel[0]};
 }
 
 }   // namespace arch

@@ -184,7 +184,23 @@ public:
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
-    void writeVTK(int iT);
+    void writeVTK(int iT) override;
+
+    /**
+     * @brief Write the .ppm image file with the pressure results of the CFD simulation to file system.
+     * @param[in] min Minimal bound for colormap.
+     * @param[in] max Maximal bound for colormap.
+     * @param[in] imgResolution Resolution of the .ppm image.
+    */
+    void writePressurePpm (T min, T max, int imgResolution) override;
+
+    /**
+     * @brief Write the .ppm image file with the velocity results of the CFD simulation to file system.
+     * @param[in] min Minimal bound for colormap.
+     * @param[in] max Maximal bound for colormap.
+     * @param[in] imgResolution Resolution of the .ppm image.
+    */
+    void writeVelocityPpm (T min, T max, int imgResolution) override;
 
     /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
@@ -269,6 +285,18 @@ public:
     T getEpsilon() const { 
         return epsilon; 
     };
+
+    /**
+     * @brief Returns the local pressure bounds of this cfdSimulator 
+     * @returns A tuple with the pressure bounds <pMin, pMax>
+     */
+    std::tuple<T, T> getPressureBounds() override;
+
+    /**
+     * @brief Returns the local velocity bounds of this cfdSimulator 
+     * @returns A tuple with the velocity bounds <pMin, pMax>
+     */
+    std::tuple<T, T> getVelocityBounds() override;
 };
 
 }   // namespace arch

@@ -249,7 +249,7 @@ public:
     */
     virtual void nsSolve() 
     {
-        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+        throw std::runtime_error("The function nsSolve is undefined for this CFD simulator.");
     }
 
     /**
@@ -257,7 +257,7 @@ public:
     */
     virtual void adSolve() 
     {
-        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+        throw std::runtime_error("The function adSolve is undefined for this CFD simulator.");
     }
 
     /**
@@ -266,16 +266,56 @@ public:
     */
     virtual void writeVTK (int iT) 
     {
-        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+        throw std::runtime_error("The function writeVTK is undefined for this CFD simulator.");
     }
     
+    /**
+     * @brief Write the .ppm image file with the pressure results of the CFD simulation to file system.
+     * @param[in] min Minimal bound for colormap.
+     * @param[in] max Maximal bound for colormap.
+     * @param[in] imgResolution Resolution of the .ppm image.
+    */
+    virtual void writePressurePpm (T min, T max, int imgResolution=600)
+    {
+        throw std::runtime_error("The function writePressurePpm is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Write the .ppm image file with the velocity results of the CFD simulation to file system.
+     * @param[in] min Minimal bound for colormap.
+     * @param[in] max Maximal bound for colormap.
+     * @param[in] imgResolution Resolution of the .ppm image.
+    */
+    virtual void writeVelocityPpm (T min, T max, int imgResolution=600)
+    {
+        throw std::runtime_error("The function writeVelocityPpm is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Returns the local pressure bounds of this cfdSimulator 
+     * @returns A tuple with the pressure bounds <pMin, pMax>
+     */
+    virtual std::tuple<T, T> getPressureBounds()
+    {
+        throw std::runtime_error("The function getPressureBounds is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Returns the local velocity bounds of this cfdSimulator 
+     * @returns A tuple with the velocity bounds <pMin, pMax>
+     */
+    virtual std::tuple<T, T> getVelocityBounds()
+    {
+        throw std::runtime_error("The function getVelocityBounds is undefined for this CFD simulator.");
+    }
+
     /**
      * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
      * @param[in] iT Iteration step.
     */
     virtual void storeCfdResults (int iT) 
     {
-        throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
+        throw std::runtime_error("The function storeCfdResults is undefined for this CFD simulator.");
     }
 
     /**
