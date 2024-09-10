@@ -366,6 +366,9 @@ void lbmMixingSimulator<T>::prepareCoupling() {
     this->lattice->addLatticeCoupling(coupling, adLatticesVec);
 }
 
+/**  
+ * TODO: coupling Abstract -> CFD  
+ */ 
 template<typename T>
 int lbmMixingSimulator<T>::getResolution(int nodeId) const {
     return resolutions.at(nodeId);
