@@ -62,12 +62,6 @@ struct FlowSection {
     T width;
 };
 
-template<typename T> // TODO this is redundant -> remove
-struct HybridFlowSection : public FlowSection<T> {
-    T hybridResolution;
-    std::vector<T> concentrations; // Alternatively we could see this as one flow section that contains all concnetrations across the connection (maybe as a vector)
-};
-
 template<typename T>
 struct FlowSectionInput {
     T startWidth;
@@ -274,13 +268,6 @@ private:
 public:
 
     DiffusionMixingModel();
-
-    // DiffusionMixingModel(lbmSimulator<T>* simulator);
-
-    // /**
-    //  * @brief Set the simulator for the hybrid mixing simulation.
-    // */
-    // void setSimulator(lbmSimulator<T>* simulator_);
 
     /**
      * @brief Create and/or propagate mixtures into channels downstream.

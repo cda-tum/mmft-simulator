@@ -123,7 +123,7 @@ void InstantaneousMixingModel<T>::initNodeOutflow(Simulation<T>* sim, std::vecto
                 int tmpMixtureId = std::numeric_limits<int>::max();
                 std::unordered_map<int, Specie<T>*> species;
                 std::unordered_map<int, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
-                for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) { // this needs to be replicated in the diffusive mixing mode as well
+                for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
                     species.try_emplace(speciesId, sim->getSpecie(speciesId));
                 }
                 Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase());
@@ -381,15 +381,6 @@ void InstantaneousMixingModel<T>::printMixturesInNetwork() {
 
 template<typename T>
 DiffusionMixingModel<T>::DiffusionMixingModel() : MixingModel<T>() { }
-
-// template<typename T>
-// DiffusionMixingModel<T>::DiffusionMixingModel(lbmSimulator<T>* simulator_) : 
-//     MixingModel<T>(), simulator(simulator_) { }
-
-// template<typename T>
-// void DiffusionMixingModel<T>::setSimulator(lbmSimulator<T>* simulator_) {
-//     simulator = simulator_;
-// }
 
 template<typename T>
 void DiffusionMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
@@ -997,7 +988,6 @@ std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getA
     // TODO - get the parameters a to f from the polynomial fit of the hybrid concentration output
     for (const auto& parameter : parameters) {
         for (int n = 1; n < numFourierTerms; n++) {
-            // T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
             T a_n = 1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.endWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.endWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) 
                 + 120 * parameter.a * parameter.endWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
                 + parameter.c * pow(n * M_PI, 4) * pow(parameter.endWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.endWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.endWidth, 2)
@@ -1018,7 +1008,6 @@ std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getA
     }
 
     for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
-            // a_0 += 2 * parameter.concentrationAtChannelEnd  * (parameter.endWidth - parameter.startWidth);
             a_0 += parameter.a / 6 * pow(parameter.endWidth, 6) + parameter.b / 5 * pow(parameter.endWidth, 5) + parameter.c / 4 * pow(parameter.endWidth, 4) + parameter.d / 3 * pow(parameter.endWidth, 3) + parameter.e / 2 * pow(parameter.endWidth, 2) + parameter.f * parameter.endWidth
                 - (parameter.a / 6 * pow(parameter.startWidth, 6) + parameter.b / 5 * pow(parameter.startWidth, 5) + parameter.c / 4 * pow(parameter.startWidth, 4) + parameter.d / 3 * pow(parameter.startWidth, 3) + parameter.e / 2 * pow(parameter.startWidth, 2) + parameter.f * parameter.startWidth);
         }

@@ -395,6 +395,9 @@ void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::uno
     this->concentrations = concentrations_;
 }
 
+/**  
+ * TODO: coupling Abstract -> CFD  
+ */ 
 template<typename T>
 void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
     this->nodeConcentrationFields = concentrationFieldsOut_;
@@ -405,6 +408,9 @@ std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getCo
     return this->concentrations;
 }
 
+/**  
+ * TODO: coupling Abstract -> CFD  
+ */ 
 template<typename T>
 std::unordered_map<int, std::unordered_map<int, std::vector<T>>> lbmMixingSimulator<T>::getNodeConcentrationFields() const {
     return this->nodeConcentrationFields;
