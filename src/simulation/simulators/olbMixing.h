@@ -46,6 +46,7 @@ using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 protected:
     std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
     std::unordered_map<int, std::unordered_map<int, std::vector<T>>> nodeConcentrationFields;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, <conc>>>
+    std::unordered_map<int, int> resolutions;   ///< Vector of Resolutions at module nodes <nodeId, resolution>
 
     std::unordered_map<int, Specie<T>*> species;
 
@@ -181,6 +182,13 @@ public:
      * @param[in] iT Iteration step.
     */
     void writeVTK(int iT) override;
+
+    /**
+     * @brief Get the lattice resolution at the boundary nodes.
+     * @param[in] nodeId of the boundary node.
+     * @returns Resolution.
+     */
+    int getResolution(int nodeId) const override;
 
     /**
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.

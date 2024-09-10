@@ -483,7 +483,7 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                 }
                 else if (cfdSimulator->getFlowRates().at(nodeId) < 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
                     for (const auto& [specieId, concentrationField] : concentrationFieldsOut.at(nodeId)) {
-                        int resolutionIntoCfd = 20; // TODO this should be a parameter
+                        int resolutionIntoCfd = cfdSimulator->getResolution(nodeId);
                         std::vector<T> concentrationFieldForCfdInput = defineConcentrationNodeFieldForCfdInput(resolutionIntoCfd, specieId, channelId, channel->getWidth(), mixtures, noFourierTerms);
                         concentrationFieldsOut[nodeId][specieId] = concentrationFieldForCfdInput;
                     }

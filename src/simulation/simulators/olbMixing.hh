@@ -367,6 +367,11 @@ void lbmMixingSimulator<T>::prepareCoupling() {
 }
 
 template<typename T>
+int lbmMixingSimulator<T>::getResolution(int nodeId) const {
+    return resolutions.at(nodeId);
+}
+
+template<typename T>
 void lbmMixingSimulator<T>::setConcentration2D (int key) {
     // Set the boundary concentrations for inflows and outflows
     // If the boundary is an inflow

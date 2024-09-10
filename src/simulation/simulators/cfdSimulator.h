@@ -204,6 +204,17 @@ public:
     virtual std::unordered_map<int, T> getFlowRates() const = 0;
 
     /**
+     * @brief Get the lattice resolution at the boundary nodes.
+     * @param[in] nodeId of the boundary node.
+     * @returns Resolution.
+     */
+    virtual int getResolution(int nodeId) const 
+    { 
+        throw std::runtime_error("The function getResolution is undefined for this CFD simulator.");
+        return 0;
+    }
+
+    /**
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
      * @param[in] concentrations Map of concentrations and node ids.
      */
