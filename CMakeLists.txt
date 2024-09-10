@@ -12,13 +12,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions(PLATFORM_CPU_SISD)
-set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
-
-IF (WIN32)
-    set(patch_file ${CMAKE_CURRENT_BINARY_DIR}/_deps/lbm-src/src/core/singleton.h)
-    set(lbm_patch sed -i -f ${CMAKE_CURRENT_SOURCE_DIR}/script.sed ${patch_file})
+IF (!WIN32)
+    set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
 ELSE()
-    set(lbm_patch )
+    set(CMAKE_CXX_FLAGS "-Wall -march=native /EHsc")
 ENDIF()
 
 # download external libraries
@@ -40,10 +37,11 @@ FetchContent_Declare(
 )
 FetchContent_Declare(
     lbm
-    URL https://www.openlb.net/wp-content/uploads/2022/04/olb-1.5r0.tgz
-    PATCH_COMMAND ${lbm_patch}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
+    GIT_REPOSITORY https://gitlab.com/openlb/release.git
+    GIT_TAG 1.7.0
+    #PATCH_COMMAND ${lbm_patch}
+    #CONFIGURE_COMMAND ""
+    #BUILD_COMMAND ""
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
@@ -57,45 +55,16 @@ if(USE_ESSLBM)
 endif()
 
 add_library(lbmLib)
+target_compile_features(lbmLib PRIVATE cxx_std_17)
 
-set(EXTERNAL_DIR ${lbm_SOURCE_DIR}/external)
-
-set(EXTERNAL_HEADER_LIST
-    ${EXTERNAL_DIR}/tinyxml/tinyxml.h
-    ${EXTERNAL_DIR}/tinyxml/tinystr.h
-    ${EXTERNAL_DIR}/zlib/crc32.h
-    ${EXTERNAL_DIR}/zlib/deflate.h
-    ${EXTERNAL_DIR}/zlib/gzguts.h
-    ${EXTERNAL_DIR}/zlib/inffast.h
-    ${EXTERNAL_DIR}/zlib/inffixed.h
-    ${EXTERNAL_DIR}/zlib/inflate.h
-    ${EXTERNAL_DIR}/zlib/inftrees.h
-    ${EXTERNAL_DIR}/zlib/trees.h
-    ${EXTERNAL_DIR}/zlib/zconf.h
-    ${EXTERNAL_DIR}/zlib/zlib.h
-    ${EXTERNAL_DIR}/zlib/zutil.h
+set(LBM_HEADER_LIST
+    incl/unistd.h
 )
 
-set(EXTERNAL_SOURCE_LIST
-    ${EXTERNAL_DIR}/tinyxml/tinyxml.cpp
-    ${EXTERNAL_DIR}/tinyxml/tinystr.cpp
-    ${EXTERNAL_DIR}/tinyxml/tinyxmlerror.cpp
-    ${EXTERNAL_DIR}/tinyxml/tinyxmlparser.cpp
-    ${EXTERNAL_DIR}/zlib/adler32.c
-    ${EXTERNAL_DIR}/zlib/compress.c
-    ${EXTERNAL_DIR}/zlib/crc32.c
-    ${EXTERNAL_DIR}/zlib/deflate.c
-    ${EXTERNAL_DIR}/zlib/gzclose.c
-    ${EXTERNAL_DIR}/zlib/gzlib.c
-    ${EXTERNAL_DIR}/zlib/gzread.c
-    ${EXTERNAL_DIR}/zlib/gzwrite.c
-    ${EXTERNAL_DIR}/zlib/infback.c
-    ${EXTERNAL_DIR}/zlib/inffast.c
-    ${EXTERNAL_DIR}/zlib/inflate.c
-    ${EXTERNAL_DIR}/zlib/inftrees.c
-    ${EXTERNAL_DIR}/zlib/trees.c
-    ${EXTERNAL_DIR}/zlib/uncompr.c
-    ${EXTERNAL_DIR}/zlib/zutil.c
+set(LBM_SOURCE_LIST
+    ${lbm_SOURCE_DIR}/src/communication/mpiManager.cpp
+    ${lbm_SOURCE_DIR}/src/io/ostreamManager.cpp
+    ${lbm_SOURCE_DIR}/src/core/olbInit.cpp
 )
 
 option(VERBOSE "Verbose" ON)
@@ -103,10 +72,11 @@ IF(VERBOSE)
     ADD_DEFINITIONS(-DVERBOSE)
 ENDIF()
 
-target_sources(lbmLib PUBLIC ${EXTERNAL_SOURCE_LIST} ${EXTERNAL_HEADER_LIST})
+target_sources(lbmLib PUBLIC ${LBM_HEADER_LIST} ${LBM_SOURCE_LIST})
 
 target_include_directories(
     lbmLib PUBLIC ${lbm_SOURCE_DIR}/src
+    incl
     ${lbm_SOURCE_DIR}/external/tinyxml
     ${lbm_SOURCE_DIR}/external/zlib
 )
@@ -116,6 +86,7 @@ add_library(${TARGET_NAME})
 
 # add sources
 add_subdirectory(src)
+add_subdirectory(incl)
 
 if(USE_ESSLBM)
     target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
