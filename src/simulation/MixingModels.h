@@ -254,7 +254,7 @@ template<typename T>
 class DiffusionMixingModel : public MixingModel<T> {
 
 private:
-    int numFourierTerms = 100;
+    int noFourierTerms = 100;
     std::set<int> mixingNodes;
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
@@ -297,18 +297,18 @@ public:
     
     void printTopology();
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int numFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int numFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolution(T channelLength, T currChannelFlowRate, T channelWidth, int numFourierTerms, int specieId, T pecletNr, 
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolution(T channelLength, T currChannelFlowRate, T channelWidth, int noFourierTerms, int specieId, T pecletNr, 
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
 
     std::tuple<std::function<T(T)>,std::vector<T>,T> getAnalyticalSolutionHybrid(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, T pecletNr, std::vector<T> concentrationField, T dx);
 
-    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, T channelWidth, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int numFourierTerms);
+    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, T channelWidth, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int noFourierTerms);
     
-    std::tuple<std::function<T(T)>, std::vector<T>, T> getAnalyticalSolutionHybridInput(T channelLength, T channelWidth, int numFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+    std::tuple<std::function<T(T)>, std::vector<T>, T> getAnalyticalSolutionHybridInput(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
     void clean(arch::Network<T>* network);
 
@@ -324,18 +324,18 @@ public:
 
     /**
      * @brief Reset the number of Fourier terms used in the analytical solution. The higher the number the higher the precision, although this is negligible at some point.
-     * @param[in] newNumFourierTerms The new number of Fourier terms.
+     * @param[in] newnoFourierTerms The new number of Fourier terms.
      */
-    void resetNumFourierTerms(int newNumFourierTerms) {
-        numFourierTerms = newNumFourierTerms;
+    void resetnoFourierTerms(int newnoFourierTerms) {
+        noFourierTerms = newnoFourierTerms;
     }
 
     /**
      * @brief Return the number of Fourier terms used in the analytical solution.
-     * @param[out] numFourierTerms The current number of Fourier terms.
+     * @param[out] noFourierTerms The current number of Fourier terms.
      */
-    int getNumFourierTerms() const {
-        return numFourierTerms;
+    int getnoFourierTerms() const {
+        return noFourierTerms;
     }
 
 };
