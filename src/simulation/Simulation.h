@@ -384,8 +384,8 @@ public:
      * @param[in] module Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
     */
-    essLbmMixingSimulator<T>* addEssMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, arch::Opening<T>> openings,
-                                        T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
+    essLbmMixingSimulator<T>* addEssMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+                                                    std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T alpha, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new module to the network.

@@ -44,6 +44,8 @@ namespace sim {
 
             std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <specieId, <nodeId, conc>> !! Inverse of OLB !!
 
+            std::unordered_map<int, Specie<T>*> species;
+
         public:
             /**
              * @brief Constructor of an lbm module.
@@ -54,8 +56,8 @@ namespace sim {
              * @param[in] nodes Map of nodes that are on the boundary of the module.
              * @param[in] openings Map of the in-/outlets of the module.
             */
-            essLbmMixingSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule,  std::unordered_map<int, arch::Opening<T>> openings_,
-                                ResistanceModel<T>* resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
+            essLbmMixingSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, Specie<T>*> species_,
+                                  std::unordered_map<int, arch::Opening<T>> openings_, ResistanceModel<T>* resistanceModel, T charPhysLength_, T charPhysVelocity_, T alpha, T resolution_, T epsilon_, T relaxationTime_);
             /**
              * @brief Initialize an instance of the LBM solver for this module.
              * @param[in] dynViscosity Dynamic viscosity of the simulated fluid in _kg / m s_.

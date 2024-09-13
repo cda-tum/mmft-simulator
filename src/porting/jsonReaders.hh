@@ -308,7 +308,12 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
             else if(simulator["Type"] == "ESS_Mixing")
             {
                 #ifdef USE_ESSLBM
-                auto simulator = simulation.addEssMixingSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
+
+                auto simulator = simulation.addEssMixingSimulator(name, stlFile, network->getModule(moduleId), species, Openings, charPhysLength,
                                                             charPhysVelocity, alpha, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
                 #else

@@ -7,9 +7,10 @@
 namespace sim{
 
     template<typename T>
-    essLbmMixingSimulator<T>::essLbmMixingSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_,  std::unordered_map<int, arch::Opening<T>> openings_,
-                                ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) :
-            essLbmSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, alpha_, resolution_, epsilon_, relaxationTime_)
+    essLbmMixingSimulator<T>::essLbmMixingSimulator(int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_,  std::unordered_map<int, Specie<T>*> species_,
+                                std::unordered_map<int, arch::Opening<T>> openings_,  ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_) :
+            essLbmSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, alpha_, resolution_, epsilon_, relaxationTime_),
+            species(species_)
     {
         this->cfdModule->setModuleTypeEssLbm();
     }
@@ -29,8 +30,9 @@ namespace sim{
             this->pressures[key] = value;
         for(auto& [key,value] : this->solver_->getFlowRates())
             this->flowRates[key] = value;
-        for(auto& [key,value] : std::dynamic_pointer_cast<ess::lbmMixingSolver>(this->solver_)->getConcentrations())
-            concentrations.at(0)[key] = value;
+        for(auto& [node_id,spec] : std::dynamic_pointer_cast<ess::lbmMixingSolver>(this->solver_)->getConcentrations())
+        for(auto& [key,value] : spec)
+            concentrations[node_id][key] = value;
     }
 
     template<typename T>
@@ -60,7 +62,11 @@ namespace sim{
             nodes.try_emplace(op.first, node);
         }
 
-        this->solver_ = std::make_shared<ess::lbmMixingSolver>(work_dir, this->stlFile, openings, nodes, this->charPhysLength, 
+        std::unordered_map<int, std::pair<std::string,float>> spec;
+        for(auto& [key, value] : species)
+            spec[key] = std::make_pair(value->getName(), static_cast<float>(value->getDiffusivity()));
+
+        this->solver_ = std::make_shared<ess::lbmMixingSolver>(work_dir, this->stlFile, openings, nodes, spec, this->charPhysLength,
                                                                 this->charPhysVelocity, 1.0f / this->resolution, this->epsilon, 
                                                                 this->relaxationTime, density, dynViscosity, concentration);
         this->solver_->prepareLattice();
@@ -100,9 +106,11 @@ namespace sim{
     template<typename T>
     void essLbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations_)
     {
-        std::unordered_map<int, float> interface;
-        for(auto& [key, value] : concentrations_.at(0))
-            interface.try_emplace(key, value);
+        std::unordered_map<int, std::unordered_map<int, float>> interface;
+        for(auto& [node_id, species] : concentrations_)
+        for(auto& [key, value] : species)
+            interface[node_id].try_emplace(key, value);
+
         concentrations = concentrations_;
         std::dynamic_pointer_cast<ess::lbmMixingSolver>(this->solver_)->setConcentrations(interface);
     }
