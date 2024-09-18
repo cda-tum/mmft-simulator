@@ -1028,3 +1028,38 @@ TEST(BigDroplet, noSinkTwoDroplets) {
     // simulate
     testSimulation.simulate();
 }
+
+TEST(BigDroplet, ByPass) {
+    // define network
+    arch::Network<T> network;
+    auto node0 = network.addNode(0.0, 0.0, true);
+    auto node1 = network.addNode(1e-3, 0.0, false);
+    auto node2 = network.addNode(2e-3, 0.0, false);
+
+    // pressure pump (voltage sources)
+    auto v0 = network.addPressurePump(node1->getId(), node2->getId(), 32.0);
+
+    // flowRate pump (current source)
+    auto i0 = network.addFlowRatePump(node1->getId(), node0->getId(), 20.0);
+
+    // channels
+    auto c1 = network.addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
+    auto c2 = network.addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::BYPASS);
+    auto c3 = network.addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::CLOGGABLE);
+
+    ASSERT_EQ(v0->getNodeA(), node1->getId());
+    ASSERT_EQ(v0->getNodeB(), node2->getId());
+    ASSERT_EQ(v0->getPressure(), 32.0);
+    ASSERT_EQ(i0->getNodeA(), node1->getId());
+    ASSERT_EQ(i0->getNodeB(), node0->getId());
+    ASSERT_EQ(i0->getFlowRate(), 20.0);
+    ASSERT_EQ(network.getChannels().at(c1->getId())->getNodeA(), node0->getId());
+    ASSERT_EQ(network.getChannels().at(c1->getId())->getNodeB(), node1->getId());
+    ASSERT_EQ(network.getChannels().at(c1->getId())->getChannelType(), arch::ChannelType::NORMAL);
+    ASSERT_EQ(network.getChannels().at(c2->getId())->getNodeA(), node1->getId());
+    ASSERT_EQ(network.getChannels().at(c2->getId())->getNodeB(), node2->getId());
+    ASSERT_EQ(network.getChannels().at(c2->getId())->getChannelType(), arch::ChannelType::BYPASS);
+    ASSERT_EQ(network.getChannels().at(c3->getId())->getNodeA(), node2->getId());
+    ASSERT_EQ(network.getChannels().at(c3->getId())->getNodeB(), node0->getId());
+    ASSERT_EQ(network.getChannels().at(c3->getId())->getChannelType(), arch::ChannelType::CLOGGABLE);
+}

@@ -44,6 +44,12 @@ void readChannels(json jsonString, arch::Network<T>& network) {
                 throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
+            if (channel.contains("bypass") && channel["bypass"]) {
+                type = arch::ChannelType::BYPASS;
+            } else if (channel.contains("cloggable") && channel["cloggable"]) {
+                type = arch::ChannelType::CLOGGABLE;
+            }
+            
             network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
             channelId++;
         }
