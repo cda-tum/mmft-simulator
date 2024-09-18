@@ -40,8 +40,8 @@ Scheme<T>::Scheme(const std::shared_ptr<arch::Module<T>> module_, std::unordered
 
 template<typename T>
 void Scheme<T>::setAlpha(T alpha_) {
-    for (auto a : alpha) {
-        a = alpha_;
+    for (auto& a : alpha) {
+        a = static_cast<T>(alpha_);
     }
 }
 
@@ -57,8 +57,8 @@ void Scheme<T>::setAlpha(std::unordered_map<int, T> alpha_) {
 
 template<typename T>
 void Scheme<T>::setBeta(T beta_) {
-    for (auto b : beta) {
-        b = beta_;
+    for (auto& b : beta) {
+        b = static_cast<T>(beta_);
     }
 }
 
@@ -74,8 +74,8 @@ void Scheme<T>::setBeta(std::unordered_map<int, T> beta_) {
 
 template<typename T>
 void Scheme<T>::setTheta(int theta_) {
-    for (auto t : theta) {
-        t = theta_;
+    for (auto& t : theta) {
+        t = static_cast<T>(theta_);
     }
 }
 
