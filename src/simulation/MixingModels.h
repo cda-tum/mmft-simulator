@@ -34,6 +34,9 @@ class Simulation;
 template<typename T>
 class Specie;
 
+template<typename T>
+class lbmSimulator;
+
 // Structure to define the mixture inflow into a node
 template<typename T>
 struct MixtureInFlow {
@@ -251,12 +254,15 @@ template<typename T>
 class DiffusionMixingModel : public MixingModel<T> {
 
 private:
-    int resolution = 10;
+    int noFourierTerms = 100;
     std::set<int> mixingNodes;
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
     std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
+    std::unordered_map<int, std::unordered_map<int, std::vector<T>>>  concentrationFieldsOut; ///< Defines which concentration fields are defined at nodes at the interface between 1D into CFD <channelId, <specieId, concentrationField>>
     void generateInflows();
+
+    std::shared_ptr<lbmSimulator<T>> simulator; // Pointer to the lbm simulator
 
 public:
 
@@ -290,12 +296,37 @@ public:
     
     void printTopology();
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
+    /**
+     * @brief Calculate the species concentration distribution across the channel width (at the end of the channel) for constant concentration flow sections. To get the analytical solution, a fourier series is employed. 
+     */
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
+    /**
+     * @brief Calculate the species concentration distribution across the channel width (at the end of the channel) for non-constant concentration inputs flow sections. To get the analytical solution, a fourier series is employed. 
+     */
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalFunction(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant);
 
-    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionTotal(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, T pecletNr, 
+    /**
+     * @brief Calculate the species concentration distribution in a channel by calculating the get analytical function for constant and non-constant flow sections.
+     */
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolution(T channelLength, T currChannelFlowRate, T channelWidth, int noFourierTerms, int specieId, T pecletNr, 
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
+
+    /**
+     * @brief Calculate the species concentration across the channel width (at the end of the channel) for concentation fields flowing out of a CFD module. For this the constant concentration values at each lattice point of the CFD module are translated into linear segments.
+     * This way a more accurate connection, while adhering to the law of mass conservation is achieved. For the concentration distribution function at the end of a channel the analytical solution is solved by employing a fourier series. 
+     */
+    std::tuple<std::function<T(T)>,std::vector<T>,T> getAnalyticalSolutionHybrid(T channelLength, T currChannelFlowRate, T channelWidth, int resolution, T pecletNr, std::vector<T> concentrationField, T dx);
+
+    /**
+     * @brief Use piecewise linerar interpolation to translate the analytical solution of the species concentration across the channel width (at the end of the channel) into the concentration values in the lattice of the CFD module. This considers the conservation of mass. 
+     */
+    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, T channelWidth, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int noFourierTerms);
+    
+    /**
+     * @brief Use a fifth order polynomial function to translate the analytical solution of the species concentration across the channel width (at the end of the channel) into the concentration values in the lattice of the CFD module.
+     */
+    std::tuple<std::function<T(T)>, std::vector<T>, T> getAnalyticalSolutionHybridInput(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
 
     void clean(arch::Network<T>* network);
 
@@ -308,6 +339,22 @@ public:
     bool isInstantaneous() override { return 0; };
 
     bool isDiffusive() override { return 1; };
+
+    /**
+     * @brief Reset the number of Fourier terms used in the analytical solution. The higher the number the higher the precision, although this is negligible at some point.
+     * @param[in] newnoFourierTerms The new number of Fourier terms.
+     */
+    void resetnoFourierTerms(int newnoFourierTerms) {
+        noFourierTerms = newnoFourierTerms;
+    }
+
+    /**
+     * @brief Return the number of Fourier terms used in the analytical solution.
+     * @param[out] noFourierTerms The current number of Fourier terms.
+     */
+    int getnoFourierTerms() const {
+        return noFourierTerms;
+    }
 
 };
 

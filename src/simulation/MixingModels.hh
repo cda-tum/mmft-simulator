@@ -4,6 +4,7 @@
 #include <deque>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #define M_PI 3.14159265358979323846
 
@@ -446,8 +447,8 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                 std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
                 for (auto& specieId : presentSpecies) {
                     T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
-                    std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
-                        channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
+                    std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolution(
+                        channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), noFourierTerms, specieId, 
                         pecletNr, outflowDistributions.at(channel->getId()), mixtures);
                     newDistributions.try_emplace(specieId, analyticalResult);
                 }
@@ -457,6 +458,39 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                 this->injectMixtureInEdge(newMixture->getId(), channelId);
             }
         }
+    }
+    // Define the outflow of the CFD simulators for diffusive mixing
+    // These nodes are not defined as mixing nodes but they might still have a complex concentration distribution
+    for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
+        std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsIn = cfdSimulator->getNodeConcentrationFields();
+            
+        for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
+            // If the node is an inflow
+            for (auto& [channelId, channel] : network->getChannels()) { // There is only one channel connected to a node at a CFD hybrid node connection
+                if (cfdSimulator->getFlowRates().at(nodeId) > 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
+                    std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
+                    for (const auto& [specieId, concentrationField] : concentrationFieldsIn.at(nodeId)) {
+                        T dx = channel->getWidth() / concentrationField.size();
+                        T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                        std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionHybrid(
+                            channel->getLength(), channel->getFlowRate(), channel->getWidth(), noFourierTerms, pecletNr, concentrationField, dx);
+                        newDistributions.try_emplace(specieId, analyticalResult);
+                    }
+                    //Create new DiffusiveMixture
+                    DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
+                    newMixture->setNonConstant();
+                    this->injectMixtureInEdge(newMixture->getId(), channelId);
+                }
+                else if (cfdSimulator->getFlowRates().at(nodeId) < 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
+                    for (const auto& [specieId, concentrationField] : concentrationFieldsOut.at(nodeId)) {
+                        int resolutionIntoCfd = cfdSimulator->getResolution(nodeId);
+                        std::vector<T> concentrationFieldForCfdInput = defineConcentrationNodeFieldForCfdInput(resolutionIntoCfd, specieId, channelId, channel->getWidth(), mixtures, noFourierTerms);
+                        concentrationFieldsOut[nodeId][specieId] = concentrationFieldForCfdInput;
+                    }
+                }
+            }
+        }
+        cfdSimulator->storeNodeConcentrationFields(concentrationFieldsOut);
     }
 } 
 
@@ -668,14 +702,14 @@ void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, Simula
 }
 
 template<typename T>
-std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
+std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getAnalyticalFunction(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
     T a_0 = 0.0;
     std::vector<T> segmentedResult;
 
     for (const auto& parameter : parameters) {
-        for (int n = 1; n < resolution; n++) {
+        for (int n = 1; n < noFourierTerms; n++) {
             T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth)); 
-                segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
         }
     }
 
@@ -683,11 +717,11 @@ std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getA
             a_0 += 2 * parameter.concentrationAtChannelEnd  * (parameter.endWidth - parameter.startWidth);
         }
 
-    auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters](T w) { // This returns C(w, l_1)
+    auto f = [a_0, channelLength, channelWidth, noFourierTerms, pecletNr, parameters](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
 
         for (const auto& parameter : parameters) {
-            for (int n = 1; n < resolution; n++) {
+            for (int n = 1; n < noFourierTerms; n++) {
                 T a_n = (2/(n * M_PI))  * (parameter.concentrationAtChannelEnd) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
                 f_sum += a_n * std::cos(n * M_PI * (w)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth));
             }
@@ -698,7 +732,7 @@ std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getA
 }
 
 template<typename T> 
-std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionFunction(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalFunction(T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters, std::function<T(T)> fConstant) { 
     // From Channel Start to Channel End for complex input
     std::vector<T> segmentedResult;
     T a_0 = 0.0;
@@ -708,13 +742,13 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
     for (const auto& parameter : parameters) {
         T a_0_old = parameter.a_0_old;
         T scaleFactor = parameter.scaleFactor;
-        for (int n = 1; n < resolution; n++) {
+        for (int n = 1; n < noFourierTerms; n++) {
             a_n = a_0_old / (M_PI * n) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
             
             for (long unsigned int i = 0; i < parameter.segmentedResult.size(); i++) {
                 T translateFactor = parameter.translateFactor;
 
-                int oldN = (i % (resolution - 1)) + 1;
+                int oldN = (i % (noFourierTerms - 1)) + 1;
 
                 if (abs(oldN/scaleFactor - n) < 1e-8) { 
                     a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * translateFactor) 
@@ -743,14 +777,14 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         for (long unsigned int i = 0; i < parameter.segmentedResult.size(); i++) { 
             T scaleFactor = parameter.scaleFactor;
             T translateFactor = parameter.translateFactor;
-            int oldN = (i % (resolution - 1)) + 1;
+            int oldN = (i % (noFourierTerms - 1)) + 1;
             a_0 += 2 * parameter.segmentedResult[i] * scaleFactor/(oldN * M_PI) * 
                 (std::sin(oldN * M_PI * parameter.endWidth / scaleFactor + oldN * M_PI * translateFactor) 
                 - std::sin(oldN * M_PI * parameter.startWidth / scaleFactor + oldN * M_PI * translateFactor));
         }
     }     
 
-    auto f = [a_0, channelLength, channelWidth, resolution, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
+    auto f = [a_0, channelLength, channelWidth, noFourierTerms, pecletNr, parameters, fConstant](T w) { // This returns C(w, l_1)
         T f_sum = 0.0;
         T a_n = 0.0;
 
@@ -758,12 +792,12 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         for (const auto& parameter : parameters) {
             T a_0_old = parameter.a_0_old;
             T scaleFactor = parameter.scaleFactor;
-            for (int n = 1; n < resolution; n++) {
+            for (int n = 1; n < noFourierTerms; n++) {
                 a_n = a_0_old / (M_PI * n) * (std::sin(n * M_PI * parameter.endWidth) - std::sin(n * M_PI * parameter.startWidth));
                 
                 for (long unsigned int i = 0; i < parameter.segmentedResult.size(); i++) {
                     T translateFactor = parameter.translateFactor;
-                    int oldN = (i % (resolution - 1)) + 1;
+                    int oldN = (i % (noFourierTerms - 1)) + 1;
 
                     if (abs(oldN/scaleFactor - n) < 1e-12) { 
                         a_n += 2 * ((0.5 * parameter.endWidth - 0.5 * parameter.startWidth) * std::cos(oldN * M_PI * translateFactor) 
@@ -792,8 +826,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
 // From Channel Start to Channel End for complex input
 template<typename T>
-std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
-    T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolution(
+    T channelLength, T currChannelFlowRate, T channelWidth, int noFourierTerms, int specieId, 
     T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures) { 
     
     T prevEndWidth = 0.0;
@@ -819,18 +853,18 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         } else {
             T mixtureId = this->filledEdges.at(flowSection.channelId); // get the diffusive mixture at a specific channelId
             DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
-            if (diffusiveMixture->getSpecieConcentrations().find(speciesId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
+            if (diffusiveMixture->getSpecieConcentrations().find(specieId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
                 T concentration = 0.0;
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)});
             } else if (diffusiveMixture->getIsConstant()) { 
-                T concentration = diffusiveMixture->getConcentrationOfSpecie(speciesId); 
+                T concentration = diffusiveMixture->getConcentrationOfSpecie(specieId); 
                 std::function<T(T)> zeroFunction = [](T) -> T { return 0.0; };
                 std::vector<T> zeroSegmentedResult = {0};
                 constantFlowSections.push_back({startWidth, endWidth, 1.0, translateFactor, concentration, zeroFunction, zeroSegmentedResult, T(0.0)}); 
             } else {
-                auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(speciesId);
+                auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(specieId);
                 // std::function<T(T)> concentrationFunction = specieDistribution.first;
                 // std::vector<T> segmentedResults = specieDistribution.second;
                 std::function<T(T)> concentrationFunction = std::get<0>(specieDistribution);
@@ -843,8 +877,8 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
         }
     }
 
-    auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalSolutionConstant(channelLength, channelWidth, resolution, pecletNr, constantFlowSections);
-    auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalSolutionFunction(channelLength, channelWidth, resolution, pecletNr, functionFlowSections, fConstant);
+    auto [fConstant, segmentedResultConstant, a_0_Constant] = getAnalyticalFunction(channelLength, channelWidth, noFourierTerms, pecletNr, constantFlowSections);
+    auto [fFunction, segmentedResultFunction, a_0_Function] = getAnalyticalFunction(channelLength, channelWidth, noFourierTerms, pecletNr, functionFlowSections, fConstant);
 
     segmentedResultFunction.insert(segmentedResultFunction.end(), segmentedResultConstant.begin(), segmentedResultConstant.end());
 
@@ -854,7 +888,158 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 
 }
 
+template<typename T>
+std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionHybrid(
+    T channelLength, T currChannelFlowRate, T channelWidth, int noFourierTerms, T pecletNr, std::vector<T> concentrationField, T dx) { 
 
+    T distance2Wall = dx / 2.0;
+    std::vector<T> segmentedResult;
+    std::vector<T> a_n_values(noFourierTerms, 0.0);
+    T a_0 = 0.0;
+
+    for (size_t i = 0; i < concentrationField.size() - 1; ++i) {
+        T width1 = distance2Wall + i * dx;
+        T concentration1 = concentrationField[i];
+        T width2 = distance2Wall + (i + 1) * dx;
+        T concentration2 = concentrationField[i + 1];
+
+        T linearSegmentFactor = (concentration2 - ((concentration1 * width2) / width1)) / (1 - (width2 / width1));
+        T linearSegmentSlope = (concentration1 - linearSegmentFactor) / width1;
+
+        a_0 += 2 * linearSegmentFactor * (width2 - width1) + linearSegmentSlope * (pow(width2, 2) - pow(width1, 2));
+
+        for (int n = 1; n < noFourierTerms; n++) {
+            T a_n = 2 / (n * M_PI) * std::sin(n * M_PI * width2) * (linearSegmentFactor + linearSegmentSlope * width2) + 2 / pow((n * M_PI), 2) * linearSegmentSlope * std::cos(n * M_PI * width2)
+                - 2 / (n * M_PI) * std::sin(n * M_PI * width1) * (linearSegmentFactor + linearSegmentSlope * width1) - 2 / pow((n * M_PI), 2) * linearSegmentSlope * std::cos(n * M_PI * width1);
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+            a_n_values[n] += a_n;
+        }
+    }
+    // add the connection to the sides
+    // start segment
+    T concentrationStart = concentrationField[0];
+    T startWidth = 0.0;
+    a_0 += 2 * (concentrationStart * (distance2Wall - startWidth));
+    for (int n = 1; n < noFourierTerms; n++) {
+        T a_n_start = (2/(n * M_PI)) * concentrationStart * (std::sin(n * M_PI * distance2Wall) - std::sin(n * M_PI * startWidth));
+        a_n_values[n] += a_n_start;
+        segmentedResult.insert(segmentedResult.begin(), a_n_start * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+    }
+    // end segment
+    T concentrationEnd = concentrationField[concentrationField.size() - 1];
+    T endWidth = dx * concentrationField.size();
+    a_0 += 2 * (concentrationEnd * (endWidth - (endWidth - distance2Wall)));
+    for (int n = 1; n < noFourierTerms; n++) {
+        T a_n_end = (2/(n * M_PI)) * concentrationEnd * (std::sin(n * M_PI * endWidth) - std::sin(n * M_PI * (endWidth - distance2Wall)));
+        a_n_values[n] += a_n_end;
+        segmentedResult.push_back(a_n_end * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+    }
+
+    auto functionHybrid = [a_0, a_n_values, channelLength, channelWidth, noFourierTerms, pecletNr](T w) { // This returns C(w, l_1)
+        T f_sum = 0.0;
+        for (int n = 1; n < noFourierTerms; n++) {
+            f_sum += a_n_values[n] * std::cos(n * M_PI * w) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength / channelWidth));
+        }
+        return 0.5 * a_0 + f_sum;
+    };
+
+    return {functionHybrid, segmentedResult, a_0};
+}
+
+template<typename T>
+std::vector<T> DiffusionMixingModel<T>::defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, T channelWidth, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int noFourierTerms) {
+    // To adhere to the conservation of mass, the sum of concentration passed must be equal to that represented by the concentration function across the width.
+    // For this piecewise linerar interpolation is employed.
+    std::vector<T> concentrationField;
+    T mixtureId = this->filledEdges.at(channelId); // get the diffusive mixture at a specific channelId
+    DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
+    if (diffusiveMixture->getSpecieConcentrations().find(specieId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
+        // here we could distinguish between constant and non-constant concentration
+        concentrationField = std::vector<T>(resolutionIntoCfd, 0.0);
+    } else if (diffusiveMixture->getIsConstant()) { 
+        T concentration = diffusiveMixture->getConcentrationOfSpecie(specieId);
+        concentrationField = std::vector<T>(resolutionIntoCfd, concentration);
+    } else {
+        auto specieDistribution = diffusiveMixture->getSpecieDistributions().at(specieId);
+        std::vector<T> segmentedResult = std::get<1>(specieDistribution);
+        T a_0_old = std::get<2>(specieDistribution);
+        for (int i = 0; i < resolutionIntoCfd - 1; i++) {
+            T segmentWidth = channelWidth / resolutionIntoCfd;
+            T start = i * segmentWidth;
+            T end = (i + 1) * segmentWidth; 
+            // now we to integrate the function over the width of each dx
+            T concentration = 0.5 * M_PI * a_0_old * (end - start); 
+            for (long unsigned int n = 0; n < segmentedResult.size(); n++) { 
+                int oldN = (n % (noFourierTerms - 1)) + 1;
+                concentration += segmentedResult[n] / oldN * (std::sin(oldN * M_PI * end) - std::sin(oldN * M_PI * start));
+            }
+            concentrationField.push_back(concentration);
+        }   
+    }
+    return concentrationField;
+}
+
+template<typename T>
+std::tuple<std::function<T(T)>, std::vector<T>, T> DiffusionMixingModel<T>::getAnalyticalSolutionHybridInput(
+    T channelLength, T channelWidth, int noFourierTerms, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters) { 
+    T a_0 = 0.0;
+    std::vector<T> segmentedResult;
+
+    // TODO - get the parameters a to f from the polynomial fit of the hybrid concentration output
+    for (const auto& parameter : parameters) {
+        for (int n = 1; n < noFourierTerms; n++) {
+            T a_n = 1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.endWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.endWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) 
+                + 120 * parameter.a * parameter.endWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + parameter.c * pow(n * M_PI, 4) * pow(parameter.endWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.endWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.endWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.endWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.endWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) - 24 * parameter.b * parameter.endWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.endWidth + parameter.e * pow(n * M_PI, 2))))
+                -
+                (1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.startWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.startWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) 
+                + 120 * parameter.a * parameter.startWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + parameter.c * pow(n * M_PI, 4) * pow(parameter.startWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.startWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.startWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.startWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.startWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) - 24 * parameter.b * parameter.endWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.endWidth + parameter.e * pow(n * M_PI, 2))))); 
+            segmentedResult.push_back(a_n * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth)));
+        }
+    }
+
+    for (const auto& parameter : parameters) { // iterates through all channels that flow into the current channel
+            a_0 += parameter.a / 6 * pow(parameter.endWidth, 6) + parameter.b / 5 * pow(parameter.endWidth, 5) + parameter.c / 4 * pow(parameter.endWidth, 4) + parameter.d / 3 * pow(parameter.endWidth, 3) + parameter.e / 2 * pow(parameter.endWidth, 2) + parameter.f * parameter.endWidth
+                - (parameter.a / 6 * pow(parameter.startWidth, 6) + parameter.b / 5 * pow(parameter.startWidth, 5) + parameter.c / 4 * pow(parameter.startWidth, 4) + parameter.d / 3 * pow(parameter.startWidth, 3) + parameter.e / 2 * pow(parameter.startWidth, 2) + parameter.f * parameter.startWidth);
+        }
+
+    auto f = [a_0, channelLength, channelWidth, noFourierTerms, pecletNr, parameters](T w) { // This returns C(w, l_1)
+        T f_sum = 0.0;
+
+        for (const auto& parameter : parameters) {
+            for (int n = 1; n < noFourierTerms; n++) {
+                T a_n = 1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.endWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.endWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) 
+                + 120 * parameter.a * parameter.endWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + parameter.c * pow(n * M_PI, 4) * pow(parameter.endWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.endWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.endWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.endWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.endWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.endWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.endWidth, 3) - 24 * parameter.b * parameter.endWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.endWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.endWidth + parameter.e * pow(n * M_PI, 2))))
+                -
+                (1 / pow(n * M_PI, 6) * (n * M_PI * std::sin(n * M_PI * parameter.startWidth) * (parameter.a * pow(n * M_PI, 4) * pow(parameter.startWidth, 5) - 20 * parameter.a * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) 
+                + 120 * parameter.a * parameter.startWidth + parameter.b * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + parameter.c * pow(n * M_PI, 4) * pow(parameter.startWidth, 3) - 6 * parameter.c * pow(n * M_PI, 2) * parameter.startWidth + parameter.d * pow(n * M_PI, 4) * pow(parameter.startWidth, 2)
+                - 2 * parameter.d * pow(n * M_PI, 2) + parameter.e * pow(n * M_PI, 4) * parameter.startWidth + parameter.f * pow(n * M_PI, 4))
+                + std::cos(n * M_PI * parameter.startWidth) * (5 * parameter.a * (pow(n * M_PI, 4) * pow(parameter.startWidth, 4) - 12 * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) + 24)
+                + pow(n * M_PI, 2) * (4 * parameter.b * pow(n * M_PI, 2) * pow(parameter.startWidth, 3) - 24 * parameter.b * parameter.startWidth + 3 * parameter.c * pow(n * M_PI, 2) * pow(parameter.startWidth, 2) - 6 * parameter.c 
+                + 2 * parameter.d * pow(n * M_PI, 2) * parameter.startWidth + parameter.e * pow(n * M_PI, 2)))));
+
+                f_sum += a_n * std::cos(n * M_PI * (w)) * std::exp(-pow(n, 2) * pow(M_PI, 2) * (1 / pecletNr) * (channelLength/channelWidth));
+            }
+        }
+        return 0.5 * a_0 + f_sum;
+    };
+    return {f, segmentedResult, a_0};
+}
 
 template<typename T>
 void DiffusionMixingModel<T>::printTopology() {
@@ -890,6 +1075,7 @@ void DiffusionMixingModel<T>::clean(arch::Network<T>* network) {
             }
         }
     }
+    concentrationFieldsOut.clear();
 }
 
 template<typename T>

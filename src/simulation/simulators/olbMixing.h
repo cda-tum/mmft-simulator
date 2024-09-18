@@ -45,6 +45,8 @@ using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 protected:
     std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
+    std::unordered_map<int, std::unordered_map<int, std::vector<T>>> nodeConcentrationFields;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, <conc>>>
+    std::unordered_map<int, int> resolutions;   ///< Vector of Resolutions at module nodes <nodeId, resolution>
 
     std::unordered_map<int, Specie<T>*> species;
 
@@ -182,16 +184,36 @@ public:
     void writeVTK(int iT) override;
 
     /**
+     * @brief Get the lattice resolution at the boundary nodes.
+     * @param[in] nodeId of the boundary node.
+     * @returns Resolution.
+     */
+    int getResolution(int nodeId) const override;
+
+    /**
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
      * @param[in] concentrations Map of concentrations and node ids.
      */
     void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) override;
 
     /**
+     * @brief Store the abstract concentration fields at the nodes on the module boundary in the simulator.
+     * @param[in] concentrations Map of concentration vectors and node ids for each speciesId.
+     */
+    void storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> nodeConcentrationFields) override;
+
+
+    /**
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
     std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const override;
+
+    /**
+     * @brief Get the concentration field at the boundary nodes, i.e., the concentration at each grid end point in the lattice.
+     * @returns Concentration vectors
+     */
+    std::unordered_map<int, std::unordered_map<int, std::vector<T>>> getNodeConcentrationFields() const override;
 
     /**
      * @brief Returns whether the module has converged or not.

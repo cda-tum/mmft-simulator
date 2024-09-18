@@ -204,6 +204,17 @@ public:
     virtual std::unordered_map<int, T> getFlowRates() const = 0;
 
     /**
+     * @brief Get the lattice resolution at the boundary nodes.
+     * @param[in] nodeId of the boundary node.
+     * @returns Resolution.
+     */
+    virtual int getResolution(int nodeId) const 
+    { 
+        throw std::runtime_error("The function getResolution is undefined for this CFD simulator.");
+        return 0;
+    }
+
+    /**
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
      * @param[in] concentrations Map of concentrations and node ids.
      */
@@ -213,13 +224,32 @@ public:
     }
 
     /**
+     * @brief Store the abstract concentration fields at the nodes on the module boundary in the simulator.
+     * @param[in] concentrationFieldsOut Map consisting of species id and a vector of concentrations at each grid point and node ids.
+     */
+    virtual void storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut) 
+    {
+        throw std::runtime_error("The function storeNodeConcentrationFields is undefined for this CFD simulator.");
+    }
+
+    /**
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
     virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
     { 
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
+        throw std::runtime_error("The function getConcentrations is undefined for this CFD simulator.");
         return std::unordered_map<int, std::unordered_map<int, T>>(); 
+    }
+
+    /**
+     * @brief Get the concentrations at the boundary nodes.
+     * @returns Concentrations
+     */
+    virtual std::unordered_map<int, std::unordered_map<int, std::vector<T>>> getNodeConcentrationFields() const 
+    { 
+        throw std::runtime_error("The function getNodeConcentrationFields is undefined for this CFD simulator.");
+        return std::unordered_map<int, std::unordered_map<int, std::vector<T>>>(); 
     }
 
     /**

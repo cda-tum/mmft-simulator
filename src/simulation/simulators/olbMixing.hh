@@ -366,6 +366,14 @@ void lbmMixingSimulator<T>::prepareCoupling() {
     this->lattice->addLatticeCoupling(coupling, adLatticesVec);
 }
 
+/**  
+ * TODO: coupling Abstract -> CFD  
+ */ 
+template<typename T>
+int lbmMixingSimulator<T>::getResolution(int nodeId) const {
+    return resolutions.at(nodeId);
+}
+
 template<typename T>
 void lbmMixingSimulator<T>::setConcentration2D (int key) {
     // Set the boundary concentrations for inflows and outflows
@@ -395,9 +403,25 @@ void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::uno
     this->concentrations = concentrations_;
 }
 
+/**  
+ * TODO: coupling Abstract -> CFD  
+ */ 
+template<typename T>
+void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
+    this->nodeConcentrationFields = concentrationFieldsOut_;
+}
+
 template<typename T>
 std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
+}
+
+/**  
+ * TODO: coupling Abstract -> CFD  
+ */ 
+template<typename T>
+std::unordered_map<int, std::unordered_map<int, std::vector<T>>> lbmMixingSimulator<T>::getNodeConcentrationFields() const {
+    return this->nodeConcentrationFields;
 }
 
 template<typename T>
