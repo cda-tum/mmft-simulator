@@ -258,8 +258,8 @@ void lbmSimulator<T>::initPressureIntegralPlane() {
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+        T posX =  Opening.node->getPosition()[0] - 0.0*this->cfdModule->getPosition()[0];
+        T posY =  Opening.node->getPosition()[1] - 0.0*this->cfdModule->getPosition()[1];          
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
@@ -280,8 +280,8 @@ void lbmSimulator<T>::initFlowRateIntegralPlane() {
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+        T posX =  Opening.node->getPosition()[0] - 0.0*this->cfdModule->getPosition()[0];
+        T posY =  Opening.node->getPosition()[1] - 0.0*this->cfdModule->getPosition()[1];          
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
@@ -413,6 +413,7 @@ void lbmSimulator<T>::setFlowProfile2D (int openingKey, T openingWidth)  {
 
 template<typename T>
 void lbmSimulator<T>::setPressure2D (int openingKey)  {
+    std::cout << "On node " << openingKey << " set pressure: " << (pressures[openingKey]) << std::endl;
     T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[openingKey]));
     this->densities.at(openingKey) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
     getLattice().defineRho(getGeometry(), openingKey+3, *this->densities.at(openingKey));
