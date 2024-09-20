@@ -373,8 +373,8 @@ void lbmSimulator<T>::readOpenings (const T dx) {
     auto min = stlReader->getMesh().getMin();
 
     T stlShift[2];
-    stlShift[0] = this->cfdModule->getPosition()[0] - min[0];
-    stlShift[1] = this->cfdModule->getPosition()[1] - min[1];
+    stlShift[0] = 0.0*(this->cfdModule->getPosition()[0] - min[0]);
+    stlShift[1] = 0.0*(this->cfdModule->getPosition()[1] - min[1]);
 
     for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
