@@ -17,8 +17,10 @@ auto writeChannels(result::State<T>* state) {
     auto channels = ordered_json::array();
     auto const& flowRates = state->getFlowRates();
     if (state->getMixturePositions().empty()) {
-        for (auto& [key, flowRate] : flowRates) {
-            channels.push_back({{"flowRate", flowRate}});
+        for (long unsigned int i=0; i<flowRates.size(); ++i) {
+            auto channel = ordered_json::object();
+            channel["flowRate"] = flowRates.at(i);
+            channels.push_back(channel);
         }
     } else if ( !state->getMixturePositions().empty() ) {
         for (long unsigned int i=0; i<flowRates.size(); ++i) {

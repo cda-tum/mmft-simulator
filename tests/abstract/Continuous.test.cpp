@@ -338,3 +338,120 @@ TEST(Continuous, Network2) {
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(12), result->getStates().at(0)->getFlowRates().at(13), 5e-10);
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(13), result->getStates().at(0)->getFlowRates().at(14), 5e-10);
 }
+
+TEST(Continuous, Y_Network1) {
+    std::string file = "../examples/Abstract/Continuous/Y-Network1.json";
+
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(file);
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+   
+    network.sortGroups();
+    network.isNetworkValid();
+
+    // Perform simulation and store results
+    testSimulation.simulate();
+
+    // results
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(2), 
+                result->getStates().at(0)->getFlowRates().at(1) + result->getStates().at(0)->getFlowRates().at(4), 1e-15);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(0), -1*result->getStates().at(0)->getFlowRates().at(1), 1e-15);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(4), result->getStates().at(0)->getFlowRates().at(3), 1e-15);
+
+    result->printLastState();
+
+    porting::resultToJSON("Y-Result1.json", &testSimulation);
+
+}
+
+TEST(Continuous, Y_Network2) {
+    std::string file = "../examples/Abstract/Continuous/Y-Network2.json";
+
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(file);
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+   
+    network.sortGroups();
+    network.isNetworkValid();
+
+    // Perform simulation and store results
+    testSimulation.simulate();
+
+    // results
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(0), 
+                result->getStates().at(0)->getFlowRates().at(1) + result->getStates().at(0)->getFlowRates().at(2), 1e-15);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(1), result->getStates().at(0)->getFlowRates().at(3), 1e-15);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(2), -1*result->getStates().at(0)->getFlowRates().at(4), 1e-15);
+
+    result->printLastState();
+
+    porting::resultToJSON("Y-Result2.json", &testSimulation);
+
+}
+
+TEST(Continuous, Y_Network3) {
+    std::string file = "../examples/Abstract/Continuous/Y-Network3.json";
+
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(file);
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+   
+    network.sortGroups();
+    network.isNetworkValid();
+
+    // Perform simulation and store results
+    testSimulation.simulate();
+
+    // results
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(0), 
+                -1*result->getStates().at(0)->getFlowRates().at(2) + result->getStates().at(0)->getFlowRates().at(4), 1e-12);
+    EXPECT_NEAR(-1*result->getStates().at(0)->getFlowRates().at(2), result->getStates().at(0)->getFlowRates().at(3), 1e-15);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(4), -1*result->getStates().at(0)->getFlowRates().at(1), 1e-15);
+
+    result->printLastState();
+
+    porting::resultToJSON("Y-Result3.json", &testSimulation);
+
+}
+
+
+TEST(Continuous, Y_Network4) {
+    std::string file = "../examples/Abstract/Continuous/Y-Network4.json";
+
+    // Load and set the network from a JSON file
+    arch::Network<T> network = porting::networkFromJSON<T>(file);
+
+    // Load and set the simulation from a JSON file
+    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+   
+    network.sortGroups();
+    network.isNetworkValid();
+
+    // Perform simulation and store results
+    testSimulation.simulate();
+
+    // results
+    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(3), 
+                result->getStates().at(0)->getFlowRates().at(1) - result->getStates().at(0)->getFlowRates().at(4), 1e-15);
+    EXPECT_NEAR(-1*result->getStates().at(0)->getFlowRates().at(4), result->getStates().at(0)->getFlowRates().at(0), 1e-12);
+    EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(1), result->getStates().at(0)->getFlowRates().at(2), 1e-15);
+
+    result->printLastState();
+
+    porting::resultToJSON("Y-Result4.json", &testSimulation);
+
+}

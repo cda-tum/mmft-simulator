@@ -31,7 +31,7 @@
             "y": 0.0,
             "z": 0.0,
             "ground": true,
-            "sink": true
+            "drain": true
         }
     ],
     "channels": [

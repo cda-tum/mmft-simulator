@@ -1,0 +1,194 @@
+{
+    "log": "[2024.09.23 13:39:11] (info) Created node at  0.002  /  0.004 .\n[2024.09.23 13:39:12] (info) Created node at  0.0025  /  0.004 .\n[2024.09.23 13:39:12] (info) Created channel with length  0.0005  mm.\n[2024.09.23 13:39:13] (info) Created node at  0.003  /  0.0045 .\n[2024.09.23 13:39:13] (info) Created channel with length  0.000707107  mm.\n[2024.09.23 13:39:14] (info) Created node at  0.00425  /  0.0045 .\n[2024.09.23 13:39:14] (info) Created channel with length  0.00125  mm.\n[2024.09.23 13:39:17] (info) Created node at  0.002  /  0.005 .\n[2024.09.23 13:39:18] (info) Created node at  0.0025  /  0.005 .\n[2024.09.23 13:39:18] (info) Created channel with length  0.0005  mm.\n[2024.09.23 13:39:19] (info) Created channel with length  0.000707107  mm.\n[2024.09.23 13:39:30] (info) Initializing simulation...\n[2024.09.23 13:39:30] (info) Assuming simulation platform  \"Continuous\" .\n[2024.09.23 13:39:30] (info) Assuming simulation type  \"Abstract\" .\n[2024.09.23 13:39:30] (info) Simulation source:\n[2024.09.23 13:39:30] (info) \"{\\n    \\\"network\\\": {\\n        \\\"channels\\\": [\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 0,\\n                \\\"node2\\\": 1,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 1,\\n                \\\"node2\\\": 2,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 2,\\n                \\\"node2\\\": 3,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 4,\\n                \\\"node2\\\": 5,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 5,\\n                \\\"node2\\\": 2,\\n                \\\"width\\\": 1e-04\\n            }\\n        ],\\n        \\\"geometry\\\": {\\n            \\\"depth\\\": 0.005,\\n            \\\"height\\\": 0.01,\\n            \\\"width\\\": 0.01\\n        },\\n        \\\"info\\\": {\\n            \\\"id\\\": \\\"0bf22a24-db60-4317-b631-4ae341210505\\\",\\n            \\\"margin\\\": 2.5e-07,\\n            \\\"name\\\": \\\"MyChip\\\"\\n        },\\n        \\\"nodes\\\": [\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"ground\\\": true,\\n                \\\"x\\\": 0.002,\\n                \\\"y\\\": 0.004,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"x\\\": 0.0025,\\n                \\\"y\\\": 0.004,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"x\\\": 0.003,\\n                \\\"y\\\": 0.0045000000000000005,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"ground\\\": true,\\n                \\\"x\\\": 0.00425,\\n                \\\"y\\\": 0.0045000000000000005,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"ground\\\": true,\\n                \\\"x\\\": 0.002,\\n                \\\"y\\\": 0.005,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"x\\\": 0.0025,\\n                \\\"y\\\": 0.005,\\n                \\\"z\\\": 0\\n            }\\n        ]\\n    },\\n    \\\"settings\\\": {\\n        \\\"defaultChannelHeight\\\": 5e-05,\\n        \\\"defaultChannelWidth\\\": 1e-04,\\n        \\\"defaultNodeDiameter\\\": 1e-04,\\n        \\\"gridDistance\\\": 0.00025\\n    },\\n    \\\"simulation\\\": {\\n        \\\"activeFixture\\\": 0,\\n        \\\"fixtures\\\": [\\n            {\\n                \\\"name\\\": \\\"Setup #1\\\",\\n                \\\"phase\\\": 0\\n            }\\n        ],\\n        \\\"fluids\\\": [\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 221,\\n                    \\\"G\\\": 64,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"concentration\\\": 1,\\n                \\\"density\\\": 997,\\n                \\\"id\\\": \\\"6e3856cc-b1ab-4909-8e2e-4dd8496693db\\\",\\n                \\\"name\\\": \\\"Water\\\",\\n                \\\"viscosity\\\": 0.001\\n            },\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 170,\\n                    \\\"G\\\": 170,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"concentration\\\": 1,\\n                \\\"density\\\": 913,\\n                \\\"id\\\": \\\"15cee367-6869-4477-ab08-a6e881784f03\\\",\\n                \\\"name\\\": \\\"Oil #38\\\",\\n                \\\"viscosity\\\": 0.00456\\n            }\\n        ],\\n        \\\"mixingModel\\\": \\\"Instantaneous\\\",\\n        \\\"platform\\\": \\\"Continuous\\\",\\n        \\\"pumps\\\": [\\n            {\\n                \\\"channel\\\": 0,\\n                \\\"color\\\": {\\n                    \\\"A\\\": 63,\\n                    \\\"B\\\": 127,\\n                    \\\"G\\\": 127,\\n                    \\\"R\\\": 0\\n                },\\n                \\\"deltaP\\\": 1000,\\n                \\\"name\\\": \\\"Pressure pump\\\",\\n                \\\"type\\\": \\\"PumpPressure\\\"\\n            },\\n            {\\n                \\\"channel\\\": 3,\\n                \\\"color\\\": {\\n                    \\\"A\\\": 63,\\n                    \\\"B\\\": 127,\\n                    \\\"G\\\": 127,\\n                    \\\"R\\\": 0\\n                },\\n                \\\"deltaP\\\": 1000,\\n                \\\"name\\\": \\\"Pressure pump\\\",\\n                \\\"type\\\": \\\"PumpPressure\\\"\\n            }\\n        ],\\n        \\\"resistanceModel\\\": \\\"Rectangular\\\",\\n        \\\"settings\\\": {\\n            \\\"duration\\\": 1,\\n            \\\"loop\\\": false,\\n            \\\"position\\\": 0,\\n            \\\"step\\\": 0.005,\\n            \\\"vtkFolder\\\": \\\"/tmp/Simulator-yFkiJr/vtk\\\"\\n        },\\n        \\\"species\\\": [\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 170,\\n                    \\\"G\\\": 170,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"diffusivity\\\": 2.3e-09,\\n                \\\"id\\\": \\\"fbd99552-5e7e-4563-b3b2-bce227e25f95\\\",\\n                \\\"name\\\": \\\"Oxygen\\\",\\n                \\\"saturationConcentration\\\": 8.3\\n            },\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 64,\\n                    \\\"G\\\": 64,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"diffusivity\\\": 7e-10,\\n                \\\"id\\\": \\\"2124411e-7a77-42d8-9faf-55b2aaf46b6f\\\",\\n                \\\"name\\\": \\\"Glucose\\\",\\n                \\\"saturationConcentration\\\": 100\\n            }\\n        ],\\n        \\\"type\\\": \\\"Abstract\\\"\\n    }\\n}\\n\"\n[2024.09.23 13:39:30] (info) Executing simulation...\n[2024.09.23 13:39:30] (info) Simulation (1D) ready...\n[2024.09.23 13:39:30] (debug) \"{\\\"fixture\\\":0,\\\"fluids\\\":[{\\\"concentration\\\":1.0,\\\"density\\\":997.0,\\\"id\\\":0,\\\"name\\\":\\\"Water\\\",\\\"viscosity\\\":0.001},{\\\"concentration\\\":1.0,\\\"density\\\":913.0,\\\"id\\\":1,\\\"name\\\":\\\"Oil #38\\\",\\\"viscosity\\\":0.00456}],\\\"network\\\":[{\\\"channels\\\":[{\\\"flowRate\\\":-2.2328001068018756e-10},{\\\"flowRate\\\":-2.2328801271636387e-10},{\\\"flowRate\\\":2.2328801271636387e-10},{\\\"flowRate\\\":4.465760254327279e-10},{\\\"flowRate\\\":2.2328801271636405e-10}],\\\"nodes\\\":[{\\\"pressure\\\":0.0},{\\\"pressure\\\":1000.0},{\\\"pressure\\\":779.5187907884576},{\\\"pressure\\\":0.0},{\\\"pressure\\\":0.0},{\\\"pressure\\\":1000.0}],\\\"time\\\":0.0}],\\\"platform\\\":\\\"Continuous\\\",\\\"type\\\":\\\"Abstract\\\"}\"\n[2024.09.23 13:40:04] (info) Assuming simulation platform  \"Continuous\" .\n[2024.09.23 13:40:04] (info) Assuming simulation type  \"Abstract\" .\n[2024.09.23 13:41:06] (info) Assuming simulation platform  \"Continuous\" .\n[2024.09.23 13:41:06] (info) Assuming simulation type  \"Abstract\" .\n[2024.09.23 13:43:37] (info) Created node at  0.003  /  0.005 .\n[2024.09.23 13:43:55] (info) Initializing simulation...\n[2024.09.23 13:43:55] (info) Assuming simulation platform  \"Continuous\" .\n[2024.09.23 13:43:55] (info) Assuming simulation type  \"Abstract\" .\n[2024.09.23 13:43:55] (info) Simulation source:\n[2024.09.23 13:43:55] (info) \"{\\n    \\\"network\\\": {\\n        \\\"channels\\\": [\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 0,\\n                \\\"node2\\\": 1,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 1,\\n                \\\"node2\\\": 2,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 2,\\n                \\\"node2\\\": 3,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 4,\\n                \\\"node2\\\": 5,\\n                \\\"width\\\": 1e-04\\n            },\\n            {\\n                \\\"height\\\": 5e-05,\\n                \\\"node1\\\": 5,\\n                \\\"node2\\\": 2,\\n                \\\"width\\\": 1e-04\\n            }\\n        ],\\n        \\\"geometry\\\": {\\n            \\\"depth\\\": 0.005,\\n            \\\"height\\\": 0.01,\\n            \\\"width\\\": 0.01\\n        },\\n        \\\"info\\\": {\\n            \\\"id\\\": \\\"0bf22a24-db60-4317-b631-4ae341210505\\\",\\n            \\\"margin\\\": 2.5e-07,\\n            \\\"name\\\": \\\"MyChip\\\"\\n        },\\n        \\\"nodes\\\": [\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"ground\\\": true,\\n                \\\"x\\\": 0.002,\\n                \\\"y\\\": 0.004,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"x\\\": 0.0025,\\n                \\\"y\\\": 0.004,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"x\\\": 0.003,\\n                \\\"y\\\": 0.0045000000000000005,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"ground\\\": true,\\n                \\\"x\\\": 0.00425,\\n                \\\"y\\\": 0.0045000000000000005,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"ground\\\": true,\\n                \\\"x\\\": 0.002,\\n                \\\"y\\\": 0.005,\\n                \\\"z\\\": 0\\n            },\\n            {\\n                \\\"diameter\\\": 1e-04,\\n                \\\"x\\\": 0.0025,\\n                \\\"y\\\": 0.005,\\n                \\\"z\\\": 0\\n            }\\n        ]\\n    },\\n    \\\"settings\\\": {\\n        \\\"defaultChannelHeight\\\": 5e-05,\\n        \\\"defaultChannelWidth\\\": 1e-04,\\n        \\\"defaultNodeDiameter\\\": 1e-04,\\n        \\\"gridDistance\\\": 0.00025\\n    },\\n    \\\"simulation\\\": {\\n        \\\"activeFixture\\\": 0,\\n        \\\"fixtures\\\": [\\n            {\\n                \\\"name\\\": \\\"Setup #1\\\",\\n                \\\"phase\\\": 0\\n            }\\n        ],\\n        \\\"fluids\\\": [\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 221,\\n                    \\\"G\\\": 64,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"concentration\\\": 1,\\n                \\\"density\\\": 997,\\n                \\\"id\\\": \\\"6e3856cc-b1ab-4909-8e2e-4dd8496693db\\\",\\n                \\\"name\\\": \\\"Water\\\",\\n                \\\"viscosity\\\": 0.001\\n            },\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 170,\\n                    \\\"G\\\": 170,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"concentration\\\": 1,\\n                \\\"density\\\": 913,\\n                \\\"id\\\": \\\"15cee367-6869-4477-ab08-a6e881784f03\\\",\\n                \\\"name\\\": \\\"Oil #38\\\",\\n                \\\"viscosity\\\": 0.00456\\n            }\\n        ],\\n        \\\"mixingModel\\\": \\\"Instantaneous\\\",\\n        \\\"platform\\\": \\\"Continuous\\\",\\n        \\\"pumps\\\": [\\n            {\\n                \\\"channel\\\": 0,\\n                \\\"color\\\": {\\n                    \\\"A\\\": 63,\\n                    \\\"B\\\": 127,\\n                    \\\"G\\\": 127,\\n                    \\\"R\\\": 0\\n                },\\n                \\\"deltaP\\\": 1000,\\n                \\\"name\\\": \\\"Pressure pump\\\",\\n                \\\"type\\\": \\\"PumpPressure\\\"\\n            },\\n            {\\n                \\\"channel\\\": 3,\\n                \\\"color\\\": {\\n                    \\\"A\\\": 63,\\n                    \\\"B\\\": 127,\\n                    \\\"G\\\": 127,\\n                    \\\"R\\\": 0\\n                },\\n                \\\"flowRate\\\": 1e-09,\\n                \\\"name\\\": \\\"Flowrate pump\\\",\\n                \\\"type\\\": \\\"PumpFlowrate\\\"\\n            }\\n        ],\\n        \\\"resistanceModel\\\": \\\"Rectangular\\\",\\n        \\\"settings\\\": {\\n            \\\"duration\\\": 1,\\n            \\\"loop\\\": false,\\n            \\\"position\\\": 0,\\n            \\\"step\\\": 0.005,\\n            \\\"vtkFolder\\\": \\\"/tmp/Simulator-yFkiJr/vtk\\\"\\n        },\\n        \\\"species\\\": [\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 170,\\n                    \\\"G\\\": 170,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"diffusivity\\\": 2.3e-09,\\n                \\\"id\\\": \\\"fbd99552-5e7e-4563-b3b2-bce227e25f95\\\",\\n                \\\"name\\\": \\\"Oxygen\\\",\\n                \\\"saturationConcentration\\\": 8.3\\n            },\\n            {\\n                \\\"color\\\": {\\n                    \\\"A\\\": 255,\\n                    \\\"B\\\": 64,\\n                    \\\"G\\\": 64,\\n                    \\\"R\\\": 64\\n                },\\n                \\\"diffusivity\\\": 7e-10,\\n                \\\"id\\\": \\\"2124411e-7a77-42d8-9faf-55b2aaf46b6f\\\",\\n                \\\"name\\\": \\\"Glucose\\\",\\n                \\\"saturationConcentration\\\": 100\\n            }\\n        ],\\n        \\\"type\\\": \\\"Abstract\\\"\\n    }\\n}\\n\"\n[2024.09.23 13:43:55] (info) Executing simulation...\n[2024.09.23 13:43:55] (info) Simulation (1D) ready...\n[2024.09.23 13:43:55] (debug) \"{\\\"fixture\\\":0,\\\"fluids\\\":[{\\\"concentration\\\":1.0,\\\"density\\\":997.0,\\\"id\\\":0,\\\"name\\\":\\\"Water\\\",\\\"viscosity\\\":0.001},{\\\"concentration\\\":1.0,\\\"density\\\":913.0,\\\"id\\\":1,\\\"name\\\":\\\"Oil #38\\\",\\\"viscosity\\\":0.00456}],\\\"network\\\":[{\\\"channels\\\":[{\\\"flowRate\\\":2.7279630595117376e-10},{\\\"flowRate\\\":1e-09},{\\\"flowRate\\\":-2.727963059511738e-10},{\\\"flowRate\\\":7.272036940488272e-10},{\\\"flowRate\\\":1.0000000000000003e-09}],\\\"nodes\\\":[{\\\"pressure\\\":0.0},{\\\"pressure\\\":1000.0},{\\\"pressure\\\":1269.3671669735309},{\\\"pressure\\\":0.0},{\\\"pressure\\\":0.0},{\\\"pressure\\\":2256.7968392130924}],\\\"time\\\":0.0}],\\\"platform\\\":\\\"Continuous\\\",\\\"type\\\":\\\"Abstract\\\"}\"\n[2024.09.23 13:59:39] (info) Assuming simulation platform  \"Continuous\" .\n[2024.09.23 13:59:39] (info) Assuming simulation type  \"Abstract\" .\n[2024.09.23 14:00:31] (info) Created node at  0.0035  /  0.0045 .\n[2024.09.23 14:00:32] (info) Created node at  0.0025  /  0.0045 .\n[2024.09.23 14:00:32] (info) Created channel with length  0.001  mm.\n[2024.09.23 14:00:35] (info) Created node at  0.002  /  0.004 .\n[2024.09.23 14:00:35] (info) Created channel with length  0.000709247  mm.\n[2024.09.23 14:00:36] (info) Created node at  0.0015  /  0.004 .\n[2024.09.23 14:00:36] (info) Created channel with length  0.0005  mm.\n[2024.09.23 14:00:39] (info) Created node at  0.0015  /  0.005 .\n[2024.09.23 14:00:40] (info) Created node at  0.002  /  0.005 .\n[2024.09.23 14:00:40] (info) Created channel with length  0.0005  mm.\n[2024.09.23 14:00:40] (info) Created channel with length  0.000684128  mm.\n[2024.09.23 14:00:54] (info) Created node at  0.00375  /  0.0045 .\n[2024.09.23 14:00:55] (info) Created node at  0.00275  /  0.0045 .\n[2024.09.23 14:00:55] (info) Created channel with length  0.001  mm.\n[2024.09.23 14:00:56] (info) Created node at  0.00225  /  0.004 .\n[2024.09.23 14:00:56] (info) Created channel with length  0.000707107  mm.\n[2024.09.23 14:00:58] (info) Created node at  0.00225  /  0.005 .\n[2024.09.23 14:00:58] (info) Created channel with length  0.000707107  mm.\n[2024.09.23 14:01:02] (info) Created node at  0.0015  /  0.004 .\n[2024.09.23 14:01:02] (info) Created channel with length  0.00075  mm.\n[2024.09.23 14:01:04] (info) Created node at  0.0015  /  0.005 .\n[2024.09.23 14:01:04] (info) Created channel with length  0.00075  mm.\n[2024.09.23 14:01:21] (info) Assuming simulation platform  \"Continuous\" .\n[2024.09.23 14:01:21] (info) Assuming simulation type  \"Abstract\" .",
+    "network": {
+        "channels": [
+            {
+                "height": 5e-05,
+                "node1": 0,
+                "node2": 1,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 1,
+                "node2": 2,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 1,
+                "node2": 3,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 4,
+                "node2": 2,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 5,
+                "node2": 3,
+                "width": 1e-04
+            }
+        ],
+        "geometry": {
+            "depth": 0.005,
+            "height": 0.01,
+            "width": 0.01
+        },
+        "info": {
+            "id": "de772e89-25d1-4b30-9f6b-f4386c0282ba",
+            "margin": 2.5e-07,
+            "name": "MyChip"
+        },
+        "nodes": [
+            {
+                "diameter": 1e-04,
+                "ground": true,
+                "x": 0.00375,
+                "y": 0.0045000000000000005,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.00275,
+                "y": 0.0045000000000000005,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.0022500000000000003,
+                "y": 0.004,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.0022500000000000003,
+                "y": 0.005,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "ground": true,
+                "x": 0.0015,
+                "y": 0.004,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "ground": true,
+                "x": 0.0015,
+                "y": 0.005,
+                "z": 0
+            }
+        ]
+    },
+    "settings": {
+        "defaultChannelHeight": 5e-05,
+        "defaultChannelWidth": 1e-04,
+        "defaultNodeDiameter": 1e-04,
+        "gridDistance": 0.00025
+    },
+    "simulation": {
+        "activeFixture": 0,
+        "fixtures": [
+            {
+                "name": "Setup #1",
+                "phase": 0
+            }
+        ],
+        "fluids": [
+            {
+                "color": {
+                    "A": 255,
+                    "B": 221,
+                    "G": 64,
+                    "R": 64
+                },
+                "concentration": 1,
+                "density": 997,
+                "id": "96d8d0d7-4f62-4279-87b4-2acf4f7c4794",
+                "name": "Water",
+                "viscosity": 0.001
+            },
+            {
+                "color": {
+                    "A": 255,
+                    "B": 170,
+                    "G": 170,
+                    "R": 64
+                },
+                "concentration": 1,
+                "density": 913,
+                "id": "7f07ee84-aedd-46bb-af38-20b053ffc327",
+                "name": "Oil #38",
+                "viscosity": 0.00456
+            }
+        ],
+        "mixingModel": "Instantaneous",
+        "platform": "Continuous",
+        "pumps": [
+            {
+                "channel": 3,
+                "color": {
+                    "A": 63,
+                    "B": 127,
+                    "G": 127,
+                    "R": 0
+                },
+                "deltaP": 1000,
+                "name": "Pressure pump",
+                "type": "PumpPressure"
+            },
+            {
+                "channel": 4,
+                "color": {
+                    "A": 63,
+                    "B": 127,
+                    "G": 127,
+                    "R": 0
+                },
+                "flowRate": 1e-09,
+                "name": "Flowrate pump",
+                "type": "PumpFlowrate"
+            }
+        ],
+        "resistanceModel": "Rectangular",
+        "settings": {
+            "duration": 1,
+            "loop": false,
+            "position": 0,
+            "step": 0.005,
+            "vtkFolder": "/tmp/Simulator-XnbpBu/vtk"
+        },
+        "species": [
+            {
+                "color": {
+                    "A": 255,
+                    "B": 170,
+                    "G": 170,
+                    "R": 64
+                },
+                "diffusivity": 2.3e-09,
+                "id": "3db5fa31-93da-4bbf-ac58-a1ea579a1116",
+                "name": "Oxygen",
+                "saturationConcentration": 8.3
+            },
+            {
+                "color": {
+                    "A": 255,
+                    "B": 64,
+                    "G": 64,
+                    "R": 64
+                },
+                "diffusivity": 7e-10,
+                "id": "bec9b6d1-8a4f-467f-87e8-82d840a84edb",
+                "name": "Glucose",
+                "saturationConcentration": 100
+            }
+        ],
+        "type": "Abstract"
+    }
+}

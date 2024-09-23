@@ -1,0 +1,154 @@
+{
+    "network": {
+        "channels": [
+            {
+                "height": 5e-05,
+                "node1": 0,
+                "node2": 1,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 1,
+                "node2": 2,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 2,
+                "node2": 3,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 4,
+                "node2": 5,
+                "width": 1e-04
+            },
+            {
+                "height": 5e-05,
+                "node1": 5,
+                "node2": 2,
+                "width": 1e-04
+            }
+        ],
+        "geometry": {
+            "depth": 0.005,
+            "height": 0.01,
+            "width": 0.01
+        },
+        "info": {
+            "id": "30131686-df74-4f86-b7f4-94a7a2c9dd91",
+            "margin": 2.5e-07,
+            "name": "MyChip"
+        },
+        "nodes": [
+            {
+                "diameter": 1e-04,
+                "ground": true,
+                "x": 0.002,
+                "y": 0.004,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.0025,
+                "y": 0.004,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.003,
+                "y": 0.0045000000000000005,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "ground": true,
+                "x": 0.00425,
+                "y": 0.0045000000000000005,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "ground": true,
+                "x": 0.002,
+                "y": 0.005,
+                "z": 0
+            },
+            {
+                "diameter": 1e-04,
+                "x": 0.0025,
+                "y": 0.005,
+                "z": 0
+            }
+        ]
+    },
+    "settings": {
+        "defaultChannelHeight": 5e-05,
+        "defaultChannelWidth": 1e-04,
+        "defaultNodeDiameter": 1e-04,
+        "gridDistance": 0.00025
+    },
+    "simulation": {
+        "activeFixture": 0,
+        "fixtures": [
+            {
+                "name": "Setup #1",
+                "phase": 0
+            }
+        ],
+        "fluids": [
+            {
+                "color": {
+                    "A": 255,
+                    "B": 221,
+                    "G": 64,
+                    "R": 64
+                },
+                "concentration": 1,
+                "density": 997,
+                "id": "6e3856cc-b1ab-4909-8e2e-4dd8496693db",
+                "name": "Water",
+                "viscosity": 0.001
+            }
+        ],
+        "mixingModel": "Instantaneous",
+        "platform": "Continuous",
+        "pumps": [
+            {
+                "channel": 0,
+                "color": {
+                    "A": 63,
+                    "B": 127,
+                    "G": 127,
+                    "R": 0
+                },
+                "deltaP": 1000,
+                "name": "Pressure pump",
+                "type": "PumpPressure"
+            },
+            {
+                "channel": 3,
+                "color": {
+                    "A": 63,
+                    "B": 127,
+                    "G": 127,
+                    "R": 0
+                },
+                "flowRate": 1e-09,
+                "name": "Flowrate pump",
+                "type": "PumpFlowrate"
+            }
+        ],
+        "resistanceModel": "Rectangular",
+        "settings": {
+            "duration": 1,
+            "loop": false,
+            "position": 0,
+            "step": 0.005,
+            "vtkFolder": "/tmp/Simulator-NQiCpa/vtk"
+        },
+        "type": "Abstract"
+    }
+}

@@ -383,3 +383,255 @@ TEST(Cross, deg45) {
     EXPECT_GE(s0.readGeometry().getStatistics().getNvoxel(3), resolution);
     EXPECT_LE(s0.readGeometry().getStatistics().getNvoxel(3), 2*resolution);
 }
+
+TEST(AsymmetricCross, cross1) {
+
+    std::string stlFile = "../examples/STL/asymmetricCross1.stl";
+    int resolution = 20;
+    T dx = 1e-4/resolution;
+
+    // define network
+    arch::Network<T> network;
+
+    // nodes
+    network.addNode(0.00375, 0.004625);
+    network.addNode(0.00375, 0.005265625);
+    network.addNode(0.003996875, 0.005);
+    network.addNode(0.00326875, 0.005);
+
+    // module
+    network.addModule(std::vector<T>({0.0, 0.0}), std::vector<T>({0.000728125, 0.000640625}), std::vector<int>({0, 1, 2, 3}));
+
+    // openings
+    std::unordered_map<int, arch::Opening<T>> Openings;
+    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({1.0, 0.0}), 1e-4));
+
+    // simulator
+    sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
+    sim::lbmSimulator<T> s0 (0, "asymmCross1", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    s0.readGeometryStl(dx, false);
+    s0.readOpenings(dx);
+
+    // Writes geometry to file system
+    // olb::SuperVTMwriter2D<T> vtmWriter( "testGeometry" );
+    // olb::SuperLatticeGeometry2D<T> writeGeometry (s0.readGeometry());
+    // vtmWriter.write(writeGeometry);
+
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(3), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(4), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(5), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(6), resolution);
+}
+
+TEST(AsymmetricCross, cross2) {
+
+    std::string stlFile = "../examples/STL/asymmetricCross2.stl";
+    int resolution = 20;
+    T dx = 1e-4/resolution;
+
+    // define network
+    arch::Network<T> network;
+
+    // nodes
+    network.addNode(0.00375, 0.00479375);
+    network.addNode(0.00375, 0.0055375);
+    network.addNode(0.00393125, 0.005);
+    network.addNode(0.003409375, 0.005);
+
+    // module
+    network.addModule(std::vector<T>({0.0, 0.0}), std::vector<T>({0.000521875, 0.00074375}), std::vector<int>({0, 1, 2, 3}));
+
+    // openings
+    std::unordered_map<int, arch::Opening<T>> Openings;
+    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({1.0, 0.0}), 1e-4));
+
+    // simulator
+    sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
+    sim::lbmSimulator<T> s0 (0, "asymmCross1", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    s0.readGeometryStl(dx, false);
+    s0.readOpenings(dx);
+
+    // Writes geometry to file system
+    olb::SuperVTMwriter2D<T> vtmWriter( "testGeometry" );
+    olb::SuperLatticeGeometry2D<T> writeGeometry (s0.readGeometry());
+    vtmWriter.write(writeGeometry);
+
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(3), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(4), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(5), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(6), resolution);
+}
+
+TEST(AsymmetricCross, cross3) {
+
+    std::string stlFile = "../examples/STL/asymmetricCross3.stl";
+    int resolution = 20;
+    T dx = 1e-4/resolution;
+
+    // define network
+    arch::Network<T> network;
+
+    // nodes
+    network.addNode(0.00375, 0.00479375);
+    network.addNode(0.00375, 0.005296875);
+    network.addNode(0.004165625, 0.005);
+    network.addNode(0.0036, 0.005);
+
+    // module
+    network.addModule(std::vector<T>({0.0, 0.0}), std::vector<T>({0.000565625, 0.000503125}), std::vector<int>({0, 1, 2, 3}));
+
+    // openings
+    std::unordered_map<int, arch::Opening<T>> Openings;
+    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({1.0, 0.0}), 1e-4));
+
+    // simulator
+    sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
+    sim::lbmSimulator<T> s0 (0, "asymmCross1", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    s0.readGeometryStl(dx, false);
+    s0.readOpenings(dx);
+
+    // Writes geometry to file system
+    // olb::SuperVTMwriter2D<T> vtmWriter( "testGeometry" );
+    // olb::SuperLatticeGeometry2D<T> writeGeometry (s0.readGeometry());
+    // vtmWriter.write(writeGeometry);
+
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(3), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(4), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(5), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(6), resolution);
+}
+
+TEST(AsymmetricCross, cross4) {
+
+    std::string stlFile = "../examples/STL/asymmetricCross4.stl";
+    int resolution = 20;
+    T dx = 1e-4/resolution;
+
+    // define network
+    arch::Network<T> network;
+
+    // nodes
+    network.addNode(0.00375, 0.00463125);
+    network.addNode(0.00375, 0.005134375);
+    network.addNode(0.0041125, 0.005);
+    network.addNode(0.003546875, 0.005);
+
+    // module
+    network.addModule(std::vector<T>({0.0, 0.0}), std::vector<T>({0.000565625, 0.000503125}), std::vector<int>({0, 1, 2, 3}));
+
+    // openings
+    std::unordered_map<int, arch::Opening<T>> Openings;
+    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({1.0, 0.0}), 1e-4));
+
+    // simulator
+    sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
+    sim::lbmSimulator<T> s0 (0, "asymmCross1", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    s0.readGeometryStl(dx, false);
+    s0.readOpenings(dx);
+
+    // Writes geometry to file system
+    // olb::SuperVTMwriter2D<T> vtmWriter( "testGeometry" );
+    // olb::SuperLatticeGeometry2D<T> writeGeometry (s0.readGeometry());
+    // vtmWriter.write(writeGeometry);
+
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(3), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(4), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(5), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(6), resolution);
+}
+
+TEST(AsymmetricCross, cross5) {
+
+    std::string stlFile = "../examples/STL/asymmetricCross5.stl";
+    int resolution = 20;
+    T dx = 1e-4/resolution;
+
+    // define network
+    arch::Network<T> network;
+
+    // nodes
+    network.addNode(0.00375, 0.0045);
+    network.addNode(0.00375, 0.005365);
+    network.addNode(0.00416, 0.005);
+    network.addNode(0.00359, 0.005);
+
+    // module
+    network.addModule(std::vector<T>({0.0, 0.0}), std::vector<T>({0.00057, 0.000865}), std::vector<int>({0, 1, 2, 3}));
+
+    // openings
+    std::unordered_map<int, arch::Opening<T>> Openings;
+    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({1.0, 0.0}), 1e-4));
+
+    // simulator
+    sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
+    sim::lbmSimulator<T> s0 (0, "asymmCross1", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    s0.readGeometryStl(dx, false);
+    s0.readOpenings(dx);
+
+    // Writes geometry to file system
+    // olb::SuperVTMwriter2D<T> vtmWriter( "testGeometry" );
+    // olb::SuperLatticeGeometry2D<T> writeGeometry (s0.readGeometry());
+    // vtmWriter.write(writeGeometry);
+
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(3), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(4), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(5), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(6), resolution);
+}
+
+TEST(AsymmetricCross, cross6) {
+
+    std::string stlFile = "../examples/STL/asymmetricCross6.stl";
+    int resolution = 20;
+    T dx = 1e-4/resolution;
+
+    // define network
+    arch::Network<T> network;
+
+    // nodes
+    network.addNode(0.00375, 0.00475);
+    network.addNode(0.00375, 0.00525);
+    network.addNode(0.004, 0.005);
+    network.addNode(0.0035, 0.005);
+
+    // module
+    network.addModule(std::vector<T>({0.0, 0.0}), std::vector<T>({0.0005, 0.0005}), std::vector<int>({0, 1, 2, 3}));
+
+    // openings
+    std::unordered_map<int, arch::Opening<T>> Openings;
+    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({1.0, 0.0}), 1e-4));
+
+    // simulator
+    sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
+    sim::lbmSimulator<T> s0 (0, "asymmCross1", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    s0.readGeometryStl(dx, false);
+    s0.readOpenings(dx);
+
+    // Writes geometry to file system
+    // olb::SuperVTMwriter2D<T> vtmWriter( "testGeometry" );
+    // olb::SuperLatticeGeometry2D<T> writeGeometry (s0.readGeometry());
+    // vtmWriter.write(writeGeometry);
+
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(3), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(4), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(5), resolution);
+    EXPECT_EQ(s0.readGeometry().getStatistics().getNvoxel(6), resolution);
+}
