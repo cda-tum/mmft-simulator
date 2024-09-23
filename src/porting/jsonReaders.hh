@@ -21,8 +21,8 @@ void readNodes(json jsonString, arch::Network<T>& network) {
                 ground = node["ground"];
             }
             auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
-            if(node.contains("sink")) {
-                if (node["sink"]) {
+            if(node.contains("drain")) {
+                if (node["drain"]) {
                     network.setSink(addedNode->getId());
                 }
             }

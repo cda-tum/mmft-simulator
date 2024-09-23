@@ -1018,7 +1018,9 @@ namespace sim {
         // set correct droplet resistances
         for (auto& [key, droplet] : droplets) {
             // only consider droplets that are inside the network (i.e., also trapped droplets)
-            if (droplet->getDropletState() == DropletState::INJECTION || droplet->getDropletState() == DropletState::SINK) {
+            if (droplet->getDropletState() == DropletState::INJECTION || 
+                droplet->getDropletState() == DropletState::SINK || 
+                droplet->getDropletState() == DropletState::DRAIN) {
                 continue;
             }
 
@@ -1060,6 +1062,13 @@ namespace sim {
         // droplet positions
         if (platform == Platform::BigDroplet) {
             for (auto& [id, droplet] : droplets) {
+                // Do not include droplets in sink in the state
+                if (droplet->getDropletState() == DropletState::DRAIN) {
+                    continue;
+                }
+                if (droplet->getDropletState() == DropletState::SINK) {
+                    droplet->setDropletState(DropletState::DRAIN);
+                }
                 // create new droplet position
                 DropletPosition<T> newDropletPosition;
 

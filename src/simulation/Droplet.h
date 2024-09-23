@@ -46,7 +46,8 @@ enum class DropletState {
     INJECTION,  ///< Droplet planned to be injected but currently not yet in the network.
     NETWORK,    ///< Droplet currently flows through the network.
     TRAPPED,    ///< Droplet is trapped in the network.
-    SINK        ///< Droplet has left the network (is in the sink).
+    SINK,       ///< Droplet has left the network (is in the sink).
+    DRAIN       ///< Droplet has letft the network and is not in the sink anymore.
 };
 
 /**

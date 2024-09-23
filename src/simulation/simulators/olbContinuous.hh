@@ -413,7 +413,6 @@ void lbmSimulator<T>::setFlowProfile2D (int openingKey, T openingWidth)  {
 
 template<typename T>
 void lbmSimulator<T>::setPressure2D (int openingKey)  {
-    std::cout << "On node " << openingKey << " set pressure: " << (pressures[openingKey]) << std::endl;
     T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[openingKey]));
     this->densities.at(openingKey) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
     getLattice().defineRho(getGeometry(), openingKey+3, *this->densities.at(openingKey));
