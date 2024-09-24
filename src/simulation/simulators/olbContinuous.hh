@@ -59,10 +59,11 @@ template<typename T>
 void lbmSimulator<T>::prepareLattice () {
 
     const T omega = converter->getLatticeRelaxationFrequency();
+    T dx = getConverter().getConversionFactorLength();
 
     prepareNsLattice(omega);
-    initPressureIntegralPlane();
-    initFlowRateIntegralPlane();
+    initPressureIntegralPlane(dx);
+    initFlowRateIntegralPlane(dx);
     initNsLattice(omega);
 
     #ifdef VERBOSE
@@ -253,14 +254,13 @@ void lbmSimulator<T>::prepareNsLattice (const T omega) {
 }
 
 template<typename T>
-void lbmSimulator<T>::initPressureIntegralPlane() {
+void lbmSimulator<T>::initPressureIntegralPlane(T dx) {
 
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - 0.0*this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - 0.0*this->cfdModule->getPosition()[1];          
-
+        T posX =  Opening.node->getPosition()[0] - 1.0*this->cfdModule->getPosition()[0] + Opening.normal[0]*dx*1.0;
+        T posY =  Opening.node->getPosition()[1] - 1.0*this->cfdModule->getPosition()[1] + Opening.normal[1]*dx*1.0;          
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
 
@@ -275,13 +275,13 @@ void lbmSimulator<T>::initPressureIntegralPlane() {
 }
 
 template<typename T>
-void lbmSimulator<T>::initFlowRateIntegralPlane() {
+void lbmSimulator<T>::initFlowRateIntegralPlane(T dx) {
 
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - 0.0*this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - 0.0*this->cfdModule->getPosition()[1];          
+        T posX =  Opening.node->getPosition()[0] - 1.0*this->cfdModule->getPosition()[0] + Opening.normal[0]*dx*1.0;
+        T posY =  Opening.node->getPosition()[1] - 1.0*this->cfdModule->getPosition()[1] + Opening.normal[1]*dx*1.0;          
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
@@ -327,8 +327,8 @@ void lbmSimulator<T>::readGeometryStl (const T dx, const bool print) {
     }
 
     for (unsigned char d : {0, 1}) {
-        if (fmod(min[d], dx) < 1e-12) {
-            if (fmod(max[d] + 0.5*dx, dx) < 1e-12) {
+        if (fmod(min[d], dx) < 1) {
+            if (fmod(max[d] + 0.5*dx, dx) < 1) {
                 correction[d] = 0.25;
             } else {
                 correction[d] = 0.5;
@@ -373,8 +373,8 @@ void lbmSimulator<T>::readOpenings (const T dx) {
     auto min = stlReader->getMesh().getMin();
 
     T stlShift[2];
-    stlShift[0] = 0.0*(this->cfdModule->getPosition()[0] - min[0]);
-    stlShift[1] = 0.0*(this->cfdModule->getPosition()[1] - min[1]);
+    stlShift[0] = 1.0*(this->cfdModule->getPosition()[0] - min[0]);
+    stlShift[1] = 1.0*(this->cfdModule->getPosition()[1] - min[1]);
 
     for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening

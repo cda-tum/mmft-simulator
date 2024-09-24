@@ -79,7 +79,7 @@ protected:
 
     void prepareAdLattice(const T omega, int speciesId);
 
-    void initConcentrationIntegralPlane(int adKey);
+    void initConcentrationIntegralPlane(int adKey, T dx);
 
     void initAdLattice(int adKey);
 

@@ -44,6 +44,7 @@ void lbmMixingSimulator<T>::lbmInit (T dynViscosity, T density) {
 
 template<typename T>
 void lbmMixingSimulator<T>::prepareLattice () {
+    T dx = this->getConverter().getConversionFactorLength();
 
     /**
      * Prepare the NS lattice
@@ -62,10 +63,10 @@ void lbmMixingSimulator<T>::prepareLattice () {
     /**
      * Initialize the integral fluxes for the in- and outlets
      */
-    this->initPressureIntegralPlane();
-    this->initFlowRateIntegralPlane();
+    this->initPressureIntegralPlane(dx);
+    this->initFlowRateIntegralPlane(dx);
     for (auto& [adKey, LatticeAD] : adLattices) {
-        initConcentrationIntegralPlane(adKey);
+        initConcentrationIntegralPlane(adKey, dx);
     }
 
     /**
@@ -332,13 +333,13 @@ void lbmMixingSimulator<T>::initAdLattice(int adKey) {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::initConcentrationIntegralPlane(int adKey) {
+void lbmMixingSimulator<T>::initConcentrationIntegralPlane(int adKey, T dx) {
 
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0] + Opening.normal[0]*dx*0.0;
+        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1] + Opening.normal[1]*dx*0.0;
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};

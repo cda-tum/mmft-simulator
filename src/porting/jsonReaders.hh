@@ -4,13 +4,9 @@ namespace porting {
 
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
-    int nodeId = 0;
-    int virtualNodes = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
-        
         if (node.contains("virtual") && node["virtual"]) {
-            nodeId++;
-            virtualNodes++;
+            network.addVirtualNode(nullptr);
             continue;
         } else {
             if (!node.contains("x") || !node.contains("y")) {
@@ -20,32 +16,28 @@ void readNodes(json jsonString, arch::Network<T>& network) {
             if(node.contains("ground")) {
                 ground = node["ground"];
             }
-            auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
+            auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
             if(node.contains("drain")) {
                 if (node["drain"]) {
                     network.setSink(addedNode->getId());
                 }
             }
-            nodeId++;
         }
     }
-    network.setVirtualNodes(virtualNodes);
 }
 
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
-    int channelId = 0;
     for (auto& channel : jsonString["network"]["channels"]) {
         if (channel.contains("virtual") && channel["virtual"]) {
-            channelId++;
+            network.addVirtualChannel(nullptr);
             continue;
         } else {
             if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
                 throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
-            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
-            channelId++;
+            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type);
         }
     }
 }

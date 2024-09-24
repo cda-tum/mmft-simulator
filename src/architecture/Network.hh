@@ -179,8 +179,8 @@ void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes,
 
 template<typename T>
 Node<T>* Network<T>::addNode(T x_, T y_, bool ground_) {
-    int nodeId = nodes.size();
-    auto result = nodes.insert({nodeId, std::make_unique<Node<T>>(nodeId, x_, y_, ground_)});
+    int nodeId = iNodes.size();
+    auto result = nodes.insert({nodeId, std::make_shared<Node<T>>(nodeId, x_, y_, ground_)});
 
     if (result.second) {
         // insertion happened and we have to add an additional entry into the reach
@@ -193,6 +193,8 @@ Node<T>* Network<T>::addNode(T x_, T y_, bool ground_) {
     if (ground_) {
         groundNodes.emplace(result.first->second.get());
     }
+
+    iNodes.push_back(result.first->second);
 
     // return raw pointer to the node
     return result.first->second.get();
@@ -214,6 +216,8 @@ Node<T>* Network<T>::addNode(int nodeId, T x_, T y_, bool ground_) {
         groundNodes.emplace(result.first->second.get());
     }
 
+    iNodes.push_back(result.first->second);
+
     // return raw pointer to the node
     return result.first->second.get();
 }
@@ -223,19 +227,21 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-    auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, width, height);
+    auto id = iChannels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto addChannel = std::make_shared<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
 
     addChannel->setChannelType(type);
 
     // add to network as long as channel is still a valid pointer
-    reach.at(nodeAId).try_emplace(id, addChannel);
-    reach.at(nodeBId).try_emplace(id, addChannel);
+    reach.at(nodeAId).try_emplace(id, addChannel.get());
+    reach.at(nodeBId).try_emplace(id, addChannel.get());
 
     // add channel
     channels.try_emplace(id, addChannel);
 
-    return addChannel;
+    iChannels.push_back(addChannel);
+
+    return addChannel.get();
 }
 
 template<typename T>
@@ -243,18 +249,20 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto addChannel = new RectangularChannel<T>(channelId, nodeA, nodeB, width, height);
+    auto addChannel = std::make_shared<RectangularChannel<T>>(channelId, nodeA, nodeB, width, height);
 
     // add to network as long as channel is still a valid pointer
-    reach.at(nodeAId).try_emplace(channelId, addChannel);
-    reach.at(nodeBId).try_emplace(channelId, addChannel);
+    reach.at(nodeAId).try_emplace(channelId, addChannel.get());
+    reach.at(nodeBId).try_emplace(channelId, addChannel.get());
 
     addChannel->setChannelType(type);
 
     // add channel
     channels.try_emplace(channelId, addChannel);
 
-    return addChannel;
+    iChannels.push_back(addChannel);
+
+    return addChannel.get();
 }
 
 template<typename T>
@@ -262,20 +270,22 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-    auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, width, height);
+    auto id = iChannels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto addChannel = std::make_shared<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
 
     addChannel->setLength(length);
     addChannel->setChannelType(type);
 
     // add to network as long as channel is still a valid pointer
-    reach.at(nodeAId).try_emplace(id, addChannel);
-    reach.at(nodeBId).try_emplace(id, addChannel);
+    reach.at(nodeAId).try_emplace(id, addChannel.get());
+    reach.at(nodeBId).try_emplace(id, addChannel.get());
 
     // add channel
     channels.try_emplace(id, addChannel);
 
-    return addChannel;
+    iChannels.push_back(addChannel);
+
+    return addChannel.get();
 }
 
 template<typename T>
@@ -283,26 +293,28 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T resist
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
-    auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, 1.0, 1.0);
+    auto id = iChannels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto addChannel = std::make_shared<RectangularChannel<T>>(id, nodeA, nodeB, 1.0, 1.0);
 
     addChannel->setResistance(resistance);
     addChannel->setChannelType(type);
 
     // add to network as long as channel is still a valid pointer
-    reach.at(nodeAId).try_emplace(id, addChannel);
-    reach.at(nodeBId).try_emplace(id, addChannel);
+    reach.at(nodeAId).try_emplace(id, addChannel.get());
+    reach.at(nodeBId).try_emplace(id, addChannel.get());
 
     // add channel
     channels.try_emplace(id, addChannel);
 
-    return addChannel;
+    iChannels.push_back(addChannel);
+
+    return addChannel.get();
 }
 
 template<typename T>
 FlowRatePump<T>* Network<T>::addFlowRatePump(int nodeAId, int nodeBId, T flowRate) {
     // create pump
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto id = iChannels.size() + flowRatePumps.size() + pressurePumps.size();
     auto addPump = new FlowRatePump<T>(id, nodeAId, nodeBId, flowRate);
 
     // add pump
@@ -314,7 +326,7 @@ FlowRatePump<T>* Network<T>::addFlowRatePump(int nodeAId, int nodeBId, T flowRat
 template<typename T>
 PressurePump<T>* Network<T>::addPressurePump(int nodeAId, int nodeBId, T pressure) {
     // create pump
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto id = iChannels.size() + flowRatePumps.size() + pressurePumps.size();
     auto addPump = new PressurePump<T>(id, nodeAId, nodeBId, pressure);
 
     // add pump
@@ -386,17 +398,13 @@ void Network<T>::setGround(int nodeId_) {
 }
 
 template<typename T>
-void Network<T>::setVirtualNodes(int virtualNodes_) {
-    this->virtualNodes = virtualNodes_;
-}
-
-template<typename T>
 void Network<T>::setPressurePump(int channelId_, T pressure_) {
     int nodeAId = channels.at(channelId_).get()->getNodeA();
     int nodeBId = channels.at(channelId_).get()->getNodeB();
     PressurePump<T>* newPump = new PressurePump<T>(channelId_, nodeAId, nodeBId, pressure_);
     pressurePumps.try_emplace(channelId_, newPump);
     channels.erase(channelId_);
+    iChannels[channelId_] = nullptr;
     reach.at(nodeAId).erase(channelId_);
     reach.at(nodeBId).erase(channelId_);
 }
@@ -408,6 +416,7 @@ void Network<T>::setFlowRatePump(int channelId_, T flowRate_) {
     FlowRatePump<T>* newPump = new FlowRatePump<T>(channelId_, nodeAId, nodeBId, flowRate_);
     flowRatePumps.try_emplace(channelId_, newPump);
     channels.erase(channelId_);
+    iChannels[channelId_] = nullptr;
     reach.at(nodeAId).erase(channelId_);
     reach.at(nodeBId).erase(channelId_);
 }
@@ -449,7 +458,7 @@ std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
     } else {
         throw std::invalid_argument("Network does not contain node " + std::to_string(nodeId) + ".");
     }
-};
+}
 
 template<typename T>
 const std::unordered_map<int, std::shared_ptr<Node<T>>>& Network<T>::getNodes() const {
@@ -457,8 +466,18 @@ const std::unordered_map<int, std::shared_ptr<Node<T>>>& Network<T>::getNodes() 
 }
 
 template<typename T>
-int Network<T>::getVirtualNodes() const {
-    return virtualNodes;
+const std::vector<std::shared_ptr<Node<T>>>& Network<T>::getINodes() const {
+    return iNodes;
+}
+
+template<typename T>
+void Network<T>::addVirtualNode(std::shared_ptr<Node<T>> nodePtr) {
+    iNodes.push_back(nodePtr);
+}
+
+template<typename T>
+void Network<T>::addVirtualChannel(std::shared_ptr<RectangularChannel<T>> channelPtr) {
+    iChannels.push_back(channelPtr);
 }
 
 template<typename T>
@@ -496,8 +515,13 @@ FlowRatePump<T>* Network<T>::getFlowRatePump(int pumpId_) const {
 }
 
 template<typename T>
-const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& Network<T>::getChannels() const {
+const std::unordered_map<int, std::shared_ptr<RectangularChannel<T>>>& Network<T>::getChannels() const {
     return channels;
+}
+
+template<typename T>
+const std::vector<std::shared_ptr<RectangularChannel<T>>>& Network<T>::getIChannels() const {
+    return iChannels;
 }
 
 template<typename T>

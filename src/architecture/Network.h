@@ -85,15 +85,15 @@ private:
     std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
     std::set<Node<T>*> sinks;                                                   ///< Ids of nodes that are sinks.
     std::set<Node<T>*> groundNodes;                                             ///< Ids of nodes that are ground nodes.
-    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
+    std::unordered_map<int, std::shared_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
     std::unordered_map<int, std::shared_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
     std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
-
-    int virtualNodes = 0;
+    std::vector<std::shared_ptr<Node<T>>> iNodes;
+    std::vector<std::shared_ptr<RectangularChannel<T>>> iChannels;
 
     /**
      * @brief Goes through network and sets all nodes and channels that are visited to true.
@@ -263,11 +263,9 @@ public:
      */
     void setGround(int nodeId);   
 
-    /**
-     * @brief Sets the amount of virtual nodes read from the GUI.
-     * @param[in] virtualNodes Amount of virtual nodes.
-     */
-    void setVirtualNodes(int virtualNodes);
+    void addVirtualNode(std::shared_ptr<Node<T>> nodePtr);
+
+    void addVirtualChannel(std::shared_ptr<RectangularChannel<T>> channelPtr);
 
     /**
      * @brief Turns a channel with the specific id into a pressurepump with given pressure.
@@ -330,6 +328,12 @@ public:
     const std::unordered_map<int, std::shared_ptr<Node<T>>>& getNodes() const;
 
     /**
+     * @brief Get the nodes of the network including the virtual entries.
+     * @returns Nodes.
+    */
+    const std::vector<std::shared_ptr<Node<T>>>& getINodes() const;
+
+    /**
      * @brief Returns the id of the ground node.
      * @return Id of the ground node.
      */
@@ -340,12 +344,6 @@ public:
      * @return Pointer to the ground node.
      */
     std::set<Node<T>*> getGroundNodes() const;
-
-    /**
-     * @brief Returns the amount of virtual nodes given by the GUI.
-     * @return Amount of virtual nodes in the original network.
-     */
-    int getVirtualNodes() const;
 
     /**
      * @brief Get a pointer to the channel with the specific id.
@@ -366,7 +364,13 @@ public:
      * @brief Get the channels of the network.
      * @returns Channels.
     */
-    const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& getChannels() const;
+    const std::unordered_map<int, std::shared_ptr<RectangularChannel<T>>>& getChannels() const;
+
+    /**
+     * @brief Get the channels of the network, including the virtual entries.
+     * @returns Channels.
+    */
+    const std::vector<std::shared_ptr<RectangularChannel<T>>>& getIChannels() const;
 
     /**
      * @brief Get a map of all channels at a specific node.

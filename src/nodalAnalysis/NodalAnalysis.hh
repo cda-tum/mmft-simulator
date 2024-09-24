@@ -5,7 +5,7 @@ namespace nodal {
 template<typename T>
 NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     network = network_;
-    nNodes = network->getNodes().size() + network->getVirtualNodes();
+    nNodes = network->getINodes().size();
 
     // loop through modules
     for (const auto& [key, module] : network->getModules()) {
@@ -51,7 +51,7 @@ void NodalAnalysis<T>::clear() {
     conductingNodeIds.clear();
     groundNodeIds.clear();
 
-    int iPump = network->getNodes().size() + network->getVirtualNodes() + network->getPressurePumps().size();
+    int iPump = network->getINodes().size() + network->getPressurePumps().size();
 
     for (const auto& [key, group] : network->getGroups()) {
         for (const auto& nodeId : group->nodeIds) {

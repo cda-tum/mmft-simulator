@@ -38,7 +38,7 @@ namespace porting {
  * @return The json string containing the result
 */
 template<typename T>
-auto writePressures (result::State<T>* state);
+auto writePressures (result::State<T>* state, arch::Network<T>*);
 
 /**
  * @brief Write the flow rates in the channels of a network at a state (timestamp) of the simulation
@@ -46,7 +46,7 @@ auto writePressures (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeChannels (result::State<T>* state);
+auto writeChannels (result::State<T>* state, arch::Network<T>*);
 
 /**
  * @brief Write the location of the vtk results of a module at a state (timestamp) of the simulation

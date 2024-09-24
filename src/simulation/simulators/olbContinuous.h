@@ -97,9 +97,9 @@ protected:
 
     virtual void prepareNsLattice(const T omega);
 
-    void initPressureIntegralPlane();
+    void initPressureIntegralPlane(T dx);
 
-    void initFlowRateIntegralPlane();
+    void initFlowRateIntegralPlane(T dx);
 
     void initNsLattice(const T omega);
 

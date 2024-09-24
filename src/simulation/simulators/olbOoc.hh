@@ -66,6 +66,7 @@ void lbmOocSimulator<T>::prepareGeometry () {
 
 template<typename T>
 void lbmOocSimulator<T>::prepareLattice () {
+    T dx = this->getConverter().getConversionFactorLength();
 
     /**
      * Prepare the NS lattice
@@ -84,10 +85,10 @@ void lbmOocSimulator<T>::prepareLattice () {
     /**
      * Initialize the integral fluxes for the in- and outlets
      */
-    this->initPressureIntegralPlane();
-    this->initFlowRateIntegralPlane();
+    this->initPressureIntegralPlane(dx);
+    this->initFlowRateIntegralPlane(dx);
     for (auto& [adKey, LatticeAD] : this->adLattices) {
-        this->initConcentrationIntegralPlane(adKey);
+        this->initConcentrationIntegralPlane(adKey, dx);
     }
 
     /**

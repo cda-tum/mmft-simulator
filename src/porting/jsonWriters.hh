@@ -3,32 +3,32 @@
 namespace porting {
 
 template<typename T>
-auto writePressures(result::State<T>* state) {
+auto writePressures(result::State<T>* state, arch::Network<T>* network) {
     auto nodes = ordered_json::array();
     auto const& pressures = state->getPressures();
-    for (auto& [key, pressure] : pressures) {
-        nodes.push_back({{"pressure", pressure}});
+    for (auto& iNode : network->getINodes()) {
+        if (iNode == nullptr) {
+            nodes.push_back({{"pressure", 0.0}});
+        } else {
+            nodes.push_back({{"pressure", pressures.at(iNode->getId())}});
+        }
     }
     return nodes;
 }
 
 template<typename T>
-auto writeChannels(result::State<T>* state) {      
+auto writeChannels(result::State<T>* state, arch::Network<T>* network) {      
     auto channels = ordered_json::array();
     auto const& flowRates = state->getFlowRates();
-    if (state->getMixturePositions().empty()) {
-        for (long unsigned int i=0; i<flowRates.size(); ++i) {
-            auto channel = ordered_json::object();
-            channel["flowRate"] = flowRates.at(i);
-            channels.push_back(channel);
-        }
-    } else if ( !state->getMixturePositions().empty() ) {
-        for (long unsigned int i=0; i<flowRates.size(); ++i) {
-            auto channel = ordered_json::object();
-            channel["flowRate"] = flowRates.at(i);
-            if ( state->getMixturePositions().count(i) ) {
+    for (auto& iChannel : network->getIChannels()) {
+        auto channel = ordered_json::object();
+        if (iChannel == nullptr) {
+            channel["flowRate"] = 0.0;
+        } else {
+            channel["flowRate"] = flowRates.at(iChannel->getId());
+            if (state->getMixturePositions().count(iChannel->getId())) {
                 channel["mixturePositions"] = ordered_json::array();
-                for (auto& position : state->getMixturePositions().at(i)) {
+                for (auto& position : state->getMixturePositions().at(iChannel->getId())) {
                     channel["mixturePositions"].push_back({
                         {"mixture", position.mixtureId},
                         {"start", position.position1},
@@ -36,8 +36,8 @@ auto writeChannels(result::State<T>* state) {
                     });
                 }
             }
-            channels.push_back(channel);
         }
+        channels.push_back(channel);
     }
     return channels;
 }
