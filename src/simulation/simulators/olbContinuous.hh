@@ -259,8 +259,8 @@ void lbmSimulator<T>::initPressureIntegralPlane(T dx) {
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - 1.0*this->cfdModule->getPosition()[0] + Opening.normal[0]*dx*1.0;
-        T posY =  Opening.node->getPosition()[1] - 1.0*this->cfdModule->getPosition()[1] + Opening.normal[1]*dx*1.0;          
+        T posX =  Opening.node->getPosition()[0] - 0.0*this->cfdModule->getPosition()[0] + Opening.normal[0]*dx*1.0;
+        T posY =  Opening.node->getPosition()[1] - 0.0*this->cfdModule->getPosition()[1] + Opening.normal[1]*dx*1.0;          
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
 
@@ -280,8 +280,8 @@ void lbmSimulator<T>::initFlowRateIntegralPlane(T dx) {
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->moduleOpenings) {
 
-        T posX =  Opening.node->getPosition()[0] - 1.0*this->cfdModule->getPosition()[0] + Opening.normal[0]*dx*1.0;
-        T posY =  Opening.node->getPosition()[1] - 1.0*this->cfdModule->getPosition()[1] + Opening.normal[1]*dx*1.0;          
+        T posX =  Opening.node->getPosition()[0] - 0.0*this->cfdModule->getPosition()[0] + Opening.normal[0]*dx*1.0;
+        T posY =  Opening.node->getPosition()[1] - 0.0*this->cfdModule->getPosition()[1] + Opening.normal[1]*dx*1.0;          
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, key+3};
@@ -373,8 +373,8 @@ void lbmSimulator<T>::readOpenings (const T dx) {
     auto min = stlReader->getMesh().getMin();
 
     T stlShift[2];
-    stlShift[0] = 1.0*(this->cfdModule->getPosition()[0] - min[0]);
-    stlShift[1] = 1.0*(this->cfdModule->getPosition()[1] - min[1]);
+    stlShift[0] = 0.0*(this->cfdModule->getPosition()[0] - min[0]);
+    stlShift[1] = 0.0*(this->cfdModule->getPosition()[1] - min[1]);
 
     for (auto& [key, Opening] : this->moduleOpenings ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
