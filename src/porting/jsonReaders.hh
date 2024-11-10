@@ -332,12 +332,15 @@ void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
                 int moduleCounter = 0;
                 for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
                     if (simulator.contains("alpha") && simulator.contains("beta") && simulator.contains("theta")) {
+                        std::cout << "am here" << std::endl;
                         if (simulator["alpha"].is_number() && simulator["beta"].is_number()) {
+                            std::cout << "doing this 1" << std::endl;
                             T alpha = simulator["alpha"];
                             T beta = simulator["beta"];
                             int theta = simulator["theta"];
                             simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
                         } else if (simulator["alpha"].is_array() && simulator["beta"].is_array()) {
+                            std::cout << "doing this 2" << std::endl;
                             int nodeCounter = 0;
                             std::unordered_map<int, T> alpha;
                             std::unordered_map<int, T> beta;

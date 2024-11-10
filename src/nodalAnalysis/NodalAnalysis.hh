@@ -190,6 +190,16 @@ template<typename T>
 void NodalAnalysis<T>::solve() {
     // solve equation x = A^(-1) * z
     x = A.colPivHouseholderQr().solve(z);
+
+    if (iteration % 1 == 0) {
+        std::vector<T> tmpError;
+        for (long unsigned int i = 0; i < baseline3.size(); i++) {
+            tmpError.push_back(baseline3[i] - x[i]);
+        }
+        errors.push_back(tmpError);
+    }
+
+    iteration++;
 }
 
 template<typename T>
@@ -387,7 +397,7 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
                 T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getOpenings().at(key).width;
                 T set_flowRate = 0.0;
                 if (old_flowRate > 0 ) {
-                    set_flowRate = old_flowRate + 5 * cfdSimulator.second->getAlpha(key) *  ( new_flowRate - old_flowRate );
+                    set_flowRate = old_flowRate + cfdSimulator.second->getBeta(key) *  ( new_flowRate - old_flowRate );
                 } else {
                     set_flowRate = new_flowRate;
                 }
@@ -430,6 +440,42 @@ void NodalAnalysis<T>::printSystem() {
     std::cout << "Matrix A:\n" << A  << "\n\n" << std::endl;
     std::cout << "Vector z:\n" << z  << "\n\n" << std::endl;
     std::cout << "Vector x:\n" << x  << "\n\n" << std::endl;
+}
+
+template<typename T>
+void NodalAnalysis<T>::writeSystem() {
+
+    //std::vector<int> indices = {3,5,6,7,8}; // #2
+    std::vector<int> indices = {3, 5, 8, 9, 10, 11, 12, 13, 14}; // #3
+    //std::vector<int> indices = {2,8,9,4,10,11,5,12,13,7,14};  // #4
+    
+    try {
+        std::string outputFileName = "Errors.csv";
+        std::cout << "Generating CSV file: " << outputFileName << std::endl;
+
+        std::ofstream outputFile;
+        outputFile.open(outputFileName);
+
+        int it = 1;
+
+        for (const auto& vec : errors) {
+            outputFile << std::setprecision(4) << it << ",";
+            for (const auto& index : indices) {
+                outputFile << vec[index] << ",";
+            }
+            outputFile << vec[15];
+            outputFile << "\n"; 
+            it++;
+        }
+        // Close the file
+        outputFile.close();
+
+    }
+    catch(...) {
+        throw std::invalid_argument("Couldn't write csv file");
+    }
+    
+    std::cout << "CSV file has been generated " << std::endl;
 }
 
 }   // namespace nodal

@@ -201,6 +201,9 @@
         }
     ],
     "activeFixture": 0,
+    "updateScheme": {
+        "scheme": "Naive"
+    },
     "settings": {
         "simulators": [
             {
@@ -209,7 +212,9 @@
                 "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.005,
+                "alpha": [1.0, 0.03, 0.02],
+                "beta": [0.0, 0.0, 0.0],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
@@ -254,7 +259,9 @@
                 "stlFile": "../examples/STL/cross.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.005,
+                "alpha": [0.0, 0.0, 0.005, 0.005],
+                "beta": [1.0, 1.0, 0.0, 0.0],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
@@ -309,7 +316,9 @@
                 "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.005,
+                "alpha": [0.0, 0.0, 0.1],
+                "beta": [0.05, 0.05, 0.0],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,

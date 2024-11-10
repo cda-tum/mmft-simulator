@@ -200,6 +200,9 @@
         }
     ],
     "activeFixture": 0,
+    "updateScheme": {
+        "scheme": "Naive"
+    },
     "settings": {
         "simulators": [
             {
@@ -208,7 +211,9 @@
                 "stlFile": "../examples/STL/invT-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.003,
+                "alpha": [0.003, 0.001, 0.001],
+                "beta": [0.015, 0.01, 0.01],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-2,
                 "tau": 0.55,
@@ -252,7 +257,9 @@
                 "stlFile": "../examples/STL/invT-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.003,
+                "alpha": [0.003, 0.003, 0.003],
+                "beta": [0.015, 0.015, 0.015],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-2,
                 "tau": 0.55,
@@ -297,7 +304,9 @@
                 "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.003,
+                "alpha": [0.003, 0.003, 0.003],
+                "beta": [0.015, 0.015, 0.015],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-2,
                 "tau": 0.55,
@@ -342,7 +351,9 @@
                 "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.003,
+                "alpha": [0.003, 0.003, 0.003],
+                "beta": [0.015, 0.015, 0.015],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-2,
                 "tau": 0.55,

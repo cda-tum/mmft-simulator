@@ -159,6 +159,9 @@
         }
     ],
     "activeFixture": 0,
+    "updateScheme": {
+        "scheme": "Naive"
+    },
     "settings": {
         "simulators": [
             {	
@@ -167,7 +170,9 @@
                 "stlFile": "../examples/STL/cross.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
-                "alpha": 0.1,
+                "alpha": [1.0, 1.0, 1.0, 1.0],
+                "beta": [1.0, 1.0, 1.0, 1.0],
+                "theta": 10,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,

@@ -595,12 +595,14 @@ namespace sim {
 
             #ifdef VERBOSE     
                 if (pressureConverged && allConverged) {
-                    std::cout << "[Simulation] All pressures have converged." << std::endl;
+                    std::cout << "[Simulation] All pressures have converged at timestep " + std::to_string(nodalAnalysis->iteration) << std::endl;
                 } 
                 printResults();
             #endif
             
             saveState();
+
+            nodalAnalysis->writeSystem();
         }
 
         // Mixing Hybrid simulation

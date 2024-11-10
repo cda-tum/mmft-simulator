@@ -7,6 +7,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "Eigen/Dense"
 
@@ -45,6 +46,24 @@ private:
     Eigen::VectorXd z;      // vector z = [i; e]
     Eigen::VectorXd x;      // vector x = [v; j]
 
+    const std::vector<T> baseline1 = {0.0, 1000.0, 1000.0, 1000.0, 859.216,
+                                    791.962, 859.216, 753.628, 753.628, 422.270, 0.0};
+
+    const std::vector<T> baseline2 = {0.0, 1000.0, 577.014, 729.934, 491.525,
+                                    469.468, 641.131, 607.210, 427.408, 270.394, 0.0};
+
+    const std::vector<T> baseline3 = {0.0, 1000.0, 687.204, 801.008, 625.223,
+                                    601.422, 428.435, 428.007, 331.775, 733.690, 
+                                    703.349, 578.736, 525.094, 529.993, 326.021, 
+                                    198.163, 0.0};
+
+    const std::vector<T> baseline4 = {0.0, 1000.0, 781.127, 616.813, 
+                                    604.130, 535.202, 447.967, 371.026, 
+                                    698.425, 695.905, 552.151, 540.371, 
+                                    522.332, 454.959, 355.563, 217.833, 0.0};
+                                    
+    std::vector<std::vector<T>> errors;
+
     std::unordered_set<int> conductingNodeIds;
     std::unordered_map<int, int> groundNodeIds;
 
@@ -68,6 +87,9 @@ private:
     void printSystem();
 
 public:
+
+    int iteration = 0;
+
     /**
      * @brief Creates a NodalAnalysis object
      */
@@ -89,6 +111,9 @@ public:
      * @param[in] cfdSimulators The cfd simulators for a hybrid simulation
      */
     bool conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+
+
+    void writeSystem();
 
 };
 
