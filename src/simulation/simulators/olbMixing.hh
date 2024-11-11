@@ -246,10 +246,13 @@ void lbmMixingSimulator<T>::initValueContainers () {
         this->pressures.try_emplace(key, (T) 0.0);
         this->flowRates.try_emplace(key, (T) 0.0);
         std::unordered_map<int, T> tmpConcentrations;
+        std::unordered_map<int, std::vector<T>> tmpFieldConcentrations;
         for (auto& [speciesId, speciesPtr] : species) {
             tmpConcentrations.try_emplace(speciesId, 0.0);
+            tmpFieldConcentrations.try_emplace(speciesId, std::vector<T>(this->getResolution(key), 0.0));
         }
         this->concentrations.try_emplace(key, tmpConcentrations);
+        this->nodeConcentrationFields.try_emplace(key, tmpFieldConcentrations);
     }
 }
 
@@ -366,14 +369,6 @@ void lbmMixingSimulator<T>::prepareCoupling() {
     this->lattice->addLatticeCoupling(coupling, adLatticesVec);
 }
 
-/**  
- * TODO: coupling Abstract -> CFD  
- */ 
-template<typename T>
-int lbmMixingSimulator<T>::getResolution(int nodeId) const {
-    return resolutions.at(nodeId);
-}
-
 template<typename T>
 void lbmMixingSimulator<T>::setConcentration2D (int key) {
     // Set the boundary concentrations for inflows and outflows
@@ -403,9 +398,6 @@ void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::uno
     this->concentrations = concentrations_;
 }
 
-/**  
- * TODO: coupling Abstract -> CFD  
- */ 
 template<typename T>
 void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
     this->nodeConcentrationFields = concentrationFieldsOut_;
@@ -416,9 +408,6 @@ std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getCo
     return this->concentrations;
 }
 
-/**  
- * TODO: coupling Abstract -> CFD  
- */ 
 template<typename T>
 std::unordered_map<int, std::unordered_map<int, std::vector<T>>> lbmMixingSimulator<T>::getNodeConcentrationFields() const {
     return this->nodeConcentrationFields;

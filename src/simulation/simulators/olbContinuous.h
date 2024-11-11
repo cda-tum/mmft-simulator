@@ -74,6 +74,7 @@ protected:
     std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
     std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
     std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
+    std::unordered_map<int, int> resolutions;                       ///< Vector of Resolutions at module nodes <nodeId, resolution>
 
     auto& getConverter() {
         return *converter;
@@ -261,6 +262,15 @@ public:
     T getResolution() const { 
         return resolution; 
     };
+
+    /**
+     * @brief Get the resolution at a boundary node.
+     * @param[in] nodeId id of the node.
+     * @returns resolution
+     */
+    int getResolution(int nodeId) const override {
+        return resolutions.at(nodeId);
+    }
 
     /**
      * @brief Get the convergence criterion.

@@ -469,7 +469,9 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
             for (auto& [channelId, channel] : network->getChannels()) { // There is only one channel connected to a node at a CFD hybrid node connection
                 if (cfdSimulator->getFlowRates().at(nodeId) > 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
                     std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
+                    std::cout << "Getting here, nodeId is " + std::to_string(nodeId) << std::endl;
                     for (const auto& [specieId, concentrationField] : concentrationFieldsIn.at(nodeId)) {
+                        std::cout << "Getting here 2" << std::endl;
                         T dx = channel->getWidth() / concentrationField.size();
                         T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
                         std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionHybrid(
@@ -482,11 +484,12 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                     this->injectMixtureInEdge(newMixture->getId(), channelId);
                 }
                 else if (cfdSimulator->getFlowRates().at(nodeId) < 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
-                    for (const auto& [specieId, concentrationField] : concentrationFieldsOut.at(nodeId)) {
-                        int resolutionIntoCfd = cfdSimulator->getResolution(nodeId);
+                    int resolutionIntoCfd = cfdSimulator->getResolution(nodeId);
+                    concentrationFieldsOut.try_emplace(nodeId, std::unordered_map<int, std::vector<T>>());
+                    for (const auto& [specieId, speciePtr] : sim->getSpecies()) {
                         std::vector<T> concentrationFieldForCfdInput = defineConcentrationNodeFieldForCfdInput(resolutionIntoCfd, specieId, channelId, channel->getWidth(), mixtures, noFourierTerms);
-                        concentrationFieldsOut[nodeId][specieId] = concentrationFieldForCfdInput;
-                    }
+                        concentrationFieldsOut.at(nodeId).try_emplace(specieId, concentrationFieldForCfdInput);
+                    }                    
                 }
             }
         }
@@ -510,7 +513,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
     arch::Node<T>* node = network->getNode(nodeId).get();
     concatenatedFlows.clear();
     outflowDistributions.clear();
-    if (!node->getGround()){
+    if (!node->getGround() && !network->isBoundary(nodeId)){
 
         // 1. List all connecting channels with angle and inflow
         std::vector<RadialPosition<T>> channelOrder;
@@ -691,14 +694,37 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                 outflowDistributions.at(opposed.at(0).channelId).push_back(flow4);
             }
         } else {
-            throw std::invalid_argument("Too many channels at node " + std::to_string(nodeId) + " for DiffusionMixingModel.");
+            throw std::invalid_argument("Too many channels (" + std::to_string(concatenatedFlows.size()) + ") at node " + std::to_string(nodeId) + " for DiffusionMixingModel.");
         }
     }
 }
 
 template<typename T>
 void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) {
-    // TODO
+
+    // Initialization
+    T timeStep = 0.0;
+    bool inflowUpdated = true;
+
+    // As long as the remaining timestep does not return to 0.0, we conduct the following loop
+    while (inflowUpdated) {
+        // Propagate all mixtures and check if a mixture reaches a channel end
+        std::cout << "[propagateSpecies][updateNodeInflow]" << std::endl;
+        updateNodeInflow(timeStep, network);
+        // Generate a new inflow in case a mixture has reached channel end.
+        std::cout << "[propagateSpecies][generateInflows]" << std::endl;
+        generateInflows(timeStep, network, sim, sim->getMixtures());
+        // Clear the buffers for the diffusion mixing model
+        std::cout << "[propagateSpecies][clean]" << std::endl;
+        clean(network);
+        // Define and store the new minimal timestep for the next iteration
+        this->updateMinimalTimeStep(network);
+        timeStep = this->getMinimalTimeStep();
+        if (timeStep < 1e-12) {
+            inflowUpdated = false;
+        }
+    }
+
 }
 
 template<typename T>
@@ -951,7 +977,14 @@ std::vector<T> DiffusionMixingModel<T>::defineConcentrationNodeFieldForCfdInput(
     // To adhere to the conservation of mass, the sum of concentration passed must be equal to that represented by the concentration function across the width.
     // For this piecewise linerar interpolation is employed.
     std::vector<T> concentrationField;
-    T mixtureId = this->filledEdges.at(channelId); // get the diffusive mixture at a specific channelId
+    int mixtureId = 0;
+    if (this->filledEdges.count(channelId)) {
+        mixtureId = this->filledEdges.at(channelId); // get the diffusive mixture at a specific channelId
+    } else {
+        concentrationField = std::vector<T> (resolutionIntoCfd, 0.0);
+        return concentrationField;
+    }
+
     DiffusiveMixture<T>* diffusiveMixture = dynamic_cast<DiffusiveMixture<T>*>(Mixtures.at(mixtureId).get()); // Assuming diffusiveMixtures is passed
     if (diffusiveMixture->getSpecieConcentrations().find(specieId) == diffusiveMixture->getSpecieConcentrations().end()) { // the species is not in the mixture
         // here we could distinguish between constant and non-constant concentration
@@ -974,7 +1007,7 @@ std::vector<T> DiffusionMixingModel<T>::defineConcentrationNodeFieldForCfdInput(
                 concentration += segmentedResult[n] / oldN * (std::sin(oldN * M_PI * end) - std::sin(oldN * M_PI * start));
             }
             concentrationField.push_back(concentration);
-        }   
+        }
     }
     return concentrationField;
 }
