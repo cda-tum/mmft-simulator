@@ -27,7 +27,7 @@ template <typename T>
 CFDSimulator<T>::CFDSimulator (int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, ResistanceModel<T>* resistanceModel_) :
     CFDSimulator<T> (id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_)
 { 
-    updateScheme = updateScheme_;
+    //updateScheme = updateScheme_;
 }
 
 template<typename T>
@@ -58,7 +58,7 @@ void CFDSimulator<T>::setInitialized(bool initialization_) {
 
 template <typename T>
 void CFDSimulator<T>::setUpdateScheme(const std::shared_ptr<mmft::Scheme<T>>& updateScheme_) {
-    this->updateScheme = updateScheme_;
+    //this->updateScheme = updateScheme_;
 }
 
 template<typename T>
@@ -73,12 +73,12 @@ std::string CFDSimulator<T>::getVtkFile() {
 
 template <typename T>
 T CFDSimulator<T>::getAlpha(int nodeId_) {
-    return updateScheme->getAlpha(nodeId_);
+    //return updateScheme->getAlpha(nodeId_);
 }
 
 template <typename T>
 T CFDSimulator<T>::getBeta(int nodeId_) {
-    return updateScheme->getBeta(nodeId_);
+    //return updateScheme->getBeta(nodeId_);
 }
 
 template<typename T>

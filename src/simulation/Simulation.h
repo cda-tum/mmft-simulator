@@ -34,6 +34,12 @@ namespace mmft {
 
 // Forward declared dependencies
 template<typename T>
+class DynamicDampingScheme;
+
+template<typename T>
+class LinearDecouplingScheme;
+
+template<typename T>
 class Scheme;
 
 template<typename T>
@@ -143,7 +149,7 @@ private:
     ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
     MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
     MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
-    std::unordered_map<int, std::shared_ptr<mmft::Scheme<T>>> updateSchemes;            ///< The update scheme for Abstract-CFD coupling
+    std::shared_ptr<mmft::Scheme<T>> updateScheme;                                      ///< The update scheme for Abstract-CFD coupling
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
     int maxIterations = 1e5;
@@ -305,16 +311,20 @@ public:
      * @param[in] theta The amount of LBM stream and collide cycles between updates for the modules.
      * @returns A shared_ptr to the created naive update scheme.
      */
-    std::shared_ptr<mmft::NaiveScheme<T>> setNaiveHybridScheme(int moduleId, T alpha, T beta, int theta);
+    std::shared_ptr<mmft::NaiveScheme<T>> setNaiveHybridScheme(int moduleId, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
 
     /**
-     * @brief Define and set the naive update scheme for a hybrid simulation.
-     * @param[in] alpha The relaxation value for the pressure value update for all nodes of the module.
-     * @param[in] beta The relaxation value for the flow rate value update for all nodes of the module.
-     * @param[in] theta The amount of LBM stream and collide cycles between updates for the modules.
-     * @returns A shared_ptr to the created naive update scheme.
+     * @brief Define and set the dynamic damping update scheme for a hybrid simulation.
+     * @param[in] theta The amount of LBM stream and collide cycles between updates for all modules.
+     * @returns A shared_ptr to the created dynamic damping update scheme.
      */
-    std::shared_ptr<mmft::NaiveScheme<T>> setNaiveHybridScheme(int moduleId, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
+    std::shared_ptr<mmft::DynamicDampingScheme<T>> setDynamicHybridScheme(int theta);
+
+    /**
+     * @brief Define and set the dynamic damping update scheme for a hybrid simulation.
+     * @returns A shared_ptr to the created dynamic damping update scheme.
+     */
+    std::shared_ptr<mmft::LinearDecouplingScheme<T>> setLinearDecouplingScheme();
 
     /**
      * @brief Create injection.
@@ -629,6 +639,10 @@ public:
      * @brief Print the results as pressure at the nodes and flow rates at the channels
      */
     void printResults();
+
+    std::shared_ptr<nodal::NodalAnalysis<T>> getNodalAnalysis() {
+        return nodalAnalysis;
+    }
 };
 
 }   // namespace sim

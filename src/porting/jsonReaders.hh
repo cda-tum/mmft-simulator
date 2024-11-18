@@ -334,13 +334,12 @@ void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
                     if (simulator.contains("alpha") && simulator.contains("beta") && simulator.contains("theta")) {
                         std::cout << "am here" << std::endl;
                         if (simulator["alpha"].is_number() && simulator["beta"].is_number()) {
-                            std::cout << "doing this 1" << std::endl;
                             T alpha = simulator["alpha"];
                             T beta = simulator["beta"];
                             int theta = simulator["theta"];
-                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                            //simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                            simulation.setNaiveHybridScheme(alpha, beta, theta);
                         } else if (simulator["alpha"].is_array() && simulator["beta"].is_array()) {
-                            std::cout << "doing this 2" << std::endl;
                             int nodeCounter = 0;
                             std::unordered_map<int, T> alpha;
                             std::unordered_map<int, T> beta;
@@ -362,6 +361,14 @@ void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
                     }
                 }
             }
+        } else if (jsonString["simulation"]["updateScheme"]["scheme"] == "DynamicDamping") {
+            //int theta = jsonString["simulation"]["updateScheme"]["theta"];
+            int theta = 1;
+            simulation.setDynamicHybridScheme(theta);
+            return;
+        } else if (jsonString["simulation"]["updateScheme"]["scheme"] == "LinearDecoupling") {
+            simulation.setLinearDecouplingScheme();
+            return;
         } else {
             throw std::invalid_argument("Update scheme was not set.");
         }
@@ -389,9 +396,14 @@ void readPumps(json jsonString, arch::Network<T>* network) {
     if (!jsonString["simulation"].contains("pumps") || jsonString["simulation"]["pumps"].empty()) {
         throw std::invalid_argument("No pumps are defined. Please define at least 1 pump.");
     }
+    for (auto& [key,channel] : network->getChannels()) {
+        std::cout << "key:\t" << key << "\t\tchannelId:\t" << channel->getId() << std::endl;
+    }
+    std::cout << "channels size: " << network->getChannels().size() << std::endl;
     for (auto& pump : jsonString["simulation"]["pumps"]) {
         if (pump.contains("channel") && pump.contains("type")) {
             int channelId = pump["channel"];
+            std::cout << channelId << std::endl;
             if (pump["type"] == "PumpPressure") {
                 if (pump.contains("deltaP")) {
                     T pressure = pump["deltaP"];

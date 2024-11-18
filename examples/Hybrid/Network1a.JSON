@@ -172,7 +172,7 @@
                 "charPhysVelocity": 1e-1,
                 "alpha": [1.0, 1.0, 1.0, 1.0],
                 "beta": [1.0, 1.0, 1.0, 1.0],
-                "theta": 10,
+                "theta": 1,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,

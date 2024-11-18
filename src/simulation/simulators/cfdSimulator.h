@@ -48,7 +48,6 @@ protected:
     std::shared_ptr<arch::Network<T>> moduleNetwork;                ///< Fully connected graph as network for the initial approximation.
     std::unordered_map<int, arch::Opening<T>> moduleOpenings;       ///< Map of openings. <nodeId, arch::Opening>
     std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver. <nodeId, bool>
-    std::shared_ptr<mmft::Scheme<T>> updateScheme;                  ///< The update scheme for Abstract-CFD coupling
 
     /**
      * @brief Constructor of a CFDSimulator, which acts as a base definition for other simulators.

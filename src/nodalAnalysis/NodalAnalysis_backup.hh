@@ -93,14 +93,14 @@ void NodalAnalysis<T>::conductNodalAnalysis() {
 }
 
 template<typename T>
-bool NodalAnalysis<T>::conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators, std::shared_ptr<mmft::Scheme<T>>& scheme) {
+bool NodalAnalysis<T>::conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
     clear();
     readConductance();
     readCfdSimulators(cfdSimulators);
     updateReferenceP();
     readPressurePumps();
     readFlowRatePumps();
-    solve(scheme);
+    solve();
     setResults();
     writeCfdSimulators(cfdSimulators);
     initGroundNodes(cfdSimulators);
@@ -193,37 +193,79 @@ void NodalAnalysis<T>::readFlowRatePumps() {
 template<typename T>
 void NodalAnalysis<T>::solve() {
     // solve equation x = A^(-1) * z
-    x = A.colPivHouseholderQr().solve(z);
-    
-    iteration++;
-}
+    Eigen::VectorXd x_next = A.colPivHouseholderQr().solve(z);
 
-template<typename T>
-void NodalAnalysis<T>::solve(std::shared_ptr<mmft::Scheme<T>>& scheme) {
-    // solve equation x_star = A^(-1) * z
-    Eigen::VectorXd x_star = A.colPivHouseholderQr().solve(z);
+    std::vector<T> tmp_Alpha (x_next.size(), 0.0);
 
-    if (x_star.size() == x.size() && x.size() == x_prev.size()) {
+    if (x_next.size() == x.size() && x.size() == x_prev.size()) {
+        lambda = (x_next.array() - 2*x.array() + x_prev.array())/x.array();
         std::vector<T> tmp_xn;
         std::vector<T> tmp_xn_dt;
         std::vector<T> tmp_xn_dt2;
+        std::vector<T> tmp_lambdan;
         if (iteration % 1 == 0) {
             for (int i = 0; i < x.size(); i++) {
                 tmp_xn.push_back(x[i]);
-                tmp_xn_dt.push_back(x_star[i] - x[i]);
-                tmp_xn_dt2.push_back(x_star[i] - 2*x[i] + x_prev[i]);
+                tmp_xn_dt.push_back(x_next[i] - x[i]);
+                tmp_xn_dt2.push_back(x_next[i] - 2*x[i] + x_prev[i]);
+                tmp_lambdan.push_back(lambda[i]);
+                tmp_Alpha[i] = (1.0/(1.0 + std::abs(x_next[i] - 2*x[i] + x_prev[i])));
             }
             xn.push_back(tmp_xn);
             xn_dt.push_back(tmp_xn_dt);
             xn_dt2.push_back(tmp_xn_dt2);
+            lambdan.push_back(tmp_lambdan);
+            Alphan.push_back(tmp_Alpha);
         }
     }
-    
-    x_prev = x;
 
-    scheme->setXstar(x_star);
-    scheme->compute();
-    x = scheme->getX();
+    Alpha = tmp_Alpha;
+
+    if (x_next.size() == x.size() && x.size() == x_prev.size()) {
+        Eigen::VectorXd eigenAlpha = (1.0/(1.0 + 10*((x_next.array() - 2*x.array() + x_prev.array()).abs())));
+        //std::cout << "2nd derivative" << std::endl;
+        //std::cout << (x_next.array() - 2*x.array() + x_prev.array()).abs() << std::endl;
+        x_prev = x;
+        x = (1 - eigenAlpha.array()) * x.array() + (eigenAlpha.array()) * x_next.array();
+    } else {
+        x_prev = x;
+        x = x_next;
+    }
+
+
+
+/*
+    if (x_next.size() == x.size() && x.size == x_prev.size()) {
+        for (long unsigned int i = 0; i < x.size(); i++) {
+            lamda = ()/
+        }
+    }
+*/
+/*
+    std::vector<int> matrixIndices = {1,2,3,4,5,6,7,8,9,11,12,13};
+
+    std::cout << "\nA:\n" << A << std::endl;
+    if (A.size() > 145) {
+        for (int i=0; i<12; i++) {
+            for (int j=0; j<12; j++) {
+                Aclean(i,j) = A(matrixIndices[i], matrixIndices[j]);
+            }
+        }
+    }
+
+    std::cout << "\nAclean:\n" << Aclean << std::endl;
+    std::cout << "\ndet(A):\n" << Aclean.determinant() << std::endl;
+    std::cout << "\nA-1:\n" << Aclean.inverse() << std::endl;
+    std::cout << "\nx:\n" << x << std::endl;
+    std::cout << "\nz:\n" << z << "\n" << std::endl;
+*/
+    if (iteration % 1 == 0) {
+        std::vector<T> tmpError;
+        for (long unsigned int i = 0; i < baseline2.size(); i++) {
+            tmpError.push_back(baseline2[i] - x[i]);
+        }
+        errors.push_back(tmpError);
+    }
 
     iteration++;
 }
@@ -405,8 +447,16 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
             if (contains(conductingNodeIds, key)) {
                 T old_pressure = old_pressures.at(key);
                 T new_pressure = node->getPressure();
-                pressures_.at(key) = new_pressure;
-                if (abs(old_pressure - new_pressure) > 1e-1) {
+                T set_pressure = 0.0;
+                if (old_pressure > 0 ) {
+                    //set_pressure = (1.0 - Alpha[key]) * old_pressure + Alpha[key] * new_pressure;
+                    set_pressure = new_pressure;
+                } else {
+                    set_pressure = new_pressure;
+                }
+                pressures_.at(key) = set_pressure;
+
+                if (abs(old_pressure - new_pressure) > 1e-2) {
                     pressureConvergence = false;
                 }
             }
@@ -414,8 +464,16 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
             else if (contains(groundNodeIds, key)) {
                 T old_flowRate = old_flowrates.at(key) ;
                 T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getOpenings().at(key).width;
-                flowRates_.at(key) = new_flowRate;
-                if (abs(old_flowRate - new_flowRate) > 1e-1) {
+                T set_flowRate = 0.0;
+                if (old_flowRate > 0 ) {
+                    //set_flowRate = (1.0 - Alpha[key]) * old_flowRate +  Alpha[key] * new_flowRate;
+                    set_flowRate = new_flowRate;
+                } else {
+                    set_flowRate = new_flowRate;
+                }
+                flowRates_.at(key) = set_flowRate;
+
+                if (abs(old_flowRate - new_flowRate) > 1e-2) {
                     pressureConvergence = false;
                 }
             }

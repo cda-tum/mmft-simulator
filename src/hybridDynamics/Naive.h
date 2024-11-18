@@ -71,6 +71,11 @@ public:
      * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
      */
     NaiveScheme(std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, std::unordered_map<int, int> theta);
+    
+    /**
+     * @brief Calculate the update values according to the update scheme.
+     */
+    virtual void compute() override;
 
 };
 

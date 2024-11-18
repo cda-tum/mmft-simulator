@@ -201,27 +201,29 @@ namespace sim {
     template<typename T>
     std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(T alpha, T beta, int theta) {
         auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, beta, theta);
-        for (auto& [key, simulator] : cfdSimulators) {
-            updateSchemes.try_emplace(simulator->getId(), naiveScheme);
-            simulator->setUpdateScheme(updateSchemes.at(simulator->getId()));
-        }
-        return naiveScheme;
-    }
-
-    template<typename T>
-    std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(int moduleId, T alpha, T beta, int theta) {
-        auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModule(moduleId), alpha, beta, theta);
-        updateSchemes.try_emplace(moduleId, naiveScheme);
-        cfdSimulators.at(moduleId)->setUpdateScheme(updateSchemes.at(moduleId));
+        updateScheme = naiveScheme;
         return naiveScheme;
     }
 
     template<typename T>
     std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(int moduleId, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta) {
         auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModule(moduleId), alpha, beta, theta);
-        updateSchemes.try_emplace(moduleId, naiveScheme);
-        cfdSimulators.at(moduleId)->setUpdateScheme(updateSchemes.at(moduleId));
+        updateScheme = naiveScheme;
         return naiveScheme;
+    }
+
+    template<typename T>
+    std::shared_ptr<mmft::DynamicDampingScheme<T>> Simulation<T>::setDynamicHybridScheme(int theta) {
+        auto dynamicScheme = std::make_shared<mmft::DynamicDampingScheme<T>>(theta, 10);
+        updateScheme = dynamicScheme;
+        return dynamicScheme;
+    }
+
+    template<typename T>
+    std::shared_ptr<mmft::LinearDecouplingScheme<T>> Simulation<T>::setLinearDecouplingScheme() {
+        auto linearDecouplingScheme = std::make_shared<mmft::LinearDecouplingScheme<T>>();
+        updateScheme = linearDecouplingScheme;
+        return linearDecouplingScheme;
     }
 
     template<typename T>
@@ -589,8 +591,7 @@ namespace sim {
                 // conduct CFD simulations
                 allConverged = conductCFDSimulation(cfdSimulators);
                 // compute nodal analysis again
-                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
-
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators, updateScheme);
             }
 
             #ifdef VERBOSE     
@@ -626,7 +627,7 @@ namespace sim {
                 // conduct CFD simulations
                 allConverged = conductCFDSimulation(cfdSimulators);
                 // compute nodal analysis again
-                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators,updateScheme);
             }
 
             #ifdef VERBOSE     
@@ -666,7 +667,7 @@ namespace sim {
                 // conduct CFD simulations
                 allConverged = conductCFDSimulation(cfdSimulators);
                 // compute nodal analysis again
-                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+                pressureConverged = nodalAnalysis->conductNodalAnalysis(cfdSimulators, updateScheme);
             }
 
             #ifdef VERBOSE     
@@ -890,7 +891,7 @@ namespace sim {
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators, updateScheme);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE
@@ -919,7 +920,7 @@ namespace sim {
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators, updateScheme);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE
@@ -948,7 +949,7 @@ namespace sim {
             #ifdef VERBOSE
                 std::cout << "[Simulation] Conduct initial nodal analysis..." << std::endl;
             #endif
-            nodalAnalysis->conductNodalAnalysis(cfdSimulators);
+            nodalAnalysis->conductNodalAnalysis(cfdSimulators, updateScheme);
 
             // Prepare CFD geometry and lattice
             #ifdef VERBOSE

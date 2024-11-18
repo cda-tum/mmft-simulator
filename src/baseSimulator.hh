@@ -20,8 +20,10 @@
 
 #include "nodalAnalysis/NodalAnalysis.hh"
 
+#include "hybridDynamics/DynamicDamping.hh"
 #include "hybridDynamics/Scheme.hh"
 #include "hybridDynamics/Naive.hh"
+#include "hybridDynamics/LinearDecoupling.hh"
 
 #include "architecture/Channel.hh"
 #include "architecture/ChannelPosition.hh"

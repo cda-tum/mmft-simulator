@@ -107,12 +107,17 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
     // Read a Hybrid simulation definition
     else if (simType == sim::Type::Hybrid) {
 
+        std::cout << "[readContinuousPase]" << std::endl;
+
         readContinuousPhase<T>(jsonString, simulation, activeFixture);
         readResistanceModel<T>(jsonString, simulation);
 
         if (platform == sim::Platform::Continuous) {
+            std::cout << "[readSimulators]" << std::endl;
             readSimulators<T>(jsonString, simulation, network_);
+            std::cout << "[readUpdateScheme]" << std::endl;
             readUpdateScheme(jsonString, simulation);
+            std::cout << "[sortGroups]" << std::endl;
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
             readMixingModel<T>(jsonString, simulation);
@@ -136,8 +141,9 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
         } else {
             throw std::invalid_argument("Invalid platform for Hybrid simulation. Please select one of the following:\n\tcontinuous");
         }
-
+        std::cout << "[readPumps]" << std::endl;
         readPumps<T>(jsonString, network_);
+        std::cout << "[isValid]" << std::endl;
         network_->isNetworkValid();
     }
 

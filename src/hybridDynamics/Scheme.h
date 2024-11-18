@@ -8,6 +8,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Eigen/Dense"
+
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
 namespace arch {
 
 // Forward declared dependencies
@@ -28,9 +33,12 @@ class Scheme {
 
 protected:
 
-    std::unordered_map<int, T> alpha;       // relaxation value for pressure value updates on the Abstract-CFD interface nodes <nodeId, alpha>
-    std::unordered_map<int, T> beta;        // relaxation value for pressure value flow rate on the Abstract-CFD interface nodes <nodeId, alpha>
-    std::unordered_map<int, int> theta;     // Amount of LBM collide and stream iterations between update steps <moduleId, theta>
+    Eigen::VectorXd alpha;       // relaxation value for pressure value updates on the Abstract-CFD interface nodes <nodeId, alpha>
+    Eigen::VectorXd beta;        // relaxation value for pressure value flow rate on the Abstract-CFD interface nodes <nodeId, alpha>
+    Eigen::VectorXd theta;     // Amount of LBM collide and stream iterations between update steps <moduleId, theta>
+
+    Eigen::VectorXd x_star;
+    Eigen::VectorXd x;
 
     /**
      * @brief Default constructor of a Scheme.
@@ -132,30 +140,46 @@ public:
     void setTheta(std::unordered_map<int, int> theta);
 
     /**
-     * @brief Returns the relaxation value for pressure updates for node with nodeId.
-     * @param[in] nodeId The node for which alpha is returned.
-     * @returns alpha.
+     * @brief Sets the latest x* values.
+     * @param[in] x_star The vector x*.
      */
-    T getAlpha(int nodeId) const;
+    void setXstar(const Eigen::VectorXd& x_star);
 
     /**
-     * @brief Returns the relaxation value for pressure updates for all nodes.
-     * @returns Map of alpha values. <nodeId, alpha>
+     * @brief Calculate the update values according to the update scheme.
      */
-    const std::unordered_map<int, T>& getAlpha() const;
+    virtual void compute() = 0;
 
     /**
-     * @brief Returns the relaxation value for flow rate updates for node with nodeId.
-     * @param[in] nodeId The node for which beta is returned.
-     * @returns beta.
+     * @brief Returns the latest x value, computed by the update scheme.
      */
-    T getBeta(int nodeId) const;
+    const Eigen::VectorXd& getX();
 
-    /**
-     * @brief Returns the relaxation value for flow rate updates for all nodes.
-     * @returns Map of beta values. <nodeId, beta>
-     */
-    const std::unordered_map<int, T>& getBeta() const;
+    // /**
+    //  * @brief Returns the relaxation value for pressure updates for node with nodeId.
+    //  * @param[in] nodeId The node for which alpha is returned.
+    //  * @returns alpha.
+    //  */
+    // T getAlpha(int nodeId) const;
+
+    // /**
+    //  * @brief Returns the relaxation value for pressure updates for all nodes.
+    //  * @returns Map of alpha values. <nodeId, alpha>
+    //  */
+    // const std::unordered_map<int, T>& getAlpha() const;
+
+    // /**
+    //  * @brief Returns the relaxation value for flow rate updates for node with nodeId.
+    //  * @param[in] nodeId The node for which beta is returned.
+    //  * @returns beta.
+    //  */
+    // T getBeta(int nodeId) const;
+
+    // /**
+    //  * @brief Returns the relaxation value for flow rate updates for all nodes.
+    //  * @returns Map of beta values. <nodeId, beta>
+    //  */
+    // const std::unordered_map<int, T>& getBeta() const;
 
     /**
      * @brief Returns the number of LBM iterations between update steps for module with moduleId.
@@ -164,11 +188,11 @@ public:
      */
     int getTheta(int moduleId) const;
 
-    /**
-     * @brief Returns the number of LBM iterations between update steps for all modules.
-     * @returns Map of theta values. <moduleId, theta>
-     */
-    const std::unordered_map<int, int>& getTheta() const;
+    // /**
+    //  * @brief Returns the number of LBM iterations between update steps for all modules.
+    //  * @returns Map of theta values. <moduleId, theta>
+    //  */
+    // const std::unordered_map<int, int>& getTheta() const;
 
 };
 

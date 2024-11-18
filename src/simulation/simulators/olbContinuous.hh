@@ -99,7 +99,7 @@ void lbmSimulator<T>::writeVTK (int iT) {
         this->vtkFile = olb::singleton::directories().getVtkOutDir() + olb::createFileName( this->name ) + ".pvd";
     }
 
-    if (iT % 1000 == 0) {
+    if (iT % 10000 == 0) {
         
         olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLattice(), getConverter());
         olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(getLattice(), getConverter());
@@ -116,13 +116,14 @@ void lbmSimulator<T>::writeVTK (int iT) {
     if (iT %1000 == 0) {
         #ifdef VERBOSE
             std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
+            /*
             for (auto& [key, Opening] : this->moduleOpenings) {
                 if (this->groundNodes.at(key)) {
                     meanPressures.at(key)->print();
                 } else {
                     fluxes.at(key)->print();
                 }
-            } 
+            } */
         #endif
     }
 
@@ -138,7 +139,8 @@ void lbmSimulator<T>::writeVTK (int iT) {
 
 template<typename T>
 void lbmSimulator<T>::solve() {
-    int theta = this->updateScheme->getTheta(this->cfdModule->getId());
+    //int theta = this->updateScheme->getTheta(this->cfdModule->getId());
+    int theta = 1;
     this->setBoundaryValues(step);
     for (int iT = 0; iT < theta; ++iT){    
         writeVTK(step);            

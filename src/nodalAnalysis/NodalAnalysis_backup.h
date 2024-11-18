@@ -22,14 +22,6 @@ class Network;
 
 }   // namespace arch
 
-namespace mmft {
-
-// Forward declared dependencies
-template<typename T>
-class Scheme;
-
-}   // namespace scheme
-
 namespace sim {
 
 // Forward declared dependencies
@@ -85,14 +77,13 @@ private:
     std::unordered_set<int> conductingNodeIds;
     std::unordered_map<int, int> groundNodeIds;
 
-    void readConductance();                                 // loop through channels and build matrix G
-    void updateReferenceP();                                // update the reference pressure for each group
-    void readPressurePumps();                               // loop through pressure pumps and build matrix B, C and vector e
-    void readFlowRatePumps();                               // loop through flowRate pumps and build vector i
-    void solve();                                           // solve equation x = A^(-1) * z
-    void solve(std::shared_ptr<mmft::Scheme<T>>& scheme);   // solve equation x = updateScheme(A^(-1) * z), for hybrid simulation
-    void setResults();                                     // set pressure of nodes to v and flow rate at pressure pumps to j
-    void initGroundNodes();                                 // initialize the ground nodes of the groups
+    void readConductance();         // loop through channels and build matrix G
+    void updateReferenceP();        // update the reference pressure for each group
+    void readPressurePumps();       // loop through pressure pumps and build matrix B, C and vector e
+    void readFlowRatePumps();       // loop through flowRate pumps and build vector i
+    void solve();                   // solve equation x = A^(-1) * z
+    void setResults();              // set pressure of nodes to v and flow rate at pressure pumps to j
+    void initGroundNodes();         // initialize the ground nodes of the groups
     void clear();
 
     // For hybrid simulations
@@ -128,9 +119,8 @@ public:
      * 
      * @param[in] network Pointer to the network on which the nodal analysis is conducted. Results are stored in the network's nodes.
      * @param[in] cfdSimulators The cfd simulators for a hybrid simulation
-     * @param[in] scheme The iterative update scheme used for a hybrid simulation
      */
-    bool conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators, std::shared_ptr<mmft::Scheme<T>>& scheme);
+    bool conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
 
 
     void writeSystem();

@@ -1,9 +1,13 @@
 set(SOURCE_LIST
+    DynamicDamping.hh
+    LinearDecoupling.hh
     Scheme.hh
     Naive.hh
 )
 
 set(HEADER_LIST
+    DynamicDamping.h
+    LinearDecoupling.h
     Scheme.h
     Naive.h
 )
