@@ -1,5 +1,6 @@
 set(SOURCE_LIST 
-    Hybrid.test.cpp    
+    Hybrid.test.cpp
+    Opening.test.cpp
 )
 
 target_sources(${TARGET_NAME} PRIVATE ${SOURCE_LIST})

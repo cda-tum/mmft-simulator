@@ -26,7 +26,7 @@ TEST(Network, testNetwork1) {
     network.addChannel(node3->getId(), node4->getId(), 5.0, arch::ChannelType::NORMAL);
     network.addChannel(node4->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
 
-    ASSERT_THROW(network.getGroundIds(), std::invalid_argument);
+    EXPECT_THROW(network.getGroundIds(), std::invalid_argument);
 
     network.setGround(node0->getId());
 
@@ -38,12 +38,12 @@ TEST(Network, testNetwork1) {
     // check result
     const double errorTolerance = 1e-6;
     // pressure at nodes
-    ASSERT_NEAR(node1->getPressure(), 1.0, errorTolerance);
-    ASSERT_NEAR(node2->getPressure(), 2.0 / 3.0, errorTolerance);
-    ASSERT_NEAR(node3->getPressure(), 15.0, errorTolerance);
-    ASSERT_NEAR(node4->getPressure(), 10.0, errorTolerance);
+    EXPECT_NEAR(node1->getPressure(), 1.0, errorTolerance);
+    EXPECT_NEAR(node2->getPressure(), 2.0 / 3.0, errorTolerance);
+    EXPECT_NEAR(node3->getPressure(), 15.0, errorTolerance);
+    EXPECT_NEAR(node4->getPressure(), 10.0, errorTolerance);
     // flow rate at pressure pumps
-    ASSERT_NEAR(v0->getFlowRate(), -0.2 / 3.0, errorTolerance);
+    EXPECT_NEAR(v0->getFlowRate(), -0.2 / 3.0, errorTolerance);
 }
 
 TEST(Network, testNetwork2) {
@@ -78,14 +78,14 @@ TEST(Network, testNetwork2) {
     // check result
     const double errorTolerance = 1e-6;
     // pressure at nodes
-    ASSERT_NEAR(node1->getPressure(), 1.0, errorTolerance);
-    ASSERT_NEAR(node2->getPressure(), 4.0, errorTolerance);
-    ASSERT_NEAR(node3->getPressure(), 4.0, errorTolerance);
-    ASSERT_NEAR(node4->getPressure(), 4.0, errorTolerance);
-    ASSERT_NEAR(node5->getPressure(), -2.0, errorTolerance);
+    EXPECT_NEAR(node1->getPressure(), 1.0, errorTolerance);
+    EXPECT_NEAR(node2->getPressure(), 4.0, errorTolerance);
+    EXPECT_NEAR(node3->getPressure(), 4.0, errorTolerance);
+    EXPECT_NEAR(node4->getPressure(), 4.0, errorTolerance);
+    EXPECT_NEAR(node5->getPressure(), -2.0, errorTolerance);
     // flow rate at pressure pumps
-    ASSERT_NEAR(v0->getFlowRate(), 0.6, errorTolerance);
-    ASSERT_NEAR(v1->getFlowRate(), 0.0, errorTolerance);
+    EXPECT_NEAR(v0->getFlowRate(), 0.6, errorTolerance);
+    EXPECT_NEAR(v1->getFlowRate(), 0.0, errorTolerance);
 }
 
 TEST(Network, testNetwork3) {
@@ -116,12 +116,12 @@ TEST(Network, testNetwork3) {
     // check result
     const double errorTolerance = 1e-6;
     // pressure at nodes
-    ASSERT_NEAR(node1->getPressure(), 8.0, errorTolerance);
-    ASSERT_NEAR(node2->getPressure(), -24.0, errorTolerance);
-    ASSERT_NEAR(node3->getPressure(), -20.0, errorTolerance);
+    EXPECT_NEAR(node1->getPressure(), 8.0, errorTolerance);
+    EXPECT_NEAR(node2->getPressure(), -24.0, errorTolerance);
+    EXPECT_NEAR(node3->getPressure(), -20.0, errorTolerance);
     // flow rate at pressure pumps
-    ASSERT_NEAR(v0->getFlowRate(), -4.0, errorTolerance);
-    ASSERT_NEAR(v1->getFlowRate(), 1.0, errorTolerance);
+    EXPECT_NEAR(v0->getFlowRate(), -4.0, errorTolerance);
+    EXPECT_NEAR(v1->getFlowRate(), 1.0, errorTolerance);
 }
 
 TEST(Network, testNetwork4) {
@@ -151,10 +151,10 @@ TEST(Network, testNetwork4) {
     // check result
     const double errorTolerance = 1e-6;
     // pressure at nodes
-    ASSERT_NEAR(node1->getPressure(), -38.4, errorTolerance);
-    ASSERT_NEAR(node2->getPressure(), -6.4, errorTolerance);
+    EXPECT_NEAR(node1->getPressure(), -38.4, errorTolerance);
+    EXPECT_NEAR(node2->getPressure(), -6.4, errorTolerance);
     // flow rate at pressure pumps
-    ASSERT_NEAR(v0->getFlowRate(), -7.2, errorTolerance);
+    EXPECT_NEAR(v0->getFlowRate(), -7.2, errorTolerance);
 }
 
 TEST(Network, testNetwork5) {
@@ -185,9 +185,9 @@ TEST(Network, testNetwork5) {
     // check result
     const double errorTolerance = 1e-6;
     // pressure at nodes
-    ASSERT_NEAR(node1->getPressure(), -30.0, errorTolerance);
-    ASSERT_NEAR(node2->getPressure(), -25.0, errorTolerance);
-    ASSERT_NEAR(node3->getPressure(), -35.5, errorTolerance);
+    EXPECT_NEAR(node1->getPressure(), -30.0, errorTolerance);
+    EXPECT_NEAR(node2->getPressure(), -25.0, errorTolerance);
+    EXPECT_NEAR(node3->getPressure(), -35.5, errorTolerance);
 }
 
 TEST(Network, networkArchitectureDefinition) {
@@ -208,19 +208,19 @@ TEST(Network, networkArchitectureDefinition) {
     auto c2 = bionetwork.addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::BYPASS);
     auto c3 = bionetwork.addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::CLOGGABLE);
 
-    ASSERT_EQ(v0->getNodeA(), node1->getId());
-    ASSERT_EQ(v0->getNodeB(), node2->getId());
-    ASSERT_EQ(v0->getPressure(), 32.0);
-    ASSERT_EQ(i0->getNodeA(), node1->getId());
-    ASSERT_EQ(i0->getNodeB(), node0->getId());
-    ASSERT_EQ(i0->getFlowRate(), 20.0);
-    ASSERT_EQ(c1->getNodeA(), node0->getId());
-    ASSERT_EQ(c1->getNodeB(), node1->getId());
-    ASSERT_EQ(c1->getChannelType(), arch::ChannelType::NORMAL);
-    ASSERT_EQ(c2->getNodeA(), node1->getId());
-    ASSERT_EQ(c2->getNodeB(), node2->getId());
-    ASSERT_EQ(c2->getChannelType(), arch::ChannelType::BYPASS);
-    ASSERT_EQ(c3->getNodeA(), node2->getId());
-    ASSERT_EQ(c3->getNodeB(), node0->getId());
-    ASSERT_EQ(c3->getChannelType(), arch::ChannelType::CLOGGABLE);
+    EXPECT_EQ(v0->getNodeA(), node1->getId());
+    EXPECT_EQ(v0->getNodeB(), node2->getId());
+    EXPECT_EQ(v0->getPressure(), 32.0);
+    EXPECT_EQ(i0->getNodeA(), node1->getId());
+    EXPECT_EQ(i0->getNodeB(), node0->getId());
+    EXPECT_EQ(i0->getFlowRate(), 20.0);
+    EXPECT_EQ(c1->getNodeA(), node0->getId());
+    EXPECT_EQ(c1->getNodeB(), node1->getId());
+    EXPECT_EQ(c1->getChannelType(), arch::ChannelType::NORMAL);
+    EXPECT_EQ(c2->getNodeA(), node1->getId());
+    EXPECT_EQ(c2->getNodeB(), node2->getId());
+    EXPECT_EQ(c2->getChannelType(), arch::ChannelType::BYPASS);
+    EXPECT_EQ(c3->getNodeA(), node2->getId());
+    EXPECT_EQ(c3->getNodeB(), node0->getId());
+    EXPECT_EQ(c3->getChannelType(), arch::ChannelType::CLOGGABLE);
 }

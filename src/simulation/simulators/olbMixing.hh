@@ -6,15 +6,26 @@ namespace sim{
 template<typename T>
 lbmMixingSimulator<T>::lbmMixingSimulator (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, Specie<T>*> species_,
-    std::unordered_map<int, arch::Opening<T>> openings_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, 
-    T alpha_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
-        lbmSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, alpha_, resolution_, epsilon_, relaxationTime_), 
+    std::unordered_map<int, arch::Opening<T>> openings_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, 
+    T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
+        lbmSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, resolution_, epsilon_, relaxationTime_), 
         species(species_), adRelaxationTime(adRelaxationTime_)
-    {   
-        std::cout << "Creating module and setting its type to lbm" << std::endl;
-        this->cfdModule->setModuleTypeLbm();
-        fluxWall.try_emplace(int(0), &zeroFlux);
-    } 
+{   
+    std::cout << "Creating module and setting its type to lbm" << std::endl;
+    this->cfdModule->setModuleTypeLbm();
+    fluxWall.try_emplace(int(0), &zeroFlux);
+} 
+
+template<typename T>
+lbmMixingSimulator<T>::lbmMixingSimulator (
+    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, Specie<T>*> species_,
+    std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, 
+    T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
+        lbmMixingSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, updateScheme_, resistanceModel_, charPhysLength_, charPhysVelocity_, resolution_, epsilon_, 
+                            relaxationTime_, species_, adRelaxationTime_)
+{   
+    this->updateScheme = updateScheme_;
+} 
 
 template<typename T>
 void lbmMixingSimulator<T>::lbmInit (T dynViscosity, T density) {
@@ -235,10 +246,13 @@ void lbmMixingSimulator<T>::initValueContainers () {
         this->pressures.try_emplace(key, (T) 0.0);
         this->flowRates.try_emplace(key, (T) 0.0);
         std::unordered_map<int, T> tmpConcentrations;
+        std::unordered_map<int, std::vector<T>> tmpFieldConcentrations;
         for (auto& [speciesId, speciesPtr] : species) {
             tmpConcentrations.try_emplace(speciesId, 0.0);
+            tmpFieldConcentrations.try_emplace(speciesId, std::vector<T>(this->getResolution(key), 0.0));
         }
         this->concentrations.try_emplace(key, tmpConcentrations);
+        this->nodeConcentrationFields.try_emplace(key, tmpFieldConcentrations);
     }
 }
 
@@ -385,8 +399,18 @@ void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::uno
 }
 
 template<typename T>
+void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
+    this->nodeConcentrationFields = concentrationFieldsOut_;
+}
+
+template<typename T>
 std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
+}
+
+template<typename T>
+std::unordered_map<int, std::unordered_map<int, std::vector<T>>> lbmMixingSimulator<T>::getNodeConcentrationFields() const {
+    return this->nodeConcentrationFields;
 }
 
 template<typename T>

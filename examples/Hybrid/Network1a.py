@@ -51,9 +51,11 @@ def hybridContinuous():
     simulation.setContinuousPhase(f0)
     simulation.setPoiseuilleResistanceModel()
 
-    simulation.addLbmSimulator("1a", "../STL/cross.stl", m0, [n5, n7, n8, n9], \
-                               [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], \
-                                1e-4, 1e-1, 0.1, 20, 1e-1, 0.55)
+    s1 = simulation.addLbmSimulator("1a", "../STL/cross.stl", m0, [n5, n7, n8, n9], \
+                                    [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], \
+                                    1e-4, 1e-1, 20, 1e-1, 0.55)
+    
+    s1.setNaiveScheme(0.1, 0.5, 10)
 
     network.sort()
 

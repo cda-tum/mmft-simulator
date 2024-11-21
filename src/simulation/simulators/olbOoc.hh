@@ -6,15 +6,26 @@ namespace sim{
 template<typename T>
 lbmOocSimulator<T>::lbmOocSimulator (
     int id_, std::string name_, std::string stlFile_, std::shared_ptr<Tissue<T>> tissue_, std::string organStlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, 
-    std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, 
-    T charPhysVelocity_, T alpha_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
+    std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_,
+    ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
         lbmMixingSimulator<T>(id_, name_, stlFile_, cfdModule_, species_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
-                              alpha_, resolution_, epsilon_, relaxationTime_, adRelaxationTime_), 
+                              resolution_, epsilon_, relaxationTime_, adRelaxationTime_), 
         tissue(tissue_), organStlFile(organStlFile_) 
-    {
-        this->cfdModule->setModuleTypeLbm();
-        this->fluxWall.try_emplace(int(0), &this->zeroFlux);
-    } 
+{
+    this->cfdModule->setModuleTypeLbm();
+    this->fluxWall.try_emplace(int(0), &this->zeroFlux);
+} 
+
+template<typename T>
+lbmOocSimulator<T>::lbmOocSimulator (
+    int id_, std::string name_, std::string stlFile_, std::shared_ptr<Tissue<T>> tissue_, std::string organStlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, 
+    std::unordered_map<int, Specie<T>*> species_, std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, 
+    ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
+        lbmOocSimulator<T>(id_, name_, stlFile_, tissue_, organStlFile_, cfdModule_, species_, openings_, updateScheme_, resistanceModel_, charPhysLength_, charPhysVelocity_, 
+                              resolution_, epsilon_, relaxationTime_, adRelaxationTime_)
+{
+    this->updateScheme = updateScheme_;
+} 
 
 template<typename T>
 void lbmOocSimulator<T>::lbmInit (T dynViscosity, T density) {
@@ -37,18 +48,17 @@ template<typename T>
 void lbmOocSimulator<T>::prepareGeometry () {
 
     bool print = false;
+    T dx = this->getConverter().getConversionFactorLength();
 
     #ifdef VERBOSE
         print = true;
     #endif
 
-    this->readGeometryStl(print);
-    this->readOpenings();
-    readOrganStl();
-
+    this->readGeometryStl(dx, print);
+    this->readOpenings(dx);
+    readOrganStl(dx);
     this->geometry->clean(print);
     this->geometry->checkForErrors(print);
-
     #ifdef VERBOSE
         std::cout << "[lbmSimulator] prepare geometry " << this->name << "... OK" << std::endl;
     #endif
@@ -151,9 +161,9 @@ void lbmOocSimulator<T>::writeVTK (int iT) {
 }
 
 template<typename T>
-void lbmOocSimulator<T>::readOrganStl () {
+void lbmOocSimulator<T>::readOrganStl (const T dx) {
     // Define Organ area
-    organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, this->converter->getConversionFactorLength());
+    organStlReader = std::make_shared<olb::STLreader<T>>(organStlFile, dx);
     organStl2Dindicator = std::make_shared<olb::IndicatorF2DfromIndicatorF3D<T>>(*organStlReader);
     this->geometry->rename(1, 3, *organStl2Dindicator);
 }
