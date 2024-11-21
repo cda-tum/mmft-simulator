@@ -397,6 +397,9 @@ bool lbmMixingSimulator<T>::hasAdConverged() const {
             c = false;
         }
     }
+    if (this->step > 20000) {
+        c = true;
+    }
     return c;
 };
 

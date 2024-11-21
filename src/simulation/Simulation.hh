@@ -649,6 +649,16 @@ namespace sim {
             #endif
 
             saveState();
+
+            // Couple the resulting CFD flow field to the AD fields
+            coupleNsAdLattices(cfdSimulators);
+
+            // Obtain overal steady-state concentration results
+            bool concentrationConverged = false;
+            while (!concentrationConverged) {
+                concentrationConverged = conductADSimulation(cfdSimulators);
+                this->mixingModel->propagateSpecies(network, this);
+            }
         }
 
         // Abstract Droplet simulation

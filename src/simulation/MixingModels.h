@@ -287,6 +287,8 @@ public:
      * @brief Propagate all the species through a network for a steady-state simulation
      */
     void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
+
+    void initNodeOutflow(Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
     
     void printTopology();
 

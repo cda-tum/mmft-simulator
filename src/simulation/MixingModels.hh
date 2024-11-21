@@ -664,7 +664,38 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
 
 template<typename T>
 void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) {
-    // TODO
+
+    // Initial 1D "Input"
+    std::vector<DiffusiveMixture<T>> tmpMixtures;
+
+    // 1. Define the initial inflow into 1D (from pumps and CFD regions)
+    initNodeOutflow(sim, tmpMixtures);
+
+    // 2. Propagate the initial inflow through all subsequent channels
+    // 3. while (not done)
+    //      3.1 get next node outflow from latest inflows
+    //      3.2 propagate through channels again
+    //    end
+    // 4. Store final concentrations in the concentration buffer of olbMixingSolver
+    // 5. clean Network
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::initNodeOutflow(Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures) {
+    // Add mixture injections
+    for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
+        /** TODO:
+         * 
+         */
+    }
+    // Add CFD Simulator outflows
+    for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
+        for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
+            /** TODO:
+             * 
+             */
+        }
+    }
 }
 
 template<typename T>
