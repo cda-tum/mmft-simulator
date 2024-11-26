@@ -74,7 +74,7 @@ void lbmSimulator<T>::prepareLattice () {
 }
 
 template<typename T>
-void lbmSimulator<T>::setBoundaryValues (int iT) {
+void lbmSimulator<T>::setBoundaryValues (int iT, bool fieldValues) {
 
     for (auto& [key, Opening] : this->moduleOpenings) {
         if (this->groundNodes.at(key)) {
@@ -389,15 +389,15 @@ template<typename T>
 void lbmSimulator<T>::setFlowProfile2D (int openingKey, T openingWidth)  {
     T maxVelocity = (3./2.)*(flowRates[openingKey]/(openingWidth));
     T distance2Wall = getConverter().getConversionFactorLength()/2.;
-    this->flowProfiles.at(openingKey) = std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), openingKey+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
-    getLattice().defineU(getGeometry(), openingKey+3, *this->flowProfiles.at(openingKey));
+    flowProfiles.at(openingKey) = std::make_shared<olb::Poiseuille2D<T>>(getGeometry(), openingKey+3, getConverter().getLatticeVelocity(maxVelocity), distance2Wall);
+    getLattice().defineU(getGeometry(), openingKey+3, *flowProfiles.at(openingKey));
 }
 
 template<typename T>
 void lbmSimulator<T>::setPressure2D (int openingKey)  {
     T rhoV = getConverter().getLatticeDensityFromPhysPressure((pressures[openingKey]));
-    this->densities.at(openingKey) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
-    getLattice().defineRho(getGeometry(), openingKey+3, *this->densities.at(openingKey));
+    densities.at(openingKey) = std::make_shared<olb::AnalyticalConst2D<T,T>>(rhoV);
+    getLattice().defineRho(getGeometry(), openingKey+3, *densities.at(openingKey));
 }
 
 template<typename T>

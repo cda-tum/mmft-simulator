@@ -44,8 +44,8 @@ using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
 using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 protected:
-    std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
-    std::unordered_map<int, std::unordered_map<int, std::vector<T>>> nodeConcentrationFields;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, <conc>>>
+    std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <specieId, conc>>
+    std::unordered_map<int, std::unordered_map<int, std::vector<T>>> nodeConcentrationFields;   ///< Vector of concentration values at module nodes. <nodeId, <specieId, <conc>>>
 
     std::unordered_map<int, Specie<T>*> species;
 
@@ -61,7 +61,7 @@ protected:
     std::unordered_map<int, T*> fluxWall;
     T zeroFlux = 0.0;
 
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>>> concentrationProfiles;
+    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AdeConcBoundary2D<T,T>>>> concentrationProfiles;   ///< Map of concentration field in olb format at module nodes. <nodeId, <specieId, <conc>>>
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;       ///< Map of mean pressure values at module nodes.
 
     auto& getAdConverter(int key) {
@@ -94,13 +94,15 @@ protected:
     */
     void executeCoupling() override;
 
-    void setConcentration2D(int key);
+    void setConcentrationConst2D(int key);
+
+    void setConcentrationField2D(int key);
 
     /**
      * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
      * @param[in] iT Iteration step.
     */
-    void storeCfdResults(int iT);
+    void storeCfdResults(int iT, bool fieldValues);
 
 public:
     /**
@@ -159,7 +161,7 @@ public:
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
-    void setBoundaryValues(int iT) override;
+    void setBoundaryValues(int iT, bool fieldValues) override;
 
     /**
      * @brief Conducts the collide and stream operations of the lattice.
@@ -174,7 +176,7 @@ public:
     /**
      * @brief Conducts the collide and stream operations of the AD lattice(s).
     */
-    void adSolve() override;
+    void adSolve(bool fieldValues) override;
 
     /**
      * @brief Write the vtk file with results of the CFD simulation to file system.

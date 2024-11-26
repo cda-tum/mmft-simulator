@@ -174,7 +174,7 @@ public:
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
-    void setBoundaryValues(int iT) override;
+    void setBoundaryValues(int iT, bool fieldValues=false) override;
 
     /**
      * @brief Conducts the collide and stream operations of the lattice.

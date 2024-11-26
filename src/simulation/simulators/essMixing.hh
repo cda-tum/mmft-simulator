@@ -18,7 +18,7 @@ namespace sim{
     }
 
     template<typename T>
-    void essLbmSimulator<T>::setBoundaryValues(int iT)
+    void essLbmSimulator<T>::setBoundaryValues(int iT, bool fieldValues)
     {
         setFlowRates(flowRates);
         setPressures(pressures);

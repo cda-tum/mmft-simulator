@@ -639,7 +639,7 @@ namespace sim {
             // Obtain overal steady-state concentration results
             bool concentrationConverged = false;
             while (!concentrationConverged) {
-                concentrationConverged = conductADSimulation(cfdSimulators);
+                concentrationConverged = conductADSimulation(cfdSimulators, mixingModel->isDiffusive());
                 this->mixingModel->propagateSpecies(network, this);
             }
         }
@@ -682,7 +682,7 @@ namespace sim {
             // Obtain overal steady-state concentration results
             bool concentrationConverged = false;
             while (!concentrationConverged) {
-                concentrationConverged = conductADSimulation(cfdSimulators);
+                concentrationConverged = conductADSimulation(cfdSimulators, mixingModel->isDiffusive());
                 this->mixingModel->propagateSpecies(network, this);
             }
         }

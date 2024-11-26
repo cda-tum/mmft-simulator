@@ -84,7 +84,7 @@ void lbmMixingSimulator<T>::prepareLattice () {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::setBoundaryValues (int iT) {
+void lbmMixingSimulator<T>::setBoundaryValues (int iT, bool fieldValues) {
 
     for (auto& [key, Opening] : this->moduleOpenings) {
         if (this->groundNodes.at(key)) {
@@ -92,12 +92,19 @@ void lbmMixingSimulator<T>::setBoundaryValues (int iT) {
         } else {
             this->setPressure2D(key);
         }
-        setConcentration2D(key);
+        // Constant concentration values
+        if (!fieldValues) {
+            setConcentrationConst2D(key);
+        }
+        // Constant field values
+        if (fieldValues) {
+            setConcentrationField2D(key);
+        }
     }    
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::storeCfdResults (int iT) {
+void lbmMixingSimulator<T>::storeCfdResults (int iT, bool fieldValues) {
     int input[1] = { };
     T output[10];
     
@@ -115,12 +122,21 @@ void lbmMixingSimulator<T>::storeCfdResults (int iT) {
     for (auto& [key, Opening] : this->moduleOpenings) {
         // If the node is an outflow, write the concentration value
         if (this->flowRates.at(key) < 0.0) {
-            for (auto& [speciesId, adLattice] : adLattices) {
-                this->meanConcentrations.at(key).at(speciesId)->operator()(output,input);
-                this->concentrations.at(key).at(speciesId) = output[0];
-                if (iT % 1000 == 0) {
-                    this->meanConcentrations.at(key).at(speciesId)->print();
+            // Constant concentration values
+            if (!fieldValues) {
+                for (auto& [speciesId, adLattice] : adLattices) {
+                    this->meanConcentrations.at(key).at(speciesId)->operator()(output,input);
+                    this->concentrations.at(key).at(speciesId) = output[0];
+                    if (iT % 1000 == 0) {
+                        this->meanConcentrations.at(key).at(speciesId)->print();
+                    }
                 }
+            }
+            // Field concentration values
+            if (fieldValues) {
+                /** TODO:
+                 * 
+                 */
             }
         }
     }
@@ -226,9 +242,9 @@ void lbmMixingSimulator<T>::nsSolve() {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::adSolve() {
+void lbmMixingSimulator<T>::adSolve(bool fieldValues) {
     // theta = 10
-    this->setBoundaryValues(this->step);
+    this->setBoundaryValues(this->step, fieldValues);
     for (int iT = 0; iT < 100; ++iT){
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
@@ -236,7 +252,7 @@ void lbmMixingSimulator<T>::adSolve() {
         writeVTK(this->step);
         this->step += 1;
     }
-    storeCfdResults(this->step);
+    storeCfdResults(this->step, fieldValues);
 }
 
 template<typename T>
@@ -370,7 +386,7 @@ void lbmMixingSimulator<T>::prepareCoupling() {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::setConcentration2D (int key) {
+void lbmMixingSimulator<T>::setConcentrationConst2D (int key) {
     // Set the boundary concentrations for inflows and outflows
     // If the boundary is an inflow
     if (this->flowRates.at(key) >= 0.0) {
@@ -394,12 +410,41 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
 }
 
 template<typename T>
+void lbmMixingSimulator<T>::setConcentrationField2D (int key) {
+
+    // Set the boundary concentrations for inflows and outflows
+    // If the boundary is an inflow
+    if (this->flowRates.at(key) >= 0.0) {
+        for (auto& [speciesId, adLattice] : adLattices) {
+            olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
+            adLattice->defineRho(this->getGeometry(), key+3, *concentrationProfiles.at(key).at(speciesId));
+        }
+    }
+    // If the boundary is an outflow
+    else if (this->flowRates.at(key) < 0.0) {
+        for (auto& [speciesId, adLattice] : adLattices) {
+            olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
+        }
+    }
+
+    else {
+        std::cerr << "Error: Invalid Flow Type Boundary Node." << std::endl;
+        exit(1);
+    }
+}
+
+template<typename T>
 void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations_) {
     this->concentrations = concentrations_;
 }
 
 template<typename T>
 void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
+    for (auto& [nodeId, fields] : concentrationFieldsOut_) {
+        for (auto& [specieId, concField] : fields) {
+            concentrationProfiles.at(nodeId).at(specieId) = std::make_shared<olb::AdeConcBoundary2D>(this->moduleOpenings.at(nodeId), concentrationFieldsOut_.at(nodeId).at(specieId));
+        }
+    }
     this->nodeConcentrationFields = concentrationFieldsOut_;
 }
 

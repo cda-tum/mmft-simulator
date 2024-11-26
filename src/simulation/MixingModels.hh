@@ -469,14 +469,18 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
             for (auto& [channelId, channel] : network->getChannels()) { // There is only one channel connected to a node at a CFD hybrid node connection
                 if (cfdSimulator->getFlowRates().at(nodeId) > 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
                     std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
-                    std::cout << "Getting here, nodeId is " + std::to_string(nodeId) << std::endl;
+                    std::cout << "Getting here 1, nodeId is " + std::to_string(nodeId) << std::endl;
                     for (const auto& [specieId, concentrationField] : concentrationFieldsIn.at(nodeId)) {
-                        std::cout << "Getting here 2" << std::endl;
+                        std::cout << "Getting here 1.1" << std::endl;
                         T dx = channel->getWidth() / concentrationField.size();
+                        std::cout << "Getting here 1.2" << std::endl;
                         T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                        std::cout << "Getting here 1.3" << std::endl;
                         std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionHybrid(
                             channel->getLength(), channel->getFlowRate(), channel->getWidth(), noFourierTerms, pecletNr, concentrationField, dx);
+                        std::cout << "Getting here 1.4" << std::endl;
                         newDistributions.try_emplace(specieId, analyticalResult);
+                        std::cout << "Getting here 1.5" << std::endl;
                     }
                     //Create new DiffusiveMixture
                     DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
@@ -484,9 +488,11 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                     this->injectMixtureInEdge(newMixture->getId(), channelId);
                 }
                 else if (cfdSimulator->getFlowRates().at(nodeId) < 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
+                    std::cout << "Getting here 2, nodeId is " + std::to_string(nodeId) << std::endl;
                     int resolutionIntoCfd = cfdSimulator->getResolution(nodeId);
                     concentrationFieldsOut.try_emplace(nodeId, std::unordered_map<int, std::vector<T>>());
                     for (const auto& [specieId, speciePtr] : sim->getSpecies()) {
+                        std::cout << "Getting here 2.1" << std::endl;
                         std::vector<T> concentrationFieldForCfdInput = defineConcentrationNodeFieldForCfdInput(resolutionIntoCfd, specieId, channelId, channel->getWidth(), mixtures, noFourierTerms);
                         concentrationFieldsOut.at(nodeId).try_emplace(specieId, concentrationFieldForCfdInput);
                     }                    

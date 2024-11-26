@@ -83,7 +83,7 @@ namespace sim {
              * @brief Set the boundary values on the lattice at the module nodes.
              * @param[in] iT Iteration step.
             */
-            void setBoundaryValues(int iT);
+            void setBoundaryValues(int iT, bool fieldValues=false);
 
             /**
              * @brief Conducts the collide and stream operations of the lattice.

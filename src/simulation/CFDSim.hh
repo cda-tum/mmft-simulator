@@ -47,7 +47,7 @@ namespace sim {
     }
 
     template<typename T>
-    bool conductADSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators) {
+    bool conductADSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators, bool fieldValues) {
 
         bool allConverge = true;
 
@@ -61,7 +61,7 @@ namespace sim {
             assert(cfdSimulator.second->getModule()->getModuleType() == arch::ModuleType::ESS_LBM);
             throw std::runtime_error("Simulation of Advection Diffusion not defined for ESS LBM.");
             #endif
-            cfdSimulator.second->adSolve();
+            cfdSimulator.second->adSolve(fieldValues);
 
             if (!cfdSimulator.second->hasAdConverged()) {
                 allConverge = false;

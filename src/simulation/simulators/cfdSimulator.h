@@ -256,7 +256,7 @@ public:
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
-    virtual void setBoundaryValues(int iT) = 0;
+    virtual void setBoundaryValues(int iT, bool fieldValues=false) = 0;
 
     /**
      * @brief Prepare the LBM geometry of this simulator.
@@ -285,7 +285,7 @@ public:
     /**
      * @brief Conducts the collide and stream operations of the AD lattice(s).
     */
-    virtual void adSolve() 
+    virtual void adSolve(bool fieldValues) 
     {
         throw std::runtime_error("The function prepareLattice is undefined for this CFD simulator.");
     }
