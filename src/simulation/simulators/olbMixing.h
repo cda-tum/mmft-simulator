@@ -26,6 +26,16 @@ class Opening;
 
 }
 
+namespace olb {
+
+// Forward declared dependencies
+template<typename T>
+class AdeConcBC;
+template<typename T>
+class AdeConc1D;
+
+}
+
 namespace sim {
 
 /**
@@ -61,7 +71,8 @@ protected:
     std::unordered_map<int, T*> fluxWall;
     T zeroFlux = 0.0;
 
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AdeConcBoundary2D<T,T>>>> concentrationProfiles;   ///< Map of concentration field in olb format at module nodes. <nodeId, <specieId, <conc>>>
+    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AdeConcBC<T>>>> concentrationProfilesBC;   ///< Map of concentration field in olb format at module nodes. <nodeId, <specieId, <conc>>>
+    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AdeConc1D<T>>>> concentrationProfiles1D;
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;       ///< Map of mean pressure values at module nodes.
 
     auto& getAdConverter(int key) {
@@ -102,7 +113,7 @@ protected:
      * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
      * @param[in] iT Iteration step.
     */
-    void storeCfdResults(int iT, bool fieldValues);
+    void storeCfdResults(int iT, bool fieldValues=false);
 
 public:
     /**
@@ -161,7 +172,7 @@ public:
      * @brief Set the boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
-    void setBoundaryValues(int iT, bool fieldValues) override;
+    void setBoundaryValues(int iT, bool fieldValues=false) override;
 
     /**
      * @brief Conducts the collide and stream operations of the lattice.

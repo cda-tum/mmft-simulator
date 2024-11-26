@@ -1,10 +1,12 @@
 set(SOURCE_LIST
+    adeConcBoundaries2D.hh
     navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh
     saturatedFluxPostProcessor2D.hh
     setFunctionalRegularizedHeatFlux.hh
 )
 
 set(HEADER_LIST
+    adeConcBoundaries2D.h
     navierStokesAdvectionDiffusionCouplingPostProcessor2D.h
     saturatedFluxPostProcessor2D.h
     setFunctionalRegularizedHeatFlux.h

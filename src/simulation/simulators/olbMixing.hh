@@ -128,15 +128,18 @@ void lbmMixingSimulator<T>::storeCfdResults (int iT, bool fieldValues) {
                     this->meanConcentrations.at(key).at(speciesId)->operator()(output,input);
                     this->concentrations.at(key).at(speciesId) = output[0];
                     if (iT % 1000 == 0) {
-                        this->meanConcentrations.at(key).at(speciesId)->print();
+                        meanConcentrations.at(key).at(speciesId)->print();
                     }
                 }
             }
             // Field concentration values
             if (fieldValues) {
-                /** TODO:
-                 * 
-                 */
+                for (auto& [speciesId, adLattice] : adLattices) {
+                    this->nodeConcentrationFields.at(key).at(speciesId) = concentrationProfiles1D.at(key).at(speciesId)->getCfdConc();
+                    if (iT % 1000 == 0) {
+                        concentrationProfiles1D.at(key).at(speciesId)->print();
+                    }
+                }
             }
         }
     }
@@ -417,7 +420,7 @@ void lbmMixingSimulator<T>::setConcentrationField2D (int key) {
     if (this->flowRates.at(key) >= 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);
-            adLattice->defineRho(this->getGeometry(), key+3, *concentrationProfiles.at(key).at(speciesId));
+            adLattice->defineRho(this->getGeometry(), key+3, *concentrationProfilesBC.at(key).at(speciesId));
         }
     }
     // If the boundary is an outflow
@@ -442,7 +445,7 @@ template<typename T>
 void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
     for (auto& [nodeId, fields] : concentrationFieldsOut_) {
         for (auto& [specieId, concField] : fields) {
-            concentrationProfiles.at(nodeId).at(specieId) = std::make_shared<olb::AdeConcBoundary2D>(this->moduleOpenings.at(nodeId), concentrationFieldsOut_.at(nodeId).at(specieId));
+            concentrationProfilesBC.at(nodeId).at(specieId) = std::make_shared<olb::AdeConcBC<T>>(this->moduleOpenings.at(nodeId), concentrationFieldsOut_.at(nodeId).at(specieId));
         }
     }
     this->nodeConcentrationFields = concentrationFieldsOut_;

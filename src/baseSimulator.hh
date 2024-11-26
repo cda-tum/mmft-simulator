@@ -32,6 +32,7 @@
 #include "architecture/Node.hh"
 #include "architecture/PressurePump.hh"
 
+#include "olbProcessors/adeConcBoundaries2D.hh"
 #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
 #include "olbProcessors/saturatedFluxPostProcessor2D.hh"
 #include "olbProcessors/setFunctionalRegularizedHeatFlux.hh"
