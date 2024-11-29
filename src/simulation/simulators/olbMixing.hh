@@ -45,6 +45,14 @@ void lbmMixingSimulator<T>::lbmInit (T dynViscosity, T density) {
 template<typename T>
 void lbmMixingSimulator<T>::initConcBcBuffer() {
     for (auto& [nodeId, Opening] : this->moduleOpenings) {
+        T posX =  Opening.origin[0] - this->cfdModule->getPosition()[0];
+        T posY =  Opening.origin[1] - this->cfdModule->getPosition()[1];          
+
+        std::vector<T> position = {posX, posY};
+
+        std::vector<int> materials = {1, nodeId+3};
+        olb::Vector<T,2> origin(position);
+        olb::Vector<T,2> direction(Opening.tangent);
         concentrationProfilesBC.try_emplace(nodeId, std::unordered_map<int, std::shared_ptr<olb::AdeConcBC<T>>>());
         concentrationProfiles1D.try_emplace(nodeId, std::unordered_map<int, std::shared_ptr<olb::AdeConc1D<T>>>());
         // Initialize BC Buffer to 0.0
@@ -53,14 +61,12 @@ void lbmMixingSimulator<T>::initConcBcBuffer() {
         }
         // Initialize 1D Buffer objects
         for (auto& [speciesId, adLattice] : adLattices) {
-            concentrationProfilesBC.at(nodeId).try_emplace(speciesId, std::make_shared<olb::AdeConc1D<T>>(
-                this->getLattice(), 
+            concentrationProfiles1D.at(nodeId).try_emplace(speciesId, std::make_shared<olb::AdeConc1D<T>>(
+                std::unique_ptr<olb::SuperF2D<T>>(new olb::SuperLatticeDensity2D<T,ADDESCRIPTOR> ( getAdLattice(speciesId) )),
                 this->getGeometry(),
-                /**
-                 * TODO:
-                 * 
-                 */
-                ));
+                origin,
+                direction,
+                materials));
         }
     }
 }
@@ -478,7 +484,6 @@ void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int,
             concentrationProfilesBC.at(nodeId).at(specieId) = std::make_shared<olb::AdeConcBC<T>>(this->moduleOpenings.at(nodeId), concentrationFieldsOut_.at(nodeId).at(specieId));
         }
     }
-    this->nodeConcentrationFields = concentrationFieldsOut_;
 }
 
 template<typename T>

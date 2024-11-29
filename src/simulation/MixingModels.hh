@@ -467,32 +467,24 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
         for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
             // If the node is an inflow
             for (auto& [channelId, channel] : network->getChannels()) { // There is only one channel connected to a node at a CFD hybrid node connection
-                if (cfdSimulator->getFlowRates().at(nodeId) > 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
+                if (cfdSimulator->getFlowRates().at(nodeId) < 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
                     std::unordered_map<int, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
-                    std::cout << "Getting here 1, nodeId is " + std::to_string(nodeId) << std::endl;
                     for (const auto& [specieId, concentrationField] : concentrationFieldsIn.at(nodeId)) {
-                        std::cout << "Getting here 1.1" << std::endl;
                         T dx = channel->getWidth() / concentrationField.size();
-                        std::cout << "Getting here 1.2" << std::endl;
                         T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
-                        std::cout << "Getting here 1.3" << std::endl;
                         std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionHybrid(
                             channel->getLength(), channel->getFlowRate(), channel->getWidth(), noFourierTerms, pecletNr, concentrationField, dx);
-                        std::cout << "Getting here 1.4" << std::endl;
                         newDistributions.try_emplace(specieId, analyticalResult);
-                        std::cout << "Getting here 1.5" << std::endl;
                     }
                     //Create new DiffusiveMixture
                     DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
                     newMixture->setNonConstant();
                     this->injectMixtureInEdge(newMixture->getId(), channelId);
                 }
-                else if (cfdSimulator->getFlowRates().at(nodeId) < 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
-                    std::cout << "Getting here 2, nodeId is " + std::to_string(nodeId) << std::endl;
+                else if (cfdSimulator->getFlowRates().at(nodeId) > 0.0 && (channel->getNodeA() == nodeId || channel->getNodeB() == nodeId)) {
                     int resolutionIntoCfd = cfdSimulator->getResolution(nodeId);
                     concentrationFieldsOut.try_emplace(nodeId, std::unordered_map<int, std::vector<T>>());
                     for (const auto& [specieId, speciePtr] : sim->getSpecies()) {
-                        std::cout << "Getting here 2.1" << std::endl;
                         std::vector<T> concentrationFieldForCfdInput = defineConcentrationNodeFieldForCfdInput(resolutionIntoCfd, specieId, channelId, channel->getWidth(), mixtures, noFourierTerms);
                         concentrationFieldsOut.at(nodeId).try_emplace(specieId, concentrationFieldForCfdInput);
                     }                    
@@ -714,14 +706,14 @@ void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, Simula
 
     // As long as the remaining timestep does not return to 0.0, we conduct the following loop
     while (inflowUpdated) {
+        /** TODO:
+         * Fix endless loop
+         */
         // Propagate all mixtures and check if a mixture reaches a channel end
-        std::cout << "[propagateSpecies][updateNodeInflow]" << std::endl;
         updateNodeInflow(timeStep, network);
         // Generate a new inflow in case a mixture has reached channel end.
-        std::cout << "[propagateSpecies][generateInflows]" << std::endl;
         generateInflows(timeStep, network, sim, sim->getMixtures());
         // Clear the buffers for the diffusion mixing model
-        std::cout << "[propagateSpecies][clean]" << std::endl;
         clean(network);
         // Define and store the new minimal timestep for the next iteration
         this->updateMinimalTimeStep(network);

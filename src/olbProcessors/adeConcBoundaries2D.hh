@@ -29,15 +29,14 @@ bool AdeConcBC<T>::operator()(T output[], const T input[]) {
 template<typename T>
 AdeConc1D<T>::AdeConc1D(FunctorPtr<SuperF2D<T>>&& f,
           SuperGeometry<T, 2>&      geometry,
-          const Hyperplane2D<T>&    hyperplane,
-          FunctorPtr<SuperIndicatorF2D<T>>&&  integrationIndicator,
-          FunctorPtr<IndicatorF1D<T>>&&       subplaneIndicator)
+          const Vector<T,2>& origin, 
+          const Vector<T,2>& u,
+          std::vector<int> materials)
 : SuperPlaneIntegralF2D<T>(
     std::forward<decltype(f)>(f), 
     geometry, 
-    hyperplane, 
-    std::forward<decltype(integrationIndicator)>(integrationIndicator), 
-    std::forward<decltype(subplaneIndicator)>(subplaneIndicator)) { }
+    Hyperplane2D<T>().originAt(origin).parallelTo(u), 
+    geometry.getMaterialIndicator(std::forward<decltype(materials)>(materials))) { }
 
 template<typename T>
 std::vector<T> AdeConc1D<T>::getCfdConc() {
@@ -51,11 +50,12 @@ std::vector<T> AdeConc1D<T>::getCfdConc() {
 
   for (int pos : this->_rankLocalSubplane) {
     T outTmp[3];  // 3 to prevent stack issues
-    Vector<T,2> s = this->_reductionF.getPhysR(pos);
-    T dist = std::sqrt(s[0]*s[0] + s[1]*s[1]);
+    const Vector<T,2> physR = this->_reductionF.getPhysR(pos);
+    const Vector<T,2> physRelativeToOrigin = physR - this->_origin;
+    const T physOnHyperplane = physRelativeToOrigin * this->_u;
     this->_reductionF(outTmp, pos);
 
-    data.push_back(std::tuple<T,T>(dist, outTmp[0]));
+    data.push_back(std::tuple<T,T>(physOnHyperplane, outTmp[0]));
   }
 
   // Sort data by distance

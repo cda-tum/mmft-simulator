@@ -49,9 +49,9 @@ public:
 
   AdeConc1D(FunctorPtr<SuperF2D<T>>&& f,
             SuperGeometry<T, 2>&      geometry,
-            const Hyperplane2D<T>&    hyperplane,
-            FunctorPtr<SuperIndicatorF2D<T>>&&  integrationIndicator,
-            FunctorPtr<IndicatorF1D<T>>&&       subplaneIndicator);
+            const Vector<T,2>&        origin, 
+            const Vector<T,2>&        u,
+            std::vector<int>          materials);
 
   bool operator() (T output[], const int input[]) override { return true; }
 

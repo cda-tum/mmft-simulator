@@ -14,6 +14,7 @@ struct Opening {
     std::shared_ptr<Node<T>> node;
     std::vector<T> normal;
     std::vector<T> tangent;
+    std::vector<T> origin;
     T width;
     T height;
     T radial;
@@ -33,6 +34,10 @@ struct Opening {
             tangent = { cos(theta)*normal_[0] - sin(theta)*normal_[1],
                         sin(theta)*normal_[0] + cos(theta)*normal_[1]};
             radial = (-1) * atan2(normal_[1], normal_[0]);
+            // The origin of the opening, i.e., from where the width "starts".
+            // The node position is halfway along the width.
+            origin = {  node_->getPosition()[0] +  0.5*width_*tangent[0],
+                        node_->getPosition()[1] +  0.5*width_*tangent[1],};
         }
 };
 
