@@ -169,6 +169,8 @@ public:
     */
     virtual void lbmInit(T dynViscosity, T density) = 0;
 
+    virtual void initConcBcBuffer() { };
+
     /**
      * @brief Conducts the collide and stream operations of the lattice.
     */

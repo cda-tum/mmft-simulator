@@ -43,6 +43,29 @@ void lbmMixingSimulator<T>::lbmInit (T dynViscosity, T density) {
 }
 
 template<typename T>
+void lbmMixingSimulator<T>::initConcBcBuffer() {
+    for (auto& [nodeId, Opening] : this->moduleOpenings) {
+        concentrationProfilesBC.try_emplace(nodeId, std::unordered_map<int, std::shared_ptr<olb::AdeConcBC<T>>>());
+        concentrationProfiles1D.try_emplace(nodeId, std::unordered_map<int, std::shared_ptr<olb::AdeConc1D<T>>>());
+        // Initialize BC Buffer to 0.0
+        for (auto& [speciesId, adLattice] : adLattices) {
+            concentrationProfilesBC.at(nodeId).try_emplace(speciesId, std::make_shared<olb::AdeConcBC<T>>(Opening, std::vector<T>(this->resolution, T(0.0))));
+        }
+        // Initialize 1D Buffer objects
+        for (auto& [speciesId, adLattice] : adLattices) {
+            concentrationProfilesBC.at(nodeId).try_emplace(speciesId, std::make_shared<olb::AdeConc1D<T>>(
+                this->getLattice(), 
+                this->getGeometry(),
+                /**
+                 * TODO:
+                 * 
+                 */
+                ));
+        }
+    }
+}
+
+template<typename T>
 void lbmMixingSimulator<T>::prepareLattice () {
 
     /**
@@ -98,6 +121,7 @@ void lbmMixingSimulator<T>::setBoundaryValues (int iT, bool fieldValues) {
         }
         // Constant field values
         if (fieldValues) {
+            std::cout << "set field concentration" << std::endl;
             setConcentrationField2D(key);
         }
     }    
@@ -247,7 +271,9 @@ void lbmMixingSimulator<T>::nsSolve() {
 template<typename T>
 void lbmMixingSimulator<T>::adSolve(bool fieldValues) {
     // theta = 10
+    std::cout << "setBoundaryValues" << std::endl;
     this->setBoundaryValues(this->step, fieldValues);
+    std::cout << "100 collideAndStream" << std::endl;
     for (int iT = 0; iT < 100; ++iT){
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
@@ -255,6 +281,7 @@ void lbmMixingSimulator<T>::adSolve(bool fieldValues) {
         writeVTK(this->step);
         this->step += 1;
     }
+    std::cout << "storeCfdResults" << std::endl;
     storeCfdResults(this->step, fieldValues);
 }
 
@@ -417,6 +444,9 @@ void lbmMixingSimulator<T>::setConcentrationField2D (int key) {
 
     // Set the boundary concentrations for inflows and outflows
     // If the boundary is an inflow
+    std::cout << "nodeId:\t" << key << std::endl;
+    std::cout << "velocity:\t" << this->flowRates.at(key) << std::endl;
+    std::cout << "concentrationProfiles.size():\t" << concentrationProfilesBC.size() << std::endl;
     if (this->flowRates.at(key) >= 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3);

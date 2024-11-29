@@ -95,6 +95,8 @@ protected:
 
     void initAdLattice(int adKey);
 
+    void initBcBuffer(int adKey);
+
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
     */
@@ -162,6 +164,8 @@ public:
      * @param[in] density Density of the simulated fluid in _kg / m^3_.
     */
     void lbmInit(T dynViscosity, T density) override;
+
+    virtual void initConcBcBuffer() override;
 
     /**
      * @brief Prepare the LBM lattice on the LBM geometry.

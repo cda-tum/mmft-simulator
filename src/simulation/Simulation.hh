@@ -682,7 +682,9 @@ namespace sim {
             // Obtain overal steady-state concentration results
             bool concentrationConverged = false;
             while (!concentrationConverged) {
+                std::cout << "[Simulation] Conduct AD simulation" << std::endl;
                 concentrationConverged = conductADSimulation(cfdSimulators, mixingModel->isDiffusive());
+                std::cout << "[Simulation] Propagate species" << std::endl;
                 this->mixingModel->propagateSpecies(network, this);
             }
         }
@@ -938,6 +940,12 @@ namespace sim {
                 cfdSimulator->prepareGeometry();
                 cfdSimulator->prepareLattice();
             }
+
+            if(mixingModel->isDiffusive()) {
+                for (auto& [key, cfdSimulator] : cfdSimulators) {
+                    cfdSimulator->initConcBcBuffer();
+                }
+            }
         }
 
         if (this->simType == Type::Hybrid && this->platform == Platform::Ooc) {
@@ -966,6 +974,12 @@ namespace sim {
             for (auto& [key, cfdSimulator] : cfdSimulators) {
                 cfdSimulator->prepareGeometry();
                 cfdSimulator->prepareLattice();
+            }
+
+            if(mixingModel->isDiffusive()) {
+                for (auto& [key, cfdSimulator] : cfdSimulators) {
+                    cfdSimulator->initConcBcBuffer();
+                }
             }
         }
     }
