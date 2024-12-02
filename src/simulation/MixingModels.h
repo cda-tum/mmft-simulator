@@ -259,6 +259,9 @@ private:
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
     std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
+    std::unordered_map<int, int> mixtureOutflowAtNode;                          ///< Unordered map to track mixtures flowing out of nodes <nodeId, mixtureId>.
+    std::unordered_map<int, std::vector<int>> mixtureInflowAtNode;
+    std::unordered_map<int, int> finalOutflow;                                  ///< Unordered map to track final location of mixtures in hybrid sim. <nodeId, mixtureId>
     std::unordered_map<int, std::unordered_map<int, std::vector<T>>>  concentrationFieldsOut; ///< Defines which concentration fields are defined at nodes at the interface between 1D into CFD <channelId, <specieId, concentrationField>>
     void generateInflows();
 
@@ -285,7 +288,7 @@ public:
     /**
      * @brief Generate a new inflow in case a mixture has reached channel end. Invoked by updateNodeInflow.
     */
-    void generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void generateInflows(arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     void topologyAnalysis(arch::Network<T>* network, int nodeId);
 
@@ -294,7 +297,16 @@ public:
      */
     void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
 
-    void initNodeOutflow(Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
+    void initNodeOutflow(arch::Network<T>* network, Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
+
+    /**
+     * @brief Map the mixture outflows at nodes to the inflows at opposing nodes.
+     */
+    void channelPropagation(arch::Network<T>* network);
+
+    void updateNodeOutflow(arch::Network<T>* network, Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
+
+    void storeConcentrations(Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
     
     void printTopology();
 
@@ -323,7 +335,7 @@ public:
     /**
      * @brief Use piecewise linerar interpolation to translate the analytical solution of the species concentration across the channel width (at the end of the channel) into the concentration values in the lattice of the CFD module. This considers the conservation of mass. 
      */
-    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int channelId, T channelWidth, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures, int noFourierTerms);
+    std::vector<T> defineConcentrationNodeFieldForCfdInput(int resolutionIntoCfd, int specieId, int nodeId, T channelWidth, std::vector<DiffusiveMixture<T>>& tmpMixtures, int noFourierTerms);
     
     /**
      * @brief Use a fifth order polynomial function to translate the analytical solution of the species concentration across the channel width (at the end of the channel) into the concentration values in the lattice of the CFD module.

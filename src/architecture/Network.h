@@ -381,6 +381,13 @@ public:
      * @return Vector of pointers to channels adherent to this node.
      */
     const std::vector<RectangularChannel<T>*> getChannelsAtNode(int nodeId) const;
+
+    /**
+     * @brief Get a map of all channels at a specific node.
+     * @param[in] nodeId Id of the node at which the adherent channels should be returned.
+     * @return Vector of pointers to channels adherent to this node.
+     */
+    const std::unordered_map<int, Module<T>*>& getModularReach() const { return modularReach; }
         
     /**
      * @brief Get the flow rate pumps of the network.
