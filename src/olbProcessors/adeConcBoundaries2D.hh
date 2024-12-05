@@ -3,22 +3,27 @@
 namespace olb {
 
 template<typename T>
-AdeConcBC<T>::AdeConcBC(const arch::Opening<T>& opening, std::vector<T> concentrationField) :
+AdeConcBC<T>::AdeConcBC(const std::shared_ptr<arch::Module<T>> module, const arch::Opening<T>& opening, std::vector<T> concentrationField) :
   AnalyticalF2D<T,T>(2),
   width(opening.width),
-  xc(opening.node->getPosition()[0]),
-  yc(opening.node->getPosition()[0]),
+  xc(opening.node->getPosition()[0] - module->getPosition()[0]),
+  yc(opening.node->getPosition()[1] - module->getPosition()[1]),
   x0(xc - opening.tangent[0]*0.5*width),
   y0(yc - opening.tangent[1]*0.5*width),
-  array(concentrationField) { }
+  array(concentrationField)
+  { 
+    std::cout << "[AdeConcBC] AdeConcBC()" << std::endl; 
+  }
 
 template<typename T>
 bool AdeConcBC<T>::operator()(T output[], const T input[]) {
+  std::cout << "[AdeConcBC] operator()" << std::endl;
   T s   = std::sqrt((input[0]-x0)*(input[0]-x0) + (input[1]-y0)*(input[1]-y0));
   T d   = std::sqrt((input[0]-xc)*(input[0]-xc) + (input[1]-yc)*(input[1]-yc));
   T res = width / array.size();
   if (s < width) {
     output[0] = array[std::floor(s/res)];
+    std::cout << "Setting " << array[std::floor(s/res)] << " at " << std::floor(s/res) << std::endl;
   }
   if (0.5*width - d < 0.0) {
     output[0] = T();
@@ -36,10 +41,11 @@ AdeConc1D<T>::AdeConc1D(FunctorPtr<SuperF2D<T>>&& f,
     std::forward<decltype(f)>(f), 
     geometry, 
     Hyperplane2D<T>().originAt(origin).parallelTo(u), 
-    geometry.getMaterialIndicator(std::forward<decltype(materials)>(materials))) { }
+    geometry.getMaterialIndicator(std::forward<decltype(materials)>(materials))) { std::cout << "[AdeConc1D] AdeConc1D()" << std::endl;}
 
 template<typename T>
 std::vector<T> AdeConc1D<T>::getCfdConc() {
+  std::cout << "[AdeConc1D] getCfdConc()" << std::endl;
   this->getSuperStructure().communicate();
 
   this->_reductionF.update();

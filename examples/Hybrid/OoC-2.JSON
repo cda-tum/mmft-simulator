@@ -156,6 +156,10 @@
         {
             "species": [0],
             "concentrations": [1.1]
+        },
+        {
+            "species": [0],
+            "concentrations": [1.0]
         }
     ],
     "pumps": [
@@ -181,8 +185,18 @@
             "phase": 0,
             "mixtureInjections": [
                 {
+                    "mixture": 1,
+                    "channel": 3,
+                    "t0": 0.0
+                },
+                {
                     "mixture": 0,
                     "channel": 4,
+                    "t0": 0.0
+                },
+                {
+                    "mixture": 1,
+                    "channel": 5,
                     "t0": 0.0
                 }
             ]

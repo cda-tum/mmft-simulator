@@ -260,7 +260,7 @@ private:
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
     std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
     std::unordered_map<int, int> mixtureOutflowAtNode;                          ///< Unordered map to track mixtures flowing out of nodes <nodeId, mixtureId>.
-    std::unordered_map<int, std::vector<int>> mixtureInflowAtNode;
+    std::unordered_map<int, std::vector<std::tuple<int, int>>> mixtureInflowAtNode; ///< Mixture flowing into node, from channel < nodeId, vector<channelId, mixtureId> >
     std::unordered_map<int, int> finalOutflow;                                  ///< Unordered map to track final location of mixtures in hybrid sim. <nodeId, mixtureId>
     std::unordered_map<int, std::unordered_map<int, std::vector<T>>>  concentrationFieldsOut; ///< Defines which concentration fields are defined at nodes at the interface between 1D into CFD <channelId, <specieId, concentrationField>>
     void generateInflows();
@@ -306,7 +306,7 @@ public:
 
     void updateNodeOutflow(arch::Network<T>* network, Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
 
-    void storeConcentrations(Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
+    void storeConcentrations(arch::Network<T>* network, Simulation<T>* sim, std::vector<DiffusiveMixture<T>>& tmpMixtures);
     
     void printTopology();
 
@@ -325,6 +325,9 @@ public:
      */
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolution(T channelLength, T currChannelFlowRate, T channelWidth, int noFourierTerms, int specieId, T pecletNr, 
         const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& diffusiveMixtures);
+
+    std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolution(int nodeId, T channelLength, T currChannelFlowRate, T channelWidth, int noFourierTerms, int specieId, T pecletNr, 
+        const std::vector<FlowSection<T>>& flowSections, std::vector<DiffusiveMixture<T>>& tmpMixtures);
 
     /**
      * @brief Calculate the species concentration across the channel width (at the end of the channel) for concentation fields flowing out of a CFD module. For this the constant concentration values at each lattice point of the CFD module are translated into linear segments.

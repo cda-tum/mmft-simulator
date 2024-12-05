@@ -29,7 +29,7 @@ private:
 
 public:
 
-  AdeConcBC(const arch::Opening<T>& opening, std::vector<T> concentrationField);
+  AdeConcBC(const std::shared_ptr<arch::Module<T>> module, const arch::Opening<T>& opening, std::vector<T> concentrationField);
 
   bool operator() (T output[], const T input[]) override;
 

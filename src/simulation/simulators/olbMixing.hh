@@ -57,7 +57,7 @@ void lbmMixingSimulator<T>::initConcBcBuffer() {
         concentrationProfiles1D.try_emplace(nodeId, std::unordered_map<int, std::shared_ptr<olb::AdeConc1D<T>>>());
         // Initialize BC Buffer to 0.0
         for (auto& [speciesId, adLattice] : adLattices) {
-            concentrationProfilesBC.at(nodeId).try_emplace(speciesId, std::make_shared<olb::AdeConcBC<T>>(Opening, std::vector<T>(this->resolution, T(0.0))));
+            concentrationProfilesBC.at(nodeId).try_emplace(speciesId, std::make_shared<olb::AdeConcBC<T>>(this->cfdModule, Opening, std::vector<T>(this->resolution, T(0.0))));
         }
         // Initialize 1D Buffer objects
         for (auto& [speciesId, adLattice] : adLattices) {
@@ -481,7 +481,7 @@ template<typename T>
 void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
     for (auto& [nodeId, fields] : concentrationFieldsOut_) {
         for (auto& [specieId, concField] : fields) {
-            concentrationProfilesBC.at(nodeId).at(specieId) = std::make_shared<olb::AdeConcBC<T>>(this->moduleOpenings.at(nodeId), concentrationFieldsOut_.at(nodeId).at(specieId));
+            concentrationProfilesBC.at(nodeId).at(specieId) = std::make_shared<olb::AdeConcBC<T>>(this->cfdModule, this->moduleOpenings.at(nodeId), concentrationFieldsOut_.at(nodeId).at(specieId));
         }
     }
 }
@@ -504,7 +504,7 @@ bool lbmMixingSimulator<T>::hasAdConverged() const {
             c = false;
         }
     }
-    if (this->step > 20000) {
+    if (this->step > 100000) {
         c = true;
     }
     return c;
