@@ -13,31 +13,39 @@ auto writePressures(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeChannels(result::State<T>* state) {      
-    auto channels = ordered_json::array();
+auto writeChannels(arch::Network<T>* network, result::State<T>* state) {
+    auto channels_json = ordered_json::array();
+
     auto const& flowRates = state->getFlowRates();
-    if (state->getMixturePositions().empty()) {
-        for (auto& [key, flowRate] : flowRates) {
-            channels.push_back({{"flowRate", flowRate}});
-        }
-    } else if ( !state->getMixturePositions().empty() ) {
-        for (long unsigned int i=0; i<flowRates.size(); ++i) {
-            auto channel = ordered_json::object();
+    auto const& mixturePositions = state->getMixturePositions();
+
+    auto const& channels = network->getChannels();
+    auto const& flowRatePumps = network->getFlowRatePumps();
+    auto const& pressurePumps = network->getPressurePumps();
+    auto const& membranes = network->getMembranes();
+    auto const& tanks = network->getTanks();
+    auto edgeCount = channels.size() + flowRatePumps.size() + pressurePumps.size() + membranes.size() + tanks.size();
+
+    // since edge ids should be continuous, iterate over number of total edges;
+    // not all edges necessarily have a flowrate (membranes, tanks) or a mixturePosition
+    for (long unsigned int i = 0; i < edgeCount; ++i) {
+        auto channel = ordered_json::object();
+        if (flowRates.count(i)) {
             channel["flowRate"] = flowRates.at(i);
-            if ( state->getMixturePositions().count(i) ) {
-                channel["mixturePositions"] = ordered_json::array();
-                for (auto& position : state->getMixturePositions().at(i)) {
-                    channel["mixturePositions"].push_back({
-                        {"mixture", position.mixtureId},
-                        {"start", position.position1},
-                        {"end", position.position2}
-                    });
-                }
-            }
-            channels.push_back(channel);
         }
+        if (mixturePositions.count(i)) {
+            channel["mixturePositions"] = ordered_json::array();
+            for (auto& position : mixturePositions.at(i)) {
+                channel["mixturePositions"].push_back({
+                    {"mixture", position.mixtureId},
+                    {"start", position.position1},
+                    {"end", position.position2}
+                });
+            }
+        }
+        channels_json.push_back(channel);
     }
-    return channels;
+    return channels_json;
 }
 
 template<typename T>
