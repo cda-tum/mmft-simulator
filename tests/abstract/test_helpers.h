@@ -56,4 +56,42 @@ inline std::unordered_map<int, double> getAverageFluidConcentrationsInEdge(const
     averageConcentrations[-1] = continuousPhaseConcentration;
     return averageConcentrations;
 }
+
+/**
+ * Get the path a droplet has taken through the network in a simulation run.
+ * The returned vector contains a vector for each movement of the droplet.
+ * This vector contains the channel IDs of all channels that contain the
+ * given droplet ID.
+ */
+inline std::vector<std::vector<int>> getDropletPath(const result::SimulationResult<double>& result, int dropletId) {
+    std::vector<std::vector<int>> dropletPath;
+
+    // loop through states
+    for (const auto& state : result.getStates()) {
+        // get dropletPosition
+        auto itDropletPosition = state->dropletPositions.find(dropletId);
+        if (itDropletPosition != state->dropletPositions.end()) {
+            // all channels that contain the droplet in the current saved state
+            std::vector<int> position;
+
+            // add channelIds of boundaries
+            for (auto& boundary : itDropletPosition->second.boundaries) {
+                position.push_back(boundary.getChannelPosition().getChannel()->getId());
+            }
+
+            // add fully occupied channelIds
+            for (auto& channelId : itDropletPosition->second.channelIds) {
+                position.push_back(channelId);
+            }
+
+            // check if the set with the channelIds is the same as in the previous state;
+            // if yes then do not consider this new state and pop it from the list (prevents duplicates)
+            if (dropletPath.empty() || dropletPath.back() != position) {
+                dropletPath.push_back(std::move(position));
+            }
+        }
+    }
+
+    return dropletPath;
+}
 } // namespace test::helpers
