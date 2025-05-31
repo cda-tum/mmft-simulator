@@ -25,6 +25,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 | Continuous    | &#x2705;      | &#x2705;      |
 | BigDroplet    | &#x2705;      |               |
 | Mixing        | &#x2705;      |               |
+| Membrane      | &#x2705;      |               |
 
 </div>
 
@@ -37,8 +38,8 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 **BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[4]](https://doi.org/10.1145/3313867)</sup> <sup>[[5]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
 **Mixing**: Solvents play an important role in microfluidics and on this platform, concentrations of species dissolved in the continuous phase can be simulated. There are currently **two** mixing models available:
 * Instantaneous mixing model: Fluids are assumed to be fully mixed as soon as they meet.
-* Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology.
-
+* Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology. <br>
+**Membrane**: Same as the Mixing platform, but supports tanks and membranes and requires the instantaneous mixing model. <sup>[[6]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
 
 
 ## System Requirements
@@ -284,6 +285,36 @@ For simulations that are of `hybrid` type, at least one CFD `simulator` must be 
 ```
 For examples of JSON definitions of simulations for various simulations and definitions of CFD modules, please see the `examples` folder.
 
+## Comparison of Simulators
+
+### mmft-droplet-simulator
+
+The base simulator which does not support mixtures and only focuses on the simulation of droplets.
+
+### mmft-modular-1D-simulator
+
+With the `mmft-droplet-simulator` as its starting point, this simulator adds these features to its basis:
+
+* mixture simulation
+* membranes & tanks
+* multiple channel and membrane resistance models
+
+### mmft-simulator (this repository)
+
+Built upon the `mmft-droplet-simulator` and the `mmft-modular-1D-simulator`, the mmft-simulator offers additionally to the `mmft-modular-1D-simulator`:
+
+* hybrid (CFD + Abstract) simulations with multiple different CFD simulators
+* Python bindings
+* JSON import and export of networks
+
+#### Limitations
+
+While many of the features of the `mmft-modular-1D-simulator` were integrated already, the unification process is ongoing.
+The following limitations are still present in `mmft-simulator` and the `mmft-modular-1D-simulator` should be used if they are relevant for a simulation:
+
+* not fully validated membrane/tank implementation for complex networks
+* simulations with both membranes/tanks and droplets not validated
+
 ## References
 More details about the implementation and the mechanisms behind the MMFT Simulator can be found in: 
 
@@ -296,6 +327,8 @@ More details about the implementation and the mechanisms behind the MMFT Simulat
 [[4]](https://doi.org/10.1145/3313867) A. Grimmer, M. Hamidović, W. Haselmayr, and R. Wille. Advanced Simulation of Droplet Microfluidics. ACM Journal on Emerging Technologies in Computing Systems (JETC), 2019.
 
 [[5]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
+
+[[6]](https://doi.org/10.1038/s41598-024-77741-8) M. Emmerich, F. Costamoling, and R. Wille. Modular and Extendable 1D-Simulator for Microfluidic Devices, 2024.
 
 ## How to cite
 If you use this library in your research, depending on which simulator you are using, we would appreciate it if you would cite the original work of the corresponding simulator in your work.
