@@ -1,5 +1,6 @@
 #include "MixingModels.h"
 
+#include <algorithm>
 #include <cassert>
 #include <unordered_map>
 #include <deque>
@@ -259,11 +260,56 @@ void InstantaneousMixingModel<T>::storeConcentrations(Simulation<T>* sim, const 
 
 template<typename T>
 void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
-
     generateNodeOutflow(sim, mixtures);
-    updateChannelInflow(timeStep, network, mixtures);
+    updateChannelInflow(timeStep, sim, network, mixtures);
+
     clean(network);
-    this->updateMinimalTimeStep(network);
+}
+
+template<typename T>
+void InstantaneousMixingModel<T>::moveMixtures(T timeStep, arch::Network<T>* network) {
+    auto newEndPos = [&](T currentEndPos, T flowRate, T channelVolume) {
+        T movedDistance = (std::abs(flowRate) * timeStep) / channelVolume;
+        return std::clamp(currentEndPos + movedDistance, 0.0, 1.0);
+    };
+
+    for (auto& [nodeId, node] : network->getNodes()) {
+        // update positions of mixtures in channels
+        for (auto& [channelId, channel] : network->getChannels()) {
+            auto flowRate = channel->getFlowRate();
+            if ((flowRate > 0.0 && channel->getNodeB() == nodeId) || (flowRate < 0.0 && channel->getNodeA() == nodeId)) {
+                if (this->mixturesInEdge.count(channel->getId())){
+                    for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
+                        endPos = newEndPos(endPos, flowRate, channel->getVolume());
+                    }
+                }
+            }
+        }
+        // update positions of mixtures in membranes & tanks
+        for (auto& membrane : network->getMembranesAtNode(nodeId)) {
+            auto* tank = membrane->getTank();
+            auto* channel = membrane->getChannel();
+            // mixtures move through the tank at the same speed as through the connected channel
+            // this is an abstraction to get time-accurate results
+            // in reality, there is no flow rate in the tank
+            auto flowRate = channel->getFlowRate();
+            if ((flowRate > 0.0 && channel->getNodeB() == nodeId) || (flowRate < 0.0 && channel->getNodeA() == nodeId)) {
+                if (this->mixturesInEdge.count(membrane->getId())) {
+                    // each tank should have a membrane, but the membrane does not really have any mixtures
+                    // inside; we update it anyway in order to mirror the mixtures in the tank for the
+                    // timestep update
+                    for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(membrane->getId())) {
+                        endPos = newEndPos(endPos, flowRate, channel->getVolume());
+                    }
+                }
+                if (this->mixturesInEdge.count(tank->getId())) {
+                    for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(tank->getId())) {
+                        endPos = newEndPos(endPos, flowRate, channel->getVolume());
+                    }
+                }
+            }
+        }
+    }
 }
 
 template<typename T>
@@ -280,16 +326,13 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
                 totalInflowCount++;
                 T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
-                T movedDistance = inflowVolume / channel->getVolume();
                 auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
                 if (!inserted) {
                     iterator->second += inflowVolume;
                 }
                 if (this->mixturesInEdge.count(channel->getId())){
                     for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
-                        T newEndPos = std::min(endPos + movedDistance, (T) 1.0);
-                        endPos = newEndPos;
-                        if (newEndPos == 1.0) {
+                        if (endPos == 1.0) {
                             // if the mixture front left the channel, it's fully filled
                             this->filledEdges.insert_or_assign(channel->getId(), mixtureId);
                             generateInflow = true;
@@ -310,6 +353,26 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                     auto mixtureId = this->permanentMixtureInjections.at(channel->getId());
                     MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
                     mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
+                }
+            }
+        }
+        // membranes & tanks contribute to outflow at node only indirectly through the fluid concentration exchange with the connected channel
+        for (auto& membrane : network->getMembranesAtNode(nodeId)) {
+            auto* tank = membrane->getTank();
+            auto* channel = membrane->getChannel();
+            // mixtures move through the tank at the same speed as through the connected channel
+            // this is an abstraction to get time-accurate results; in reality, there is no flow rate in the tank
+            auto flowRate = channel->getFlowRate();
+            // if node is outflow node of current channel
+            if ((flowRate > 0.0 && channel->getNodeB() == nodeId) || (flowRate < 0.0 && channel->getNodeA() == nodeId)) {
+                if (this->mixturesInEdge.count(tank->getId())) {
+                    for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(tank->getId())) {
+                        // do not generate inflow, but mark as filled so that we know which
+                        // mixture to recycle
+                        if (endPos == 1.0) {
+                            this->filledEdges.insert_or_assign(tank->getId(), mixtureId);
+                        }
+                    }
                 }
             }
         }
@@ -371,7 +434,7 @@ void InstantaneousMixingModel<T>::generateNodeOutflow(Simulation<T>* sim, std::u
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
 
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
@@ -382,23 +445,150 @@ void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, arch::Network<
                 }
             }
         }
+
+        // membranes & tanks
+        for (auto& membrane : network->getMembranesAtNode(nodeId)) {
+            auto* tank = membrane->getTank();
+            T channelFlowRate = membrane->getChannel()->getFlowRate();
+            // if node is outflow node of tank channel
+            if ((channelFlowRate > 0.0 && tank->getNodeB() == nodeId) || (channelFlowRate < 0.0 && tank->getNodeA() == nodeId)) {
+                // since flow of mixtures is synchronized between channel and tank, check regular node outflow
+                // of parallel channel if tank recycling is necessary
+                if (mixtureOutflowAtNode.count(nodeId)) {
+                    auto tankMixtureIt = this->mixturesInEdge.find(tank->getId());
+                    if (tankMixtureIt != this->mixturesInEdge.end() && !tankMixtureIt->second.empty()) {
+                        // copy the mixture that outflows the tank as new mixture at the inflow (to ensure mass conservation)
+                        // concentration that diffuses through membrane from new inflow is added later
+                        auto tankMixtureId = tankMixtureIt->second.front().first;
+                        auto& tankMixture = mixtures.at(tankMixtureId);
+                        auto newMixtureId = sim->addMixture(tankMixture->getSpecieConcentrations())->getId();
+
+                        // always recycle at position 0.0
+                        this->injectMixtureInEdge(newMixtureId, membrane->getId());
+                        this->injectMixtureInEdge(newMixtureId, tank->getId());
+                    } else {
+                        // continuous mixture injected in logic for membrane exchange
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+}
+
+template<typename T>
+void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+    for (auto& [nodeId, node] : network->getNodes()) {
+        for (auto membrane : network->getMembranesAtNode(nodeId)) {
+            auto* tank = membrane->getTank();
+            // mixtures move through the tank at the same speed as through the connected channel
+            // this is an abstraction to get time-accurate results
+            // in reality, there is no flow rate in the tank
+            auto* channel = membrane->getChannel();
+            auto channelFlowRate = channel->getFlowRate();
+            if ((channelFlowRate > 0.0 && tank->getNodeB() == nodeId) || (channelFlowRate < 0.0 && tank->getNodeA() == nodeId)) {
+                auto mixturesInChannelIt = this->mixturesInEdge.find(channel->getId());
+                auto mixturesInTankIt = this->mixturesInEdge.find(tank->getId());
+                auto numOfChannelMixtures = mixturesInChannelIt != this->mixturesInEdge.end() ? mixturesInChannelIt->second.size() : 0;
+                auto numOfTankMixtures = mixturesInTankIt != this->mixturesInEdge.end() ? mixturesInTankIt->second.size() : 0;
+
+                if (numOfChannelMixtures == 0 && numOfTankMixtures == 0) {
+                    // no mixture in either channel or tank; no exchange necessary
+                    continue;
+                }
+
+                auto addContinuousMixtures = [&](auto edgeId, auto endPos) {
+                    auto* continuousPhaseMixture = sim->addMixture({});
+                    this->injectMixtureInEdge(continuousPhaseMixture->getId(), edgeId, endPos);
+                };
+
+                if (numOfChannelMixtures < numOfTankMixtures) {
+                    // too few mixtures in channel; fill channel with continuous phase mixture for specie exchange;;
+                    // put it at the same position as the first mixture in tank since only one mixture should
+                    // be pushed out per timestep and the mixtures need to be synchronized between tank and channel
+                    auto firstTankMixtureEndPos = mixturesInTankIt->second.back().second;
+                    addContinuousMixtures(channel->getId(), firstTankMixtureEndPos);
+                }
+                if (numOfTankMixtures < numOfChannelMixtures) {
+                    // too few mixtures in tank; fill tank with continuous phase mixture for specie exchange
+                    // put it at the same position as the first mixture in channel since only one mixture should
+                    // be pushed out per timestep and the mixtures need to be synchronized between tank and channel
+                    auto firstChannelMixtureEndPos = mixturesInChannelIt->second.back().second;
+                    addContinuousMixtures(tank->getId(), firstChannelMixtureEndPos);
+                }
+
+                auto& mixturePositionsInChannel = this->mixturesInEdge.at(channel->getId());
+                auto& mixturePositionsInTank = this->mixturesInEdge.at(tank->getId());
+
+                assert(mixturePositionsInChannel.size() == mixturePositionsInTank.size());
+
+                int dequeIdx = mixturePositionsInChannel.size() - 1;
+                T startPos = 0.0;
+                for (auto it = mixturePositionsInTank.rbegin(); it != mixturePositionsInTank.rend(); it++) {
+                    auto& [tankMixtureId, endPos] = *it;
+                    T mixtureLengthAbs = (endPos - startPos) * channel->getLength();
+
+                    auto copyMixture = [&](auto mixtureId) {
+                        auto& mixture = mixtures.at(mixtureId);
+                        auto* newMixture = sim->addMixture(mixture->getSpecieConcentrations());
+                        return newMixture->getId();
+                    };
+
+                    auto* originalTankMixture = mixtures.at(tankMixtureId).get();
+                    tankMixtureId = copyMixture(tankMixtureId);
+
+                    auto& channelMixtureId = mixturePositionsInChannel.at(dequeIdx).first;
+                    channelMixtureId = copyMixture(channelMixtureId);
+
+                    for (auto& [specieId, specie] : sim->getSpecies()) {
+                        T area = membrane->getWidth() * mixtureLengthAbs;
+                        T resistance = sim->getMembraneModel()->getMembraneResistance(membrane, originalTankMixture, specie.get(), area);
+                        T specieSaturation = specie->getSatConc();
+                        if (specieSaturation != 0.0 && mixtureLengthAbs > 0.0) {
+                            T concentrationChannel = mixtures.at(channelMixtureId)->getConcentrationOfSpecie(specieId);
+                            T concentrationTank = mixtures.at(tankMixtureId)->getConcentrationOfSpecie(specieId);
+
+                            // positive flux defined to go from channel to tank
+                            // negative flux defined to go from tank to channel
+                            T concentrationDifference = (concentrationChannel - concentrationTank);
+                            T concentrationChangeMol = membrane->getConcentrationChange(resistance, timeStep, concentrationDifference);
+
+                            T concentrationChangeTank = concentrationChangeMol / (mixtureLengthAbs * tank->getWidth() * tank->getHeight());
+                            T concentrationChangeChannel = concentrationChangeMol * -1 / (mixtureLengthAbs * channel->getWidth() * channel->getHeight());
+
+                            mixtures.at(tankMixtureId)->changeSpecieConcentration(specieId, concentrationChangeTank);
+                            mixtures.at(channelMixtureId)->changeSpecieConcentration(specieId, concentrationChangeChannel);
+                        }
+                    }
+                    startPos = endPos;
+                    --dequeIdx;
+                }
+            }
+        }
     }
 }
 
 template<typename T>
 void InstantaneousMixingModel<T>::clean(arch::Network<T>* network) {
-    
-    for (auto& [nodeId, node] : network->getNodes()) {
-        for (auto& channel : network->getChannelsAtNode(nodeId)) {
-            if (this->mixturesInEdge.count(channel->getId())){
-                for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
-                    if (endPos == 1.0) {
-                        this->mixturesInEdge.at(channel->getId()).pop_front();
-                    } else {
-                        break;
-                    }
+    auto remove_if_outflow = [this](auto edgeId) {
+        if (this->mixturesInEdge.count(edgeId)) {
+            for (auto &[mixtureId, endPos] : this->mixturesInEdge.at(edgeId)) {
+                if (endPos == 1.0) {
+                    this->mixturesInEdge.at(edgeId).pop_front();
+                } else {
+                    break;
                 }
             }
+        }
+    };
+    for (auto& [nodeId, node] : network->getNodes()) {
+        for (auto& channel : network->getChannelsAtNode(nodeId)) {
+            remove_if_outflow(channel->getId());
+        }
+        for (auto& membrane : network->getMembranesAtNode(nodeId)) {
+            auto* tank = membrane->getTank();
+            remove_if_outflow(tank->getId());
+            remove_if_outflow(membrane->getId());
         }
     }
     mixtureInflowAtNode.clear();

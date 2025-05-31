@@ -17,6 +17,12 @@ namespace arch {
 template<typename T>
 class Network;
 
+template<typename T>
+class Membrane;
+
+template<typename T>
+class Tank;
+
 }
 
 namespace sim { 
@@ -207,6 +213,16 @@ public:
     void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
 
     /**
+     * @brief Move mixtures according to the timestep
+     */
+    void moveMixtures(T timeStep, arch::Network<T>* network);
+
+    /**
+     * @brief Calculate exchange between tank and channel through membranes and change mixtures accordingly
+     */
+    void calculateMembraneExchange(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+
+    /**
      * @brief Calculate and store the mixtures flowing into all nodes
      * @param[in] timeStep The timeStep size of the current iteration.
      * @param[in] network Pointer to the network.
@@ -223,10 +239,11 @@ public:
     /**
      * @brief Add the node outflow as inflow to the channels
      * @param[in] timeStep The timeStep size of the current iteration.
+     * @param[in] sim Pointer to the simulation.
      * @param[in] network Pointer to the network.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void updateChannelInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void updateChannelInflow(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Remove mixtures that have 'outflowed' their channel

@@ -94,6 +94,9 @@ template<typename T>
 class MixingModel;
 
 template<typename T>
+class InstantaneousMixingModel;
+
+template<typename T>
 class Mixture;
 
 template<typename T>

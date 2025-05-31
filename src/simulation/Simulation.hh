@@ -861,6 +861,7 @@ namespace sim {
                 // Update and propagate the mixtures 
                 if (this->mixingModel->isInstantaneous()){
                     calculateNewMixtures(timestep);
+                    this->mixingModel->updateMinimalTimeStep(network);
                 } else if (this->mixingModel->isDiffusive()) {
                     this->mixingModel->updateMinimalTimeStep(network);
                 }
@@ -897,7 +898,10 @@ namespace sim {
                 time += nextEvent->getTime();
                 
                 if (this->mixingModel->isInstantaneous()){
-                    this->mixingModel->updateNodeInflow(timestep, network);
+                    auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
+                    assert(instantMixingModel);
+                    instantMixingModel->moveMixtures(timestep, network);
+                    instantMixingModel->updateNodeInflow(timestep, network);
                 } else if (this->mixingModel->isDiffusive()) {
                     this->mixingModel->updateMixtures(timestep, network, this, mixtures);
                 }
