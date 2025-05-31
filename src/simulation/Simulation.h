@@ -139,6 +139,7 @@ private:
     std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
     std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation.
     std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;            ///< The set of CFD simulators, that conduct CFD simulations on <arch::Module>.
     ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
     MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
@@ -335,6 +336,16 @@ public:
      * @return Pointer to created injection.
      */
     MixtureInjection<T>* addMixtureInjection(int mixtureId, int channelId, T injectionTime);
+
+    /**
+     * @brief Create permanent mixture injection which will continuously inject the mixture.
+     *        The injection is always performed at the beginning (position 0.0) of the channel.
+     * @param[in] mixtureId Id of the mixture that should be injected.
+     * @param[in] channelId Id of the channel, where specie should be injected.
+     * @param[in] injectionTime Time at which the injection should be injected in s.
+     * @return Pointer to created injection.
+     */
+    MixtureInjection<T>* addPermanentMixtureInjection(int mixtureId, int channelId, T injectionTime);
 
     /**
      * @brief Adds a new simulator to the network.

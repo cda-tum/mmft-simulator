@@ -240,12 +240,10 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
         bool generateInflow = false;
         int totalInflowCount = 0;
         int mixtureInflowCount = 0;
-        if (createMixture.count(nodeId)) {
-            createMixture.at(nodeId) = false;
-        } else {
-            createMixture.try_emplace(nodeId, false);
-        }
+
+        createMixture.insert_or_assign(nodeId, false);
         for (auto& [channelId, channel] : network->getChannels()) {
+            // if node is outflow node of current channel
             if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
                 totalInflowCount++;
                 T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
@@ -260,14 +258,25 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                         endPos = newEndPos;
                         if (newEndPos == 1.0) {
                             // if the mixture front left the channel, it's fully filled
-                            if (this->filledEdges.count(channel->getId())) {
-                                this->filledEdges.at(channel->getId()) = mixtureId;
-                            } else {
-                                this->filledEdges.try_emplace(channel->getId(), mixtureId);
-                            }
+                            this->filledEdges.insert_or_assign(channel->getId(), mixtureId);
                             generateInflow = true;
-                        }   
+                        }
                     }
+                }
+            }
+            // if node is inflow node to current channel
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+                // if there is a permanent injection leading into current channel,
+                // add it as inflow to the node at start of the channel
+                if (this->permanentMixtureInjections.count(channel->getId())) {
+                    T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
+                    auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
+                    if (!inserted) {
+                        iterator->second += inflowVolume;
+                    }
+                    auto mixtureId = this->permanentMixtureInjections.at(channel->getId());
+                    MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
+                    mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
                 }
             }
         }

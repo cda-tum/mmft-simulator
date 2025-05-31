@@ -81,6 +81,7 @@ protected:
     T minimalTimeStep = 0.0;                                                    ///< Required minimal timestep for a mixture to reach a node.
     std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
     std::unordered_map<int, int> filledEdges;                                   ///<  Which edges are currently filled with a single mixture <EdgeID, MixtureID>
+    std::unordered_map<int, int> permanentMixtureInjections;
 
 public:
 
@@ -131,6 +132,13 @@ public:
      * @param[in] channelId Id of the channel.
     */
     void injectMixtureInEdge(int mixtureId, int channelId);
+
+    /**
+     * @brief Add permanent mixture injection to current simulation run.
+     * @param[in] mixtureId Id of the mixture that should be injected continuously from now on.
+     * @param[in] channelId Id of the channel into which the injection is leading.
+     */
+    void addPermanentMixtureInjection(int mixtureId, int channelId) { permanentMixtureInjections.try_emplace(channelId, mixtureId); }
 
     /**
      * @brief Update the position of all mixtures in the network and update the inflow into all nodes.

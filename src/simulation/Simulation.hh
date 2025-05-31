@@ -199,6 +199,28 @@ namespace sim {
     }
 
     template<typename T>
+    MixtureInjection<T>* Simulation<T>::addPermanentMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
+        auto id = permanentMixtureInjections.size();
+
+        if (network->isChannel(edgeId)) {
+            auto channel = network->getChannel(edgeId);
+            auto result = permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            return result.first->second.get();
+        } else if (network->isPressurePump(edgeId)) {
+            auto pump = network->getPressurePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        } else if (network->isFlowRatePump(edgeId)) {
+            auto pump = network->getFlowRatePump(edgeId);
+            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+                permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        }
+        return nullptr;
+    }
+
+    template<typename T>
     std::shared_ptr<mmft::NaiveScheme<T>> Simulation<T>::setNaiveHybridScheme(T alpha, T beta, int theta) {
         auto naiveScheme = std::make_shared<mmft::NaiveScheme<T>>(network->getModules(), alpha, beta, theta);
         for (auto& [key, simulator] : cfdSimulators) {
@@ -1162,6 +1184,12 @@ namespace sim {
             double injectionTime = injection->getInjectionTime();
             if (!injection->wasPerformed()) {
                 events.push_back(std::make_unique<MixtureInjectionEvent<T>>(injectionTime - time, *injection, mixingModel));
+            }
+        }
+        for (auto& [key, injection] : permanentMixtureInjections) {
+            double injectionTime = injection->getInjectionTime();
+            if (!injection->wasPerformed()) {
+                events.push_back(std::make_unique<PermanentMixtureInjectionEvent<T>>(injectionTime - time, *injection, mixingModel));
             }
         }
         minimalTimeStep = mixingModel->getMinimalTimeStep();
