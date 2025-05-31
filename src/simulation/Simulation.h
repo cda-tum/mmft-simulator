@@ -470,6 +470,18 @@ public:
     void setMixingModel(MixingModel<T>* model);
 
     /**
+     * @brief Set maximal time after which the simulation should end.
+     * @param[in] Maximal end time in [s].
+     */
+    void setMaxEndTime(T maxTime);
+
+    /**
+     * @brief Set interval in which the state is saved to the SimulationResult.
+     * @param[in] Interval in [s].
+     */
+    void setWriteInterval(T interval);
+
+    /**
      * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
      * @param[in] timeStep Time step in s for which the new mixtures state should be calculated.
      */

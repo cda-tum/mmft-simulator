@@ -373,7 +373,17 @@ namespace sim {
     void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
         this->mixingModel = model_;
     }
-    
+
+    template<typename T>
+    void Simulation<T>::setMaxEndTime(T maxTime) {
+        this->tMax = maxTime;
+    }
+
+    template<typename T>
+    void Simulation<T>::setWriteInterval(T interval) {
+        this->writeInterval = interval;
+    }
+
     template<typename T>
     void Simulation<T>::calculateNewMixtures(double timestep_) {
         this->mixingModel->updateMixtures(timestep_, this->network, this, this->mixtures);
