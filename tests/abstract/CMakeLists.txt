@@ -3,6 +3,7 @@ set(SOURCE_LIST
     BigDroplet.test.cpp
     Continuous.test.cpp
     InstantaneousMixing.test.cpp
+    Tank.test.cpp
     Topology.test.cpp
 )
 
