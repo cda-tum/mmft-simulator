@@ -8,7 +8,11 @@ Fluid<T>::Fluid(int id_, T density_, T viscosity_, T concentration_) : id(id_), 
 
 template<typename T>
 Fluid<T>::Fluid(int id_, T density_, T viscosity_, T concentration_, std::string name_) : id(id_), 
-    density(density_), viscosity(viscosity_), name(name_) { }
+    density(density_), viscosity(viscosity_), concentration(concentration_), name(name_) { }
+
+template<typename T>
+Fluid<T>::Fluid(int id_, T density_, T viscosity_, T concentration_, T molecularSize_, std::string name_) : id(id_),
+    density(density_), viscosity(viscosity_), concentration(concentration_), molecularSize(molecularSize_), name(name_) { }
 
 template<typename T>
 void Fluid<T>::setName(std::string name_) {
