@@ -164,6 +164,11 @@ private:
     void initialize();
 
     /**
+     * @brief Update the resistances of all channels based on the resistance model.
+     */
+    void updateChannelResistances();
+
+    /**
      * @brief Update the droplet resistances of the channels based on the current positions of the droplets.
      */
     void updateDropletResistances();

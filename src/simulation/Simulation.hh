@@ -946,11 +946,7 @@ namespace sim {
         #ifdef VERBOSE
             std::cout << "[Simulation] Compute and set channel resistances..." << std::endl;
         #endif
-        for (auto& [key, channel] : network->getChannels()) {
-            T resistance = resistanceModel->getChannelResistance(channel.get());
-            channel->setResistance(resistance);
-            channel->setDropletResistance(0.0);
-        }
+        updateChannelResistances();
 
         nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network);
 
@@ -1039,6 +1035,14 @@ namespace sim {
                 cfdSimulator->prepareGeometry();
                 cfdSimulator->prepareLattice();
             }
+        }
+    }
+
+    template<typename T>
+    void Simulation<T>::updateChannelResistances() {
+        for (auto& [key, channel] : network->getChannels()) {
+            T resistance = resistanceModel->getChannelResistance(channel.get());
+            channel->setResistance(resistance);
         }
     }
 
