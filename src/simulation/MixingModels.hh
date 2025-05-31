@@ -1,5 +1,6 @@
 #include "MixingModels.h"
 
+#include <cassert>
 #include <unordered_map>
 #include <deque>
 #include <iostream>
@@ -20,9 +21,23 @@ T MixingModel<T>::getMinimalTimeStep() {
 template<typename T>
 void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
     this->minimalTimeStep = 0.0;
-    for (auto& [channelId, deque] : mixturesInEdge) {
-        T channelVolume = network->getChannel(channelId)->getVolume();
-        T channelFlowRate = std::abs(network->getChannel(channelId)->getFlowRate());
+    for (const auto& [edgeId, deque] : mixturesInEdge) {
+        arch::Channel<T>* channel = nullptr;
+        if (network->isMembrane(edgeId)) {
+            // membranes mirror the mixtures in tanks, although they do not
+            // contain any themselves; since the mixture positions in tank
+            // and channel should match, this should not matter but is done
+            // as a safety mechanism to make sure that no mixture is skipped
+            channel = network->getMembrane(edgeId)->getChannel();
+        } else if (!network->isChannel(edgeId)) {
+            // ignore tanks (do not have a flowrate)
+            continue;
+        } else {
+            channel = network->getChannel(edgeId);
+        }
+        assert(channel);
+        T channelVolume = channel->getVolume();
+        T channelFlowRate = std::abs(channel->getFlowRate());
         for (auto& [mixtureId, endPos] : deque) {
             T flowTime = (1.0 - endPos)*channelVolume/channelFlowRate;
             if (this->minimalTimeStep < 1e-12) {
