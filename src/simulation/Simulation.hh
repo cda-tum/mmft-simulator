@@ -56,7 +56,7 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
-        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
+        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, std::move(specieConcentrations), carrierFluid));
 
         return result.first->second.get();
     }
@@ -370,6 +370,11 @@ namespace sim {
     }
 
     template<typename T>
+    void Simulation<T>::setMembraneModel(MembraneModel<T>* model_) {
+        this->membraneModel = model_;
+    }
+
+    template<typename T>
     void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
         this->mixingModel = model_;
     }
@@ -493,6 +498,12 @@ namespace sim {
     template<typename T>
     ResistanceModel<T>* Simulation<T>::getResistanceModel() {
         return resistanceModel;
+    }
+
+    template<typename T>
+    MembraneModel<T>* Simulation<T>::getMembraneModel() {
+        static MembraneModel9<T> defaultMembraneModel;
+        return membraneModel ? membraneModel : &defaultMembraneModel;
     }
 
     template<typename T>
@@ -631,6 +642,160 @@ namespace sim {
 
             // store simulation results of current state
             saveState();
+        }
+
+        // ##########
+        // Abstract simulation with membranes/tanks
+        // ##########
+        // * update droplet resistances
+        // * conduct nodal analysis
+        // * update droplets (flow rates of boundaries)
+        // * compute events
+        // * search for next event (break if no event is left)
+        // * move droplets
+        // * perform event
+        if (simType == Type::Abstract && platform == Platform::Membrane) {
+            T simulationResultTimeCounter = 0.0;
+
+            #ifdef VERBOSE
+            std::cout << "Running Abstract Membrane simulation..." << std::endl;
+            #endif
+            auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
+            if (!instantMixingModel) {
+                throw std::logic_error { "Unable to run membrane simulation with non-instantaneous mixing" };
+            }
+            while (true) {
+                // TODO: utilize maxIterations, but default value is too small to be usable for this type of simulation;
+                //       simulation will usually stop once the configured end time (maxTime) is reached
+
+                #ifdef VERBOSE
+                    // only print on change of highest digit in iteration; so ..., 80, 90, 100, 200, 300, ...
+                    if (iteration < 10 || iteration % static_cast<int>(std::pow(10, static_cast<int>(std::log10(iteration)))) == 0) {
+                        std::cout << "Iteration " << iteration << " (" << time << "s)" << std::endl;
+                    }
+                #endif
+
+                // update resistance of channels; this is already done in initialization and is only necessary if viscosity
+                // changes over time; future evaluations required to measure impact on performance and if it is actually necessary
+                // for all simulations
+                updateChannelResistances();
+                // update droplet resistances (in the first iteration no  droplets are inside the network)
+                updateDropletResistances();
+
+                // compute nodal analysis
+                nodalAnalysis->conductNodalAnalysis();
+
+                // update droplets, i.e., their boundary flow rates
+                // loop over all droplets
+                dropletsAtBifurcation = false;
+                for (auto& [key, droplet] : droplets) {
+                    // only consider droplets inside the network
+                    if (droplet->getDropletState() != DropletState::NETWORK) {
+                        continue;
+                    }
+
+                    // set to true if droplet is at bifurcation
+                    if (droplet->isAtBifurcation()) {
+                        dropletsAtBifurcation = true;
+                    }
+
+                    // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
+                    // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
+                    // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
+                    droplet->updateBoundaries(*network);
+                }
+
+                // store simulation results of current state if result time is reached
+                if (simulationResultTimeCounter <= 0) {
+                    saveState();
+                    if ((permanentMixtureInjections.empty() && mixtureInjections.empty()) || !dropletInjections.empty()) {
+                        simulationResultTimeCounter = 0;
+                    } else {  // for continuous fluid simulation without droplets only store simulation time steps
+                        simulationResultTimeCounter = writeInterval;
+                    }
+                }
+
+                // compute internal minimal timestep and make sure that it is not too big to skip next save timepoint
+                auto timeToNextResult = writeInterval - std::fmod(time, writeInterval);
+                calculateNewMixtures(dt);
+
+                // update minimal timestep and limit it so that the next time the state should be written is not overstepped
+                instantMixingModel->fixedMinimalTimeStep(network);
+                instantMixingModel->limitMinimalTimeStep(0.05, timeToNextResult);
+
+                // merging of droplets:
+                // 1) Two boundaries merge inside a single channel:
+                //      1) one boundary is faster than the other and would "overtake" the boundary
+                //          * theoretically it would also be possible to introduce a merge distance.
+                //            however, then it gets complicated when the actual merging of the droplets happen, since all other boundaries of the droplets need to moved in order to conserve the droplet volume (i.e., compensate for the volume between the droplets due to the merge distance).
+                //            this movement of all other boundaries would then may trigger other events => it gets complicated^^
+                //      2) the two boundaries flow in different directions:
+                //          * this case shouldn't happen in this implementation now, but it might be possible since boundary flow rates are not bound to channel flow rates.
+                //            however, currently the boundaries should still have the same direction as the channel flow rates and, thus, the boundaries cannot have opposite flow directions in a single channel
+                // 2) A boundary (which currently operates as a droplet head) can merge into another droplet when it switches channels (basically when a BoundaryHeadEvent occurs):
+                //      * possible solution is to normally compute a BoundaryHeadEvent and then check if it is actually a merge event (in case of a merge event the channels don't have to be switched since the boundary is merged with the other droplet)
+
+                // compute events
+                auto dropletEvents = computeEvents();
+                auto mixtureEvents = computeMixingEvents();
+
+                // since this simulation platform supports both droplets and mixtures, need to handle both kinds of event
+                auto events = std::move(dropletEvents);
+                events.insert(events.end(), std::move_iterator(mixtureEvents.begin()), std::move_iterator(mixtureEvents.end()));
+
+                // sort events
+                // closest events in time with the highest priority come first
+                std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
+                    if (a->getTime() == b->getTime()) {
+                        return a->getPriority() < b->getPriority();  // ascending order (the lower the priority value, the higher the priority)
+                    }
+                    return a->getTime() < b->getTime();  // ascending order
+                });
+
+                #ifdef DEBUG
+                for (auto& event : events) {
+                    event->print();
+                }
+                #endif
+
+                // get next event or break loop, if no events remain
+                Event<T>* nextEvent = nullptr;
+                if (events.size() != 0) {
+                    nextEvent = events[0].get();
+                } else {
+                    break;
+                }
+
+                auto nextEventTime = nextEvent->getTime();
+                time += nextEventTime;
+                simulationResultTimeCounter -= nextEventTime;
+                dt = nextEventTime;
+
+                if (nextEventTime > 0.0) {
+                    // move droplets until event is reached
+                    moveDroplets(nextEventTime);
+
+                    instantMixingModel->moveMixtures(dt, this->network);
+                    instantMixingModel->calculateMembraneExchange(dt, this, this->network, this->mixtures);
+                    instantMixingModel->updateNodeInflow(dt, network);
+                }
+
+                // perform event (inject droplet, move droplet to next channel, block channel, merge channels)
+                // only one event at a time is performed in order to ensure a correct state
+                // hence, it might happen that the next time for an event is 0 (e.g., when  multiple events happen at the same time)
+                assert(nextEventTime >= 0.0);
+                nextEvent->performEvent();
+
+                if (time >= tMax) {
+                    break;
+                }
+
+                ++iteration;
+            }
+
+            //store simulation state once more at the end of the simulation (even if this is not part of the simulation result timestep)
+            saveState();
+            saveMixtures();
         }
 
         // Continuous Hybrid simulation
@@ -1100,7 +1265,7 @@ namespace sim {
         }
 
         // droplet positions
-        if (platform == Platform::BigDroplet) {
+        if (platform == Platform::BigDroplet || platform == Platform::Membrane) {
             for (auto& [id, droplet] : droplets) {
                 // create new droplet position
                 DropletPosition<T> newDropletPosition;
@@ -1124,7 +1289,7 @@ namespace sim {
         }
         
         // mixture positions
-        if (platform == Platform::Mixing) {
+        if (platform == Platform::Mixing || platform == Platform::Membrane) {
             // Add a mixture position for all filled edges
             for (auto& [channelId, mixingId] : mixingModel->getFilledEdges()) {
                 std::deque<MixturePosition<T>> newDeque;
@@ -1158,10 +1323,9 @@ namespace sim {
             }
         } else if (platform == Platform::BigDroplet) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
-        } else if (platform == Platform::Mixing) {
+        } else if (platform == Platform::Mixing || platform == Platform::Membrane) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions);
         }
-        
     }
 
     template<typename T>

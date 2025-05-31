@@ -121,7 +121,8 @@ enum class Platform {
     Continuous,     ///< A simulation with a single continuous fluid.
     BigDroplet,     ///< A simulation with droplets filling a channel cross-section
     Mixing,         ///< A simulation with multiple miscible fluids.
-    Ooc             ///< A simulation with organic tissue
+    Ooc,            ///< A simulation with organic tissue
+    Membrane,       ///< A simulation with membranes
 };
 
 /**
@@ -472,6 +473,12 @@ public:
     void setResistanceModel(ResistanceModel<T>* model);
 
     /**
+     * @brief Define which membrane model should be used for the membrane resistance calculations.
+     * @param[in] model The membrane model to be used.
+     */
+    void setMembraneModel(MembraneModel<T>* model);
+
+    /**
      * @brief Define which mixing model should be used for the concentrations.
      * @param[in] model The mixing model to be used.
      */
@@ -597,6 +604,12 @@ public:
      * @return The resistance model of the simulation.
      */
     ResistanceModel<T>* getResistanceModel();
+
+    /**
+     * @brief Get the membrane model that is used in the simulation.
+     * @return The membrane model of the simulation
+     */
+    MembraneModel<T>* getMembraneModel();
 
     /**
      * @brief Get mixture.
