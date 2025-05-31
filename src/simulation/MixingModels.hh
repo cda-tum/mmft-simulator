@@ -83,12 +83,12 @@ const std::unordered_map<int, int>& MixingModel<T>::getFilledEdges() const {
 }
 
 template<typename T>
-void MixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId) {
+void MixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId, T endPos) {
     if (this->mixturesInEdge.count(channelId)) {
-        this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, T(0.0)));
+        this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, endPos));
     } else {
         std::deque<std::pair<int,T>> newDeque;
-        newDeque.push_back(std::make_pair(mixtureId, T(0.0)));
+        newDeque.push_back(std::make_pair(mixtureId, endPos));
         this->mixturesInEdge.try_emplace(channelId, newDeque);
     }
 }

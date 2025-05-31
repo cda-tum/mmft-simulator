@@ -145,7 +145,7 @@ public:
      * @param[in] mixtureId Id of the mixture.
      * @param[in] channelId Id of the channel.
     */
-    void injectMixtureInEdge(int mixtureId, int channelId);
+    void injectMixtureInEdge(int mixtureId, int channelId, T endPos = 0.0);
 
     /**
      * @brief Add permanent mixture injection to current simulation run.
