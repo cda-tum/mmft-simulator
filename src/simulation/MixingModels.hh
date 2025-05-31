@@ -35,6 +35,24 @@ void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
 }
 
 template<typename T>
+void MixingModel<T>::fixedMinimalTimeStep(arch::Network<T>* network) {
+    this->minimalTimeStep = std::numeric_limits<double>::max();
+    for (auto& [key, channel] : network->getChannels()) {
+        auto flowrate = channel->getFlowRate();
+        auto length = channel->getLength();
+        auto time = length * channel->getArea() / std::abs(flowrate);
+        if (time < this->minimalTimeStep) {
+            this->minimalTimeStep = time;
+        }
+    }
+}
+
+template<typename T>
+void MixingModel<T>::limitMinimalTimeStep(T minMinimalTimeStep, T maxMinimalTimeStep) {
+    this->minimalTimeStep = std::clamp(this->minimalTimeStep, minMinimalTimeStep, maxMinimalTimeStep);
+}
+
+template<typename T>
 const std::deque<std::pair<int,T>>& MixingModel<T>::getMixturesInEdge(int channelId) const {
     return mixturesInEdge.at(channelId);
 }

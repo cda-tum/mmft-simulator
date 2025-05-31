@@ -108,6 +108,20 @@ public:
     void updateMinimalTimeStep(arch::Network<T>* network);
 
     /**
+     * @brief Calculate and set fixed minimal timestep according to shortest channel.
+     * This can cause multiple mixtures to outflow the channel in a timestep and should
+     * only be used for simulations that can handle this correctly.
+     * @param[in] network
+     */
+    void fixedMinimalTimeStep(arch::Network<T>* network);
+
+    /**
+     * @brief Limit current minimal timestep to given value.
+     * This can be used to ensure that the simulation can be saved at a specific simulation time.
+     */
+    void limitMinimalTimeStep(T minMinimalTimeStep, T maxMinimalTimeStep);
+
+    /**
      * @brief Retrieve the mixtures that are present in a specific channel.
      * @param[in] channelId The channel id.
      * @return A reference to the deque containing the mixtures and their location in the channel.
