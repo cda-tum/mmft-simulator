@@ -642,8 +642,10 @@ bool Network<T>::isNetworkValid() {
     }
 
     for (auto const& [k, v] : channels) {
-        if (v->getLength() <= 0) {
-            throw std::invalid_argument("Channel " + std::to_string(k) + ": length is <= 0.");
+        if (v->getLength() != 0 && v->getLength() < calculateNodeDistance(v->getNodeA(), v->getNodeB())) {
+            // if length == 0 the simulation will initialize the channel length with the distance
+            // between nodeA and nodeB of the channel
+            throw std::invalid_argument("Channel " + std::to_string(k) + ": length is less than the node distance.");
         }
         if (v->getHeight() <= 0) {
             throw std::invalid_argument("Channel " + std::to_string(k) + ": height is <= 0.");
@@ -748,6 +750,15 @@ void Network<T>::print() {
     std::cout << "Nodes: " << printNodes << "\n" << std::endl;
     std::cout << "Channels:\n" << printChannels << std::endl;
     std::cout << "Modules:\n" << printModules << std::endl;
+}
+
+template<typename T>
+T Network<T>::calculateNodeDistance(int nodeIdA, int nodeIdB) {
+    auto& nodeA = this->getNodes().at(nodeIdA);
+    auto& nodeB = this->getNodes().at(nodeIdB);
+    T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
+    T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
+    return sqrt(dx*dx + dy*dy);
 }
 
 }   // namespace arch

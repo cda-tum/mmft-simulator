@@ -424,6 +424,11 @@ public:
      * @brief Prints the contents of this network
      */
     void print();
+
+    /**
+     * @brief Calculate the distance between the two given nodes
+     */
+    [[nodiscard]] T calculateNodeDistance(int nodeIdA, int nodeIdB);
 };
 
 }   // namespace arch

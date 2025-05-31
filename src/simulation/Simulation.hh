@@ -901,12 +901,14 @@ namespace sim {
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
         #endif
         for (auto& [key, channel] : network->getChannels()) {
-            auto& nodeA = network->getNodes().at(channel->getNodeA());
-            auto& nodeB = network->getNodes().at(channel->getNodeB());
-            T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
-            T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-            channel->setLength(sqrt(dx*dx + dy*dy));
-        }       
+            T calculatedLength = network->calculateNodeDistance(channel->getNodeA(), channel->getNodeB());
+
+            if (channel->getLength() == 0) {
+                channel->setLength(calculatedLength);
+            } else if (channel->getLength() < calculatedLength) {
+                throw std::runtime_error("Invalid channel length: Insufficient to connect nodes");
+            }
+        }
 
         // compute channel resistances
         #ifdef VERBOSE
