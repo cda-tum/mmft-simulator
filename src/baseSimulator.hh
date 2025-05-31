@@ -27,10 +27,12 @@
 #include "architecture/ChannelPosition.hh"
 #include "architecture/Edge.hh"
 #include "architecture/FlowRatePump.hh"
+#include "architecture/Membrane.hh"
 #include "architecture/Module.hh"
 #include "architecture/Network.hh"
 #include "architecture/Node.hh"
 #include "architecture/PressurePump.hh"
+#include "architecture/Tank.hh"
 
 #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
 #include "olbProcessors/saturatedFluxPostProcessor2D.hh"

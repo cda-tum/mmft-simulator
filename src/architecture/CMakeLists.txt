@@ -1,8 +1,10 @@
 set(SOURCE_LIST
     Channel.hh
     ChannelPosition.hh
+    Membrane.hh
     Module.hh
     Network.hh
+    Tank.hh
     Edge.hh
     FlowRatePump.hh
     Node.hh
@@ -12,9 +14,11 @@ set(SOURCE_LIST
 set(HEADER_LIST
     Channel.h
     ChannelPosition.h
+    Membrane.h
     Module.h
     ModuleOpening.h
     Network.h
+    Tank.h
     Edge.h
     FlowRatePump.h
     Node.h
