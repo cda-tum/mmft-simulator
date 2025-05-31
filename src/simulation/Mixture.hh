@@ -1,5 +1,8 @@
 #include "Mixture.h"
 
+#include <algorithm>
+#include <cassert>
+
 namespace sim {
 
 template<typename T>
@@ -73,6 +76,21 @@ const std::unordered_map<int, T>& Mixture<T>::getSpecieConcentrations() const {
 template<typename T>
 const std::unordered_map<int, Specie<T>*>& Mixture<T>::getSpecies() const {
     return species;
+}
+
+template<typename T>
+void Mixture<T>::changeSpecieConcentration(int specieId, T concentrationChange) {
+    auto specieIter = specieConcentrations.find(specieId);
+    if (specieIter != specieConcentrations.end()) {
+        auto newConcentration = specieIter->second + concentrationChange;
+        assert(newConcentration >= -0.1 && newConcentration <= 1.1);
+        specieIter->second = std::clamp(newConcentration, 0.0, 1.0);
+    } else {
+        assert(concentrationChange >= -0.1 && concentrationChange <= 1.1);
+        if (concentrationChange > 0.0) {
+            specieConcentrations.insert({specieId, std::clamp(concentrationChange, 0.0, 1.0)});
+        }
+    }
 }
 
 template<typename T>
