@@ -665,9 +665,6 @@ namespace sim {
                 throw std::logic_error { "Unable to run membrane simulation with non-instantaneous mixing" };
             }
             while (true) {
-                // TODO: utilize maxIterations, but default value is too small to be usable for this type of simulation;
-                //       simulation will usually stop once the configured end time (maxTime) is reached
-
                 #ifdef VERBOSE
                     // only print on change of highest digit in iteration; so ..., 80, 90, 100, 200, 300, ...
                     if (iteration < 10 || iteration % static_cast<int>(std::pow(10, static_cast<int>(std::log10(iteration)))) == 0) {
