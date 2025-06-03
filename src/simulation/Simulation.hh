@@ -675,35 +675,8 @@ namespace sim {
                     }
                 #endif
 
-                // update resistance of channels; this is already done in initialization and is only necessary if viscosity
-                // changes over time; future evaluations required to measure impact on performance and if it is actually necessary
-                // for all simulations
-                updateChannelResistances();
-                // update droplet resistances (in the first iteration no  droplets are inside the network)
-                updateDropletResistances();
-
                 // compute nodal analysis
                 nodalAnalysis->conductNodalAnalysis();
-
-                // update droplets, i.e., their boundary flow rates
-                // loop over all droplets
-                dropletsAtBifurcation = false;
-                for (auto& [key, droplet] : droplets) {
-                    // only consider droplets inside the network
-                    if (droplet->getDropletState() != DropletState::NETWORK) {
-                        continue;
-                    }
-
-                    // set to true if droplet is at bifurcation
-                    if (droplet->isAtBifurcation()) {
-                        dropletsAtBifurcation = true;
-                    }
-
-                    // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
-                    // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
-                    // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
-                    droplet->updateBoundaries(*network);
-                }
 
                 // store simulation results of current state if result time is reached
                 if (simulationResultTimeCounter <= 0) {
@@ -736,12 +709,7 @@ namespace sim {
                 //      * possible solution is to normally compute a BoundaryHeadEvent and then check if it is actually a merge event (in case of a merge event the channels don't have to be switched since the boundary is merged with the other droplet)
 
                 // compute events
-                auto dropletEvents = computeEvents();
-                auto mixtureEvents = computeMixingEvents();
-
-                // since this simulation platform supports both droplets and mixtures, need to handle both kinds of event
-                auto events = std::move(dropletEvents);
-                events.insert(events.end(), std::move_iterator(mixtureEvents.begin()), std::move_iterator(mixtureEvents.end()));
+                auto events = computeMixingEvents();
 
                 // sort events
                 // closest events in time with the highest priority come first
@@ -1261,7 +1229,7 @@ namespace sim {
         }
 
         // droplet positions
-        if (platform == Platform::BigDroplet || platform == Platform::Membrane) {
+        if (platform == Platform::BigDroplet) {
             for (auto& [id, droplet] : droplets) {
                 // create new droplet position
                 DropletPosition<T> newDropletPosition;
