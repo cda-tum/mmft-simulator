@@ -37,7 +37,7 @@ TEST(Tank, TwoTank) {
   auto mWidth = 4e-3;            // mentioned in paper
   auto pillarArea = 6.28318e-6;  // area covered by pillars
   auto poreRadius = 20e-6 / 2;   // pore size 20e-6 mentioned in paper, millipore size specifies size as diameter
-  auto porosity = 0.14;
+  auto porosity = 0.14;          // membrane as stated in personal communication with the authors and according to specification on membrane manufacturers website
 
   auto oHeight = 13e-3;
   auto oWidth = 1.5e-6 / (oHeight * cMembraneLength); // 1.5mL organ volume mentioned in paper

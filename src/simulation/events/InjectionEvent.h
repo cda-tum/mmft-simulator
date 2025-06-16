@@ -23,7 +23,7 @@ class DropletInjectionEvent : public Event<T> {
 
   public:
     /**
-     * @brief Definies an injection event to take place at a certain time.
+     * @brief Defines an injection event to take place at a certain time.
      * @param[in] time The time at which the event should take place in s elapsed since the start of the simulation.
      * @param[in,out] injection A class containing all details necessary to conduct an injection event.
      */
@@ -51,7 +51,7 @@ class MixtureInjectionEvent : public Event<T> {
 
   public:
     /**
-     * @brief Definies an injection event to take place at a certain time.
+     * @brief Defines an injection event to take place at a certain time.
      * @param[in] time The time at which the event should take place in s elapsed since the start of the simulation.
      * @param[in,out] injection A class containing all details necessary to conduct an injection event.
      */
@@ -79,9 +79,10 @@ class PermanentMixtureInjectionEvent : public Event<T> {
 
   public:
     /**
-     * @brief Definies an injection event to take place at a certain time.
+     * @brief Defines an injection event to take place at a certain time.
      * @param[in] time The time at which the event should take place in s elapsed since the start of the simulation.
      * @param[in,out] injection A class containing all details necessary to conduct an injection event.
+     * @param[in] mixingModel Pointer to active mixing model.
      */
     PermanentMixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel);
 

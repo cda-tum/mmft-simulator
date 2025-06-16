@@ -9,10 +9,12 @@
 #include "Node.h"
 #include "Tank.h"
 
+#include <cmath>
+
 namespace arch {
 
 /**
- * @brief Class to specify a membrane, which is a component of a chip in which droplet can flow.
+ * @brief Class to specify a membrane, which is an edge component of a network.
  */
 template<typename T>
 class Membrane : public Edge<T> {
@@ -23,9 +25,8 @@ class Membrane : public Edge<T> {
     T poreRadius = 0;               ///< Radius of the pores.
     T porosity = 0;                 ///< Porosity of the membrane in [%] (between 0.0 and 1.0)
     T numberOfPores = 0;            ///< Numbers of pores of the membrane.
-    T membraneResistance = 0;       ///< Resistance of the membrane in [Pas/m^3].
-    T pressureDifference = 0;       ///< Difference in pressure between nodeA and nodeB
-    RectangularChannel<T>* channel; ///< Membrane on which the barrier is attached (length must be equal).
+    T membraneResistance = 0;       ///< Resistance of the membrane in [Pa s/m^3].
+    RectangularChannel<T>* channel; ///< Pointer to the channel this membrane is attached to (length must be equal).
     Tank<T>* tank;                  ///< Pointer to the tank this membrane is attached to (length must be equal).
 
   public:
@@ -39,7 +40,6 @@ class Membrane : public Edge<T> {
      * @param[in] length Length of the membrane in [m].
      * @param[in] poreRadius Radius of the pores in the membrane in [m].
      * @param[in] porosity Porosity of the membrane.
-     * @param[in] type Type of the membrane.
      */
     Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T height, T width, T length, T poreRadius, T porosity);
 
@@ -48,8 +48,7 @@ class Membrane : public Edge<T> {
      * @param[in] id Id of the membrane.
      * @param[in] nodeA Node at one end of the membrane.
      * @param[in] nodeB Node at other end of the membrane.
-     * @param[in] resistance Resistance of the membrane in [Pas/m^3].
-     * @param[in] type Type of the membrane.
+     * @param[in] resistance Resistance of the membrane in [Pa s/m^3].
      */
     Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T resistance);
 
@@ -63,7 +62,7 @@ class Membrane : public Edge<T> {
 
     /**
      * @brief Set height of a membrane.
-     * @param height New height of membrane in [m].
+     * @param[in] height New height of membrane in [m].
      */
     void setHeight(T height);
 
@@ -82,38 +81,38 @@ class Membrane : public Edge<T> {
     /**
      * @brief Set radius of the pores of the membrane.
      * 
-     * @param poreRadius Radius of the pores in [m].
+     * @param[in] poreRadius Radius of the pores in [m].
      */
     void setPoreRadius(T poreRadius);
 
     /**
      * @brief Set porosity of the membrane.
      * 
-     * @param porosity Porosity in [%] (between 0.0 and 1.0)
+     * @param[in] porosity Porosity in [%] (between 0.0 and 1.0)
      */
     void setPorosity(T porosity);
 
     /**
      * @brief Set channel the membrane is connected to.
      * 
-     * @param channel Pointer to the channel the membrane is attached to.
+     * @param[in] channel Pointer to the channel the membrane is attached to.
      */
     void setChannel(RectangularChannel<T>* channel);
 
     /**
      * @brief Set tank the membrane is connected to.
      * 
-     * @param tank Pointer to the tank the membrane is attached to.
+     * @param[in] tank Pointer to the tank the membrane is attached to.
      */
     void setTank(Tank<T>* tank);
 
     /**
      * @brief Get the concentration change caused by the membrane for a specific species in a mixture given the concentration difference between the channel and the tank to which the membrane is connected to.
      * 
-     * @param resistance Resistance of the membrane for the mixture area for a specific species.
-     * @param timeStep Time step for which the simulation is forwarded.
-     * @param concentrationDifference Concentration difference between the channel and the tank.
-     * @param currTime Current simulation time.
+     * @param[in] resistance Resistance of the membrane for the mixture area for a specific species in [Pa s/m^3].
+     * @param[in] timeStep Time step for which the simulation is forwarded in [s].
+     * @param[in] concentrationDifference Concentration difference between the channel and the tank.
+     * @param[in] currTime Current simulation time in [s].
      * @return Absolute concentration change in [mol].
      */
     [[nodiscard]] T getConcentrationChange(T resistance, T timeStep, T concentrationDifference) const;
@@ -173,7 +172,7 @@ class Membrane : public Edge<T> {
 
     /**
      * @brief Get the number of pores of the membrane.
-     * @param area Area for which the number of pores should be calculated. This is used to get the number of pores for a specific area covered by one mixture.
+     * @param[in] area Area in [m^2] for which the number of pores should be calculated. This is used to get the number of pores for a specific area covered by one mixture.
      * @return The number of pores of the membrane.
      */
     [[nodiscard]] T getNumberOfPores(T area) const;
@@ -198,20 +197,20 @@ class Membrane : public Edge<T> {
     [[nodiscard]] T getVolume() const;
 
     /**
-     * @brief Calculates and returns pressure difference over a channel.
+     * @brief Calculate pressure difference of adjacent channel.
      * @returns Pressure in [Pa].
      */
     [[nodiscard]] T getPressure() const override;
 
     /**
-     * @brief Calculate flow rate within the channel.
+     * @brief Calculate flow rate within the adjacent channel.
      * @returns Flow rate in [m^3/s].
      */
     [[nodiscard]] T getFlowRate() const override;
 
     /**
      * @brief Calculate and returns overall resistance caused by the channel itself and the droplets within the channel.
-     * @returns Overall resistance in [Pas/m^3].
+     * @returns Overall resistance in [Pa s/m^3].
      */
     [[nodiscard]] T getResistance() const override;
 };

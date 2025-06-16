@@ -4,13 +4,19 @@
 
 #pragma once
 
-#include "Channel.h"
-#include "Edge.h"
+#include <stdexcept>
 
 namespace arch {
 
+template<typename T>
+class Channel;
+template<typename T>
+class Edge;
+template<typename T>
+class Node;
+
 /**
- * @brief Class to specify a membrane, which is a component of a chip in which droplet can flow.
+ * @brief Class to specify a tank, which is an edge component of a network and is attached to a membrane.
  */
 template<typename T>
 class Tank : public Edge<T> {
@@ -18,7 +24,7 @@ class Tank : public Edge<T> {
     T height = 0;             ///< Height of a membrane in m.
     T width = 0;              ///< Width of a membrane in m.
     T length = 0;             ///< Length of a membrane in m.
-    T tankResistance = 0;    ///< Resistance of the membrane in Pas/m^3.
+    T tankResistance = 0;     ///< Resistance of the membrane in Pa s/m^3.
     T pressureDifference = 0; ///< Pressure difference between nodeA and nodeB.
 
   public:
@@ -38,8 +44,7 @@ class Tank : public Edge<T> {
      * @param[in] id Id of the membrane.
      * @param[in] nodeA Node at one end of the membrane.
      * @param[in] nodeB Node at other end of the membrane.
-     * @param[in] resistance Resistance of the membrane in Pas/m^3.
-     * @param[in] type Type of the membrane.
+     * @param[in] resistance Resistance of the membrane in Pa s/m^3.
      */
     Tank(int id, Node<T>* nodeA, Node<T>* nodeB, T resistance);
 
@@ -95,7 +100,7 @@ class Tank : public Edge<T> {
 
     /**
      * @brief Calculates and returns volume of the membrane.
-     * @returns Volumne of a channel in m^3.
+     * @returns Volume of a channel in m^3.
      */
     [[nodiscard]] T getVolume() const;
 
@@ -113,7 +118,7 @@ class Tank : public Edge<T> {
 
     /**
      * @brief Calculate and returns overall resistance caused by the channel itself and the droplets within the channel.
-     * @returns Overall resistance in Pas/m^3.
+     * @returns Overall resistance in Pa s/m^3.
      */
     [[nodiscard]] T getResistance() const override;
 };

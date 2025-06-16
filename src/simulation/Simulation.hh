@@ -691,7 +691,7 @@ namespace sim {
 
                 // update minimal timestep and limit it so that the next time the state should be written is not overstepped
                 instantMixingModel->fixedMinimalTimeStep(network);
-                instantMixingModel->limitMinimalTimeStep(0.05, timeToNextResult);
+                instantMixingModel->limitMinimalTimeStep(0.0, timeToNextResult);
 
                 // merging of droplets:
                 // 1) Two boundaries merge inside a single channel:

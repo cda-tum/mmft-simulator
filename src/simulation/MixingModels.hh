@@ -1,12 +1,5 @@
 #include "MixingModels.h"
 
-#include <algorithm>
-#include <cassert>
-#include <unordered_map>
-#include <deque>
-#include <iostream>
-#include <cmath>
-
 #define M_PI 3.14159265358979323846
 
 namespace sim {
@@ -350,9 +343,12 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                     if (!inserted) {
                         iterator->second += inflowVolume;
                     }
-                    auto mixtureId = this->permanentMixtureInjections.at(channel->getId());
-                    MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
-                    mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
+                    auto [mixtureItBegin, mixtureItEnd] = this->permanentMixtureInjections.equal_range(channel->getId());
+                    for (; mixtureItBegin != mixtureItEnd; ++mixtureItBegin) {
+                        auto mixtureId = mixtureItBegin->second;
+                        MixtureInFlow<T> mixtureInflow = {mixtureId, inflowVolume};
+                        mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
+                    }
                 }
             }
         }

@@ -1,11 +1,5 @@
 #include "Tank.h"
 
-#include "Edge.h"
-#include "Node.h"
-
-#include <cmath>
-#include <stdexcept>
-
 namespace arch {
 
 template<typename T>
@@ -70,10 +64,10 @@ T Tank<T>::getPressure() const {
 
 template<typename T>
 T Tank<T>::getFlowRate() const {
-    // there is no flow in an tank, thus the tank does not have a flow-rate
+    // there is no flow in a tank, thus the tank does not have a flow-rate
     // to ensure time-accurate concentration changes
     // mixtures move through the tank based on the flow-rate of the connected channel
-    return 0;
+    throw std::logic_error("Tank has no flow rate!");
 }
 
 template<typename T>

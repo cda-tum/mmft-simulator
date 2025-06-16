@@ -143,7 +143,7 @@ private:
     std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
     std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation.
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
     std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;            ///< The set of CFD simulators, that conduct CFD simulations on <arch::Module>.
     ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
     MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.

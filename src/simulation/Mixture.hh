@@ -1,8 +1,5 @@
 #include "Mixture.h"
 
-#include <algorithm>
-#include <cassert>
-
 namespace sim {
 
 template<typename T>

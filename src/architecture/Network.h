@@ -22,6 +22,8 @@ enum class ChannelType;
 template<typename T>
 class FlowRatePump;
 template<typename T>
+class Membrane;
+template<typename T>
 class lbmModule;
 template<typename T>
 class essLbmModule;
@@ -37,8 +39,6 @@ template<typename T>
 class PressurePump;
 template<typename T>
 class RectangularChannel;
-template<typename T>
-class Membrane;
 template<typename T>
 class Tank;
 
@@ -110,11 +110,11 @@ private:
     void visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules);
     
     /**
-     * @brief Calculate next free ID for an edge (channels, flowRatePumps, pressurePumps, membranes, tanks).
+     * @brief Calculate total count across all edge types (channels, flowRatePumps, pressurePumps, membranes, tanks).
      *
-     * @note An edge must be added between calls to this function or the same ID will be returned multiple times.
+     * @note Can be used to calculate the next free ID for an edge.
      */
-    [[nodiscard]] int nextEdgeId() const;
+    [[nodiscard]] int edgeCount() const;
 
 public:
     /**
@@ -216,6 +216,7 @@ public:
      * @brief Creates and adds a membrane to a channel in the simulator.
      * @param[in] channelId Id of the channel. Channel defines nodes, length and width.
      * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
      * @param[in] poreSize Size of the pores in m.
      * @param[in] porosity Porosity of the membrane in % (between 0 and 1).
      * @return Id of the membrane.
@@ -226,13 +227,14 @@ public:
      * @brief Creates and adds a tank to a membrane in the simulator.
      * @param[in] membraneId Id of the membrane. Membrane defines nodes, length and width.
      * @param[in] height Height of the tank in m.
+     * @param[in] width Width of the channel in m.
      */
     Tank<T>* addTankToMembrane(int membraneId, T height, T width);
 
     /**
      * @brief Adds a new flow rate pump to the chip.
-     * @param[in] node0Id Id of the node at one end of the flow rate pump.
-     * @param[in] node1Id Id of the node at the other end of the flow rate pump.
+     * @param[in] nodeAId Id of the node at one end of the flow rate pump.
+     * @param[in] nodeBId Id of the node at the other end of the flow rate pump.
      * @param[in] flowRate Volumetric flow rate of the pump in m^3/s.
      * @return Id of the newly created flow rate pump.
      */
@@ -240,8 +242,8 @@ public:
 
     /**
      * @brief Adds a new pressure pump to the chip.
-     * @param[in] node0Id Id of the node at one end of the pressure pump.
-     * @param[in] node1Id Id of the node at the other end of the pressure pump.
+     * @param[in] nodeAId Id of the node at one end of the pressure pump.
+     * @param[in] nodeBId Id of the node at the other end of the pressure pump.
      * @param[in] pressure Pressure of the pump in Pas/L.
      * @return Id of the newly created pressure pump.
      */
@@ -349,7 +351,7 @@ public:
     bool isFlowRatePump(int edgeId) const;
 
     /**
-     * @brief Checks and returns if an edge is an tank
+     * @brief Checks and returns if an edge is a tank
     */
     bool isTank(int edgeId) const;
 
@@ -411,7 +413,7 @@ public:
     Membrane<T>* getMembrane(int membraneId);
 
     /**
-     * @brief Get pointer to an tank with the specified id.
+     * @brief Get pointer to a tank with the specified id.
      *
      * @param tankId Id of the tank.
      * @return Pointer to the tank with this id.
@@ -458,11 +460,11 @@ public:
     /**
      * @brief Get the membrane that is connected to both specified nodes.
      *
-     * @param nodeIdA Id of node 0.
-     * @param nodeIdB Id of node 1.
+     * @param nodeAId Id of nodeA.
+     * @param nodeBId Id of nodeB.
      * @return Pointer to the membrane that lies between these nodes.
      */
-    Membrane<T>* getMembraneBetweenNodes(int nodeIdA, int nodeIdB);
+    Membrane<T>* getMembraneBetweenNodes(int nodeAId, int nodeBId);
 
     /**
      * @brief Get vector of all membranes that are connected to the specified node.
@@ -475,11 +477,11 @@ public:
     /**
      * @brief Get the tank that lies between two nodes.
      *
-     * @param nodeIdA Id of nodeA.
-     * @param nodeIdB Id of nodeB.
+     * @param nodeAId Id of nodeA.
+     * @param nodeBId Id of nodeB.
      * @return Pointer to the tank that lies between the two nodes.
      */
-    Tank<T>* getTankBetweenNodes(int nodeIdA, int nodeIdB);
+    Tank<T>* getTankBetweenNodes(int nodeAId, int nodeBId);
 
     /**
      * @brief Get a pointer to the module with the specidic id.
@@ -522,7 +524,7 @@ public:
     /**
      * @brief Calculate the distance between the two given nodes
      */
-    [[nodiscard]] T calculateNodeDistance(int nodeIdA, int nodeIdB);
+    [[nodiscard]] T calculateNodeDistance(int nodeAId, int nodeBId);
 };
 
 }   // namespace arch

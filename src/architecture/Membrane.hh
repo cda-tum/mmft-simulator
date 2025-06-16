@@ -1,19 +1,14 @@
 #include "Membrane.h"
 
-#include "Edge.h"
-#include "Node.h"
-
-#include <cmath>
-
 namespace arch {
 
 template<typename T>
 Membrane<T>::Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T height, T width, T length, T poreRadius, T porosity) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
-    height(height), width(width), length(length), poreRadius(poreRadius), porosity(porosity), pressureDifference(nodeA->getPressure() - nodeB->getPressure()) {}
+    height(height), width(width), length(length), poreRadius(poreRadius), porosity(porosity) {}
 
 template<typename T>
 Membrane<T>::Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T resistance) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
-    membraneResistance(resistance), pressureDifference(nodeA->getPressure() - nodeB->getPressure()) {}
+    membraneResistance(resistance) {}
 
 template<typename T>
 void Membrane<T>::setDimensions(T width_, T height_, T length_) {
@@ -119,12 +114,12 @@ T Membrane<T>::getVolume() const {
 
 template<typename T>
 T Membrane<T>::getPressure() const {
-    return pressureDifference;
+    return channel->getPressure();
 }
 
 template<typename T>
 T Membrane<T>::getFlowRate() const {
-    return getPressure() / getResistance();
+    return channel->getFlowRate();
 }
 
 template<typename T>
@@ -135,7 +130,7 @@ T Membrane<T>::getResistance() const {
 template<typename T>
 T Membrane<T>::getConcentrationChange(T resistance, T timeStep, T concentrationDifference) const {
     // adapted Runge-Kutta 4 method
-    constexpr auto f = [](T concentration, T permeability) { return permeability * concentration; };
+    auto f = [](T concentration, T permeability) { return permeability * concentration; };
 
     T permeability = 1 / resistance;
     T k1 = timeStep * (f(concentrationDifference, permeability));

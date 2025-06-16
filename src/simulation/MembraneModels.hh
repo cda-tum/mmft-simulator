@@ -1,7 +1,5 @@
 #include "MembraneModels.h"
 
-#include <cmath>
-
 namespace sim {
 
 template<typename T>
@@ -41,7 +39,7 @@ T MembraneModel0<T>::getPoreResistance(arch::Membrane<T> const* membrane, Mixtur
     return (8 * mixture->getViscosity() * membrane->getHeight()) / (M_PI * pow(membrane->getPoreRadius(), 4));
 }
 
-// VanDersari2011
+// VanDersarl2011
 template<typename T>
 MembraneModel1<T>::MembraneModel1(T deviceAdjustment) : deviceAdjustment(deviceAdjustment) {}
 
@@ -109,7 +107,7 @@ T MembraneModel3<T>::getPorePassageResistance(arch::Membrane<T> const* membrane,
     return 1 / (4 * M_PI * (std::sqrt(area / M_PI)) * diffusionCoefficient);
 }
 
-// Chung2018
+// Chung1975
 template<typename T>
 MembraneModel4<T>::MembraneModel4() {}
 
@@ -129,7 +127,7 @@ T MembraneModel4<T>::getPorePassageResistance(arch::Membrane<T> const* membrane,
     return membrane->getHeight() / (4 * M_PI * std::pow(membrane->getPoreRadius(), 2) * diffusionCoefficient);
 }
 
-// Chung2018 Appendix 1 Calculations
+// Chung1975 Appendix 1 Calculations
 template<typename T>
 MembraneModel5<T>::MembraneModel5() {}
 

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cmath>
+
 namespace arch {
 template<typename T>
 class Membrane;
@@ -39,8 +41,10 @@ public:
      * @brief Get the resistance caused by the membrane based on the specific resistance model.
      *
      * @param membrane Pointer to the membrane for which the resistance should be calculated.
+     * @param mixture Mixture for which the resistance of the membrane should be calculated.
      * @param specie Specie for which the resistance should be calculated.
-     * @return The resistance of this membrane to this fluid.
+     * @param area Area for which the resistance should be calculated in [m^3].
+     * @return The resistance of this membrane to this mixture in [Pa].
      */
     virtual T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const = 0;
 };
@@ -99,7 +103,7 @@ class MembraneModel0 : public MembraneModel<T> {
 /**
  * @brief Class that defines the functionality of the 1D membrane resistance model.
  * Membrane Resistance Model 1
- * Based on Source: J. J. VanDersarl, A. M. Xu, and N. A. Melosh. “Rapid spatial and temporal controlled signal delivery over large cell culture areas”. In: Lab Chip 11 (18 2011), pp. 3057–3063. doi: 10.1039/C1LC20311H. url: http://dx.doi.org/10. 1039/C1LC20311H.
+ * Based on Source: J. J. VanDersarl, A. M. Xu, and N. A. Melosh. “Rapid spatial and temporal controlled signal delivery over large cell culture areas”. In: Lab Chip 11 (18 2011), pp. 3057–3063. doi: 10.1039/C1LC20311H. url: https://dx.doi.org/10.1039/C1LC20311H.
  */
 template<typename T>
 class MembraneModel1 : public MembraneModel<T> {
