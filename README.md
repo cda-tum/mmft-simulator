@@ -39,7 +39,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 **Mixing**: Solvents play an important role in microfluidics and on this platform, concentrations of species dissolved in the continuous phase can be simulated. There are currently **two** mixing models available:
 * Instantaneous mixing model: Fluids are assumed to be fully mixed as soon as they meet.
 * Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology. <br>
-**Membrane**: Same as the Mixing platform, but supports tanks and membranes and requires the instantaneous mixing model. <sup>[[6]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
+**Membrane**: Same as the Mixing platform, but supports tanks (e.g. for organs-on-chips designs) and membranes (connect tank to channel to allow diffusive mixture exchange between the two) and requires the instantaneous mixing model. <sup>[[6]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
 
 
 ## System Requirements
@@ -285,27 +285,24 @@ For simulations that are of `hybrid` type, at least one CFD `simulator` must be 
 ```
 For examples of JSON definitions of simulations for various simulations and definitions of CFD modules, please see the `examples` folder.
 
-## Comparison of Simulators
+## Related Simulators
 
-### mmft-droplet-simulator
+### [mmft-droplet-simulator (deprecated)](https://github.com/cda-tum/mmft-droplet-simulator)
 
-The base simulator which does not support mixtures and only focuses on the simulation of droplets.
+A microfluidic simulator that only focuses on the simulation of droplets. Its functionality has been integrated in the mmft-simulator.
 
-### mmft-modular-1D-simulator
+### [mmft-modular-1D-simulator](https://github.com/cda-tum/mmft-modular-1D-simulator)
 
 With the `mmft-droplet-simulator` as its starting point, this simulator adds these features to its basis:
 
-* mixture simulation
+* instantaneous mixture simulation
 * membranes & tanks
-* multiple channel and membrane resistance models
+* multiple channel resistance models
 
-### mmft-simulator (this repository)
+This simulator is the core of [this work[6]](https://doi.org/10.1038/s41598-024-77741-8) and the listed features have been integrated into the `mmft-simulator`. As the integration process is still ongoing, following features are not yet integrated in the `mmft-simulator` and the `mmft-modular-1D-simulator` should be used if they are relevant for a simulation:
 
-Built upon the `mmft-droplet-simulator` and the `mmft-modular-1D-simulator`, the mmft-simulator offers additionally to the `mmft-modular-1D-simulator`:
-
-* hybrid (CFD + Abstract) simulations with multiple different CFD simulators
-* Python bindings
-* JSON import and export of networks
+* simulations with both membranes/tanks and droplets not validated
+* multiple channel resistance models
 
 #### Limitations
 
