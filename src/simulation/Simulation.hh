@@ -740,7 +740,7 @@ namespace sim {
 
             while (true) {
                 if (iteration >= maxIterations) {
-                    throw "Max iterations exceeded.";
+                    throw std::runtime_error("Max iterations exceeded.");
                 }
 
                 #ifdef VERBOSE     
@@ -822,8 +822,7 @@ namespace sim {
 
             while(true) {
                 if (iteration >= 1000) {
-                    throw "Max iterations exceeded.";
-                    break;
+                    throw std::runtime_error("Max iterations exceeded.");
                 }
 
                 // Update and propagate the mixtures 

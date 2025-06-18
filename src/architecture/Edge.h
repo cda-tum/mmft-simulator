@@ -31,6 +31,8 @@ public:
    */
   Edge(int id, int nodeA, int nodeB);
 
+  virtual ~Edge() = default;
+
   /**
    * @brief Get id of the edge.
    * @return Id of the edge.
