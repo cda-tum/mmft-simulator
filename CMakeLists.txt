@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21.0)
+cmake_minimum_required(VERSION 4.0.3)
 
 project(MMFT-simulator
     DESCRIPTION "Simulator for closed channel-based microfluidic devices."
@@ -12,10 +12,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions(PLATFORM_CPU_SISD)
-IF (!WIN32)
-    set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native")
-ELSE()
-    set(CMAKE_CXX_FLAGS "-Wall -march=native /EHsc")
+IF (NOT WIN32)
+    set(CMAKE_CXX_FLAGS "-O3 -Wall -march=native -mtune=native -Wno-overloaded-virtual")
+# ELSE()
+#     set(CMAKE_CXX_FLAGS "-Wall -march=native /EHsc")
 ENDIF()
 
 # download external libraries
@@ -23,25 +23,22 @@ include(FetchContent)
 FetchContent_Declare(
     eigen
     GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-    GIT_TAG 3.3.9
+    GIT_TAG 3.4.0
 )
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.11.0
+    GIT_TAG v1.17.0
 )
 FetchContent_Declare(
     json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.2
+    GIT_TAG v3.12.0
 )
 FetchContent_Declare(
     lbm
     GIT_REPOSITORY https://gitlab.com/openlb/release.git
     GIT_TAG 1.7.0
-    #PATCH_COMMAND ${lbm_patch}
-    #CONFIGURE_COMMAND ""
-    #BUILD_COMMAND ""
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
@@ -57,11 +54,15 @@ endif()
 add_library(lbmLib)
 target_compile_features(lbmLib PRIVATE cxx_std_17)
 
-set(LBM_HEADER_LIST
-    incl/unistd.h
-)
+# if (WIN32)
+#     add_subdirectory(incl/windows)
+# endif()
 
 set(LBM_SOURCE_LIST
+    ${lbm_SOURCE_DIR}/external/tinyxml/tinyxml.cpp
+    ${lbm_SOURCE_DIR}/external/tinyxml/tinystr.cpp
+    ${lbm_SOURCE_DIR}/external/tinyxml/tinyxmlerror.cpp
+    ${lbm_SOURCE_DIR}/external/tinyxml/tinyxmlparser.cpp
     ${lbm_SOURCE_DIR}/src/communication/mpiManager.cpp
     ${lbm_SOURCE_DIR}/src/io/ostreamManager.cpp
     ${lbm_SOURCE_DIR}/src/core/olbInit.cpp
@@ -86,7 +87,9 @@ add_library(${TARGET_NAME})
 
 # add sources
 add_subdirectory(src)
-add_subdirectory(incl)
+# if (WIN32)
+#     add_subdirectory(incl/windows)
+# endif()
 
 if(USE_ESSLBM)
     target_link_libraries(${TARGET_NAME} PUBLIC ESS::ESSLbm)
