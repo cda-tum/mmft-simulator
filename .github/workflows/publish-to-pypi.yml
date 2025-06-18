@@ -60,6 +60,10 @@ jobs:
       with:
         fetch-depth: 0
         submodules: recursive
+    - name: Install CMake
+      uses: ssrobins/install-cmake@v1
+      with:
+        version: 4.0.3
     - name: Set up Python
       uses: actions/setup-python@v4
       with:

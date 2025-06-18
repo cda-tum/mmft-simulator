@@ -20,6 +20,11 @@ jobs:
 
     - uses: msys2/setup-msys2@v2
 
+    - name: Install CMake
+      uses: ssrobins/install-cmake@v1
+      with:
+        version: 4.0.3
+
     - name: Configure CMake
       run: cmake -DTEST=ON -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "MinGW Makefiles"
 
