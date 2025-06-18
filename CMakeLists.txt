@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0.3)
+cmake_minimum_required(VERSION 3.31.6)
 
 project(MMFT-simulator
     DESCRIPTION "Simulator for closed channel-based microfluidic devices."

@@ -19,11 +19,6 @@ jobs:
       with:
         msystem: CLANG64
 
-    - name: Install CMake
-      uses: ssrobins/install-cmake@v1
-      with:
-        version: 4.0.3
-
     - name: Configure CMake
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "Visual Studio 17 2022" -T ClangCL -A x64
 
