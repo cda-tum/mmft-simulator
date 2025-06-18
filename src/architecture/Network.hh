@@ -428,6 +428,16 @@ bool Network<T>::isGround(int nodeId_) const {
 }
 
 template<typename T>
+bool Network<T>::isBoundary(int nodeId_) const {
+    if (modularReach.count(nodeId_)) {
+        if (modularReach.at(nodeId_)->getModuleType() == ModuleType::LBM) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename T>
 bool Network<T>::isChannel(int edgeId_) const {
     return channels.count(edgeId_);
 }

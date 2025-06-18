@@ -246,10 +246,13 @@ void lbmMixingSimulator<T>::initValueContainers () {
         this->pressures.try_emplace(key, (T) 0.0);
         this->flowRates.try_emplace(key, (T) 0.0);
         std::unordered_map<int, T> tmpConcentrations;
+        std::unordered_map<int, std::vector<T>> tmpFieldConcentrations;
         for (auto& [speciesId, speciesPtr] : species) {
             tmpConcentrations.try_emplace(speciesId, 0.0);
+            tmpFieldConcentrations.try_emplace(speciesId, std::vector<T>(this->getResolution(key), 0.0));
         }
         this->concentrations.try_emplace(key, tmpConcentrations);
+        this->nodeConcentrationFields.try_emplace(key, tmpFieldConcentrations);
     }
 }
 
@@ -396,8 +399,18 @@ void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<int, std::uno
 }
 
 template<typename T>
+void lbmMixingSimulator<T>::storeNodeConcentrationFields(std::unordered_map<int, std::unordered_map<int, std::vector<T>>> concentrationFieldsOut_) {
+    this->nodeConcentrationFields = concentrationFieldsOut_;
+}
+
+template<typename T>
 std::unordered_map<int, std::unordered_map<int, T>> lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
+}
+
+template<typename T>
+std::unordered_map<int, std::unordered_map<int, std::vector<T>>> lbmMixingSimulator<T>::getNodeConcentrationFields() const {
+    return this->nodeConcentrationFields;
 }
 
 template<typename T>

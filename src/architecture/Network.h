@@ -304,6 +304,13 @@ public:
     bool isGround(int nodeId) const;
 
     /**
+     * @brief Checks and returns if a node is a boundary node (connects to a CFD module).
+     * @param[in] nodeId Id of the node that should be checked.
+     * @return If the node with the specified id is a boundary node.
+     */
+    bool isBoundary(int nodeId) const;
+
+    /**
      * @brief Checks and returns if an edge is a channel
     */
     bool isChannel(int edgeId) const;

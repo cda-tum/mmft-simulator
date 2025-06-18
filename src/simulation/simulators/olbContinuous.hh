@@ -12,6 +12,9 @@ lbmSimulator<T>::lbmSimulator (
         epsilon(epsilon_), relaxationTime(relaxationTime_)
 { 
     this->cfdModule->setModuleTypeLbm();
+    for (auto& [key, opening] : openings_) {
+        resolutions.try_emplace(key, resolution_);
+    }
 } 
 
 template<typename T>
