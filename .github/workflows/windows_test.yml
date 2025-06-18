@@ -1,0 +1,31 @@
+name: Windows-test
+
+on:
+  pull_request:
+    types: [opened, reopened, edited]
+    branches: [main, develop]
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - uses: msys2/setup-msys2@v2
+
+    - name: Configure CMake
+      run: cmake -DTEST=ON -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "MinGW Makefiles"
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Test 
+      working-directory: ${{github.workspace}}/build
+      run: ./simulatorTest
