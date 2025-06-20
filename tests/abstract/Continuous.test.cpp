@@ -241,7 +241,7 @@ TEST(Continuous, Y_Network) {
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 30e-6;
-    auto cLength = 1000e-6;
+    auto cLength = 0; // automatically calculate channel length
 
     auto c11 = network1.addChannel(node11->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c21 = network1.addChannel(node21->getId(), node31->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);

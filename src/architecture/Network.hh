@@ -178,6 +178,11 @@ void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes,
 }
 
 template<typename T>
+int Network<T>::edgeCount() const {
+    return channels.size() + flowRatePumps.size() + pressurePumps.size() + membranes.size() + tanks.size();
+}
+
+template<typename T>
 Node<T>* Network<T>::addNode(T x_, T y_, bool ground_) {
     int nodeId = nodes.size();
     auto result = nodes.insert({nodeId, std::make_unique<Node<T>>(nodeId, x_, y_, ground_)});
@@ -223,7 +228,7 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto id = edgeCount();
     auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, width, height);
 
     addChannel->setChannelType(type);
@@ -262,7 +267,7 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto id = edgeCount();
     auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, width, height);
 
     addChannel->setLength(length);
@@ -283,7 +288,7 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T resist
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto id = edgeCount();
     auto addChannel = new RectangularChannel<T>(id, nodeA, nodeB, 1.0, 1.0);
 
     addChannel->setResistance(resistance);
@@ -300,9 +305,42 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T resist
 }
 
 template<typename T>
+Membrane<T>* Network<T>::addMembraneToChannel(int channelId, T height, T width, T poreRadius, T porosity) {
+    auto channel = getChannel(channelId);
+    auto id = edgeCount();
+    auto* nodeA = this->getNode(channel->getNodeA()).get();
+    auto* nodeB = this->getNode(channel->getNodeB()).get();
+    auto membrane = std::make_unique<Membrane<T>>(id, nodeA, nodeB, height,
+                                                  width, channel->getLength(),
+                                                  poreRadius, porosity);
+    membrane->setChannel(channel);
+
+    auto [it, is_inserted] = membranes.try_emplace(id, std::move(membrane));
+    assert(is_inserted);
+
+    return it->second.get();
+}
+
+template<typename T>
+Tank<T>* Network<T>::addTankToMembrane(int membraneId, T height, T width) {
+    auto membrane = getMembrane(membraneId);
+    auto id = edgeCount();
+    auto* nodeA = this->getNode(membrane->getNodeA()).get();
+    auto* nodeB = this->getNode(membrane->getNodeB()).get();
+    auto tank = std::make_unique<Tank<T>>(id, nodeA, nodeB, height, width,
+                                            membrane->getLength());
+    membrane->setTank(tank.get());
+
+    auto [it, is_inserted] = tanks.try_emplace(id, std::move(tank));
+    assert(is_inserted);
+
+    return it->second.get();
+}
+
+template<typename T>
 FlowRatePump<T>* Network<T>::addFlowRatePump(int nodeAId, int nodeBId, T flowRate) {
     // create pump
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto id = edgeCount();
     auto addPump = new FlowRatePump<T>(id, nodeAId, nodeBId, flowRate);
 
     // add pump
@@ -314,7 +352,7 @@ FlowRatePump<T>* Network<T>::addFlowRatePump(int nodeAId, int nodeBId, T flowRat
 template<typename T>
 PressurePump<T>* Network<T>::addPressurePump(int nodeAId, int nodeBId, T pressure) {
     // create pump
-    auto id = channels.size() + flowRatePumps.size() + pressurePumps.size();
+    auto id = edgeCount();
     auto addPump = new PressurePump<T>(id, nodeAId, nodeBId, pressure);
 
     // add pump
@@ -443,6 +481,16 @@ bool Network<T>::isFlowRatePump(int edgeId_) const {
 }
 
 template<typename T>
+bool Network<T>::isTank(int edgeId_) const {
+    return tanks.count(edgeId_);
+}
+
+template<typename T>
+bool Network<T>::isMembrane(int edgeId_) const {
+    return membranes.count(edgeId_);
+}
+
+template<typename T>
 std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
     if (nodes.count(nodeId)) {
         return nodes.at(nodeId);
@@ -496,8 +544,32 @@ FlowRatePump<T>* Network<T>::getFlowRatePump(int pumpId_) const {
 }
 
 template<typename T>
+Membrane<T>* Network<T>::getMembrane(int membraneId) {
+    try {
+        return membranes.at(membraneId).get();
+    } catch (const std::out_of_range& e) {
+        throw std::invalid_argument("Membrane with ID " + std::to_string(membraneId) + " does not exist.");
+    }
+}
+
+template<typename T>
+Tank<T>* Network<T>::getTank(int tankId) {
+    return tanks.at(tankId).get();
+}
+
+template<typename T>
 const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& Network<T>::getChannels() const {
     return channels;
+}
+
+template<typename T>
+const std::unordered_map<int, std::unique_ptr<Membrane<T>>>& Network<T>::getMembranes() const {
+    return membranes;
+}
+
+template<typename T>
+const std::unordered_map<int, std::unique_ptr<Tank<T>>>& Network<T>::getTanks() const {
+    return tanks;
 }
 
 template<typename T>
@@ -522,6 +594,38 @@ template<typename T>
 const std::unordered_map<int, std::unique_ptr<PressurePump<T>>>& Network<T>::getPressurePumps() const {
     return pressurePumps;
 }
+
+template<typename T>
+Membrane<T>* Network<T>::getMembraneBetweenNodes(int nodeAId, int nodeBId) {
+    for (auto& [key, membrane] : membranes) {
+        if (((membrane->getNodeA() == nodeAId) && (membrane->getNodeB() == nodeBId)) || ((membrane->getNodeA() == nodeBId) && (membrane->getNodeB() == nodeAId))) {
+            return membrane.get();
+        }
+    }
+    throw std::invalid_argument("Membrane between node " + std::to_string(nodeAId) + " and node " + std::to_string(nodeBId) + " does not exist.");
+}
+
+template<typename T>
+std::vector<Membrane<T>*> Network<T>::getMembranesAtNode(int nodeId) {
+    std::vector<Membrane<T>*> membrane_vector;
+    for (auto& [key, membrane] : membranes) {
+        if ((membrane->getNodeA() == nodeId) || (membrane->getNodeB() == nodeId)) {
+            membrane_vector.push_back(membrane.get());
+        }
+    }
+    return membrane_vector;
+}
+
+template<typename T>
+Tank<T>* Network<T>::getTankBetweenNodes(int nodeAId, int nodeBId) {
+    for (auto& [key, tank] : tanks) {
+        if (((tank->getNodeA()->getId() == nodeAId) && (tank->getNodeB()->getId() == nodeBId)) || ((tank->getNodeA()->getId() == nodeBId) && (tank->getNodeB()->getId() == nodeAId))) {
+            return tank.get();
+        }
+    }
+    throw std::invalid_argument("Tank between node " + std::to_string(nodeAId) + " and node " + std::to_string(nodeBId) + " does not exist.");
+}
+
 
 template<typename T>
 std::shared_ptr<Module<T>> Network<T>::getModule(int moduleId) const {
@@ -642,8 +746,10 @@ bool Network<T>::isNetworkValid() {
     }
 
     for (auto const& [k, v] : channels) {
-        if (v->getLength() <= 0) {
-            throw std::invalid_argument("Channel " + std::to_string(k) + ": length is <= 0.");
+        if (v->getLength() != 0 && v->getLength() < calculateNodeDistance(v->getNodeA(), v->getNodeB())) {
+            // if length == 0 the simulation will initialize the channel length with the distance
+            // between nodeA and nodeB of the channel
+            throw std::invalid_argument("Channel " + std::to_string(k) + ": length is less than the node distance.");
         }
         if (v->getHeight() <= 0) {
             throw std::invalid_argument("Channel " + std::to_string(k) + ": height is <= 0.");
@@ -748,6 +854,15 @@ void Network<T>::print() {
     std::cout << "Nodes: " << printNodes << "\n" << std::endl;
     std::cout << "Channels:\n" << printChannels << std::endl;
     std::cout << "Modules:\n" << printModules << std::endl;
+}
+
+template<typename T>
+T Network<T>::calculateNodeDistance(int nodeAId, int nodeBId) {
+    auto& nodeA = this->getNodes().at(nodeAId);
+    auto& nodeB = this->getNodes().at(nodeBId);
+    T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
+    T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
+    return sqrt(dx*dx + dy*dy);
 }
 
 }   // namespace arch
