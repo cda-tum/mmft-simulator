@@ -38,8 +38,9 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 **BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[4]](https://doi.org/10.1145/3313867)</sup> <sup>[[5]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
 **Mixing**: Solvents play an important role in microfluidics and on this platform, concentrations of species dissolved in the continuous phase can be simulated. There are currently **two** mixing models available:
 * Instantaneous mixing model: Fluids are assumed to be fully mixed as soon as they meet.
-* Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology. <br>
-**Membrane**: Same as the Mixing platform, but supports tanks (e.g. for organs-on-chips designs) and membranes (connect tank to channel to allow diffusive mixture exchange between the two) and requires the instantaneous mixing model. <sup>[[6]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
+* Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology, following an abstracted advection-diffusion equation&mdash;as described in the respective publication. <sup>[[6]](https://doi.org/10.1109/TCAD.2025.3549703)</sup> <br>
+
+**Membrane**: Same as the Mixing platform, but supports tanks (e.g. for organs-on-chips designs) and membranes (connect tank to channel to allow diffusive mixture exchange between the two) and requires the instantaneous mixing model. <sup>[[7]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
 
 
 ## System Requirements
@@ -71,8 +72,10 @@ and include the library API header in your project file:
 
 ### Python
 
-To use this library in python, install the python package
+To use this library in python, install the python package in a virtual environment in your working directory
 ```python
+python3 -m venv .venv
+source .venv/bin/activate
 pip install mmft.simulator
 ```
 and import the MMFT simulator in your code
@@ -325,7 +328,9 @@ More details about the implementation and the mechanisms behind the MMFT Simulat
 
 [[5]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
 
-[[6]](https://doi.org/10.1038/s41598-024-77741-8) M. Emmerich, F. Costamoling, and R. Wille. Modular and Extendable 1D-Simulator for Microfluidic Devices, 2024.
+[[6]](https://doi.org/10.1109/TCAD.2025.3549703) M. Takken, E. Emmerich, and R. Wille. An Abstract Simulator for Species Concentrations in Channel-Based Microfluidic Devices. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems (TCAD), 2025.
+
+[[7]](https://doi.org/10.1038/s41598-024-77741-8) M. Emmerich, F. Costamoling, and R. Wille. Modular and Extendable 1D-Simulator for Microfluidic Devices. Scientific Reports, 2024.
 
 ## How to cite
 If you use this library in your research, depending on which simulator you are using, we would appreciate it if you would cite the original work of the corresponding simulator in your work.
