@@ -22,6 +22,13 @@ class Simulation;
 
 }   // namespace sim
 
+namespace arch {
+
+template<typename T>
+class Network;
+
+}   // namespace arch
+
 namespace result {
 
 // Forward declared dependencies
@@ -46,7 +53,7 @@ auto writePressures (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeChannels (result::State<T>* state);
+auto writeChannels (arch::Network<T>* network, result::State<T>* state);
 
 /**
  * @brief Write the location of the vtk results of a module at a state (timestamp) of the simulation
