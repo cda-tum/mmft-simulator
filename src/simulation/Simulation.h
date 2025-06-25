@@ -189,18 +189,6 @@ private:
     void moveDroplets(T timeStep);
 
     /**
-     * @brief Store simulation parameters to the result.
-     * @param[in, out] result Reference to the simulation result in which all current parameters of the simulation should be stored.
-     */
-    void storeSimulationParameters(result::SimulationResult<T>& result);
-
-    /**
-     * @brief Store all simulation results to the result.
-     * @param[in, out] result Reference to the simulation result in which all current parameters of the simulation should be stored.
-     */
-    void storeSimulationResults(result::SimulationResult<T>& result);
-
-    /**
      * @brief Store the current simulation state in simulationResult.
     */
     void saveState();
