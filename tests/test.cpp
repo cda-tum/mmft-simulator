@@ -1,5 +1,5 @@
-#include "../src/baseSimulator.h"
-#include "../src/baseSimulator.hh"
+#include "baseSimulator.h"
+#include "baseSimulator.hh"
 
 #include "gtest/gtest.h"
 
