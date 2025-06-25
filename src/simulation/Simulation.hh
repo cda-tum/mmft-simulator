@@ -983,7 +983,7 @@ namespace sim {
             nodalAnalysis->conductNodalAnalysis();
 
             while(true) {
-                if (iteration >= 1000) {
+                if (iteration >= maxIterations) {
                     throw std::runtime_error("Max iterations exceeded.");
                 }
 
