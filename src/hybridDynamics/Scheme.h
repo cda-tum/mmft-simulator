@@ -37,6 +37,8 @@ protected:
      */
     Scheme();
 
+    virtual ~Scheme() = default;
+
     /**
      * @brief Constructor of a Scheme with the required maps. The ids of the nodes and modules are passed in the maps.
      * @param[in] alpha The relaxation value for the pressure value update.

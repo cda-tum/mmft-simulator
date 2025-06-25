@@ -302,7 +302,7 @@ With the `mmft-droplet-simulator` as its starting point, this simulator adds the
 * membranes & tanks
 * multiple channel resistance models
 
-This simulator is the core of [this work[6]](https://doi.org/10.1038/s41598-024-77741-8) and the listed features have been integrated into the `mmft-simulator`. As the integration process is still ongoing, following features are not yet integrated in the `mmft-simulator` and the `mmft-modular-1D-simulator` should be used if they are relevant for a simulation:
+This simulator is the core of [this work<sup>[7]</sup>](https://doi.org/10.1038/s41598-024-77741-8) and the listed features have been integrated into the `mmft-simulator`. As the integration process is still ongoing, following features are not yet integrated in the `mmft-simulator` and the `mmft-modular-1D-simulator` should be used if they are relevant for a simulation:
 
 * simulations with both membranes/tanks and droplets not validated
 * multiple channel resistance models
