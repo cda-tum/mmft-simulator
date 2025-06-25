@@ -3,11 +3,11 @@
 namespace arch {
 
 template<typename T>
-Membrane<T>::Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T height, T width, T length, T poreRadius, T porosity) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
+Membrane<T>::Membrane(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T height, T width, T length, T poreRadius, T porosity) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
     height(height), width(width), length(length), poreRadius(poreRadius), porosity(porosity) {}
 
 template<typename T>
-Membrane<T>::Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T resistance) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
+Membrane<T>::Membrane(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T resistance) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
     membraneResistance(resistance) {}
 
 template<typename T>

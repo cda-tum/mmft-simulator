@@ -41,7 +41,7 @@ class Membrane : public Edge<T> {
      * @param[in] poreRadius Radius of the pores in the membrane in [m].
      * @param[in] porosity Porosity of the membrane.
      */
-    Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T height, T width, T length, T poreRadius, T porosity);
+    Membrane(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T height, T width, T length, T poreRadius, T porosity);
 
     /**
      * @brief Constructor of a membrane.
@@ -50,7 +50,7 @@ class Membrane : public Edge<T> {
      * @param[in] nodeB Node at other end of the membrane.
      * @param[in] resistance Resistance of the membrane in [Pa s/m^3].
      */
-    Membrane(int id, Node<T>* nodeA, Node<T>* nodeB, T resistance);
+    Membrane(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T resistance);
 
     /**
      * @brief Set dimensions of a membrane.

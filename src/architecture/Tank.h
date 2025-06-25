@@ -37,7 +37,7 @@ class Tank : public Edge<T> {
      * @param[in] width Width of the membrane in m.
      * @param[in] length Length of the membrane in m.
      */
-    Tank(int id, Node<T>* nodeA, Node<T>* nodeB, T height, T width, T length);
+    Tank(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T height, T width, T length);
 
     /**
      * @brief Constructor of a membrane.
@@ -46,7 +46,7 @@ class Tank : public Edge<T> {
      * @param[in] nodeB Node at other end of the membrane.
      * @param[in] resistance Resistance of the membrane in Pa s/m^3.
      */
-    Tank(int id, Node<T>* nodeA, Node<T>* nodeB, T resistance);
+    Tank(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T resistance);
 
     /**
      * @brief Set dimensions of a membrane.

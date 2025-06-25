@@ -43,10 +43,10 @@ TEST(Tank, TwoTank) {
   auto oWidth = 1.5e-6 / (oHeight * cMembraneLength); // 1.5mL organ volume mentioned in paper
 
   // add nodes
-  auto *groundSinkNode = network.addNode(0.0, 0.0, true);
-  auto *node0 = network.addNode(cConnectionLength, 0.0);
-  auto *node1 = network.addNode(cConnectionLength, cMembraneLength);
-  auto *node2 = network.addNode(0.0, cMembraneLength);
+  auto groundSinkNode = network.addNode(0.0, 0.0, true);
+  auto node0 = network.addNode(cConnectionLength, 0.0);
+  auto node1 = network.addNode(cConnectionLength, cMembraneLength);
+  auto node2 = network.addNode(0.0, cMembraneLength);
 
   // create channels
   auto *c1 = network.addChannel(node0->getId(), node1->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // bone tumor tissue
