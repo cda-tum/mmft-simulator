@@ -59,4 +59,24 @@ void MixtureInjectionEvent<T>::print() {
     std::cout << "\n Mixture Injection Event at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
 }
 
+template<typename T>
+PermanentMixtureInjectionEvent<T>::PermanentMixtureInjectionEvent(T time, MixtureInjection<T>& injection, MixingModel<T>* mixingModel) : 
+    Event<T>(time, 1), injection(injection), mixingModel(mixingModel) { }
+
+template<typename T>
+void PermanentMixtureInjectionEvent<T>::performEvent() {
+
+    auto channel = injection.getInjectionChannel();
+    auto mixture = injection.getMixtureId();
+
+    mixingModel->addPermanentMixtureInjection(mixture, channel->getId());
+
+    injection.setPerformed(true);
+}
+
+template<typename T>
+void PermanentMixtureInjectionEvent<T>::print() {
+    std::cout << "\n Permanent Mixture Injection Event starts at t=" << this->time << " with priority " << this->priority << "\n" << std::endl;
+}
+
 }  // namespace sim

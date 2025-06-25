@@ -4,8 +4,12 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cassert>
+#include <cmath>
 #include <deque>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <unordered_map>
@@ -16,6 +20,12 @@ namespace arch {
 // Forward declared dependencies
 template<typename T>
 class Network;
+
+template<typename T>
+class Membrane;
+
+template<typename T>
+class Tank;
 
 }
 
@@ -80,7 +90,8 @@ protected:
 
     T minimalTimeStep = 0.0;                                                    ///< Required minimal timestep for a mixture to reach a node.
     std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
-    std::unordered_map<int, int> filledEdges;                                   ///<  Which edges are currently filled with a single mixture <EdgeID, MixtureID>
+    std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled with a single mixture <EdgeID, MixtureID>
+    std::unordered_multimap<int, int> permanentMixtureInjections;               ///< Permanent mixture injections which are currently active, <ChannelID, MixtureIDs>
 
 public:
 
@@ -107,6 +118,22 @@ public:
     void updateMinimalTimeStep(arch::Network<T>* network);
 
     /**
+     * @brief Calculate and set fixed minimal timestep according to shortest channel.
+     * This can cause multiple mixtures to outflow the channel in a timestep and should
+     * only be used for simulations that can handle this correctly.
+     * @param[in] network
+     */
+    void fixedMinimalTimeStep(arch::Network<T>* network);
+
+    /**
+     * @brief Limit current minimal timestep to given value.
+     * This can be used to ensure that the simulation can be saved at a specific simulation time.
+     * @param[in] minMinimalTimeStep Lower bound for current timestep.
+     * @param[in] maxMinimalTimeStep Upper bound for current timestep.
+     */
+    void limitMinimalTimeStep(T minMinimalTimeStep, T maxMinimalTimeStep);
+
+    /**
      * @brief Retrieve the mixtures that are present in a specific channel.
      * @param[in] channelId The channel id.
      * @return A reference to the deque containing the mixtures and their location in the channel.
@@ -129,8 +156,16 @@ public:
      * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
      * @param[in] mixtureId Id of the mixture.
      * @param[in] channelId Id of the channel.
+     * @param[in] endPos Injection position of the mixture.
     */
-    void injectMixtureInEdge(int mixtureId, int channelId);
+    void injectMixtureInEdge(int mixtureId, int channelId, T endPos = 0.0);
+
+    /**
+     * @brief Add permanent mixture injection to current simulation run.
+     * @param[in] mixtureId Id of the mixture that should be injected continuously from now on.
+     * @param[in] channelId Id of the channel into which the injection is leading.
+     */
+    void addPermanentMixtureInjection(int mixtureId, int channelId) { permanentMixtureInjections.insert({channelId, mixtureId}); }
 
     /**
      * @brief Update the position of all mixtures in the network and update the inflow into all nodes.
@@ -185,6 +220,22 @@ public:
     void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
 
     /**
+     * @brief Move mixtures according to the timestep
+     * @param[in] timeStep Current time step in [s].
+     * @param[in] network Network of the simulation.
+     */
+    void moveMixtures(T timeStep, arch::Network<T>* network);
+
+    /**
+     * @brief Calculate exchange between tank and channel through membranes and change mixtures accordingly
+     * @param[in] timeStep Current time step in [s].
+     * @param[in] sim Pointer to the simulation.
+     * @param[in] network Pointer to the network of the simulation.
+     * @param[in] mixtures Reference to collection containing all mixtures in the simulation
+     */
+    void calculateMembraneExchange(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+
+    /**
      * @brief Calculate and store the mixtures flowing into all nodes
      * @param[in] timeStep The timeStep size of the current iteration.
      * @param[in] network Pointer to the network.
@@ -201,10 +252,11 @@ public:
     /**
      * @brief Add the node outflow as inflow to the channels
      * @param[in] timeStep The timeStep size of the current iteration.
+     * @param[in] sim Pointer to the simulation.
      * @param[in] network Pointer to the network.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void updateChannelInflow(T timeStep, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void updateChannelInflow(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Remove mixtures that have 'outflowed' their channel

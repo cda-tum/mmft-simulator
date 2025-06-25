@@ -32,7 +32,7 @@ TEST(Hybrid, Case1a) {
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 100e-6;
-    auto cLength = 1000e-6;
+    auto cLength = 0.0;
 
     auto c0 = network.addChannel(node0->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c1 = network.addChannel(node0->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);

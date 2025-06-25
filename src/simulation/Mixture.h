@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cassert>
 #include <functional>
 #include <unordered_map>
 
@@ -145,6 +147,8 @@ public:
      * @return Map of specie id and pointer to the specie in this mixture.
     */
     const std::unordered_map<int, Specie<T>*>& getSpecies() const;
+
+    void changeSpecieConcentration(int specieId, T concentrationChange);
 
     virtual const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const {
         throw std::invalid_argument("Tried to access species distribution for non-diffusive mixture.");
