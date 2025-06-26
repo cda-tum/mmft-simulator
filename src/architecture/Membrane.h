@@ -19,15 +19,15 @@ namespace arch {
 template<typename T>
 class Membrane : public Edge<T> {
   private:
-    T height = 0;                   ///< Height of a membrane in [m].
-    T width = 0;                    ///< Width of a membrane in [m].
-    T length = 0;                   ///< Length of a membrane in [m].
-    T poreRadius = 0;               ///< Radius of the pores.
-    T porosity = 0;                 ///< Porosity of the membrane in [%] (between 0.0 and 1.0)
-    T numberOfPores = 0;            ///< Numbers of pores of the membrane.
-    T membraneResistance = 0;       ///< Resistance of the membrane in [Pa s/m^3].
-    RectangularChannel<T>* channel; ///< Pointer to the channel this membrane is attached to (length must be equal).
-    Tank<T>* tank;                  ///< Pointer to the tank this membrane is attached to (length must be equal).
+    T height = 0;                               ///< Height of a membrane in [m].
+    T width = 0;                                ///< Width of a membrane in [m].
+    T length = 0;                               ///< Length of a membrane in [m].
+    T poreRadius = 0;                           ///< Radius of the pores.
+    T porosity = 0;                             ///< Porosity of the membrane in [%] (between 0.0 and 1.0)
+    T numberOfPores = 0;                        ///< Numbers of pores of the membrane.
+    T membraneResistance = 0;                   ///< Resistance of the membrane in [Pa s/m^3].
+    RectangularChannel<T>* channel = nullptr;   ///< Pointer to the channel this membrane is attached to (length must be equal).
+    Tank<T>* tank = nullptr;                    ///< Pointer to the tank this membrane is attached to (length must be equal).
 
   public:
     /**

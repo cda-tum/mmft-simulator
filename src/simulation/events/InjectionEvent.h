@@ -47,7 +47,7 @@ template<typename T>
 class MixtureInjectionEvent : public Event<T> {
   private:
     MixtureInjection<T>& injection;           ///< Specifies the mixture injection.
-    MixingModel<T>* mixingModel;              ///< Pointer to the active mixing model.
+    MixingModel<T>* mixingModel = nullptr;    ///< Pointer to the active mixing model.
 
   public:
     /**
@@ -75,7 +75,7 @@ template<typename T>
 class PermanentMixtureInjectionEvent : public Event<T> {
   private:
     MixtureInjection<T>& injection;           ///< Specifies the mixture injection.
-    MixingModel<T>* mixingModel;              ///< Pointer to the active mixing model.
+    MixingModel<T>* mixingModel = nullptr;    ///< Pointer to the active mixing model.
 
   public:
     /**

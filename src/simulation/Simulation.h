@@ -134,7 +134,7 @@ private:
     int fixtureId = 0;
     Type simType = Type::Abstract;                                                      ///< The type of simulation that is being done.                                      
     Platform platform = Platform::Continuous;                                           ///< The microfluidic platform that is simulated in this simulation.
-    arch::Network<T>* network;                                                          ///< Network for which the simulation should be conducted.
+    arch::Network<T>* network = nullptr;                                                ///< Network for which the simulation should be conducted.
     std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis;                             ///< The nodal analysis object, used to conduct abstract simulation.
     std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
     std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
@@ -145,9 +145,9 @@ private:
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
     std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;            ///< The set of CFD simulators, that conduct CFD simulations on <arch::Module>.
-    ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
-    MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
-    MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
+    ResistanceModel<T>* resistanceModel = nullptr;                                      ///< The resistance model used for the simulation.
+    MembraneModel<T>* membraneModel = nullptr;                                          ///< The membrane model used for an OoC simulation.
+    MixingModel<T>* mixingModel = nullptr;                                              ///< The mixing model used for a mixing simulation.
     std::unordered_map<int, std::shared_ptr<mmft::Scheme<T>>> updateSchemes;            ///< The update scheme for Abstract-CFD coupling
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
@@ -159,8 +159,16 @@ private:
     T tMax = 100;
     bool writePpm = true;
     bool eventBasedWriting = false;
-    bool dropletsAtBifurcation = false;                                  ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
+    bool dropletsAtBifurcation = false;                                                 ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
     std::unique_ptr<result::SimulationResult<T>> simulationResult = nullptr;
+
+    /**
+     * @brief Asserts that the simulation is initialized.
+     * This means that at least the network and resistance model, and continuous phase are set.
+     * @throws std::logic_error if the simulation is not initialized correctly.
+     * @note This function is called at the start of the simulate() function.
+     */
+    void assertInitialized();
 
     /**
      * @brief Initializes the resistance model and the channel resistances of the empty channels.

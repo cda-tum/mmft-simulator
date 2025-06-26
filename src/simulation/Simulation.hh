@@ -629,6 +629,7 @@ namespace sim {
     void Simulation<T>::simulate() {
 
         // initialize the simulation
+        assertInitialized();
         initialize();
         //printResults();
 
@@ -1057,6 +1058,22 @@ namespace sim {
             std::cout << "[Result] Channel " << channel->getId() << " has a flow rate of " << channel->getFlowRate() << " m^3/s.\n";
         }
         std::cout << std::endl;
+    }
+
+    template<typename T>
+    void Simulation<T>::assertInitialized() {
+        if (this->network == nullptr) {
+            throw std::logic_error("Simulation not initialized: Network is not set.");
+        }
+        if (this->resistanceModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Resistance model is not set.");
+        }
+        if (this->platform == Platform::Mixing && this->mixingModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Mixing model is not set for Mixing platform.");
+        }
+        if (this->platform == PLatform::Membrane && this->membraneModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Membrane model is not set for Membrane platform.");
+        }
     }
 
     template<typename T>
