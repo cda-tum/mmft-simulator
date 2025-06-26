@@ -3,11 +3,11 @@
 namespace arch {
 
 template<typename T>
-Tank<T>::Tank(int id, Node<T>* nodeA, Node<T>* nodeB, T height, T width, T length) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
+Tank<T>::Tank(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T height, T width, T length) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
     height(height), width(width), length(length), pressureDifference(nodeA->getPressure() - nodeB->getPressure()) {}
 
 template<typename T>
-Tank<T>::Tank(int id, Node<T>* nodeA, Node<T>* nodeB, T resistance) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
+Tank<T>::Tank(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T resistance) : Edge<T>(id, nodeA->getId(), nodeB->getId()),
     tankResistance(resistance), pressureDifference(nodeA->getPressure() - nodeB->getPressure()) {}
 
 template<typename T>

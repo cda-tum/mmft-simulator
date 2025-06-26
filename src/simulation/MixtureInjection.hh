@@ -7,7 +7,7 @@ MixtureInjection<T>::MixtureInjection(int id, int mixtureId, arch::RectangularCh
 
 template<typename T>
 void MixtureInjection<T>::setName(std::string name) {
-    name = std::move(name);
+    this->name = std::move(name);
 }
 
 template<typename T>

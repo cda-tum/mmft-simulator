@@ -100,6 +100,8 @@ public:
     */
     MixingModel();
 
+    virtual ~MixingModel() = default;
+
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */

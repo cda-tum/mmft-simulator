@@ -55,18 +55,18 @@ TEST(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   auto connectionLength = (wMeanderMax + cWidth) / 2;
 
   // create nodes
-  auto *groundNode = network.addNode(1e-10, 1e-10, true);
-  auto *sinkNode = network.addNode(9e-8, 9e-8, true);
-  auto *node0 = network.addNode(2e-10, 2e-10);
-  auto *node1 = network.addNode(3e-10, 3e-10);
-  auto *node2 = network.addNode(4e-10, 4e-10);
-  auto *node3 = network.addNode(5e-10, 5e-10);
-  auto *node4 = network.addNode(6e-10, 6e-10);
-  auto *node5 = network.addNode(7e-10, 7e-10);
-  auto *node6 = network.addNode(8e-10, 8e-10);
-  auto *node7 = network.addNode(9e-10, 9e-10);
-  auto *node8 = network.addNode(1e-9, 1e-9);
-  auto *node9 = network.addNode(2e-9, 2e-9);
+  auto groundNode = network.addNode(1e-10, 1e-10, true);
+  auto sinkNode = network.addNode(9e-8, 9e-8, true);
+  auto node0 = network.addNode(2e-10, 2e-10);
+  auto node1 = network.addNode(3e-10, 3e-10);
+  auto node2 = network.addNode(4e-10, 4e-10);
+  auto node3 = network.addNode(5e-10, 5e-10);
+  auto node4 = network.addNode(6e-10, 6e-10);
+  auto node5 = network.addNode(7e-10, 7e-10);
+  auto node6 = network.addNode(8e-10, 8e-10);
+  auto node7 = network.addNode(9e-10, 9e-10);
+  auto node8 = network.addNode(1e-9, 1e-9);
+  auto node9 = network.addNode(2e-9, 2e-9);
 
   // create channels
   // inlets
@@ -188,18 +188,18 @@ TEST(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 
   auto connectionLength = (wMeanderMax + cWidth) / 2;
 
   // create nodes
-  auto *groundNode = network.addNode(1e-10, 1e-10, true);
-  auto *sinkNode = network.addNode(9e-8, 9e-8, true);
-  auto *node0 = network.addNode(0.0, 0.0);
-  auto *node1 = network.addNode(0.0, 0.0);
-  auto *node2 = network.addNode(0.0, 0.0);
-  auto *node3 = network.addNode(0.0, 0.0);
-  auto *node4 = network.addNode(0.0, 0.0);
-  auto *node5 = network.addNode(0.0, 0.0);
-  auto *node6 = network.addNode(0.0, 0.0);
-  auto *node7 = network.addNode(0.0, 0.0);
-  auto *node8 = network.addNode(0.0, 0.0);
-  auto *node9 = network.addNode(0.0, 0.0);
+  auto groundNode = network.addNode(1e-10, 1e-10, true);
+  auto sinkNode = network.addNode(9e-8, 9e-8, true);
+  auto node0 = network.addNode(0.0, 0.0);
+  auto node1 = network.addNode(0.0, 0.0);
+  auto node2 = network.addNode(0.0, 0.0);
+  auto node3 = network.addNode(0.0, 0.0);
+  auto node4 = network.addNode(0.0, 0.0);
+  auto node5 = network.addNode(0.0, 0.0);
+  auto node6 = network.addNode(0.0, 0.0);
+  auto node7 = network.addNode(0.0, 0.0);
+  auto node8 = network.addNode(0.0, 0.0);
+  auto node9 = network.addNode(0.0, 0.0);
 
   // create channels
   // inlets
@@ -319,36 +319,36 @@ TEST(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.64%
   auto connectionLength = (wMeanderMax + cWidth) / 2;
 
   // create nodes
-  auto *groundNode = network.addNode(1e-10, 1e-10, true);
-  auto *sinkNode = network.addNode(9e-8, 9e-8, true);
-  auto *node0 = network.addNode(0.0, 0.0);
-  auto *node1 = network.addNode(0.0, 0.0);
-  auto *node2 = network.addNode(0.0, 0.0);
-  auto *node3 = network.addNode(0.0, 0.0);
-  auto *node4 = network.addNode(0.0, 0.0);
-  auto *node5 = network.addNode(0.0, 0.0);
-  auto *node6 = network.addNode(0.0, 0.0);
-  auto *node7 = network.addNode(0.0, 0.0);
-  auto *node8 = network.addNode(0.0, 0.0);
-  auto *node9 = network.addNode(0.0, 0.0);
-  auto *node10 = network.addNode(0.0, 0.0);
-  auto *node11 = network.addNode(0.0, 0.0);
-  auto *node12 = network.addNode(0.0, 0.0);
-  auto *node13 = network.addNode(0.0, 0.0);
-  auto *node14 = network.addNode(0.0, 0.0);
-  auto *node15 = network.addNode(0.0, 0.0);
-  auto *node16 = network.addNode(0.0, 0.0);
-  auto *node17 = network.addNode(0.0, 0.0);
-  auto *node18 = network.addNode(0.0, 0.0);
-  auto *node19 = network.addNode(0.0, 0.0);
-  auto *node20 = network.addNode(0.0, 0.0);
-  auto *node21 = network.addNode(0.0, 0.0);
-  auto *node22 = network.addNode(0.0, 0.0);
-  auto *node23 = network.addNode(0.0, 0.0);
-  auto *node24 = network.addNode(0.0, 0.0);
-  auto *node25 = network.addNode(0.0, 0.0);
-  auto *node26 = network.addNode(0.0, 0.0);
-  auto *node27 = network.addNode(0.0, 0.0);
+  auto groundNode = network.addNode(1e-10, 1e-10, true);
+  auto sinkNode = network.addNode(9e-8, 9e-8, true);
+  auto node0 = network.addNode(0.0, 0.0);
+  auto node1 = network.addNode(0.0, 0.0);
+  auto node2 = network.addNode(0.0, 0.0);
+  auto node3 = network.addNode(0.0, 0.0);
+  auto node4 = network.addNode(0.0, 0.0);
+  auto node5 = network.addNode(0.0, 0.0);
+  auto node6 = network.addNode(0.0, 0.0);
+  auto node7 = network.addNode(0.0, 0.0);
+  auto node8 = network.addNode(0.0, 0.0);
+  auto node9 = network.addNode(0.0, 0.0);
+  auto node10 = network.addNode(0.0, 0.0);
+  auto node11 = network.addNode(0.0, 0.0);
+  auto node12 = network.addNode(0.0, 0.0);
+  auto node13 = network.addNode(0.0, 0.0);
+  auto node14 = network.addNode(0.0, 0.0);
+  auto node15 = network.addNode(0.0, 0.0);
+  auto node16 = network.addNode(0.0, 0.0);
+  auto node17 = network.addNode(0.0, 0.0);
+  auto node18 = network.addNode(0.0, 0.0);
+  auto node19 = network.addNode(0.0, 0.0);
+  auto node20 = network.addNode(0.0, 0.0);
+  auto node21 = network.addNode(0.0, 0.0);
+  auto node22 = network.addNode(0.0, 0.0);
+  auto node23 = network.addNode(0.0, 0.0);
+  auto node24 = network.addNode(0.0, 0.0);
+  auto node25 = network.addNode(0.0, 0.0);
+  auto node26 = network.addNode(0.0, 0.0);
+  auto node27 = network.addNode(0.0, 0.0);
 
   // create channels
   // inlets

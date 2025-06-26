@@ -186,12 +186,14 @@ namespace sim {
             
         } else if (network->isPressurePump(edgeId)) {
             auto pump = network->getPressurePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         } else if (network->isFlowRatePump(edgeId)) {
             auto pump = network->getFlowRatePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         }
@@ -208,12 +210,14 @@ namespace sim {
             return result.first->second.get();
         } else if (network->isPressurePump(edgeId)) {
             auto pump = network->getPressurePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         } else if (network->isFlowRatePump(edgeId)) {
             auto pump = network->getFlowRatePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         }
@@ -629,6 +633,7 @@ namespace sim {
     void Simulation<T>::simulate() {
 
         // initialize the simulation
+        assertInitialized();
         initialize();
         //printResults();
 
@@ -902,7 +907,7 @@ namespace sim {
 
             while (true) {
                 if (iteration >= maxIterations) {
-                    throw "Max iterations exceeded.";
+                    throw std::runtime_error("Max iterations exceeded.");
                 }
 
                 #ifdef VERBOSE     
@@ -983,9 +988,8 @@ namespace sim {
             nodalAnalysis->conductNodalAnalysis();
 
             while(true) {
-                if (iteration >= 1000) {
-                    throw "Max iterations exceeded.";
-                    break;
+                if (iteration >= maxIterations) {
+                    throw std::runtime_error("Max iterations exceeded.");
                 }
 
                 // Update and propagate the mixtures 
@@ -1058,6 +1062,22 @@ namespace sim {
             std::cout << "[Result] Channel " << channel->getId() << " has a flow rate of " << channel->getFlowRate() << " m^3/s.\n";
         }
         std::cout << std::endl;
+    }
+
+    template<typename T>
+    void Simulation<T>::assertInitialized() {
+        if (this->network == nullptr) {
+            throw std::logic_error("Simulation not initialized: Network is not set.");
+        }
+        if (this->resistanceModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Resistance model is not set.");
+        }
+        if (this->platform == Platform::Mixing && this->mixingModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Mixing model is not set for Mixing platform.");
+        }
+        if (this->platform == Platform::Membrane && this->membraneModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Membrane model is not set for Membrane platform.");
+        }
     }
 
     template<typename T>

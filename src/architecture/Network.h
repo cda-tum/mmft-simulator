@@ -87,17 +87,17 @@ template<typename T>
 class Network {
 private:
     std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
-    std::set<Node<T>*> sinks;                                                   ///< Ids of nodes that are sinks.
-    std::set<Node<T>*> groundNodes;                                             ///< Ids of nodes that are ground nodes.
+    std::set<std::shared_ptr<Node<T>>> sinks;                                   ///< Pointers to nodes that are sinks.
+    std::set<std::shared_ptr<Node<T>>> groundNodes;                             ///< Pointers to nodes that are ground nodes.
     std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
     std::unordered_map<int, std::unique_ptr<Membrane<T>>> membranes;            ///< Map of ids and membrane pointer of all membranes in the network.
     std::unordered_map<int, std::unique_ptr<Tank<T>>> tanks;                    ///< Map of ids and tank pointer of all tanks in the network.
-    std::unordered_map<int, std::shared_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
+    std::unordered_map<int, std::shared_ptr<Module<T>>> modules;                ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
-    std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
+    std::unordered_map<int, std::shared_ptr<Module<T>>> modularReach;           ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     int virtualNodes = 0;
 
@@ -161,12 +161,12 @@ public:
     /**
      * @brief Adds a new node to the network.
     */
-    Node<T>* addNode(T x, T y, bool ground=false);
+    std::shared_ptr<Node<T>> addNode(T x, T y, bool ground=false);
 
     /**
      * @brief Adds a new node to the network.
     */
-    Node<T>* addNode(int nodeId, T x, T y, bool ground=false);
+    std::shared_ptr<Node<T>> addNode(int nodeId, T x, T y, bool ground=false);
 
     /**
      * @brief Adds a new channel to the chip.
@@ -256,9 +256,9 @@ public:
      * @param[in] nodes Map of nodes that are on the module boundary.
      * @return Pointer to the newly created module.
     */
-    Module<T>* addModule(std::vector<T> position,
-                         std::vector<T> size,
-                         std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
+    std::shared_ptr<Module<T>> addModule(std::vector<T> position,
+                                        std::vector<T> size,
+                                        std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
 
     /**
      * @brief Adds a new module to the network.
@@ -267,9 +267,9 @@ public:
      * @param[in] nodes Vector of node id's of nodes that are on the module boundary.
      * @return Pointer to the newly created module.
     */
-    Module<T>* addModule(std::vector<T> position,
-                         std::vector<T> size,
-                         std::vector<int> nodes);
+    std::shared_ptr<Module<T>> addModule(std::vector<T> position,
+                                        std::vector<T> size,
+                                        std::vector<int> nodes);
 
     /**
      * @brief Adds a new module to the network.
@@ -381,7 +381,7 @@ public:
      * @brief Returns a pointer to the ground node.
      * @return Pointer to the ground node.
      */
-    std::set<Node<T>*> getGroundNodes() const;
+    std::set<std::shared_ptr<Node<T>>> getGroundNodes() const;
 
     /**
      * @brief Returns the amount of virtual nodes given by the GUI.

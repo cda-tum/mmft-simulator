@@ -33,6 +33,8 @@ class ResistanceModel {
    */
   ResistanceModel(T continuousPhaseViscosity);
 
+  virtual ~ResistanceModel() = default;
+
   /**
    * @brief Calculate and returns the resistance of the channel itself.
    * @param[in] channel A pointer to the channel for which the resistance should be calculated.
