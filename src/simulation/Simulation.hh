@@ -186,12 +186,14 @@ namespace sim {
             
         } else if (network->isPressurePump(edgeId)) {
             auto pump = network->getPressurePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         } else if (network->isFlowRatePump(edgeId)) {
             auto pump = network->getFlowRatePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         }
@@ -208,12 +210,14 @@ namespace sim {
             return result.first->second.get();
         } else if (network->isPressurePump(edgeId)) {
             auto pump = network->getPressurePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         } else if (network->isFlowRatePump(edgeId)) {
             auto pump = network->getFlowRatePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         }
@@ -1071,7 +1075,7 @@ namespace sim {
         if (this->platform == Platform::Mixing && this->mixingModel == nullptr) {
             throw std::logic_error("Simulation not initialized: Mixing model is not set for Mixing platform.");
         }
-        if (this->platform == PLatform::Membrane && this->membraneModel == nullptr) {
+        if (this->platform == Platform::Membrane && this->membraneModel == nullptr) {
             throw std::logic_error("Simulation not initialized: Membrane model is not set for Membrane platform.");
         }
     }
