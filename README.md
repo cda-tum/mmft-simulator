@@ -45,7 +45,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 
 ## System Requirements
 
-The implementation should be compatible with any current C++ compiler supporting C++17 and a minimum CMake version 3.21. The python package requires Python version 3.8 or newer. The package is currently tested for Linux distributions and MacOS.
+The implementation is compatible with GCC version 13.3 or newer and a minimum CMake version 3.31.6. The python package requires Python version 3.8 or newer. The package is currently tested for Linux distributions and MacOS.
 
 ## Usage
 
