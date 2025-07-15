@@ -15,10 +15,12 @@ jobs:
       with:
         submodules: recursive
     
-    - uses: msys2/setup-msys2@v2
+#     - uses: msys2/setup-msys2@v2
+#       with:
+#         msystem: CLANG64
 
-    - name: Configure CMake
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "MinGW Makefiles"
+#     - name: Configure CMake
+#       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "Visual Studio 17 2022" -T ClangCL -A x64
 
-    - name: Build
-      run: cmake --build build
+#     - name: Build
+#       run: cmake --build build

@@ -94,6 +94,9 @@ template<typename T>
 class MixingModel;
 
 template<typename T>
+class InstantaneousMixingModel;
+
+template<typename T>
 class Mixture;
 
 template<typename T>
@@ -118,7 +121,8 @@ enum class Platform {
     Continuous,     ///< A simulation with a single continuous fluid.
     BigDroplet,     ///< A simulation with droplets filling a channel cross-section
     Mixing,         ///< A simulation with multiple miscible fluids.
-    Ooc             ///< A simulation with organic tissue
+    Ooc,            ///< A simulation with organic tissue
+    Membrane,       ///< A simulation with membranes
 };
 
 /**
@@ -130,7 +134,7 @@ private:
     int fixtureId = 0;
     Type simType = Type::Abstract;                                                      ///< The type of simulation that is being done.                                      
     Platform platform = Platform::Continuous;                                           ///< The microfluidic platform that is simulated in this simulation.
-    arch::Network<T>* network;                                                          ///< Network for which the simulation should be conducted.
+    arch::Network<T>* network = nullptr;                                                ///< Network for which the simulation should be conducted.
     std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis;                             ///< The nodal analysis object, used to conduct abstract simulation.
     std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
     std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
@@ -139,10 +143,11 @@ private:
     std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
     std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
     std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;            ///< The set of CFD simulators, that conduct CFD simulations on <arch::Module>.
-    ResistanceModel<T>* resistanceModel;                                                ///< The resistance model used for the simulation.
-    MembraneModel<T>* membraneModel;                                                    ///< The membrane model used for an OoC simulation.
-    MixingModel<T>* mixingModel;                                                        ///< The mixing model used for a mixing simulation.
+    ResistanceModel<T>* resistanceModel = nullptr;                                      ///< The resistance model used for the simulation.
+    MembraneModel<T>* membraneModel = nullptr;                                          ///< The membrane model used for an OoC simulation.
+    MixingModel<T>* mixingModel = nullptr;                                              ///< The mixing model used for a mixing simulation.
     std::unordered_map<int, std::shared_ptr<mmft::Scheme<T>>> updateSchemes;            ///< The update scheme for Abstract-CFD coupling
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
@@ -154,8 +159,16 @@ private:
     T tMax = 100;
     bool writePpm = true;
     bool eventBasedWriting = false;
-    bool dropletsAtBifurcation = false;                                  ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
+    bool dropletsAtBifurcation = false;                                                 ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
     std::unique_ptr<result::SimulationResult<T>> simulationResult = nullptr;
+
+    /**
+     * @brief Asserts that the simulation is initialized.
+     * This means that at least the network and resistance model, and continuous phase are set.
+     * @throws std::logic_error if the simulation is not initialized correctly.
+     * @note This function is called at the start of the simulate() function.
+     */
+    void assertInitialized();
 
     /**
      * @brief Initializes the resistance model and the channel resistances of the empty channels.
@@ -182,18 +195,6 @@ private:
      * @param[in] timeStep to which the droplets should be moved to.
      */
     void moveDroplets(T timeStep);
-
-    /**
-     * @brief Store simulation parameters to the result.
-     * @param[in, out] result Reference to the simulation result in which all current parameters of the simulation should be stored.
-     */
-    void storeSimulationParameters(result::SimulationResult<T>& result);
-
-    /**
-     * @brief Store all simulation results to the result.
-     * @param[in, out] result Reference to the simulation result in which all current parameters of the simulation should be stored.
-     */
-    void storeSimulationResults(result::SimulationResult<T>& result);
 
     /**
      * @brief Store the current simulation state in simulationResult.
@@ -337,6 +338,16 @@ public:
     MixtureInjection<T>* addMixtureInjection(int mixtureId, int channelId, T injectionTime);
 
     /**
+     * @brief Create permanent mixture injection which will continuously inject the mixture.
+     *        The injection is always performed at the beginning (position 0.0) of the channel.
+     * @param[in] mixtureId Id of the mixture that should be injected.
+     * @param[in] channelId Id of the channel, where specie should be injected.
+     * @param[in] injectionTime Time at which the injection should be injected in s.
+     * @return Pointer to created injection.
+     */
+    MixtureInjection<T>* addPermanentMixtureInjection(int mixtureId, int channelId, T injectionTime);
+
+    /**
      * @brief Adds a new simulator to the network.
      * @param[in] name Name of the simulator.
      * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
@@ -453,10 +464,28 @@ public:
     void setResistanceModel(ResistanceModel<T>* model);
 
     /**
+     * @brief Define which membrane model should be used for the membrane resistance calculations.
+     * @param[in] model The membrane model to be used.
+     */
+    void setMembraneModel(MembraneModel<T>* model);
+
+    /**
      * @brief Define which mixing model should be used for the concentrations.
      * @param[in] model The mixing model to be used.
      */
     void setMixingModel(MixingModel<T>* model);
+
+    /**
+     * @brief Set maximal time after which the simulation should end.
+     * @param[in] Maximal end time in [s].
+     */
+    void setMaxEndTime(T maxTime);
+
+    /**
+     * @brief Set interval in which the state is saved to the SimulationResult.
+     * @param[in] Interval in [s].
+     */
+    void setWriteInterval(T interval);
 
     /**
      * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
@@ -566,6 +595,12 @@ public:
      * @return The resistance model of the simulation.
      */
     ResistanceModel<T>* getResistanceModel();
+
+    /**
+     * @brief Get the membrane model that is used in the simulation.
+     * @return The membrane model of the simulation
+     */
+    MembraneModel<T>* getMembraneModel();
 
     /**
      * @brief Get mixture.

@@ -50,5 +50,4 @@ external/*/
 .cache/
 .vscode
 images/*
-examples/*
 tmp/

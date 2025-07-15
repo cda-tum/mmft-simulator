@@ -405,14 +405,14 @@ void readPumps(json jsonString, arch::Network<T>* network) {
                     T pressure = pump["deltaP"];
                     network->setPressurePump(channelId, pressure);
                 } else {
-                    throw std::invalid_argument("Please set the pressure value 'deltaP' for Pressure pump in channel " + channelId);
+                    throw std::invalid_argument("Please set the pressure value 'deltaP' for Pressure pump in channel " + std::to_string(channelId));
                 }
             } else if (pump["type"] == "PumpFlowrate") {
                 if (pump.contains("flowRate")) {
                     T flowRate = pump["flowRate"];
                     network->setFlowRatePump(channelId, flowRate);
                 } else {
-                    throw std::invalid_argument("Please set the flow rate value 'flowRate' for Flowrate pump in channel " + channelId);
+                    throw std::invalid_argument("Please set the flow rate value 'flowRate' for Flowrate pump in channel " + std::to_string(channelId));
                 }
             } else {
                 throw std::invalid_argument("Invalid pump type. Please choose one of the following:\nPumpPressure\nPumpFlowrate");

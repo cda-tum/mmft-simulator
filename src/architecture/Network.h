@@ -22,6 +22,8 @@ enum class ChannelType;
 template<typename T>
 class FlowRatePump;
 template<typename T>
+class Membrane;
+template<typename T>
 class lbmModule;
 template<typename T>
 class essLbmModule;
@@ -37,6 +39,8 @@ template<typename T>
 class PressurePump;
 template<typename T>
 class RectangularChannel;
+template<typename T>
+class Tank;
 
 /**
  * @brief A struct that defines an group, which is a detached abstract network, neighbouring the ground node(s) and/or CFD domains.
@@ -83,15 +87,17 @@ template<typename T>
 class Network {
 private:
     std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
-    std::set<Node<T>*> sinks;                                                   ///< Ids of nodes that are sinks.
-    std::set<Node<T>*> groundNodes;                                             ///< Ids of nodes that are ground nodes.
+    std::set<std::shared_ptr<Node<T>>> sinks;                                   ///< Pointers to nodes that are sinks.
+    std::set<std::shared_ptr<Node<T>>> groundNodes;                             ///< Pointers to nodes that are ground nodes.
     std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
-    std::unordered_map<int, std::shared_ptr<Module<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
+    std::unordered_map<int, std::unique_ptr<Membrane<T>>> membranes;            ///< Map of ids and membrane pointer of all membranes in the network.
+    std::unordered_map<int, std::unique_ptr<Tank<T>>> tanks;                    ///< Map of ids and tank pointer of all tanks in the network.
+    std::unordered_map<int, std::shared_ptr<Module<T>>> modules;                ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
-    std::unordered_map<int, Module<T>*> modularReach;                        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
+    std::unordered_map<int, std::shared_ptr<Module<T>>> modularReach;           ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     int virtualNodes = 0;
 
@@ -103,6 +109,13 @@ private:
      */
     void visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules);
     
+    /**
+     * @brief Calculate total count across all edge types (channels, flowRatePumps, pressurePumps, membranes, tanks).
+     *
+     * @note Can be used to calculate the next free ID for an edge.
+     */
+    [[nodiscard]] int edgeCount() const;
+
 public:
     /**
      * @brief Constructor of the Network
@@ -148,12 +161,12 @@ public:
     /**
      * @brief Adds a new node to the network.
     */
-    Node<T>* addNode(T x, T y, bool ground=false);
+    std::shared_ptr<Node<T>> addNode(T x, T y, bool ground=false);
 
     /**
      * @brief Adds a new node to the network.
     */
-    Node<T>* addNode(int nodeId, T x, T y, bool ground=false);
+    std::shared_ptr<Node<T>> addNode(int nodeId, T x, T y, bool ground=false);
 
     /**
      * @brief Adds a new channel to the chip.
@@ -200,9 +213,28 @@ public:
     RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T resistance, ChannelType type);
 
     /**
+     * @brief Creates and adds a membrane to a channel in the simulator.
+     * @param[in] channelId Id of the channel. Channel defines nodes, length and width.
+     * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
+     * @param[in] poreSize Size of the pores in m.
+     * @param[in] porosity Porosity of the membrane in % (between 0 and 1).
+     * @return Id of the membrane.
+     */
+    Membrane<T>* addMembraneToChannel(int channelId, T height, T width, T poreRadius, T porosity);
+
+    /**
+     * @brief Creates and adds a tank to a membrane in the simulator.
+     * @param[in] membraneId Id of the membrane. Membrane defines nodes, length and width.
+     * @param[in] height Height of the tank in m.
+     * @param[in] width Width of the channel in m.
+     */
+    Tank<T>* addTankToMembrane(int membraneId, T height, T width);
+
+    /**
      * @brief Adds a new flow rate pump to the chip.
-     * @param[in] node0Id Id of the node at one end of the flow rate pump.
-     * @param[in] node1Id Id of the node at the other end of the flow rate pump.
+     * @param[in] nodeAId Id of the node at one end of the flow rate pump.
+     * @param[in] nodeBId Id of the node at the other end of the flow rate pump.
      * @param[in] flowRate Volumetric flow rate of the pump in m^3/s.
      * @return Id of the newly created flow rate pump.
      */
@@ -210,8 +242,8 @@ public:
 
     /**
      * @brief Adds a new pressure pump to the chip.
-     * @param[in] node0Id Id of the node at one end of the pressure pump.
-     * @param[in] node1Id Id of the node at the other end of the pressure pump.
+     * @param[in] nodeAId Id of the node at one end of the pressure pump.
+     * @param[in] nodeBId Id of the node at the other end of the pressure pump.
      * @param[in] pressure Pressure of the pump in Pas/L.
      * @return Id of the newly created pressure pump.
      */
@@ -224,9 +256,9 @@ public:
      * @param[in] nodes Map of nodes that are on the module boundary.
      * @return Pointer to the newly created module.
     */
-    Module<T>* addModule(std::vector<T> position,
-                         std::vector<T> size,
-                         std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
+    std::shared_ptr<Module<T>> addModule(std::vector<T> position,
+                                        std::vector<T> size,
+                                        std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
 
     /**
      * @brief Adds a new module to the network.
@@ -235,9 +267,9 @@ public:
      * @param[in] nodes Vector of node id's of nodes that are on the module boundary.
      * @return Pointer to the newly created module.
     */
-    Module<T>* addModule(std::vector<T> position,
-                         std::vector<T> size,
-                         std::vector<int> nodes);
+    std::shared_ptr<Module<T>> addModule(std::vector<T> position,
+                                        std::vector<T> size,
+                                        std::vector<int> nodes);
 
     /**
      * @brief Adds a new module to the network.
@@ -319,6 +351,16 @@ public:
     bool isFlowRatePump(int edgeId) const;
 
     /**
+     * @brief Checks and returns if an edge is a tank
+    */
+    bool isTank(int edgeId) const;
+
+    /**
+     * @brief Checks and returns if an edge is a membrane
+    */
+    bool isMembrane(int edgeId) const;
+
+    /**
      * @brief Get a pointer to the node with the specific id.
     */
     std::shared_ptr<Node<T>>& getNode(int nodeId);
@@ -339,7 +381,7 @@ public:
      * @brief Returns a pointer to the ground node.
      * @return Pointer to the ground node.
      */
-    std::set<Node<T>*> getGroundNodes() const;
+    std::set<std::shared_ptr<Node<T>>> getGroundNodes() const;
 
     /**
      * @brief Returns the amount of virtual nodes given by the GUI.
@@ -363,10 +405,38 @@ public:
     FlowRatePump<T>* getFlowRatePump(int pumpId) const;
 
     /**
+     * @brief Get pointer to a membrane with the specified id.
+     *
+     * @param membraneId Id of the membrane.
+     * @return Pointer to the membrane with this id.
+     */
+    Membrane<T>* getMembrane(int membraneId);
+
+    /**
+     * @brief Get pointer to a tank with the specified id.
+     *
+     * @param tankId Id of the tank.
+     * @return Pointer to the tank with this id.
+     */
+    Tank<T>* getTank(int tankId);
+
+    /**
      * @brief Get the channels of the network.
      * @returns Channels.
     */
     const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& getChannels() const;
+
+    /**
+     * @brief Get a map of all membranes of the chip.
+     * @return Map that consists of the membrane ids and pointers to the corresponding membranes.
+     */
+    const std::unordered_map<int, std::unique_ptr<Membrane<T>>>& getMembranes() const;
+
+    /**
+     * @brief Get a map of all tanks of the chip.
+     * @return Map that consists of the tank ids and pointers to the corresponding tanks.
+     */
+    const std::unordered_map<int, std::unique_ptr<Tank<T>>>& getTanks() const;
 
     /**
      * @brief Get a map of all channels at a specific node.
@@ -386,6 +456,32 @@ public:
      * @returns Pressure pumps.
     */
     const std::unordered_map<int, std::unique_ptr<PressurePump<T>>>& getPressurePumps() const;
+
+    /**
+     * @brief Get the membrane that is connected to both specified nodes.
+     *
+     * @param nodeAId Id of nodeA.
+     * @param nodeBId Id of nodeB.
+     * @return Pointer to the membrane that lies between these nodes.
+     */
+    Membrane<T>* getMembraneBetweenNodes(int nodeAId, int nodeBId);
+
+    /**
+     * @brief Get vector of all membranes that are connected to the specified node.
+     *
+     * @param nodeId Id of the node.
+     * @return Vector containing pointers to all membranes that are connected to this node.
+     */
+    std::vector<Membrane<T>*> getMembranesAtNode(int nodeId);
+
+    /**
+     * @brief Get the tank that lies between two nodes.
+     *
+     * @param nodeAId Id of nodeA.
+     * @param nodeBId Id of nodeB.
+     * @return Pointer to the tank that lies between the two nodes.
+     */
+    Tank<T>* getTankBetweenNodes(int nodeAId, int nodeBId);
 
     /**
      * @brief Get a pointer to the module with the specidic id.
@@ -424,6 +520,11 @@ public:
      * @brief Prints the contents of this network
      */
     void print();
+
+    /**
+     * @brief Calculate the distance between the two given nodes
+     */
+    [[nodiscard]] T calculateNodeDistance(int nodeAId, int nodeBId);
 };
 
 }   // namespace arch

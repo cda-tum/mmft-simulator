@@ -55,7 +55,7 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getFluid(this->continuousPhase);
 
-        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
+        auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, std::move(specieConcentrations), carrierFluid));
 
         return result.first->second.get();
     }
@@ -187,13 +187,39 @@ namespace sim {
             
         } else if (network->isPressurePump(edgeId)) {
             auto pump = network->getPressurePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         } else if (network->isFlowRatePump(edgeId)) {
             auto pump = network->getFlowRatePump(edgeId);
-            for (auto& channel : network->getChannelsAtNode(pump->getNodeB())) {
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
                 mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        }
+        return nullptr;
+    }
+
+    template<typename T>
+    MixtureInjection<T>* Simulation<T>::addPermanentMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
+        auto id = permanentMixtureInjections.size();
+
+        if (network->isChannel(edgeId)) {
+            auto channel = network->getChannel(edgeId);
+            auto result = permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            return result.first->second.get();
+        } else if (network->isPressurePump(edgeId)) {
+            auto pump = network->getPressurePump(edgeId);
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
+                permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
+            }
+        } else if (network->isFlowRatePump(edgeId)) {
+            auto pump = network->getFlowRatePump(edgeId);
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            for (auto& channel : network->getChannelsAtNode(nodeId)) {
+                permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         }
         return nullptr;
@@ -349,10 +375,25 @@ namespace sim {
     }
 
     template<typename T>
+    void Simulation<T>::setMembraneModel(MembraneModel<T>* model_) {
+        this->membraneModel = model_;
+    }
+
+    template<typename T>
     void Simulation<T>::setMixingModel(MixingModel<T>* model_) {
         this->mixingModel = model_;
     }
-    
+
+    template<typename T>
+    void Simulation<T>::setMaxEndTime(T maxTime) {
+        this->tMax = maxTime;
+    }
+
+    template<typename T>
+    void Simulation<T>::setWriteInterval(T interval) {
+        this->writeInterval = interval;
+    }
+
     template<typename T>
     void Simulation<T>::calculateNewMixtures(double timestep_) {
         this->mixingModel->updateMixtures(timestep_, this->network, this, this->mixtures);
@@ -462,6 +503,12 @@ namespace sim {
     template<typename T>
     ResistanceModel<T>* Simulation<T>::getResistanceModel() {
         return resistanceModel;
+    }
+
+    template<typename T>
+    MembraneModel<T>* Simulation<T>::getMembraneModel() {
+        static MembraneModel9<T> defaultMembraneModel;
+        return membraneModel ? membraneModel : &defaultMembraneModel;
     }
 
     template<typename T>
@@ -587,6 +634,7 @@ namespace sim {
     void Simulation<T>::simulate() {
 
         // initialize the simulation
+        assertInitialized();
         initialize();
         //printResults();
 
@@ -600,6 +648,125 @@ namespace sim {
 
             // store simulation results of current state
             saveState();
+        }
+
+        // ##########
+        // Abstract simulation with membranes/tanks
+        // ##########
+        // * update droplet resistances
+        // * conduct nodal analysis
+        // * update droplets (flow rates of boundaries)
+        // * compute events
+        // * search for next event (break if no event is left)
+        // * move droplets
+        // * perform event
+        if (simType == Type::Abstract && platform == Platform::Membrane) {
+            T simulationResultTimeCounter = 0.0;
+
+            #ifdef VERBOSE
+            std::cout << "Running Abstract Membrane simulation..." << std::endl;
+            #endif
+            auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
+            if (!instantMixingModel) {
+                throw std::logic_error { "Unable to run membrane simulation with non-instantaneous mixing" };
+            }
+            while (true) {
+                #ifdef VERBOSE
+                    // only print on change of highest digit in iteration; so ..., 80, 90, 100, 200, 300, ...
+                    if (iteration < 10 || iteration % static_cast<int>(std::pow(10, static_cast<int>(std::log10(iteration)))) == 0) {
+                        std::cout << "Iteration " << iteration << " (" << time << "s)" << std::endl;
+                    }
+                #endif
+
+                // compute nodal analysis
+                nodalAnalysis->conductNodalAnalysis();
+
+                // store simulation results of current state if result time is reached
+                if (simulationResultTimeCounter <= 0) {
+                    saveState();
+                    if ((permanentMixtureInjections.empty() && mixtureInjections.empty()) || !dropletInjections.empty()) {
+                        simulationResultTimeCounter = 0;
+                    } else {  // for continuous fluid simulation without droplets only store simulation time steps
+                        simulationResultTimeCounter = writeInterval;
+                    }
+                }
+
+                // compute internal minimal timestep and make sure that it is not too big to skip next save timepoint
+                auto timeToNextResult = writeInterval - std::fmod(time, writeInterval);
+                calculateNewMixtures(dt);
+
+                // update minimal timestep and limit it so that the next time the state should be written is not overstepped
+                instantMixingModel->fixedMinimalTimeStep(network);
+                instantMixingModel->limitMinimalTimeStep(0.0, timeToNextResult);
+
+                // merging of droplets:
+                // 1) Two boundaries merge inside a single channel:
+                //      1) one boundary is faster than the other and would "overtake" the boundary
+                //          * theoretically it would also be possible to introduce a merge distance.
+                //            however, then it gets complicated when the actual merging of the droplets happen, since all other boundaries of the droplets need to moved in order to conserve the droplet volume (i.e., compensate for the volume between the droplets due to the merge distance).
+                //            this movement of all other boundaries would then may trigger other events => it gets complicated^^
+                //      2) the two boundaries flow in different directions:
+                //          * this case shouldn't happen in this implementation now, but it might be possible since boundary flow rates are not bound to channel flow rates.
+                //            however, currently the boundaries should still have the same direction as the channel flow rates and, thus, the boundaries cannot have opposite flow directions in a single channel
+                // 2) A boundary (which currently operates as a droplet head) can merge into another droplet when it switches channels (basically when a BoundaryHeadEvent occurs):
+                //      * possible solution is to normally compute a BoundaryHeadEvent and then check if it is actually a merge event (in case of a merge event the channels don't have to be switched since the boundary is merged with the other droplet)
+
+                // compute events
+                auto events = computeMixingEvents();
+
+                // sort events
+                // closest events in time with the highest priority come first
+                std::sort(events.begin(), events.end(), [](auto& a, auto& b) {
+                    if (a->getTime() == b->getTime()) {
+                        return a->getPriority() < b->getPriority();  // ascending order (the lower the priority value, the higher the priority)
+                    }
+                    return a->getTime() < b->getTime();  // ascending order
+                });
+
+                #ifdef DEBUG
+                for (auto& event : events) {
+                    event->print();
+                }
+                #endif
+
+                // get next event or break loop, if no events remain
+                Event<T>* nextEvent = nullptr;
+                if (events.size() != 0) {
+                    nextEvent = events[0].get();
+                } else {
+                    break;
+                }
+
+                auto nextEventTime = nextEvent->getTime();
+                time += nextEventTime;
+                simulationResultTimeCounter -= nextEventTime;
+                dt = nextEventTime;
+
+                if (nextEventTime > 0.0) {
+                    // move droplets until event is reached
+                    moveDroplets(nextEventTime);
+
+                    instantMixingModel->moveMixtures(dt, this->network);
+                    instantMixingModel->calculateMembraneExchange(dt, this, this->network, this->mixtures);
+                    instantMixingModel->updateNodeInflow(dt, network);
+                }
+
+                // perform event (inject droplet, move droplet to next channel, block channel, merge channels)
+                // only one event at a time is performed in order to ensure a correct state
+                // hence, it might happen that the next time for an event is 0 (e.g., when  multiple events happen at the same time)
+                assert(nextEventTime >= 0.0);
+                nextEvent->performEvent();
+
+                if (time >= tMax) {
+                    break;
+                }
+
+                ++iteration;
+            }
+
+            //store simulation state once more at the end of the simulation (even if this is not part of the simulation result timestep)
+            saveState();
+            saveMixtures();
         }
 
         // Continuous Hybrid simulation
@@ -741,7 +908,7 @@ namespace sim {
 
             while (true) {
                 if (iteration >= maxIterations) {
-                    throw "Max iterations exceeded.";
+                    throw std::runtime_error("Max iterations exceeded.");
                 }
 
                 #ifdef VERBOSE     
@@ -822,14 +989,14 @@ namespace sim {
             nodalAnalysis->conductNodalAnalysis();
 
             while(true) {
-                if (iteration >= 1000) {
-                    throw "Max iterations exceeded.";
-                    break;
+                if (iteration >= maxIterations) {
+                    throw std::runtime_error("Max iterations exceeded.");
                 }
 
                 // Update and propagate the mixtures 
                 if (this->mixingModel->isInstantaneous()){
                     calculateNewMixtures(timestep);
+                    this->mixingModel->updateMinimalTimeStep(network);
                 } else if (this->mixingModel->isDiffusive()) {
                     this->mixingModel->updateMinimalTimeStep(network);
                 }
@@ -866,7 +1033,10 @@ namespace sim {
                 time += nextEvent->getTime();
                 
                 if (this->mixingModel->isInstantaneous()){
-                    this->mixingModel->updateNodeInflow(timestep, network);
+                    auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
+                    assert(instantMixingModel);
+                    instantMixingModel->moveMixtures(timestep, network);
+                    instantMixingModel->updateNodeInflow(timestep, network);
                 } else if (this->mixingModel->isDiffusive()) {
                     this->mixingModel->updateMixtures(timestep, network, this, mixtures);
                 }
@@ -896,18 +1066,36 @@ namespace sim {
     }
 
     template<typename T>
+    void Simulation<T>::assertInitialized() {
+        if (this->network == nullptr) {
+            throw std::logic_error("Simulation not initialized: Network is not set.");
+        }
+        if (this->resistanceModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Resistance model is not set.");
+        }
+        if (this->platform == Platform::Mixing && this->mixingModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Mixing model is not set for Mixing platform.");
+        }
+        if (this->platform == Platform::Membrane && this->membraneModel == nullptr) {
+            throw std::logic_error("Simulation not initialized: Membrane model is not set for Membrane platform.");
+        }
+    }
+
+    template<typename T>
     void Simulation<T>::initialize() {
         // compute and set channel lengths
         #ifdef VERBOSE
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
         #endif
         for (auto& [key, channel] : network->getChannels()) {
-            auto& nodeA = network->getNodes().at(channel->getNodeA());
-            auto& nodeB = network->getNodes().at(channel->getNodeB());
-            T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
-            T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-            channel->setLength(sqrt(dx*dx + dy*dy));
-        }       
+            T calculatedLength = network->calculateNodeDistance(channel->getNodeA(), channel->getNodeB());
+
+            if (channel->getLength() == 0) {
+                channel->setLength(calculatedLength);
+            } else if (channel->getLength() < calculatedLength) {
+                throw std::runtime_error("Invalid channel length: Insufficient to connect nodes");
+            }
+        }
 
         // compute channel resistances
         #ifdef VERBOSE
@@ -1083,7 +1271,7 @@ namespace sim {
         }
         
         // mixture positions
-        if (platform == Platform::Mixing) {
+        if (platform == Platform::Mixing || platform == Platform::Membrane) {
             // Add a mixture position for all filled edges
             for (auto& [channelId, mixingId] : mixingModel->getFilledEdges()) {
                 std::deque<MixturePosition<T>> newDeque;
@@ -1117,10 +1305,9 @@ namespace sim {
             }
         } else if (platform == Platform::BigDroplet) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
-        } else if (platform == Platform::Mixing) {
+        } else if (platform == Platform::Mixing || platform == Platform::Membrane) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions);
         }
-        
     }
 
     template<typename T>
@@ -1161,6 +1348,12 @@ namespace sim {
             double injectionTime = injection->getInjectionTime();
             if (!injection->wasPerformed()) {
                 events.push_back(std::make_unique<MixtureInjectionEvent<T>>(injectionTime - time, *injection, mixingModel));
+            }
+        }
+        for (auto& [key, injection] : permanentMixtureInjections) {
+            double injectionTime = injection->getInjectionTime();
+            if (!injection->wasPerformed()) {
+                events.push_back(std::make_unique<PermanentMixtureInjectionEvent<T>>(injectionTime - time, *injection, mixingModel));
             }
         }
         minimalTimeStep = mixingModel->getMinimalTimeStep();
