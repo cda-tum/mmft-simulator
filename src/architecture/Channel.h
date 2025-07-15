@@ -81,6 +81,7 @@ class Channel : public Edge<T>{
         T dropletResistance = 0;                    ///< Additional resistance of present droplets in the channel in Pas/L.
         ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular.
         ChannelType type = ChannelType::NORMAL;     ///< What kind of channel it is.
+        //T Ca;
         
         std::vector<std::unique_ptr<Line_segment<T,2>>> line_segments;      ///< Straight line segments in the channel.
         std::vector<std::unique_ptr<Arc<T,2>>> arcs;                        ///< Arcs in the channel.
@@ -189,6 +190,18 @@ class Channel : public Edge<T>{
          * @returns What kind of channel it is.
          */
         ChannelType getChannelType() const;
+        
+        /**
+        * @brief sets Ca i.e. Capillary number
+        * @param[in] Ca_ capillary number to be set
+        */
+        //void setCa(T Ca_);
+
+        /**
+        * @brief gets the capillary number of the channel
+        * @return the Ca i.e. capillary number of the channel
+        */
+        //T getCa() const;
 };
 
 template<typename T>
@@ -196,6 +209,7 @@ class RectangularChannel : public Channel<T> {
     private:
         T width;                                        ///< Width of a channel in m.
         T height;                                       ///< Height of a channel in m.
+        //T Ca;                                           ///< Capillary number (dimensionless)
     
     public:
         /**
@@ -251,12 +265,26 @@ class RectangularChannel : public Channel<T> {
          * @returns Area in m^2.
          */
         T getArea() const override;
+
+                /**
+        * @brief sets Ca i.e. Capillary number
+        * @param[in] Ca_ capillary number to be set
+        */
+        //void setCa(T Ca_);
+
+        /**
+        * @brief gets the capillary number of the channel
+        * @return the Ca i.e. capillary number of the channel
+        */
+        //T getCa() const;
+
 };
 
 template<typename T>
 class CylindricalChannel : public Channel<T> {
     private:
         T radius;                                       ///< Radius of a channel in m.
+        //T Ca;                                           ///< Capillary number (dimensionless)
 
     public:
         /**
@@ -285,6 +313,17 @@ class CylindricalChannel : public Channel<T> {
          * @returns Area in m^2.
          */
         T getArea() const override;
-};
 
-}   // namespace arch
+                /**
+        * @brief sets Ca i.e. Capillary number
+        * @param[in] Ca_ capillary number to be set
+        */
+        //void setCa(T Ca_);
+
+        /**
+        * @brief gets the capillary number of the channel
+        * @return the Ca i.e. capillary number of the channel
+        */
+        //T getCa() const;
+};
+}  // namespace arch

@@ -482,8 +482,10 @@ std::set<Node<T>*> Network<T>::getGroundNodes() const {
 
 template<typename T>
 RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
-    return channels.at(channelId_).get();
-}
+    auto Ch = channels.at(channelId_).get();
+   
+    return Ch;
+}                                    
 
 template<typename T>
 PressurePump<T>* Network<T>::getPressurePump(int pumpId_) const {

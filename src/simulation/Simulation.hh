@@ -17,12 +17,11 @@ namespace sim {
     }
 
     template<typename T>
-    Droplet<T>* Simulation<T>::addDroplet(int fluidId, T volume) {
-        auto id = droplets.size();
+    Droplet<T>* Simulation<T>::addDroplet(int fluidId, T volume, T Ca_) {
+        int id = droplets.size();
         auto fluid = fluids.at(fluidId).get();
-
-        auto result = droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluid));
-
+        T Ca = Ca_;  
+        auto result = droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluid, Ca));
         return result.first->second.get();
     }
 
@@ -153,14 +152,16 @@ namespace sim {
         auto id = dropletInjections.size();
         auto droplet = droplets.at(dropletId).get();
         auto channel = network->getChannel(channelId);
-
+        
         // --- check if injection is valid ---
         // for the injection the head and tail of the droplet must lie inside the channel (the volume of the droplet must be small enough)
         // the droplet length is a relative value between 0 and 1
-        T dropletLength = droplet->getVolume() / channel->getVolume();
-        // channel must be able to fully contain the droplet
+        //T dropletLength = droplet->getVolume() / (network->getChannel(channelId))->getVolume();
+        T dropletLength = droplet->getVolume() / (network->getChannel(channelId))->getArea();
+        //channel must be able to fully contain the droplet
         if (dropletLength >= 1.0) {
-            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel " + std::to_string(channel->getId()) + " is not valid. Channel must be able to fully contain the droplet.");
+            //throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel " + std::to_string(channel->getId()) + " is not valid. Channel must be able to fully contain the droplet.");
+            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel is not valid. Channel must be able to fully contain the droplet.");
         }
         
         // compute tail and head position of the droplet
@@ -168,7 +169,7 @@ namespace sim {
         T head = (injectionPosition + dropletLength / 2);
         // tail and head must not be outside the channel (can happen when the droplet is injected at the beginning or end of the channel)
         if (tail < 0 || head > 1.0) {
-            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " is not valid. Tail and head of the droplet must lie inside the channel " + std::to_string(channel->getId()) + ". Consider to set the injection position in the middle of the channel.");
+            throw std::invalid_argument("Injection of droplet " + droplet->getName() + " is not valid. Tail and head of the droplet must lie inside the channel. Consider to set the injection position in the middle of the channel.");
         }
 
         auto result = dropletInjections.insert_or_assign(id, std::make_unique<DropletInjection<T>>(id, droplet, injectionTime, channel, injectionPosition));
@@ -573,7 +574,7 @@ namespace sim {
         auto fluid = mixFluids(droplet0->getFluid()->getId(), volume0, droplet1->getFluid()->getId(), volume1);
 
         // add new droplet
-        auto newDroplet = addDroplet(fluid->getId(), volume);
+        auto newDroplet = addDroplet(fluid->getId(), volume, droplet0->getCa());
 
         //add previous droplets
         newDroplet->addMergedDroplet(droplet0);

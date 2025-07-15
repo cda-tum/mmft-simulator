@@ -28,6 +28,9 @@ class Node;
 template<typename T>
 class RectangularChannel;
 
+template<typename T>
+class CylindricalChannel;
+
 }
 
 namespace sim {
@@ -64,6 +67,7 @@ class DropletBoundary {
     bool volumeTowardsNodeA;                    ///< Direction in which the volume of the boundary is located (true if it is towards node0).
     T flowRate;                                 ///< Flow rate of the boundary (if <0 the boundary moves towards the droplet center, >0 otherwise).
     BoundaryState state;                        ///< Current status of the boundary
+    
 
   public:
     /**
@@ -214,16 +218,21 @@ class Droplet {
     DropletState dropletState = DropletState::INJECTION;  ///< Current state of the droplet
     std::vector<std::unique_ptr<DropletBoundary<T>>> boundaries;
     std::vector<arch::RectangularChannel<T>*> channels;              ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
-
-  public:
+    T Ca = 0.0;                                 /// Capillary number
+    bool isCaSet = false;
+   public:
     /**
      * @brief Specify a droplet.
      * @param[in] id Unique identifier of the droplet.
      * @param[in] volume Volume of the droplet in m^3.
      * @param[in] fluid Pointer to fluid the droplet consists of.
      */
-    Droplet(int id, T volume, Fluid<T>* fluid);
+    Droplet(int id, T volume, Fluid<T>* fluid, T Ca);
 
+
+    Droplet(int id, T volume, Fluid<T>* fluid); // <-- This is the 3-arg constructor
+
+    
     /**
      * @brief Change volume of droplet.
      * @param[in] volume New volume of the droplet.
@@ -236,6 +245,18 @@ class Droplet {
      */
     void setName(std::string name);
 
+    /**
+    * @brief sets Ca i.e. Capillary number
+    * @param[in] Ca_ capillary number to be set
+    */
+    void setCa(T Ca_);
+
+    /**
+    * @brief gets the capillary number of the channel
+    * @return the Ca i.e. capillary number of the channel
+    */
+    T getCa() const;
+    
     /**
      * @brief Change state in which the droplet currently is in.
      * @param[in] dropletState The new state in which the droplet is in.
@@ -277,6 +298,13 @@ class Droplet {
      * @param[in] model The resistance model on which basis the resistance caused by the droplet is calculated.
      */
     void addDropletResistance(const ResistanceModel<T>& model);
+    //attention!!
+
+    /**
+    * @brief Get the Viscosity of the Droplet Fluid
+    * @return the viscosity of the droplet fluid
+    */
+    T getViscosity() const;
 
     /**
      * @brief Get the Boundaries object

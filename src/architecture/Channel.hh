@@ -111,6 +111,11 @@ namespace arch {
         this->dropletResistance += dropletResistance;
     }
 
+    //template<typename T>
+    //void Channel<T>::setCa(T Ca_) {
+     //   this->Ca = Ca_;
+    //}
+
     template<typename T>
     void Channel<T>::setChannelType(ChannelType type_) {
         this->type = type_;
@@ -141,6 +146,11 @@ namespace arch {
         return channelResistance + dropletResistance;
     }
 
+    //template<typename T>
+    //T Channel<T>::getCa() const {
+      //  return Ca;
+    //}
+
     template<typename T>
     ChannelShape Channel<T>::getChannelShape() const {
         return shape;
@@ -157,7 +167,7 @@ namespace arch {
 
     template<typename T>
     RectangularChannel<T>::RectangularChannel(int id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, T width_, T height_) : 
-    Channel<T>(id_, nodeA_, nodeB_), width(width_), height(height_) { 
+    Channel<T>(id_, nodeA_, nodeB_), width(width_), height(height_){ 
         this->area = width*height;
     }
 
@@ -169,6 +179,7 @@ namespace arch {
         this->area = width*height;
     }
 
+    
     template<typename T>
     void RectangularChannel<T>::setWidth(T width_) {
         this->width = width_;
@@ -194,6 +205,8 @@ namespace arch {
         return width * height;
     }
 
+    
+
     //=====================================================================================
     //================================  CylindricalChannel ================================
     //=====================================================================================
@@ -205,6 +218,8 @@ namespace arch {
             this->shape = ChannelShape::CYLINDRICAL;
     }
 
+    
+
     template<typename T>
     void CylindricalChannel<T>::setRadius(T radius_) {
         this->radius = radius_;
@@ -215,9 +230,22 @@ namespace arch {
         return radius;
     }
 
-        template<typename T>
+    template<typename T>
     T CylindricalChannel<T>::getArea() const {
         return M_PI * radius * radius;
     }
+
+    //template<typename T>
+    //void CylindricalChannel<T>::setCa(T Ca_) {
+      //  this->Ca = Ca_;
+    //}
+
+    //template<typename T>
+    //T CylindricalChannel<T>::getCa() const {
+      //  return Ca;
+    //}
+
+   
+
 
 }   // namespace arch

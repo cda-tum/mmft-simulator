@@ -226,7 +226,7 @@ public:
      * @param[in] volume Volume of the fluid in m^3.
      * @return Pointer to created droplet.
      */
-    Droplet<T>* addDroplet(int fluidId, T volume);
+    Droplet<T>* addDroplet(int fluidId, T volume, T Ca_);
 
     /**
      * @brief Create specie.
