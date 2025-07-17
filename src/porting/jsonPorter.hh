@@ -172,7 +172,7 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
         auto jsonState = ordered_json::object();
         jsonState["time"] = state->getTime();
         jsonState["nodes"] = writePressures(state.get());
-        jsonState["channels"] = writeChannels(state.get());
+        jsonState["channels"] = writeChannels(simulation->getNetwork(), state.get());
         if (simulation->getPlatform() == sim::Platform::Continuous && simulation->getType() == sim::Type::Hybrid) {
             jsonState["modules"] = writeModules(state.get());
         }

@@ -22,7 +22,7 @@ jobs:
       matrix:
         runs-on:
           - { os: ubuntu-latest, shell: bash }
-          #- { os: macos-11, shell: bash }
+          # - { os: macos-latest, shell: bash }
           #- { os: windows-latest, shell: "msys2 {0}" }
         python: ["cp38", "cp39", "cp310", "cp311", "cp312"]
     defaults:
@@ -47,7 +47,7 @@ jobs:
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_ENVIRONMENT_WINDOWS: CC=gcc CXX=g++
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ runner.os }}-${{ matrix.python }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
@@ -61,14 +61,14 @@ jobs:
         fetch-depth: 0
         submodules: recursive
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.x"
     - name: Build SDist
       run:  pipx run build --sdist
     - name: Install sdist
       run:  python -m pip install --verbose dist/*.tar.gz
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: dist/*.tar.gz
 
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps: 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: artifact
           path: dist

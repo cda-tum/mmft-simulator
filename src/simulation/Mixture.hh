@@ -76,6 +76,21 @@ const std::unordered_map<int, Specie<T>*>& Mixture<T>::getSpecies() const {
 }
 
 template<typename T>
+void Mixture<T>::changeSpecieConcentration(int specieId, T concentrationChange) {
+    auto specieIter = specieConcentrations.find(specieId);
+    if (specieIter != specieConcentrations.end()) {
+        auto newConcentration = specieIter->second + concentrationChange;
+        assert(newConcentration >= -0.1 && newConcentration <= 1.1);
+        specieIter->second = std::clamp(newConcentration, 0.0, 1.0);
+    } else {
+        assert(concentrationChange >= -0.1 && concentrationChange <= 1.1);
+        if (concentrationChange > 0.0) {
+            specieConcentrations.insert({specieId, std::clamp(concentrationChange, 0.0, 1.0)});
+        }
+    }
+}
+
+template<typename T>
 DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
     std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, T largestMolecularSize, int resolution) : 
     Mixture<T>(id, species, specieConcentrations, viscosity, density, largestMolecularSize), specieDistributions(specieDistributions), resolution(resolution) { }

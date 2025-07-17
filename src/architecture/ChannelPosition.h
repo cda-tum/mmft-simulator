@@ -16,7 +16,7 @@ class RectangularChannel;
 template<typename T>
 class ChannelPosition {
   private:
-    RectangularChannel<T>* channel;  ///< Channel in which one end of droplet currently is.
+    RectangularChannel<T>* channel = nullptr;  ///< Channel in which one end of droplet currently is.
     T position;   ///< Exact relative position (between 0.0 and 1.0) within the channel.
 
   public:

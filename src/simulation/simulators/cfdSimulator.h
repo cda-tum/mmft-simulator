@@ -75,7 +75,6 @@ protected:
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
                 std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme, ResistanceModel<T>* ResistanceModel);
 
-
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
     */
@@ -85,6 +84,9 @@ protected:
     };
 
 public:
+    
+    virtual ~CFDSimulator() = default;
+
     /**
      * @brief Get id of the simulator.
      * @returns id.

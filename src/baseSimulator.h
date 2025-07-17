@@ -33,11 +33,13 @@
 #include "architecture/ChannelPosition.h"
 #include "architecture/Edge.h"
 #include "architecture/FlowRatePump.h"
+#include "architecture/Membrane.h"
 #include "architecture/Module.h"
 #include "architecture/ModuleOpening.h"
 #include "architecture/Network.h"
 #include "architecture/Node.h"
 #include "architecture/PressurePump.h"
+#include "architecture/Tank.h"
 
 #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
 #include "olbProcessors/saturatedFluxPostProcessor2D.h"

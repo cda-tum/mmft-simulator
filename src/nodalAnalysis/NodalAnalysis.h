@@ -34,7 +34,7 @@ namespace nodal {
 template<typename T>
 class NodalAnalysis {
 private:
-    const arch::Network<T>* network;
+    const arch::Network<T>* network = nullptr;
 
     int nNodes;             // Number of nodes
     int nPressurePumps;     // Number of pressurePumps
