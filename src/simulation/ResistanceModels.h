@@ -118,7 +118,7 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
      * @param[in] channel A pointer to the channel for which the resistance should be calculated.
      * @return The resistance of the channel itself in Pas/L.
      */
-    T getChannelResistance(arch::RectangularChannel<T> const* const channel) const;
+    T getChannelResistance(arch::RectangularChannel<T> const* const channel) const override;  //write a parent function to get Channel resistance for all resistance models then add override here
 
     /**
      * @brief Compute the a factor.
@@ -126,7 +126,7 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
      * @param[in] height Height of the channel in m.
      * @return The a factor.
      */
-    T computeFactorA_rect(T width, T height) const;
+    T computeFactorA(T width, T height) const override;   //write a parent function to compute Factor A for all resistance models then add override here
 
     /**
      * @brief Retrieve the resistance caused by the specified droplet in the specified channel.
@@ -135,7 +135,37 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
      * @param[in] volumeInsideChannel The volume inside the channel in m^3.
      * @return Resistance caused by the droplet in the channel in Pas/L.
      */
-    T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const;
+    T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;   //write a parent function to get droplet resistance for all resistance models then add override here
+
+};
+
+/**
+ * @brief Class that defines the functionality of the Planar poiseuille resistance model
+ */
+template<typename T>
+class ResistanceModelPlanarPoiseuille : public ResistanceModel<T>{
+
+  public:
+    /**
+     * @brief Instantiate the resistance model.
+     * @param[in] continuousPhaseViscosity The viscosity of the continuous phase in Pas.
+     */
+    ResistanceModelPlanarPoiseuille(T continuousPhaseViscosity);
+
+    /**
+     * @brief Calculate and returns the resistance of the channel itself.
+     * @param[in] channel A pointer to the channel for which the resistance should be calculated.
+     * @return The resistance of the channel itself in Pas/L.
+     */
+    T getChannelResistance(arch::RectangularChannel<T> const* const channel) const override;  //write a parent function to get Channel resistance for all resistance models then add override here
+
+    /**
+     * @brief Compute the a factor.
+     * @param[in] width Width of the channel in m.
+     * @param[in] height Height of the channel in m.
+     * @return The a factor.
+     */
+    T computeFactorA(T width, T height) const override;   //write a parent function to compute Factor A for all resistance models then add override here
 
     /**
     * @brief Compute uniform film thickness H_inf for rectangular channel
@@ -144,7 +174,8 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
     * @param[in] radius Radius of the channel, here radius = width/2 
     * @return the uniform film thickness
     */
-    T computeH_inf_rect(T lambda, T Ca, T radius) const;
+    T computeH_inf_rect(T lambda, T Ca, T radius) const; //write a parent function to get H_inf for all resistance models then add override here
+
 
     /**
     * @brief Compute the resistance that the channel fluid now replaced by the droplet would have posed in a rectangular channel. this is to be subtracted from total channel resistance
@@ -153,7 +184,16 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
     * @param[in] channel_width width of the rectangular channel 
     * @param[in] channel_height height of the rectangular channel
     */
-    T computeContinuousPhaseResistance_rect(T viscosity, T droplet_length, T channel_width, T channel_height) const;
+    T computeContinuousPhaseResistance_rect(T viscosity, T droplet_length, T channel_width, T channel_height) const; //write a parent function to get continuous phase resistance for all resistance models then add override here
+
+    /**
+     * @brief Retrieve the resistance caused by the specified droplet in the specified channel.
+     * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
+     * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
+     * @param[in] volumeInsideChannel The volume inside the channel in m^3.
+     * @return Resistance caused by the droplet in the channel in Pas/L.
+     */
+    T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
 
     /**
     * @brief Compute the resistance posed by the droplet in a rectangular channel
@@ -164,27 +204,36 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
     * @param[in] uniform_H the uniform film thickness
     * @return the droplet resistance in rectangular channel
     */
-    T computeDropletResistance_rect(T lambda, T dropletviscosity, T droplet_length, T channelradius, T uniform_H) const;
+    T computeDropletResistance_rect(T lambda, T dropletviscosity, T droplet_length, T channelradius, T uniform_H) const; //same override logiic
 
     /**
     * @brief Compute the relative velocity of a droplet and uniform flow in a rectangular channel.
     * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
     * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
     */
-    T getRelativeDropletVelocity(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet) const;
+    T getRelativeDropletVelocity(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet) const;  //same ovverride logic
+};
 
+/**
+ * @brief Class that defines the functionality of the Cylindrical poiseuille resistance model
+ */
+template<typename T>
+class ResistanceModelCylindricalPoiseuille : public ResistanceModel<T>{
 
-    T computeFactorA(T width, T height) const override {
-    return computeFactorA_rect(width, height);}
-
-    ////////
+  public:
+    /**
+     * @brief Instantiate the resistance model.
+     * @param[in] continuousPhaseViscosity The viscosity of the continuous phase in Pas.
+     */
+    ResistanceModelCylindricalPoiseuille(T continuousPhaseViscosity);
 
     /**
      * @brief Calculate and returns the resistance of the channel itself.
      * @param[in] channel A pointer to the channel for which the resistance should be calculated.
      * @return The resistance of the channel itself in Pas/L.
      */
-    T getChannelResistance(arch::CylindricalChannel<T> const* const channel) const;
+    T getChannelResistance(arch::CylindricalChannel<T> const* const channel) const override; //same override logiic
+
 
     /**
      * @brief Retrieve the resistance caused by the specified droplet in the specified channel.
@@ -193,7 +242,8 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
      * @param[in] volumeInsideChannel The volume inside the channel in m^3.
      * @return Resistance caused by the droplet in the channel in Pas/L.
      */
-    T getDropletResistance(arch::CylindricalChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const;
+    T getDropletResistance(arch::CylindricalChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;  //same override logiic
+
 
     /**
     * @brief Compute uniform film thickness H_inf for cylindrical channel
@@ -202,7 +252,7 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
     * @param[in] radius Radius of the channel
     * @return the uniform film thickness
     */
-    T computeH_inf_cyl(T lambda, T Ca, T radius) const;
+    T computeH_inf_cyl(T lambda, T Ca, T radius) const; //same override logiic
 
     /**
     * @brief Compute the resistance that the channel fluid now replaced by the droplet would have posed in a rectangular channel. this is to be subtracted from total channel resistance
@@ -210,7 +260,7 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
     * @param[in] droplet_length length of the droplet i.e. the section where the channel fluid was replaced
     * @param[in] channelRadius Radius of the channel
     */
-    T computeContinuousPhaseResistance_cyl(T viscosity, T droplet_length, T channelRadius) const;
+    T computeContinuousPhaseResistance_cyl(T viscosity, T droplet_length, T channelRadius) const; //same override logiic
 
     /**
     * @brief Compute the resistance posed by the droplet in a cylindrical channel
@@ -221,14 +271,16 @@ class ResistanceModelPoiseuille : public ResistanceModel<T>{
     * @param[in] uniform_H the uniform film thickness
     * @return the droplet resistance in cylindrical channel
     */
-    T computeDropletResistance_cyl(T lambda, T dropletviscosity, T droplet_length, T channelradius, T uniform_H) const;
+    T computeDropletResistance_cyl(T lambda, T dropletviscosity, T droplet_length, T channelradius, T uniform_H) const;  //same override logiic
+
 
     /**
     * @brief Compute the relative velocity of a droplet and uniform flow in a rectangular channel.
     * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
     * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
     */
-    T getRelativeDropletVelocity(arch::CylindricalChannel<T> const* const channel, Droplet<T>* droplet) const;
+    T getRelativeDropletVelocity_cyl(arch::CylindricalChannel<T> const* const channel, Droplet<T>* droplet) const;  //same override logiic
+
 
 };
 

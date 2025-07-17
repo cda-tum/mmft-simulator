@@ -43,10 +43,8 @@ FetchContent_Declare(
 )
 FetchContent_Declare(
     lbm
-    URL https://www.openlb.net/wp-content/uploads/2022/04/olb-1.5r0.tgz
-    PATCH_COMMAND ${lbm_patch}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
+    GIT_REPOSITORY https://gitlab.com/openlb/release.git
+    GIT_TAG 1.7.0
 )
 FetchContent_MakeAvailable(eigen googletest json lbm)
 
@@ -99,6 +97,9 @@ set(EXTERNAL_SOURCE_LIST
     ${EXTERNAL_DIR}/zlib/trees.c
     ${EXTERNAL_DIR}/zlib/uncompr.c
     ${EXTERNAL_DIR}/zlib/zutil.c
+    ${lbm_SOURCE_DIR}/src/communication/mpiManager.cpp
+    ${lbm_SOURCE_DIR}/src/io/ostreamManager.cpp
+    ${lbm_SOURCE_DIR}/src/core/olbInit.cpp
 )
 
 option(VERBOSE "Verbose" ON)

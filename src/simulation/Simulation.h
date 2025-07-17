@@ -510,6 +510,13 @@ public:
     Droplet<T>* getDroplet(int dropletId);
 
     /**
+     brief Get fluid.
+     param[in] fluidId Id of the fluid
+     return Pointer to fluid with the corresponding id
+     */
+    //std::unordered_map<int, std::unique_ptr<Droplet<T>>>& getDroplets();
+
+    /**
      * @brief Gets droplet that is present at the corresponding node (i.e., the droplet spans over this node).
      * @param nodeId The id of the node
      * @return Pointer to droplet or nullptr if no droplet was found

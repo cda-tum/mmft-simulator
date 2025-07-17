@@ -393,6 +393,21 @@ namespace sim {
         return droplets.at(dropletId).get();
     }
 
+    //template<typename T>
+    //std::unordered_map<int, std::unique_ptr<Droplet<T>>>& Simulation<T>::getDroplets() {
+     //   return droplets;
+    //}
+
+    /*template<typename T>
+    std::unordered_map<int, T>& Simulation<T>::getDropletResistanceMap() {
+        std::unordered_map<int, T> resistanceList;
+        for(auto& [id, droplet] : droplets) {
+            drop = getDroplet(id);
+            resistanceList.try_emplace(id, drop->)
+        }
+    }
+    */
+
     template<typename T>
     Droplet<T>* Simulation<T>::getDropletAtNode(int nodeId) {
         // loop through all droplets
@@ -1036,6 +1051,7 @@ namespace sim {
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
         std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
         std::unordered_map<int, int> filledEdges;
+        //std::unordered_map<int, T> saveDropletResistances;
 
         // pressures
         for (auto& [id, node] : network->getNodes()) {
@@ -1061,6 +1077,11 @@ namespace sim {
         // droplet positions
         if (platform == Platform::BigDroplet) {
             for (auto& [id, droplet] : droplets) {
+
+                // DropletResistances
+                //saveDropletResistances.try_emplace(droplet->getId(), droplet->getDropletResistance());
+
+
                 // create new droplet position
                 DropletPosition<T> newDropletPosition;
 
