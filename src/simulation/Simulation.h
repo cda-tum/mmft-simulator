@@ -126,7 +126,7 @@ enum class Platform {
 };
 
 /**
- * @brief Class that conducts the simulation and owns all parameters necessary for it.
+ * @brief Class that conducts the simulation and owns all parameters necessary for it
  */
 template<typename T>
 class Simulation {

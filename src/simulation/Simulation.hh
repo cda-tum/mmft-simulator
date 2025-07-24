@@ -152,14 +152,21 @@ namespace sim {
         auto id = dropletInjections.size();
         auto droplet = droplets.at(dropletId).get();
         auto channel = network->getChannel(channelId);
+        T len = channel->getLength();
         
         // --- check if injection is valid ---
         // for the injection the head and tail of the droplet must lie inside the channel (the volume of the droplet must be small enough)
         // the droplet length is a relative value between 0 and 1
         //T dropletLength = droplet->getVolume() / (network->getChannel(channelId))->getVolume();
-        T dropletLength = droplet->getVolume() / (network->getChannel(channelId))->getArea();
+        T vol = droplet->getVolume();
+        T cross_sec = (network->getChannel(channelId))->getArea();
+        T dropletLength = droplet->getVolume() / ((network->getChannel(channelId))->getArea());
+        std::cout << "Channel Cross section " << cross_sec << std::endl;
+        std::cout << "droplet Volume " << vol << std::endl;
+        std::cout << "droplet length " << dropletLength << std::endl;
+        std::cout << "channel length " << len << std::endl; 
         //channel must be able to fully contain the droplet
-        if (dropletLength >= 1.0) {
+        if (dropletLength >= len) {
             //throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel " + std::to_string(channel->getId()) + " is not valid. Channel must be able to fully contain the droplet.");
             throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel is not valid. Channel must be able to fully contain the droplet.");
         }
@@ -168,7 +175,7 @@ namespace sim {
         T tail = (injectionPosition - dropletLength / 2);
         T head = (injectionPosition + dropletLength / 2);
         // tail and head must not be outside the channel (can happen when the droplet is injected at the beginning or end of the channel)
-        if (tail < 0 || head > 1.0) {
+        if (tail < 0 || head > len) {
             throw std::invalid_argument("Injection of droplet " + droplet->getName() + " is not valid. Tail and head of the droplet must lie inside the channel. Consider to set the injection position in the middle of the channel.");
         }
 
@@ -1239,7 +1246,8 @@ namespace sim {
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
         std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
         std::unordered_map<int, int> filledEdges;
-        //std::unordered_map<int, T> saveDropletResistances;
+        std::unordered_map<int, T> saveRelativeVelocities;
+        std::unordered_map<int, T> saveDropletLengths;
 
         // pressures
         for (auto& [id, node] : network->getNodes()) {
@@ -1266,10 +1274,6 @@ namespace sim {
         if (platform == Platform::BigDroplet) {
             for (auto& [id, droplet] : droplets) {
 
-                // DropletResistances
-                //saveDropletResistances.try_emplace(droplet->getId(), droplet->getDropletResistance());
-
-
                 // create new droplet position
                 DropletPosition<T> newDropletPosition;
 
@@ -1290,7 +1294,23 @@ namespace sim {
                 saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
             }
         }
-        
+        // relative velocities
+        if (platform == Platform::BigDroplet) {
+            for (auto& [id, droplet] : droplets) { 
+                T relVel;
+                T drop_Len;
+                if (!droplet->isInsideSingleChannel()) {
+                    continue;
+                }
+                for (auto& boundary : droplet->getBoundaries()) {
+                    auto Ch = boundary->getChannelPosition().getChannel();
+                    relVel = resistanceModel->getRelativeDropletVelocity(Ch, droplet.get()); 
+                    drop_Len = resistanceModel->getDropletLength(Ch, droplet.get());
+                }
+                saveRelativeVelocities.try_emplace(droplet->getId(), relVel);
+                saveDropletLengths.try_emplace(droplet->getId(), drop_Len);
+            }
+        }
         // mixture positions
         if (platform == Platform::Mixing || platform == Platform::Membrane) {
             // Add a mixture position for all filled edges
@@ -1325,7 +1345,7 @@ namespace sim {
                 simulationResult->addState(time, savePressures, saveFlowRates, vtkFiles);
             }
         } else if (platform == Platform::BigDroplet) {
-            simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions);
+            simulationResult->addState(time, savePressures, saveFlowRates, saveDropletPositions, saveRelativeVelocities, saveDropletLengths);
         } else if (platform == Platform::Mixing || platform == Platform::Membrane) {
             simulationResult->addState(time, savePressures, saveFlowRates, saveMixturePositions);
         }

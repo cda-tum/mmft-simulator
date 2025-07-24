@@ -107,7 +107,7 @@ namespace arch {
     }
 
     template<typename T>
-    void Channel<T>::addDropletResistance(T dropletResistance) {
+    void Channel<T>::addDropletResistance(T dropletResistance) {                 //why add drplet resistance? why not get droplet resistance?
         this->dropletResistance += dropletResistance;
     }
 
@@ -140,7 +140,7 @@ namespace arch {
     T Channel<T>::getVolume() const {
         return getArea() * length;
     }
-
+    
     template<typename T>
     T Channel<T>::getResistance() const {
         return channelResistance + dropletResistance;

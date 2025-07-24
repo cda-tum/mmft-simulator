@@ -48,6 +48,10 @@ struct State {
     std::unordered_map<int, sim::DropletPosition<T>> dropletPositions;  ///< Only contains the position of droplets that are currently inside the network (key is the droplet id).
     std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the channel id).
     std::unordered_map<int, int> filledEdges;                           ///< Contains the mixture ids that fill the edges of the network <EdgeID, MixtureID>
+    std::unordered_map<int, T> relativeVelocities;                  ///<dropletId, RelativeVelocity>
+    std::unordered_map<int, T>dropletLengths;                        ///<dropletId, dropletLength>
+
+    //std::unordered_map<int, T> dropletResistances;                      ///< Contains Resistances of each droplet in the network <DroplteId, DropletResistance>
 
     /**
      * @brief Constructs a state, which represent a time step during a simulation.
@@ -90,6 +94,29 @@ struct State {
      * @param[in] time Value of the current time step.
      * @param[in] pressures The pressure values at the nodes at the current time step.
      * @param[in] flowRates The flowRate values at the nodes at the current time step.
+     * @param[in] dropletPositions The positions of the droplets at the current time step.
+     * @param[in] relativeVelocities The resistances of the droplets at the current time step.
+     */
+    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities);
+
+    /**
+     * @brief Constructs a state, which represent a time step during a simulation.
+     * @param[in] id Id of the state
+     * @param[in] time Value of the current time step.
+     * @param[in] pressures The pressure values at the nodes at the current time step.
+     * @param[in] flowRates The flowRate values at the nodes at the current time step.
+     * @param[in] dropletPositions The positions of the droplets at the current time step.
+     * @param[in] relativeVelocities The resistances of the droplets at the current time step.
+     * @param[in] dropletLengths The droplet lengths at the current time step.
+     */
+    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T> dropletLengths);
+
+    /**
+     * @brief Constructs a state, which represent a time step during a simulation.
+     * @param[in] id Id of the state
+     * @param[in] time Value of the current time step.
+     * @param[in] pressures The pressure values at the nodes at the current time step.
+     * @param[in] flowRates The flowRate values at the nodes at the current time step.
      * @param[in] mixturePositions The positions of the mixtures at the current time step.
      */
     State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
@@ -125,6 +152,19 @@ struct State {
     std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& getMixturePositions();
 
     /**
+     * @brief Function to get the droplet velocity to continuous phase velocity ratio of this state.
+     * @return relativeVelocities.
+     */
+    std::unordered_map<int, T>& getRelativeVelocities();
+
+    /**
+     * @brief Function to get the droplet lengths of this state.
+     * @return dropletLengths.
+     */
+    std::unordered_map<int, T>& getDropletLengths();
+
+
+    /**
      * @brief Function to get the time of a state.
      * @return Time in s.
      */
@@ -148,7 +188,7 @@ struct SimulationResult {
     std::unordered_map<int, sim::Specie<T>>* species;
     std::unordered_map<int, int> filledEdges;
     std::vector<std::unique_ptr<State<T>>> states;                  /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
-
+    
     int continuousPhaseId;              /// Fluid id which served as the continuous phase.
     T maximalAdaptiveTimeStep;     /// Value for the maximal adaptive time step that was used.
     int resistanceModel;                /// Id of the used resistance model.
@@ -190,13 +230,26 @@ struct SimulationResult {
      * @brief Adds a state to the simulation results.
      * @param[in] state
     */
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities);
+    
+    /**
+     * @brief Adds a state to the simulation results.
+     * @param[in] state
+    */
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T> dropletLengths);
+
+
+    /**
+     * @brief Adds a state to the simulation results.
+     * @param[in] state
+    */
     void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
      * @brief Get the simulated flowrates in the channels.
      * @return Vector of flowrate values
      */
-    const std::unordered_map<int, T>& getFinalMixturePositions() const;
+    const std::unordered_map<int, T>& getFinalMixturePositions() const;    //looks like this function is unused os far
 
     /**
      * @brief Get the simulated states that were stored during simulation.
@@ -205,6 +258,7 @@ struct SimulationResult {
     const std::vector<std::unique_ptr<State<T>>>& getStates() const;
 
     /**
+    
      * @brief Print all the states that were stored during simulation.
     */
     const void printStates() const;

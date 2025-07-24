@@ -22,6 +22,14 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_), filledEdges(filledEdges_) { }
 
 template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions_, std::unordered_map<int, T>relativeVelocities_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_), relativeVelocities(relativeVelocities_) { }
+
+template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions_, std::unordered_map<int, T>relativeVelocities_, std::unordered_map<int, T>dropletLengths_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_), relativeVelocities(relativeVelocities_), dropletLengths(dropletLengths_) { }
+
+template<typename T>
 const std::unordered_map<int, T>& State<T>::getPressures() const {
     return pressures;
 }
@@ -39,6 +47,16 @@ const std::unordered_map<int, std::string>& State<T>::getVtkFiles() const {
 template<typename T>
 std::unordered_map<int, sim::DropletPosition<T>>& State<T>::getDropletPositions() {
     return dropletPositions;
+}
+
+template<typename T>
+std::unordered_map<int, T>& State<T>::getRelativeVelocities() {
+    return relativeVelocities;
+}
+
+template<typename T>
+std::unordered_map<int, T>& State<T>::getDropletLengths() {
+    return dropletLengths;
 }
 
 template<typename T>
@@ -101,6 +119,20 @@ const void State<T>::printState() {
         }
         std::cout << "\n";
     }
+    //print the relative velocities
+    if(!relativeVelocities.empty()) {
+        for (auto& [dropletId, relativeVelocity] : relativeVelocities) {
+            std::cout << "\t[Result] for Droplet " << dropletId << " the relative velocity of droplet and continuous phase is " << relativeVelocity << "\n";
+        }
+        std::cout << "\n";
+    }
+    //print the droplet lengths
+    if(!dropletLengths.empty()) {
+        for (auto& [dropletId, dropletLength] : dropletLengths) {
+            std::cout << "\t[Result] for Droplet " << dropletId << " the droplet length is " << dropletLength << "\n";
+        }
+        std::cout << "\n";
+    }
 }
 
 template<typename T>
@@ -130,6 +162,20 @@ template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions) {
     int id = states.size();
     std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, dropletPositions);
+    states.push_back(std::move(newState));
+}
+
+template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities) {
+    int id = states.size();
+    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, dropletPositions, relativeVelocities);
+    states.push_back(std::move(newState));
+}
+
+template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T>dropletLengths) {
+    int id = states.size();
+    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, dropletPositions, relativeVelocities, dropletLengths);
     states.push_back(std::move(newState));
 }
 
