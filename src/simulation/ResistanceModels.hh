@@ -87,8 +87,6 @@ T ResistanceModelPoiseuille<T>::getRelativeDropletVelocity(arch::RectangularChan
     throw std::invalid_argument("The resistance model is not compatible with droplet simulations.");
 }
 
-
-
 //Resistance model PlanarPoiseuille : for poiseuille flow in rectangular channel 
 template<typename T>
 ResistanceModelPlanarPoiseuille<T>::ResistanceModelPlanarPoiseuille(T continuousPhaseViscosity_) : ResistanceModel<T>(continuousPhaseViscosity_) {}
