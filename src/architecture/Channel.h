@@ -188,18 +188,7 @@ class Channel : public Edge<T>{
          * @returns What kind of channel it is.
          */
         ChannelType getChannelType() const;
-        
-        /**
-        * @brief sets Ca i.e. Capillary number
-        * @param[in] Ca_ capillary number to be set
-        */
-        //void setCa(T Ca_);
 
-        /**
-        * @brief gets the capillary number of the channel
-        * @return the Ca i.e. capillary number of the channel
-        */
-        //T getCa() const;
 };
 
 template<typename T>
@@ -262,25 +251,12 @@ class RectangularChannel : public Channel<T> {
          */
         T getArea() const override;
 
-                /**
-        * @brief sets Ca i.e. Capillary number
-        * @param[in] Ca_ capillary number to be set
-        */
-        //void setCa(T Ca_);
-
-        /**
-        * @brief gets the capillary number of the channel
-        * @return the Ca i.e. capillary number of the channel
-        */
-        //T getCa() const;
-
 };
 
 template<typename T>
 class CylindricalChannel : public Channel<T> {
     private:
         T radius;                                       ///< Radius of a channel in m.
-        //T Ca;                                           ///< Capillary number (dimensionless)
 
     public:
         /**
@@ -310,16 +286,5 @@ class CylindricalChannel : public Channel<T> {
          */
         T getArea() const override;
 
-                /**
-        * @brief sets Ca i.e. Capillary number
-        * @param[in] Ca_ capillary number to be set
-        */
-        //void setCa(T Ca_);
-
-        /**
-        * @brief gets the capillary number of the channel
-        * @return the Ca i.e. capillary number of the channel
-        */
-        //T getCa() const;
 };
 }  // namespace arch

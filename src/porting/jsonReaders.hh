@@ -26,12 +26,10 @@ void readNodes(json jsonString, arch::Network<T>& network) {
                     network.setSink(addedNode->getId());
                 }
             }
-            //std::cout<< "node" << nodeId << "added" <<std::endl;
             nodeId++;
         }
     }
     network.setVirtualNodes(virtualNodes);
-    //std::cout<< "nodes okk" <<std::endl;
 }
 
 template<typename T>
@@ -47,9 +45,7 @@ void readChannels(json jsonString, arch::Network<T>& network) {
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
             int thisChannelId = channel.contains("id") ? int(channel["id"]) : channelId;                                                      //if JSON file does not include channel id then channel id counter from the function is used to initialize the channels.
-            //std::cout << "In readChannels, network pointer = " << &network << std::endl;                                                      //prints network pointer
             network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, thisChannelId);
-            //std::cout << "Channel"<< thisChannelId << "added" <<std::endl;    
             channelId++;
         }
     }

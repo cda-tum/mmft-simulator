@@ -6,7 +6,6 @@ template<typename T>
 DropletInjection<T>::DropletInjection(int id, Droplet<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition) : id(id), droplet(droplet), injectionTime(injectionTime), injectionPosition(arch::ChannelPosition<T>(channel, injectionPosition)) { }
 
 
-
 template<typename T>
 void DropletInjection<T>::setName(std::string name) {
     name = std::move(name);

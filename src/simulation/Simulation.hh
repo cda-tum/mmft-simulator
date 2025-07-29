@@ -157,7 +157,6 @@ namespace sim {
         // --- check if injection is valid ---
         // for the injection the head and tail of the droplet must lie inside the channel (the volume of the droplet must be small enough)
         // the droplet length is a relative value between 0 and 1
-        //T dropletLength = droplet->getVolume() / (network->getChannel(channelId))->getVolume();
         T vol = droplet->getVolume();
         T cross_sec = (network->getChannel(channelId))->getArea();
         T dropletLength = droplet->getVolume() / ((network->getChannel(channelId))->getArea());
@@ -167,7 +166,6 @@ namespace sim {
         std::cout << "channel length " << len << std::endl; 
         //channel must be able to fully contain the droplet
         if (dropletLength >= len) {
-            //throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel " + std::to_string(channel->getId()) + " is not valid. Channel must be able to fully contain the droplet.");
             throw std::invalid_argument("Injection of droplet " + droplet->getName() + " into channel is not valid. Channel must be able to fully contain the droplet.");
         }
         

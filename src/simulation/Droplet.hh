@@ -36,7 +36,6 @@ void Droplet<T>::setDropletState(DropletState dropletState) {
 template<typename T>
 void Droplet<T>::setCa(T Ca) {
     this->Ca = Ca;
-    std::cout<< "Ca read successfully" <<std::endl; 
 }
 
 template<typename T>

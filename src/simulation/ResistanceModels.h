@@ -261,7 +261,7 @@ class ResistanceModelPlanarPoiseuille : public ResistanceModel<T>{
     T getRelativeDropletVelocity(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet) const override;
 
     /**
-    * @brief Compute the relative velocity of a droplet and uniform flow in a rectangular channel.
+    * @brief Compute the the length of the droplet.
     * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
     * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
     */
@@ -327,12 +327,17 @@ class ResistanceModelCylindricalPoiseuille : public ResistanceModel<T>{
     T computeDropletResistance_cyl(T lambda, T dropletviscosity, T droplet_length, T channelradius, T uniform_H) const;  
 
     /**
-    * @brief Compute the relative velocity of a droplet and uniform flow in a rectangular channel.
+    * @brief Compute the relative velocity of a droplet and uniform flow in a cylindrical channel.
     * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
     * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
     */
     T getRelativeDropletVelocity(arch::CylindricalChannel<T> const* const channel, Droplet<T>* droplet) const override;  
     
+    /**
+    * @brief Compute the the length of the droplet.
+    * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
+    * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
+    */
     T getDropletLength(arch::CylindricalChannel<T> const* const channel, Droplet<T>* droplet) const override;
 
 };

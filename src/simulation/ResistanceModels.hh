@@ -93,11 +93,9 @@ ResistanceModelPlanarPoiseuille<T>::ResistanceModelPlanarPoiseuille(T continuous
 
 template<typename T>
 T ResistanceModelPlanarPoiseuille<T>::getChannelResistance(arch::RectangularChannel<T> const* const channel) const{
-    std::cout<< "correct function found" << std::endl;
     T h = channel->getHeight();
     T w = channel->getWidth();
     if (h==w){
-        std::cout<<"square case initiated" <<std::endl;
         T r_hydro = (w * h) /(w + h);
         return (8.0 * this->continuousPhaseViscosity * channel->getLength())/(M_PI * pow(r_hydro, 4.0));
         
@@ -125,7 +123,6 @@ T ResistanceModelPlanarPoiseuille<T>::computeFactorA(arch::RectangularChannel<T>
 
 template<typename T>
 T ResistanceModelPlanarPoiseuille<T>::getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const{
-    std::cout<< "droplet resistance calculation initiated" <<std::endl;
     T h = channel->getHeight();
     T w = channel->getWidth();
     T r_hydro;
@@ -139,10 +136,8 @@ T ResistanceModelPlanarPoiseuille<T>::getDropletResistance(arch::RectangularChan
     T H_inf = computeH_inf_rect(dynamicViscosity, Ca_inf, r_hydro);
     T droplet_radius= r_hydro - H_inf;
     T droplet_length = volumeInsideChannel / (channel->getHeight() * channel->getWidth());
-    //T continuousResistance = computeContinuousPhaseResistance_rect(this->continuousPhaseViscosity, droplet_length, channel->getWidth(), channel->getHeight());
 
     T dropletResistance = computeDropletResistance_rect(dynamicViscosity, droplet->getViscosity(), droplet_length, r_hydro, H_inf);
-    //T netResistance = dropletResistance - continuousResistance
     //if (dropletResistance < 0.0) {
         std::cout << "droplet length: \t" << droplet_length << std::endl;
         std::cout << "volume inside channel: \t" << volumeInsideChannel << std::endl;
@@ -152,7 +147,8 @@ T ResistanceModelPlanarPoiseuille<T>::getDropletResistance(arch::RectangularChan
         std::cout << "channel width: \t" << channel->getWidth() << std::endl;
         std::cout << "uniform thick film: \t" << H_inf << std::endl;
         //throw std::invalid_argument("Negative droplet resistance. Droplet " + std::to_string(droplet->getId()) + " has a resistance of " + std::to_string(dropletResistance));
-    //}
+    //} 
+    //somehow this was throwing an error need to vheckout in detail
 
     if (dropletResistance < 0.0 || std::isnan(dropletResistance) || std::isinf(dropletResistance)) {
         throw std::invalid_argument(
@@ -161,14 +157,7 @@ T ResistanceModelPlanarPoiseuille<T>::getDropletResistance(arch::RectangularChan
             " has resistance = " + std::to_string(dropletResistance));
     }
     return dropletResistance;
-    /**if (netResistance < 0.0 || std::isnan(netResistance) || std::isinf(netResistance)) {
-        throw std::invalid_argument(
-            "Invalid droplet resistance: Droplet " +
-            std::to_string(droplet->getId()) +
-            " has resistance = " + std::to_string(dropletResistance));
-    }
-    return netResistance;
-    */
+    
 }
 
 template<typename T>
@@ -192,17 +181,17 @@ T ResistanceModelPlanarPoiseuille<T>::getRelativeDropletVelocity(arch::Rectangul
     return relative_velocity;
 }
 
-//template<typename T>
-//T ResistanceModelPoiseuille<T>::computeContinuousPhaseResistance_rect(T viscosity, T droplet_length, T channel_width, T channel_height) const {
-//    T resistance = (12.0 * viscosity * droplet_length) / (channel_width * pow(channel_height, 3));
+/** 
+template<typename T>
+T ResistanceModelPoiseuille<T>::computeContinuousPhaseResistance_rect(T viscosity, T droplet_length, T channel_width, T channel_height) const {
+    T resistance = (12.0 * viscosity * droplet_length) / (channel_width * pow(channel_height, 3));
 
-//    return resistance;
-//}
+    return resistance;
+}
+*/
 
 template<typename T>
 T ResistanceModelPlanarPoiseuille<T>::computeH_inf_rect(T lambda, T Ca, T radius) const {
-    std::cout << "H_inf being computed" << std::endl;  
-    std::cout<< "lambda = " <<lambda<<std::endl;
 
     // Compute P_bar(lambda)
     T P_bar= (0.643 / 2.0) * (1 + pow(2.0, 2.0/3.0) +
@@ -214,34 +203,23 @@ T ResistanceModelPlanarPoiseuille<T>::computeH_inf_rect(T lambda, T Ca, T radius
     T num = c1 + (c2*lambda) + (c3*pow(lambda, 2.0)) + (c4*pow(lambda, 3.0));
     T den = d1 + (d2*lambda) + (d3*pow(lambda, 2.0)) + (pow(lambda, 3.0));
     T Q = num/den;
-    std::cout<<"Q = " << Q <<std::endl;
     T H;
 
     // Compute H_inf / R
     T Ca_= pow(3.0 * Ca, 2.0/3.0);
-    std::cout<< "Ca_ = "<< Ca_<< std::endl;
-
     if (Ca < 1e-3){
         H = P_bar * Ca_ * radius;
-        std::cout<< "Ca<1e-3; H = "<< H << std::endl;
     } else if ((Ca >= 1e-3) && (Ca <=1.0)){
         H = ((P_bar * Ca_ ) / (1 + (P_bar * Q * Ca_))) * radius;
-        std::cout<< "Ca>01e-3; H = "<< H << std::endl;
     }
-    std::cout<< "H being returned =" << H << std::endl;
     return H;
 }
 
 template<typename T>
 T ResistanceModelPlanarPoiseuille<T>::computeDropletResistance_rect(T lambda, T dropletviscosity, T droplet_length, T channelradius, T uniform_H) const{
-    std::cout<< "compute droplet resistance initiated" <<std::endl;
     T num = 3.0 * dropletviscosity * droplet_length;
-    std::cout << "num = "<< num <<std::endl;
-    //T den = uniform_H * ((2.0 * pow(channelradius, 2.0)) -  ((4.0 - (3.0 * lambda)) * uniform_H * channelradius) + (2.0 * (1.0 - lambda) * pow(uniform_H, 2.0)));
     T den = uniform_H * channelradius * ((2.0 * channelradius) -  ((4.0 - (3.0 * lambda)) * uniform_H)); 
-    std::cout << "den = "<< den <<std::endl;
     T result = num/den;
-    std::cout<< "droplet resistance being returned = "<<result<<std::endl;
     return result;
 }
 
@@ -272,10 +250,8 @@ T ResistanceModelCylindricalPoiseuille<T>::getDropletResistance(arch::Cylindrica
     T H_inf = computeH_inf_cyl(dynamicViscosity, Ca_inf, channel->getRadius());
     T droplet_radius = channel->getRadius() - H_inf; 
     T dropletLength = volumeInsideChannel / (M_PI * droplet_radius * droplet_radius);
-    //T continuousPhaseResistance_deduct = computeContinuousPhaseResistance_cyl(this->continuousPhaseViscosity, dropletLength, channel->getRadius());
     T dropletResistance = computeDropletResistance_cyl(dynamicViscosity, droplet->getViscosity(), dropletLength, channel->getRadius(), H_inf);
 
-    //T total_channel_resistance = dropletResistance - continuousPhaseResistance_deduct;
 
     //if(dropletResistance < 0.0){
         std::cout << "droplet length: \t" << dropletLength << std::endl;
@@ -295,15 +271,7 @@ T ResistanceModelCylindricalPoiseuille<T>::getDropletResistance(arch::Cylindrica
     }
 
     return dropletResistance;
-    /** 
-    if (dropletResistance < 0.0 ) {
-        throw std::invalid_argument(
-            "Invalid droplet resistance: Droplet " +
-            std::to_string(droplet->getId()) +
-            " has resistance = " + std::to_string(dropletResistance));
-    }
-    return total_channel_resistance;
-    */
+   
 }
 
 template<typename T>

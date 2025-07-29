@@ -559,7 +559,7 @@ template<typename T>
 RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
     auto Ch = channels.at(channelId_).get();
    
-    return Ch;
+    return Ch; //couldnot return in a single statement because there was a strange error here.
 }                                    
 
 template<typename T>

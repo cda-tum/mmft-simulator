@@ -4,8 +4,6 @@
 #include <iostream>
 #include <type_traits>
 
-
-
 namespace sim{
 
     template<typename T>

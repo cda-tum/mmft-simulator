@@ -107,14 +107,10 @@ namespace arch {
     }
 
     template<typename T>
-    void Channel<T>::addDropletResistance(T dropletResistance) {                 //why add drplet resistance? why not get droplet resistance?
+    void Channel<T>::addDropletResistance(T dropletResistance) {                 
         this->dropletResistance += dropletResistance;
     }
 
-    //template<typename T>
-    //void Channel<T>::setCa(T Ca_) {
-     //   this->Ca = Ca_;
-    //}
 
     template<typename T>
     void Channel<T>::setChannelType(ChannelType type_) {
@@ -145,11 +141,6 @@ namespace arch {
     T Channel<T>::getResistance() const {
         return channelResistance + dropletResistance;
     }
-
-    //template<typename T>
-    //T Channel<T>::getCa() const {
-      //  return Ca;
-    //}
 
     template<typename T>
     ChannelShape Channel<T>::getChannelShape() const {
@@ -234,18 +225,6 @@ namespace arch {
     T CylindricalChannel<T>::getArea() const {
         return M_PI * radius * radius;
     }
-
-    //template<typename T>
-    //void CylindricalChannel<T>::setCa(T Ca_) {
-      //  this->Ca = Ca_;
-    //}
-
-    //template<typename T>
-    //T CylindricalChannel<T>::getCa() const {
-      //  return Ca;
-    //}
-
-   
 
 
 }   // namespace arch
