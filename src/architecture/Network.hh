@@ -557,8 +557,10 @@ std::set<std::shared_ptr<Node<T>>> Network<T>::getGroundNodes() const {
 
 template<typename T>
 RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
-    return channels.at(channelId_).get();
-}
+    auto Ch = channels.at(channelId_).get();
+   
+    return Ch; //couldnot return in a single statement because there was a strange error here.
+}                                    
 
 template<typename T>
 PressurePump<T>* Network<T>::getPressurePump(int pumpId_) const {

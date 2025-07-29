@@ -8,8 +8,15 @@ DropletPosition<T>::DropletPosition() { }
 ///-----------------------------Droplet------------------------------------///
 
 template<typename T>
-Droplet<T>::Droplet(int id, T volume, Fluid<T>* fluid) : 
-    id(id), volume(volume), fluid(fluid) { }
+Droplet<T>::Droplet(int id, T volume, Fluid<T>* fluid, T Ca)
+  : id(id), volume(volume), fluid(fluid), Ca(Ca), isCaSet(true) {}
+
+template<typename T>
+Droplet<T>::Droplet(int id, T volume, Fluid<T>* fluid)
+  : Droplet(id, volume, fluid, static_cast<T>(0.0)) {
+  isCaSet = false;
+}
+
 
 template<typename T>
 void Droplet<T>::setVolume(T volume) {
@@ -24,6 +31,16 @@ void Droplet<T>::setName(std::string name) {
 template<typename T>
 void Droplet<T>::setDropletState(DropletState dropletState) {
     this->dropletState = dropletState;
+}
+
+template<typename T>
+void Droplet<T>::setCa(T Ca) {
+    this->Ca = Ca;
+}
+
+template<typename T>
+T Droplet<T>::getCa() const {
+    return Ca;
 }
 
 template<typename T>
@@ -49,6 +66,12 @@ DropletState Droplet<T>::getDropletState() const {
 template<typename T>
 const Fluid<T>* Droplet<T>::getFluid() const {
     return fluid;
+}
+
+template<typename T> 
+T Droplet<T>::getViscosity() const{
+    T visc = fluid->getViscosity();
+    return visc;
 }
 
 template<typename T>

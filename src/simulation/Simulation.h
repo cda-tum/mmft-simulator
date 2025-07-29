@@ -126,7 +126,7 @@ enum class Platform {
 };
 
 /**
- * @brief Class that conducts the simulation and owns all parameters necessary for it.
+ * @brief Class that conducts the simulation and owns all parameters necessary for it
  */
 template<typename T>
 class Simulation {
@@ -227,7 +227,7 @@ public:
      * @param[in] volume Volume of the fluid in m^3.
      * @return Pointer to created droplet.
      */
-    Droplet<T>* addDroplet(int fluidId, T volume);
+    Droplet<T>* addDroplet(int fluidId, T volume, T Ca_);
 
     /**
      * @brief Create specie.
@@ -537,6 +537,13 @@ public:
      * @return Pointer to droplet with the corresponding id
      */
     Droplet<T>* getDroplet(int dropletId);
+
+    /**
+     brief Get fluid.
+     param[in] fluidId Id of the fluid
+     return Pointer to fluid with the corresponding id
+     */
+    //std::unordered_map<int, std::unique_ptr<Droplet<T>>>& getDroplets();
 
     /**
      * @brief Gets droplet that is present at the corresponding node (i.e., the droplet spans over this node).

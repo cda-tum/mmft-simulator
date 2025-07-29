@@ -44,10 +44,12 @@ void readChannels(json jsonString, arch::Network<T>& network) {
                 throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
-            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            int thisChannelId = channel.contains("id") ? int(channel["id"]) : channelId;                                                      //if JSON file does not include channel id then channel id counter from the function is used to initialize the channels.
+            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, thisChannelId);
             channelId++;
         }
     }
+    std::cout<< "Channels okk" <<std::endl;
 }
 
 template<typename T>
@@ -69,7 +71,7 @@ void readModules(json jsonString, arch::Network<T>& network) {
 template<typename T>
 sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     sim::Platform platform = sim::Platform::Continuous;
-    if (!jsonString["simulation"].contains("platform")) {
+   if (!jsonString["simulation"].contains("platform")) {
         throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     if (jsonString["simulation"]["platform"] == "Continuous") {
@@ -86,6 +88,9 @@ sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     simulation.setPlatform(platform);
     return platform;
 } 
+
+
+
 
 template<typename T>
 sim::Type readType(json jsonString, sim::Simulation<T>& simulation) {
@@ -132,6 +137,13 @@ void readDroplets(json jsonString, sim::Simulation<T>& simulation) {
             int fluid = droplet["fluid"];
             T volume = droplet["volume"];
             auto newDroplet = simulation.addDroplet(fluid, volume);
+
+            // Optional: Set Capillary number if present
+            if (droplet.contains("Ca")) {
+                T Ca = droplet["Ca"];
+                newDroplet->setCa(Ca);  
+                
+            }
         } else {
             throw std::invalid_argument("Wrongly defined droplet. Please provide following information for droplets:\nfluid\nvolume");
         }
@@ -213,7 +225,8 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
             int fluid = injection["fluid"];
             T volume = injection["volume"];
-            auto newDroplet = simulation.addDroplet(fluid, volume);
+            T Ca = injection["Ca"];
+            auto newDroplet = simulation.addDroplet(fluid, volume, Ca);
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
             T injectionPosition = injection["pos"];
@@ -412,8 +425,8 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     if (jsonString["simulation"].contains("resistanceModel")) {
         if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
-        } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
-            resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+        } else if (jsonString["simulation"]["resistanceModel"] == "PlanarPoiseuille") {
+            resistanceModel = new sim::ResistanceModelPlanarPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
             throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }

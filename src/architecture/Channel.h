@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <unordered_map>
-#include <vector>
+#include <vector> 
 
 namespace arch{
 
@@ -80,8 +80,7 @@ class Channel : public Edge<T>{
         T channelResistance = 0;                    ///< Resistance of a channel in Pas/L.
         T dropletResistance = 0;                    ///< Additional resistance of present droplets in the channel in Pas/L.
         ChannelShape shape = ChannelShape::NONE;    ///< The cross-section shape of this channel is rectangular.
-        ChannelType type = ChannelType::NORMAL;     ///< What kind of channel it is.
-        
+        ChannelType type = ChannelType::NORMAL;     ///< What kind of channel it is.       
         std::vector<std::unique_ptr<Line_segment<T,2>>> line_segments;      ///< Straight line segments in the channel.
         std::vector<std::unique_ptr<Arc<T,2>>> arcs;                        ///< Arcs in the channel.
 
@@ -189,14 +188,14 @@ class Channel : public Edge<T>{
          * @returns What kind of channel it is.
          */
         ChannelType getChannelType() const;
+
 };
 
 template<typename T>
 class RectangularChannel : public Channel<T> {
     private:
         T width;                                        ///< Width of a channel in m.
-        T height;                                       ///< Height of a channel in m.
-    
+        T height;                                       ///< Height of a channel in m.    
     public:
         /**
          * @brief Constructor of a channel with rectangular cross-section
@@ -251,6 +250,7 @@ class RectangularChannel : public Channel<T> {
          * @returns Area in m^2.
          */
         T getArea() const override;
+
 };
 
 template<typename T>
@@ -285,6 +285,6 @@ class CylindricalChannel : public Channel<T> {
          * @returns Area in m^2.
          */
         T getArea() const override;
-};
 
-}   // namespace arch
+};
+}  // namespace arch

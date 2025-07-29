@@ -82,7 +82,7 @@
 "simulation": {
     "platform": "BigDroplet",
     "type": "Abstract",
-    "resistanceModel": "Rectangular",
+    "resistanceModel": "Poiseuille",
     "fluids": [
         {	
             "name": "Water",
