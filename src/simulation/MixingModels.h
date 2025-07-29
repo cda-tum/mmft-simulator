@@ -36,6 +36,9 @@ template<typename T>
 class AbstractMixing;
 
 template<typename T>
+class AbstractMembrane;
+
+template<typename T>
 class Fluid;
 
 template<typename T>
@@ -235,7 +238,7 @@ public:
      * @param[in] network Pointer to the network of the simulation.
      * @param[in] mixtures Reference to collection containing all mixtures in the simulation
      */
-    void calculateMembraneExchange(T timeStep, AbstractMixing<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void calculateMembraneExchange(T timeStep, AbstractMembrane<T>* sim, arch::Network<T>* network, const std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Calculate and store the mixtures flowing into all nodes

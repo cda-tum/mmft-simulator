@@ -7,14 +7,8 @@
 using T = double;
 
 TEST(Hybrid, Case1a) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Hybrid);
-    testSimulation.setPlatform(sim::Platform::Continuous);
-
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
     
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -55,6 +49,9 @@ TEST(Hybrid, Case1a) {
     nodes.try_emplace(9, network.getNode(9));
 
     auto m0 = network.addModule(position, size, nodes);
+
+    // define simulation
+    sim::HybridContinuous<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -123,12 +120,12 @@ TEST(Hybrid, esstest) {
     arch::Network<float> network = porting::networkFromJSON<float>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<float> testSimulation = porting::simulationFromJSON<float>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<float>(file, &network);
 
     network.isNetworkValid();
 
     // Simulate
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     EXPECT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-2);
     EXPECT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-2);
@@ -161,12 +158,12 @@ TEST(Hybrid, Case1aJSON) {
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
 
     network.isNetworkValid();
     
     // Simulate
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     EXPECT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-2);
     EXPECT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-2);
@@ -196,12 +193,12 @@ std::string file = "../examples/Hybrid/Network2a.JSON";
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
     
     network.isNetworkValid();
 
     // Simulate
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     EXPECT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-2);
     EXPECT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-2);
@@ -226,18 +223,18 @@ std::string file = "../examples/Hybrid/Network2a.JSON";
 
 TEST(Hybrid, testCase3a) {
     
-        std::string file = "../examples/Hybrid/Network3a.JSON";
+    std::string file = "../examples/Hybrid/Network3a.JSON";
     
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
     
     network.isNetworkValid();
 
     // Simulate
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     EXPECT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-2);
     EXPECT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-2);
@@ -272,18 +269,18 @@ TEST(Hybrid, testCase3a) {
 
 TEST(Hybrid, testCase4a) {
     
-        std::string file = "../examples/Hybrid/Network4a.JSON";
+    std::string file = "../examples/Hybrid/Network4a.JSON";
     
     // Load and set the network from a JSON file
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
     
     network.isNetworkValid();
 
     // Simulate
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     EXPECT_NEAR(network.getNodes().at(0)->getPressure(), 0, 1e-2);
     EXPECT_NEAR(network.getNodes().at(1)->getPressure(), 1000, 1e-2);

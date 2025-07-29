@@ -475,7 +475,7 @@ void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, AbstractMixing
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, AbstractMixing<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, AbstractMembrane<T>* sim, arch::Network<T>* network, const std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto membrane : network->getMembranesAtNode(nodeId)) {
             auto* tank = membrane->getTank();

@@ -645,6 +645,9 @@ namespace sim {
     AbstractMixing<T>::AbstractMixing(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Mixing, network) { }
 
     template<typename T>
+    AbstractMixing<T>::AbstractMixing(Type type_, Platform platform_, arch::Network<T>* network) : Simulation<T>(type_, platform_, network) { }
+
+    template<typename T>
     Specie<T>* AbstractMixing<T>::addSpecie(T diffusivity, T satConc) {
         auto id = species.size();
         
@@ -842,7 +845,7 @@ namespace sim {
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<Mixture<T>>>& AbstractMixing<T>::getMixtures() const {
+    const std::unordered_map<int, std::unique_ptr<Mixture<T>>>& AbstractMixing<T>::getMixtures() const {
         return mixtures;
     }
 
@@ -852,7 +855,7 @@ namespace sim {
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<Specie<T>>>& AbstractMixing<T>::getSpecies() const {
+    const std::unordered_map<int, std::unique_ptr<Specie<T>>>& AbstractMixing<T>::getSpecies() const {
         return species;
     }
 
@@ -1024,7 +1027,7 @@ namespace sim {
      * ABSTRACT MEMBRANE
      */
     template<typename T>
-    AbstractMembrane<T>::AbstractMembrane(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Membrane, network) { }
+    AbstractMembrane<T>::AbstractMembrane(arch::Network<T>* network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) { }
 
     template<typename T>
     void AbstractMembrane<T>::setMembraneModel(MembraneModel<T>* model_) {
@@ -1055,7 +1058,7 @@ namespace sim {
         #ifdef VERBOSE
         std::cout << "Running Abstract Membrane simulation..." << std::endl;
         #endif
-        auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
+        auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->getMixingModel());
         if (!instantMixingModel) {
             throw std::logic_error { "Unable to run membrane simulation with non-instantaneous mixing" };
         }
@@ -1081,8 +1084,8 @@ namespace sim {
             }
 
             // compute internal minimal timestep and make sure that it is not too big to skip next save timepoint
-            auto timeToNextResult = this->getWriteInterval() - std::fmod(time, this->getWriteInterval());
-            calculateNewMixtures(this->getDt());
+            auto timeToNextResult = this->getWriteInterval() - std::fmod(this->getTime(), this->getWriteInterval());
+            this->calculateNewMixtures(this->getDt());
 
             // update minimal timestep and limit it so that the next time the state should be written is not overstepped
             instantMixingModel->fixedMinimalTimeStep(this->getNetwork());
@@ -1115,16 +1118,15 @@ namespace sim {
             }
 
             auto nextEventTime = nextEvent->getTime();
-            time += nextEventTime;
+            this->getTime() += nextEventTime;
             simulationResultTimeCounter -= nextEventTime;
             this->getDt() = nextEventTime;
 
             if (nextEventTime > 0.0) {
                 // move droplets until event is reached
-                moveDroplets(nextEventTime);
-
+                // moveDroplets(nextEventTime);
                 instantMixingModel->moveMixtures(this->getDt(), this->getNetwork());
-                instantMixingModel->calculateMembraneExchange(this->getDt(), this, this->getNetwork(), this->mixtures);
+                instantMixingModel->calculateMembraneExchange(this->getDt(), this, this->getNetwork(), this->getMixtures());
                 instantMixingModel->updateNodeInflow(this->getDt(), this->getNetwork());
             }
 
@@ -1134,7 +1136,7 @@ namespace sim {
             assert(nextEventTime >= 0.0);
             nextEvent->performEvent();
 
-            if (time >= this->getTMax()) {
+            if (this->getTime() >= this->getTMax()) {
                 break;
             }
 

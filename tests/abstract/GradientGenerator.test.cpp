@@ -44,7 +44,7 @@ TEST(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   arch::Network<T> network;
 
   // simulator last since it has non-owning references to other objects
-  sim::Simulation<T> sim;
+  sim::AbstractMembrane<T> sim(&network);
 
   // channel parameters
   auto cWidth = 300e-6;
@@ -108,7 +108,6 @@ TEST(GradientGenerator, GradientGeneratorSmall) { // Result 50%
 
   EXPECT_TRUE(network.isNetworkValid());
   network.sortGroups();
-  sim.setNetwork(&network);
 
   // fluids
   auto *waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3, 1.0);
@@ -130,8 +129,6 @@ TEST(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   sim.setMixingModel(&mixingModel);
   sim.setResistanceModel(&resistanceModel);
   sim.setMembraneModel(&membraneModel);
-  sim.setType(sim::Type::Abstract);
-  sim.setPlatform(sim::Platform::Membrane);
 
   // simulate the microfluidic network
   sim.simulate();
@@ -177,7 +174,7 @@ TEST(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 
   sim::MembraneModel9<T> membraneModel;
   arch::Network<T> network;
 
-  sim::Simulation<T> sim; // simulator last since it has non-owning references to other
+  sim::AbstractMembrane<T> sim(&network); // simulator last since it has non-owning references to other
                           // objects
 
   // channels
@@ -241,7 +238,6 @@ TEST(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 
 
   EXPECT_TRUE(network.isNetworkValid());
   network.sortGroups();
-  sim.setNetwork(&network);
 
   // fluids
   auto *waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3, 1.0);
@@ -263,8 +259,6 @@ TEST(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 
   sim.setMixingModel(&mixingModel);
   sim.setResistanceModel(&resistanceModel);
   sim.setMembraneModel(&membraneModel);
-  sim.setType(sim::Type::Abstract);
-  sim.setPlatform(sim::Platform::Membrane);
 
   // simulate the microfluidic network
   sim.simulate();
@@ -309,7 +303,7 @@ TEST(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.64%
   sim::MembraneModel9<T> membraneModel;
   arch::Network<T> network;
 
-  sim::Simulation<T> sim; // simulator last since it has non-owning references to other objects
+  sim::AbstractMembrane<T> sim(&network); // simulator last since it has non-owning references to other objects
 
   // channels parameters
   auto cWidth = 300e-6;
@@ -442,7 +436,6 @@ TEST(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.64%
 
   EXPECT_TRUE(network.isNetworkValid());
   network.sortGroups();
-  sim.setNetwork(&network);
 
   // fluids
   auto *waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3, 1.0 /* molecular size: 9e-10*/);
@@ -464,8 +457,6 @@ TEST(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.64%
   sim.setMixingModel(&mixingModel);
   sim.setResistanceModel(&resistanceModel);
   sim.setMembraneModel(&membraneModel);
-  sim.setType(sim::Type::Abstract);
-  sim.setPlatform(sim::Platform::Membrane);
 
   // simulate the microfluidic network
   sim.simulate();

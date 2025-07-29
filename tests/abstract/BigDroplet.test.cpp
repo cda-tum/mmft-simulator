@@ -7,14 +7,9 @@
 using T = double;
 
 TEST(BigDroplet, allResultValues) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Abstract);
-    testSimulation.setPlatform(sim::Platform::BigDroplet);
 
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -44,6 +39,9 @@ TEST(BigDroplet, allResultValues) {
     network.setSink(node0->getId());
     //--- ground ---
     network.setGround(node0->getId());
+
+    // define simulation
+    sim::AbstractDroplet<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -282,14 +280,8 @@ TEST(BigDroplet, allResultValues) {
 }
 
 TEST(BigDroplet, inverseDirectionChannels) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Abstract);
-    testSimulation.setPlatform(sim::Platform::BigDroplet);
-
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -319,6 +311,9 @@ TEST(BigDroplet, inverseDirectionChannels) {
     network.setSink(node0->getId());
     //--- ground ---
     network.setGround(node0->getId());
+
+    // define simulation
+    sim::AbstractDroplet<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -494,14 +489,8 @@ TEST(BigDroplet, inverseDirectionChannels) {
 }
 
 TEST(BigDroplet, mixedDirectionChannels) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Abstract);
-    testSimulation.setPlatform(sim::Platform::BigDroplet);
-
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -531,6 +520,9 @@ TEST(BigDroplet, mixedDirectionChannels) {
     network.setSink(node0->getId());
     //--- ground ---
     network.setGround(node0->getId());
+
+    // define simulation
+    sim::AbstractDroplet<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -712,16 +704,16 @@ TEST(BigDroplet, jsonDefinition) {
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
    
     network.sortGroups();
     network.isNetworkValid();
 
     // Perform simulation and store results
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation->getSimulationResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -868,18 +860,12 @@ TEST(BigDroplet, jsonDefinition) {
     EXPECT_NEAR(result->getStates().at(8)->getFlowRates().at(4), 0.00000000001, 5e-17);
     EXPECT_NEAR(result->getStates().at(8)->getFlowRates().at(5), 0.00000000003, 5e-17);
 
-    EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), 0);
+    EXPECT_EQ(testSimulation->getContinuousPhase()->getId(), 0);
 }
 
 TEST(BigDroplet, noSink1) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Abstract);
-    testSimulation.setPlatform(sim::Platform::BigDroplet);
-
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -900,6 +886,9 @@ TEST(BigDroplet, noSink1) {
 
     //--- ground ---
     network.setGround(node0->getId());
+
+    // define simulation
+    sim::AbstractDroplet<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -925,14 +914,8 @@ TEST(BigDroplet, noSink1) {
 }
 
 TEST(BigDroplet, noSink2) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Abstract);
-    testSimulation.setPlatform(sim::Platform::BigDroplet);
-
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -953,6 +936,9 @@ TEST(BigDroplet, noSink2) {
 
     //--- ground ---
     network.setGround(node0->getId());
+
+    // define simulation
+    sim::AbstractDroplet<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -978,14 +964,8 @@ TEST(BigDroplet, noSink2) {
 }
 
 TEST(BigDroplet, noSinkTwoDroplets) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Abstract);
-    testSimulation.setPlatform(sim::Platform::BigDroplet);
-
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
 
     // nodes
     auto node1 = network.addNode(0.0, 0.0, false);
@@ -1006,6 +986,9 @@ TEST(BigDroplet, noSinkTwoDroplets) {
 
     //--- ground ---
     network.setGround(node0->getId());
+
+    // define simulation
+    sim::AbstractDroplet<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
@@ -1039,12 +1022,11 @@ pp. 339–349. DOI: 10.1109/TCAD.2020.2997000 (cit. on pp. 27, 54, 55, 56, 57).
 */
 TEST(Droplet, RingNetworkE1) {
   constexpr auto cContinuousPhaseViscosity = 1e-3;
-  sim::InstantaneousMixingModel<T> mixingModel;
   sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
   arch::Network<T> network;
 
   // simulator last since it has non-owning references to other objects
-  sim::Simulation<T> sim;
+  sim::AbstractDroplet<T> sim(&network);
 
   // droplet length
   auto lDroplet = 150e-6;
@@ -1186,7 +1168,6 @@ TEST(Droplet, RingNetworkE1) {
 
   EXPECT_TRUE(network.isNetworkValid());
   network.sortGroups();
-  sim.setNetwork(&network);
 
   // fluids
   auto *fluid0 = sim.addFluid(1e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
@@ -1211,10 +1192,7 @@ TEST(Droplet, RingNetworkE1) {
   // auto* droplet6 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet6->getId(), d_m6 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
 
-  sim.setMixingModel(&mixingModel);
   sim.setResistanceModel(&resistanceModel);
-  sim.setType(sim::Type::Abstract);
-  sim.setPlatform(sim::Platform::BigDroplet);
 
   EXPECT_TRUE(network.isNetworkValid());
 
@@ -1268,7 +1246,7 @@ TEST(Droplet, RingNetworkE2) {
   arch::Network<T> network;
 
   // simulator last since it has non-owning references to other objects
-  sim::Simulation<T> sim;
+  sim::AbstractDroplet<T> sim(&network);
 
   auto groundNode = network.addNode(1e-10, 1e-10, true);
   auto sinkNode = network.addNode(9e-8, 9e-8, true);
@@ -1408,7 +1386,6 @@ TEST(Droplet, RingNetworkE2) {
 
   EXPECT_TRUE(network.isNetworkValid());
   network.sortGroups();
-  sim.setNetwork(&network);
 
   // fluids
   auto *fluid0 = sim.addFluid(1e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
@@ -1429,10 +1406,7 @@ TEST(Droplet, RingNetworkE2) {
   // auto* droplet4 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet4->getId(), d_m4 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
 
-  sim.setMixingModel(&mixingModel);
   sim.setResistanceModel(&resistanceModel);
-  sim.setType(sim::Type::Abstract);
-  sim.setPlatform(sim::Platform::BigDroplet);
 
   EXPECT_TRUE(network.isNetworkValid());
 

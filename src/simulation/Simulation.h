@@ -516,9 +516,14 @@ private:
     std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
     MixingModel<T>* mixingModel = nullptr;                                              ///< The mixing model used for a mixing simulation.
 
+protected:
+    
     void assertInitialized() const override;
-
-    void saveState() override;
+    
+    /**
+     * @brief Store the mixtures in this simulation in simulationResult.
+    */
+    void saveMixtures();
 
     /**
      * @brief Compute all possible next events for mixing simulation.
@@ -526,12 +531,13 @@ private:
     std::vector<std::unique_ptr<Event<T>>> computeMixingEvents();
 
     /**
-     * @brief Store the mixtures in this simulation in simulationResult.
-    */
-    void saveMixtures();
+     * @brief Constructor of the abstract mixing simulator object
+     */
+    AbstractMixing(Type simType, Platform platform, arch::Network<T>* network);
+
+    void saveState() override;
 
 public:
-
     /**
      * @brief Constructor of the abstract mixing simulator object
      */
@@ -657,7 +663,7 @@ public:
      * @brief Get mixtures.
      * @return Reference to the unordered map of mixtures
      */
-    std::unordered_map<int, std::unique_ptr<Mixture<T>>>& getMixtures() const;
+    const std::unordered_map<int, std::unique_ptr<Mixture<T>>>& getMixtures() const;
 
     /**
      * @brief Get specie.
@@ -671,7 +677,7 @@ public:
      * @param mixtureId Id of the mixture
      * @return Pointer to mixture with the correspondig id
      */
-    std::unordered_map<int, std::unique_ptr<Specie<T>>>& getSpecies() const;
+    const std::unordered_map<int, std::unique_ptr<Specie<T>>>& getSpecies() const;
 
     /**
      * @brief Abstract mixing simulation for flow with species concentrations

@@ -5,14 +5,8 @@
 using T = double;
 
 TEST(Continuous, allResultValues) {
-    // define simulation
-    sim::Simulation<T> testSimulation;
-    testSimulation.setType(sim::Type::Abstract);
-    testSimulation.setPlatform(sim::Platform::Continuous);
-
     // define network
     arch::Network<T> network;
-    testSimulation.setNetwork(&network);
 
     // nodes
     auto node0 = network.addNode(0.0, 0.0, true);
@@ -41,6 +35,8 @@ TEST(Continuous, allResultValues) {
     auto c4 = network.addChannel(node4->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c5 = network.addChannel(node6->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c6 = network.addChannel(node5->getId(), node7->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+
+    sim::AbstractContinuous<T> testSimulation(&network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 997.0, 1.0);
@@ -89,16 +85,16 @@ TEST(Continuous, jsonDefinition) {
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
    
     network.sortGroups();
     network.isNetworkValid();
 
     // Perform simulation and store results
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation->getSimulationResults();
     
     EXPECT_NEAR(result->getStates().at(0)->getPressures().at(0), 0.0, 5e-7);
     EXPECT_NEAR(result->getStates().at(0)->getPressures().at(1), 1000.000000, 5e-7);
@@ -122,23 +118,17 @@ TEST(Continuous, jsonDefinition) {
 }
 
 TEST(Continuous, triangleNetwork) {
-    // define simulation 1
-    sim::Simulation<T> testSimulation1;
-    testSimulation1.setType(sim::Type::Abstract);
-    testSimulation1.setPlatform(sim::Platform::Continuous);
-
-    // define simulation 2
-    sim::Simulation<T> testSimulation2;
-    testSimulation2.setType(sim::Type::Abstract);
-    testSimulation2.setPlatform(sim::Platform::Continuous);
-
     // define network 1
     arch::Network<T> network1;
-    testSimulation1.setNetwork(&network1);
 
     // define network 2
     arch::Network<T> network2;
-    testSimulation2.setNetwork(&network2);
+
+    // define simulation 1
+    sim::AbstractContinuous<T> testSimulation1(&network1);
+
+    // define simulation 2
+    sim::AbstractContinuous<T> testSimulation2(&network2);
 
     // nodes
     auto node11 = network1.addNode(0.0, 0.0, false);
@@ -206,23 +196,17 @@ TEST(Continuous, triangleNetwork) {
 }
 
 TEST(Continuous, Y_Network) {
-    // define simulation 1
-    sim::Simulation<T> testSimulation1;
-    testSimulation1.setType(sim::Type::Abstract);
-    testSimulation1.setPlatform(sim::Platform::Continuous);
-
-    // define simulation 2
-    sim::Simulation<T> testSimulation2;
-    testSimulation2.setType(sim::Type::Abstract);
-    testSimulation2.setPlatform(sim::Platform::BigDroplet);
-
     // define network 1
     arch::Network<T> network1;
-    testSimulation1.setNetwork(&network1);
 
     // define network 2
     arch::Network<T> network2;
-    testSimulation2.setNetwork(&network2);
+
+    // define simulation 1
+    sim::AbstractContinuous<T> testSimulation1(&network1);
+
+    // define simulation 2
+    sim::AbstractContinuous<T> testSimulation2(&network2);
 
     // nodes
     auto node11 = network1.addNode(0.0, 1e-3, false);
@@ -317,16 +301,16 @@ TEST(Continuous, Network2) {
     arch::Network<T> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
    
     network.sortGroups();
     network.isNetworkValid();
 
     // Perform simulation and store results
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    result::SimulationResult<T>* result = testSimulation->getSimulationResults();
     
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(3), result->getStates().at(0)->getFlowRates().at(4), 5e-10);
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(4), result->getStates().at(0)->getFlowRates().at(5), 5e-10);
