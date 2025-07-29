@@ -33,13 +33,13 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
+class AbstractMixing;
+
+template<typename T>
 class Fluid;
 
 template<typename T>
 class Mixture;
-
-template<typename T>
-class Simulation;
 
 template<typename T>
 class Specie;
@@ -105,7 +105,7 @@ public:
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    virtual void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) = 0;
+    virtual void propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) = 0;
 
     /**
      * @brief Returns the current minimal timestep.
@@ -183,7 +183,7 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    virtual void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
+    virtual void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) = 0;
 
     virtual bool isInstantaneous() = 0;
 
@@ -219,7 +219,7 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
+    void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
 
     /**
      * @brief Move mixtures according to the timestep
@@ -235,7 +235,7 @@ public:
      * @param[in] network Pointer to the network of the simulation.
      * @param[in] mixtures Reference to collection containing all mixtures in the simulation
      */
-    void calculateMembraneExchange(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void calculateMembraneExchange(T timeStep, AbstractMixing<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Calculate and store the mixtures flowing into all nodes
@@ -249,7 +249,7 @@ public:
      * @param[in] sim Pointer to the simulation.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void generateNodeOutflow(Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void generateNodeOutflow(AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Add the node outflow as inflow to the channels
@@ -258,7 +258,7 @@ public:
      * @param[in] network Pointer to the network.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void updateChannelInflow(T timeStep, Simulation<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void updateChannelInflow(T timeStep, AbstractMixing<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Remove mixtures that have 'outflowed' their channel
@@ -269,14 +269,14 @@ public:
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
+    void propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) override;
 
     /**
      * @brief From the mixtureInjections and CFD simulators, generate temporary mxtures that 
      * flow into the network at correspondingnode entry points.
      * @param[in] sim Pointer to the simulation.
      */
-    void initNodeOutflow(Simulation<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+    void initNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
     /**
      * @brief Propagate the mixtures through the corresponding channel entirely, without considering time steps
@@ -286,9 +286,9 @@ public:
     /**
      * @brief From the node's inflows, generate the node outflow
      */
-    bool updateNodeOutflow(Simulation<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+    bool updateNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
-    void storeConcentrations(Simulation<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
+    void storeConcentrations(AbstractMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
 
     /**
      * @brief Print all mixtures and their positions in the network.
@@ -323,7 +323,7 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    void updateMixtures(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
+    void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) override;
 
     /**
      * @brief Propagate the mixtures and check if a mixtures reaches channel end.
@@ -333,14 +333,14 @@ public:
     /**
      * @brief Generate a new inflow in case a mixture has reached channel end. Invoked by updateNodeInflow.
     */
-    void generateInflows(T timeStep, arch::Network<T>* network, Simulation<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
+    void generateInflows(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures);
 
     void topologyAnalysis(arch::Network<T>* network, int nodeId);
 
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    void propagateSpecies(arch::Network<T>* network, Simulation<T>* sim) override;
+    void propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) override;
     
     void printTopology();
 

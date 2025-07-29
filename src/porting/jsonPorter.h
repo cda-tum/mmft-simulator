@@ -62,28 +62,7 @@ arch::Network<T> networkFromJSON(nlohmann::json jsonString);
  * @returns Simulation simulation
 */
 template<typename T>
-sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network);
-
-/**
- * @brief Define an existing Simulation from a JSON file
- * @param[in] jsonFile json file
- * @param[in] network pointer to the network on which the simulation acts
- * @param[in] simulation simulation object that needs to be defined
- * @returns Simulation simulation
-*/
-template<typename T>
-void simulationFromJSON(std::string jsonFile, arch::Network<T>* network, sim::Simulation<T>& simulation);
-
-/**
- * @brief Define an existing Simulation from a JSON file
- * @param[in] jsonFile json file
- * @param[in] network pointer to the network on which the simulation acts
- * @param[in] simulation simulation object that needs to be defined
- * @returns Simulation simulation
-*/
-template<typename T>
-void simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network, sim::Simulation<T>& simulation);
-
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arch::Network<T>* network);
 
 /**
  * @brief Constructor of the Simulation from a JSON string
@@ -92,7 +71,7 @@ void simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network, si
  * @returns Simulation simulation
 */
 template<typename T>
-sim::Simulation<T> simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network);
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network);
 
 /**
  * @brief Generates a json string of the simulation results and writes it in the provided location

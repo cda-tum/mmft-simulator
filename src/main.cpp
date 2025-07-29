@@ -26,15 +26,19 @@ int main(int argc, char const* argv []) {
 
     // Load and set the simulation from a JSON file
     std::cout << "[Main] Create simulation object..." << std::endl;
-    sim::Simulation<T> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    std::unique_ptr<sim::Simulation<T>> testSimulation = porting::simulationFromJSON<T>(file, &network);
+
+    if (!testSimulation) {
+        throw std::runtime_error("Something went wrong with constructing the simulation object from the given JSON definition.");
+    }
 
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results
-    testSimulation.simulate();
+    testSimulation->simulate();
 
     std::cout << "[Main] Results..." << std::endl;
     // Print the results
-    testSimulation.getSimulationResults()->printStates();
+    testSimulation->getSimulationResults()->printStates();
 
     //std::cout << "Write diffusive mixtures" << std::endl;
     //testSimulation.getSimulationResults()->writeMixture(1);

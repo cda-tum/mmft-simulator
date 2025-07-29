@@ -4,6 +4,9 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
+class AbstractDroplet;
+
+template<typename T>
 class Droplet;
 
 template<typename T>
@@ -11,9 +14,6 @@ class DropletBoundary;
 
 template<typename T>
 class Event;
-
-template<typename T>
-class Simulation;
 
 /**
  * @brief Class that specifies a merge event that takes place at a bifurcation.
@@ -24,7 +24,7 @@ class MergeBifurcationEvent : public Event<T> {
     Droplet<T>& droplet0;             ///< First droplet that will be merged during that event (is the droplet that flows into the droplet at the bifurcation).
     Droplet<T>& droplet1;             ///< Second droplet that will be merged (is the droplet at the bifurcation).
     DropletBoundary<T>& boundary0;    ///< The boundary of droplet0 (will be "removed" from the merged droplet).
-    Simulation<T>& simulation;        ///< Simulation class
+    AbstractDroplet<T>& simulation;   ///< Simulation class
 
   public:
     /**
@@ -36,7 +36,7 @@ class MergeBifurcationEvent : public Event<T> {
      * @param droplet1 Second droplet that will be merged (is the droplet at the bifurcation).
      * @param simulation Simulation class.
      */
-    MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, Simulation<T>& simulation);
+    MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, AbstractDroplet<T>& simulation);
 
     /**
      * @brief Conducts the merge at bifurcation event.
@@ -59,7 +59,7 @@ class MergeChannelEvent : public Event<T> {
     Droplet<T>& droplet1;           ///< Second droplet that will be merged during that event.
     DropletBoundary<T>& boundary0;  ///< The boundary of droplet0 (will be "removed" from the merged droplet).
     DropletBoundary<T>& boundary1;  ///< The boundary of droplet1 (will be "removed" from the merged droplet).
-    Simulation<T>& simulation;      ///< Simulation class
+    AbstractDroplet<T>& simulation; ///< Simulation class
 
   public:
     /**
@@ -71,7 +71,7 @@ class MergeChannelEvent : public Event<T> {
      * @param boundary1 The boundary of droplet1 (will be "removed" from the merged droplet).
      * @param simulation Simulation class.
      */
-    MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, Simulation<T>& simulation);
+    MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, AbstractDroplet<T>& simulation);
 
     /**
      * @brief  Perform the merge that happens within a channel sequence.

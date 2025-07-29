@@ -155,7 +155,7 @@ protected:
     /**
      * @brief Creates simulation.
      */
-    Simulation(Type simType, Platform platform);
+    Simulation(Type simType, Platform platform, arch::Network<T>* network);
 
     /**
      * @brief Asserts that the simulation is initialized.
@@ -188,7 +188,7 @@ protected:
     /**
      * @brief TODO
      */
-    inline double getTime() { return time; }
+    inline double& getTime() { return time; }
 
     /**
      * @brief TODO
@@ -326,7 +326,7 @@ public:
      * @param[in] fluidId Id of the fluid
      * @return Pointer to fluid with the corresponding id
      */
-    std::unordered_map<int, std::unique_ptr<Fluid<T>>>& getFluids() const;
+    const std::unordered_map<int, std::unique_ptr<Fluid<T>>>& getFluids() const;
 
     /**
      * @brief Get the continuous phase.
@@ -378,7 +378,7 @@ public:
     /**
      * @brief Constructor of the abstract continuous simulator object
      */
-    AbstractContinuous();
+    AbstractContinuous(arch::Network<T>* network);
 
     /**
      * @brief Abstract continuous simulation
@@ -422,7 +422,7 @@ public:
     /**
      * @brief Constructor of the abstract droplet simulator object
      */
-    AbstractDroplet();
+    AbstractDroplet(arch::Network<T>* network);
 
     /**
      * @brief Create droplet.
@@ -480,6 +480,16 @@ public:
     Droplet<T>* mergeDroplets(int droplet0Id, int droplet1Id);
 
     /**
+     * @brief Creates a new fluid out of two existing fluids.
+     * @param fluid0Id Id of the first fluid.
+     * @param volume0 The volume of the first fluid.
+     * @param fluid1Id Id of the second fluid.
+     * @param volume1 The volume of the second fluid.
+     * @return Pointer to new fluid.
+     */
+    Fluid<T>* mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1);
+
+    /**
      * @brief Abstract droplet simulation for droplets that 'fill' a channel's cross-section. (i.e., no 'free, floating' droplets, but 'squeezed' droplets)
      * Simulation loop:
      * - update droplet resistances
@@ -525,7 +535,7 @@ public:
     /**
      * @brief Constructor of the abstract mixing simulator object
      */
-    AbstractMixing();
+    AbstractMixing(arch::Network<T>* network);
 
     /**
      * @brief Create specie.
@@ -622,13 +632,13 @@ public:
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getMixtureInjections() const;
+    const std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getMixtureInjections() const;
 
     /**
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getPermanentMixtureInjections() const;
+    const std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getPermanentMixtureInjections() const;
 
     /**
      * @brief Get the mixing model that is used in the simulation.
@@ -664,16 +674,6 @@ public:
     std::unordered_map<int, std::unique_ptr<Specie<T>>>& getSpecies() const;
 
     /**
-     * @brief Creates a new fluid out of two existing fluids.
-     * @param fluid0Id Id of the first fluid.
-     * @param volume0 The volume of the first fluid.
-     * @param fluid1Id Id of the second fluid.
-     * @param volume1 The volume of the second fluid.
-     * @return Pointer to new fluid.
-     */
-    Fluid<T>* mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1);
-
-    /**
      * @brief Abstract mixing simulation for flow with species concentrations
      * Simulation loop:
      * - Update pressure and flowrates
@@ -701,7 +701,7 @@ public:
     /**
      * @brief Constructor of the abstract membrane simulator object
      */
-    AbstractMembrane();
+    AbstractMembrane(arch::Network<T>* network);
 
     /**
      * @brief Define which membrane model should be used for the membrane resistance calculations.
@@ -743,14 +743,14 @@ private:
 
     void saveState() override;
 
-    inline bool conductNodalAnalysis() { return this->getNodalAnalysis->conductNodalAnalysis(cfdSimulators); }
+    inline bool conductNodalAnalysis() { return this->getNodalAnalysis()->conductNodalAnalysis(cfdSimulators); }
 
 public:
 
     /**
      * @brief Constructor of the hybrid continuous simulator object
      */
-    HybridContinuous();
+    HybridContinuous(arch::Network<T>* network);
 
     /**
      * @brief Define and set the naive update scheme for a hybrid simulation.

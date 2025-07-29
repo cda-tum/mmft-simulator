@@ -6,7 +6,7 @@ namespace sim {
      * SIMULATION
      */
     template<typename T>
-    Simulation<T>::Simulation(Type simType_, Platform platform_) : simType(simType_), platform(platform_) {
+    Simulation<T>::Simulation(Type simType_, Platform platform_, arch::Network<T>* network_) : simType(simType_), platform(platform_), network(network_) {
         this->simulationResult = std::make_unique<result::SimulationResult<T>>();
     }
 
@@ -85,14 +85,13 @@ namespace sim {
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
+    const std::unordered_map<int, std::unique_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
         return fluids;
     }
 
-
     template<typename T>
     Fluid<T>* Simulation<T>::getContinuousPhase() const {
-        return fluids[continuousPhase].get();
+        return fluids.at(continuousPhase).get();
     }
 
     template<typename T>
@@ -164,6 +163,9 @@ namespace sim {
      */
 
     template<typename T>
+    AbstractContinuous<T>::AbstractContinuous(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Continuous, network) { }
+
+    template<typename T>
     void AbstractContinuous<T>::simulate() {
         this->assertInitialized();      // perform initialization checks
         this->initialize();             // initialize the simulation
@@ -193,12 +195,15 @@ namespace sim {
         }
 
         // state
-        this->getSimulationResults()->addState(time, savePressures, saveFlowRates);
+        this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates);
     }
     
     /**
      * ABSTRACT DROPLET
      */
+
+    template<typename T>
+    AbstractDroplet<T>::AbstractDroplet(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::BigDroplet, network) { }
 
     template<typename T>
     Droplet<T>* AbstractDroplet<T>::addDroplet(int fluidId, T volume) {
@@ -329,6 +334,38 @@ namespace sim {
 
             droplet->addDropletResistance(*(this->getResistanceModel()));
         }
+    }
+
+    template<typename T>
+    Fluid<T>* AbstractDroplet<T>::mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1) {
+        // check if fluids are identically (no merging needed) and if they exist
+        if (fluid0Id == fluid1Id) {
+            // try to get the fluid (throws error if the fluid is not present)
+            return this->getFluids().at(fluid0Id).get();
+        }
+
+        // get fluids
+        auto fluid0 = this->getFluids().at(fluid0Id).get();
+        auto fluid1 = this->getFluids().at(fluid1Id).get();
+
+        // compute ratios
+        T volume = volume0 + volume1;
+        T ratio0 = volume0 / volume;
+        T ratio1 = volume1 / volume;
+
+        // compute new fluid values
+        T viscosity = ratio0 * fluid0->getViscosity() + ratio1 * fluid1->getViscosity();
+        T density = ratio0 * fluid0->getDensity() + ratio1 * fluid1->getDensity();
+        T concentration = ratio0 * fluid0->getConcentration() + ratio1 * fluid1->getConcentration();
+
+        // add new fluid
+        auto newFluid = this->addFluid(viscosity, density, concentration);
+
+        //add previous fluids
+        newFluid->addMixedFluid(fluid0);
+        newFluid->addMixedFluid(fluid1);
+
+        return newFluid;
     }
 
     template<typename T>
@@ -543,7 +580,7 @@ namespace sim {
                 break;
             }
             // move droplets until event is reached
-            time += nextEvent->getTime();
+            this->getTime() += nextEvent->getTime();
             moveDroplets(nextEvent->getTime());
 
             nextEvent->performEvent();
@@ -597,12 +634,15 @@ namespace sim {
         }
 
         // state
-        this->getSimulationResults()->addState(time, savePressures, saveFlowRates, saveDropletPositions);
+        this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, saveDropletPositions);
     }
 
     /**
      * ABSTRACT MIXING
      */
+
+    template<typename T>
+    AbstractMixing<T>::AbstractMixing(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Mixing, network) { }
 
     template<typename T>
     Specie<T>* AbstractMixing<T>::addSpecie(T diffusivity, T satConc) {
@@ -623,7 +663,7 @@ namespace sim {
             species.try_emplace(specieId, getSpecie(specieId));
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->getContinuousPhase());
+        Fluid<T>* carrierFluid = this->getContinuousPhase();
 
         auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, std::move(specieConcentrations), carrierFluid));
 
@@ -634,7 +674,7 @@ namespace sim {
     Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
-        Fluid<T>* carrierFluid = this->getFluid(this->getContinuousPhase());
+        Fluid<T>* carrierFluid = this->getContinuousPhase();
 
         auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
 
@@ -655,7 +695,7 @@ namespace sim {
             specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->getContinuousPhase());
+        Fluid<T>* carrierFluid = this->getContinuousPhase();
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
@@ -674,7 +714,7 @@ namespace sim {
             specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->getContinuousPhase());
+        Fluid<T>* carrierFluid = this->getContinuousPhase();
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
@@ -693,7 +733,7 @@ namespace sim {
             specieConcentrations.try_emplace(specieId, T(0));
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->getContinuousPhase());
+        Fluid<T>* carrierFluid = this->getContinuousPhase();
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
@@ -710,7 +750,7 @@ namespace sim {
             specieConcentrations.try_emplace(specieId, T(0));
         }
 
-        Fluid<T>* carrierFluid = this->getFluid(this->getContinuousPhase());
+        Fluid<T>* carrierFluid = this->getContinuousPhase();
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
@@ -782,12 +822,12 @@ namespace sim {
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& AbstractMixing<T>::getMixtureInjections() const {
+    const std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& AbstractMixing<T>::getMixtureInjections() const {
         return mixtureInjections;
     }
 
     template<typename T>
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& AbstractMixing<T>::getPermanentMixtureInjections() const {
+    const std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& AbstractMixing<T>::getPermanentMixtureInjections() const {
         return permanentMixtureInjections;
     }
 
@@ -814,38 +854,6 @@ namespace sim {
     template<typename T>
     std::unordered_map<int, std::unique_ptr<Specie<T>>>& AbstractMixing<T>::getSpecies() const {
         return species;
-    }
-
-    template<typename T>
-    Fluid<T>* AbstractMixing<T>::mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1) {
-        // check if fluids are identically (no merging needed) and if they exist
-        if (fluid0Id == fluid1Id) {
-            // try to get the fluid (throws error if the fluid is not present)
-            return this->getFluids().at(fluid0Id).get();
-        }
-
-        // get fluids
-        auto fluid0 = this->getFluids().at(fluid0Id).get();
-        auto fluid1 = this->getFluids().at(fluid1Id).get();
-
-        // compute ratios
-        T volume = volume0 + volume1;
-        T ratio0 = volume0 / volume;
-        T ratio1 = volume1 / volume;
-
-        // compute new fluid values
-        T viscosity = ratio0 * fluid0->getViscosity() + ratio1 * fluid1->getViscosity();
-        T density = ratio0 * fluid0->getDensity() + ratio1 * fluid1->getDensity();
-        T concentration = ratio0 * fluid0->getConcentration() + ratio1 * fluid1->getConcentration();
-
-        // add new fluid
-        auto newFluid = addFluid(viscosity, density, concentration);
-
-        //add previous fluids
-        newFluid->addMixedFluid(fluid0);
-        newFluid->addMixedFluid(fluid1);
-
-        return newFluid;
     }
 
     template<typename T>
@@ -935,7 +943,7 @@ namespace sim {
             }
 
             timestep = nextEvent->getTime();
-            time += nextEvent->getTime();
+            this->getTime() += nextEvent->getTime();
             
             if (this->mixingModel->isInstantaneous()){
                 auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
@@ -1000,7 +1008,7 @@ namespace sim {
         }
 
         // state
-        this->getSimulationResults()->addState(time, savePressures, saveFlowRates, saveMixturePositions);
+        this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, saveMixturePositions);
     }
 
     template<typename T>
@@ -1015,6 +1023,8 @@ namespace sim {
     /**
      * ABSTRACT MEMBRANE
      */
+    template<typename T>
+    AbstractMembrane<T>::AbstractMembrane(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Membrane, network) { }
 
     template<typename T>
     void AbstractMembrane<T>::setMembraneModel(MembraneModel<T>* model_) {
@@ -1139,6 +1149,8 @@ namespace sim {
     /**
      * HYBRID CONTINUOUS
      */
+    template<typename T>
+    HybridContinuous<T>::HybridContinuous(arch::Network<T>* network) : Simulation<T>(Type::Hybrid, Platform::Continuous, network) { }
 
     template<typename T>
     std::shared_ptr<mmft::NaiveScheme<T>> HybridContinuous<T>::setNaiveHybridScheme(T alpha, T beta, int theta) {
@@ -1313,8 +1325,7 @@ namespace sim {
 
         // Initialize the CFD simulators
         for (auto& [key, cfdSimulator] : cfdSimulators) {
-            cfdSimulator->lbmInit(this->getFluids()[this->getContinuousPhase()]->getViscosity(),
-                            this->getFluids()[this->getContinuousPhase()]->getDensity());
+            cfdSimulator->lbmInit(this->getContinuousPhase()->getViscosity(), this->getContinuousPhase()->getDensity());
         }
 
         // compute nodal analysis
@@ -1402,7 +1413,7 @@ namespace sim {
         }
 
         // state
-        this->getSimulationResults()->addState(time, savePressures, saveFlowRates, vtkFiles);
+        this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, vtkFiles);
     }
 
     // template<typename T>

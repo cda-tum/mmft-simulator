@@ -66,22 +66,20 @@ template<typename T>
 void readModules (json jsonString, arch::Network<T>& network);
 
 /**
- * @brief Set the platform of the simulation as defined by the json string
+ * @brief Read the platform of the simulation as defined by the json string
  * @param[in] jsonString json string
- * @param[in] simulation simulation object
  * @return Platform platform
 */
 template<typename T>
-sim::Platform readPlatform (json jsonString, sim::Simulation<T>& simulation);
+sim::Platform readPlatform (json jsonString);
 
 /**
- * @brief Set the simulation type of the simulation as defined by the json string
+ * @brief Read the simulation type of the simulation as defined by the json string
  * @param[in] jsonString json string
- * @param[in] simulation simulation object
  * @return Type simulation type
 */
 template<typename T>
-sim::Type readType (json jsonString, sim::Simulation<T>& simulation);
+sim::Type readType (json jsonString);
 
 /**
  * @brief Construct and store the fluids in the simulation as defined by the json string
@@ -97,16 +95,16 @@ void readFluids (json jsonString, sim::Simulation<T>& simulation);
  * @param[in] simulation simulation object
 */
 template<typename T>
-void readDroplets (json jsonString, sim::Simulation<T>& simulation);
+void readDroplets (json jsonString, sim::AbstractDroplet<T>& simulation);
 
 template<typename T>
-void readSpecies (json jsonString, sim::Simulation<T>& simulation);
+void readSpecies (json jsonString, sim::AbstractMixing<T>& simulation);
+
+// template<typename T>
+// void readTissues (json jsonString, sim::Simulation<T>& simulation);
 
 template<typename T>
-void readTissues (json jsonString, sim::Simulation<T>& simulation);
-
-template<typename T>
-void readMixtures (json jsonString, sim::Simulation<T>& simulation);
+void readMixtures (json jsonString, sim::AbstractMixing<T>& simulation);
 
 /**
  * @brief Construct and store the droplet injections in the simulation as defined by the json string
@@ -115,10 +113,10 @@ void readMixtures (json jsonString, sim::Simulation<T>& simulation);
  * @param[in] activeFixture active fixture
 */
 template<typename T>
-void readDropletInjections (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
+void readDropletInjections (json jsonString, sim::AbstractDroplet<T>& simulation, int activeFixture);
 
 template<typename T>
-void readMixtureInjections (json jsonString, sim::Simulation<T>& simulation, int activeFixture);
+void readMixtureInjections (json jsonString, sim::AbstractMixing<T>& simulation, int activeFixture);
 
 /**
  * @brief Set the boundary conditions of the simulation as defined by the json string
@@ -145,7 +143,7 @@ void readContinuousPhase (json jsonString, sim::Simulation<T>& simulation, int a
  * @param[in] network pointer to the network
 */
 template<typename T>
-void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network);
+void readSimulators (json jsonString, sim::HybridContinuous<T>& simulation, arch::Network<T>* network);
 
 /**
  * @brief Construct and stores the update scheme that is used for the Abstract-CFD coupling.
@@ -153,7 +151,7 @@ void readSimulators (json jsonString, sim::Simulation<T>& simulation, arch::Netw
  * @param[in] simulation simulation object
 */
 template<typename T>
-void readUpdateScheme (json jsonString, sim::Simulation<T>& simulation);
+void readUpdateScheme (json jsonString, sim::HybridContinuous<T>& simulation);
 
 /**
  * @brief Sets channels in the network to pressure or flow rate pump, as defined by the json string
@@ -173,7 +171,7 @@ template<typename T>
 void readResistanceModel (json jsonString, sim::Simulation<T>& simulation);
 
 template<typename T>
-void readMixingModel (json jsonString, sim::Simulation<T>& simulation);
+void readMixingModel (json jsonString, sim::AbstractMixing<T>& simulation);
 
 /**
  * @brief Returns the id of the active fixture as defined in the json string

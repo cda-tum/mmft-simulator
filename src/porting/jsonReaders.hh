@@ -67,7 +67,7 @@ void readModules(json jsonString, arch::Network<T>& network) {
 }
 
 template<typename T>
-sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
+sim::Platform readPlatform(json jsonString) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
         throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
@@ -83,12 +83,11 @@ sim::Platform readPlatform(json jsonString, sim::Simulation<T>& simulation) {
     } else {
         throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
-    simulation.setPlatform(platform);
     return platform;
 } 
 
 template<typename T>
-sim::Type readType(json jsonString, sim::Simulation<T>& simulation) {
+sim::Type readType(json jsonString) {
     sim::Type simType = sim::Type::Abstract;
     if (!jsonString["simulation"].contains("type")) {
         throw std::invalid_argument("Please define a simulation type. The following types are possible:\nAbstract\nHybrid\nCFD");
@@ -102,7 +101,6 @@ sim::Type readType(json jsonString, sim::Simulation<T>& simulation) {
     } else {
         throw std::invalid_argument("Simulation type is invalid. The following types are possible:\nAbstract\nHybrid\nCFD");
     }
-    simulation.setType(simType);
     return simType;
 }
 
@@ -126,7 +124,7 @@ void readFluids(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readDroplets(json jsonString, sim::Simulation<T>& simulation) {
+void readDroplets(json jsonString, sim::AbstractDroplet<T>& simulation) {
     for (auto& droplet : jsonString["simulation"]["droplets"]) {
         if (droplet.contains("fluid") && droplet.contains("volume")) {
             int fluid = droplet["fluid"];
@@ -139,7 +137,7 @@ void readDroplets(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
+void readSpecies(json jsonString, sim::AbstractMixing<T>& simulation) {
     for (auto& specie : jsonString["simulation"]["species"]) {
         if (specie.contains("diffusivity") && specie.contains("saturationConcentration")) {
             T diffusivity = specie["diffusivity"];
@@ -151,34 +149,34 @@ void readSpecies(json jsonString, sim::Simulation<T>& simulation) {
     }
 }
 
-template<typename T>
-void readTissues(json jsonString, sim::Simulation<T>& simulation) {
-    for (auto& tissue : jsonString["simulation"]["tissues"]) {
-        if (tissue.contains("species") && tissue.contains("Vmax") && tissue.contains("kM")) {
-            if (tissue["species"].size() == tissue["Vmax"].size() && tissue["species"].size() == tissue["kM"].size()) {
-                int counter = 0;
-                std::unordered_map<int, sim::Specie<T>*> species;
-                std::unordered_map<int, T> Vmax;
-                std::unordered_map<int, T> kM;
-                for (auto& specieId : tissue["species"]) {
-                    auto specie_ptr = simulation.getSpecie(specieId);
-                    species.try_emplace(specieId, specie_ptr);
-                    Vmax.try_emplace(specieId, tissue["Vmax"][counter]);
-                    kM.try_emplace(specieId, tissue["kM"][counter]);
-                    counter++;
-                }
-                simulation.addTissue(species, Vmax, kM);
-            } else {
-                throw std::invalid_argument("Please define a Vmax and kM value for each species.");
-            }
-        } else {
-            throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
-        }
-    }
-}
+// template<typename T>
+// void readTissues(json jsonString, sim::Simulation<T>& simulation) {
+//     for (auto& tissue : jsonString["simulation"]["tissues"]) {
+//         if (tissue.contains("species") && tissue.contains("Vmax") && tissue.contains("kM")) {
+//             if (tissue["species"].size() == tissue["Vmax"].size() && tissue["species"].size() == tissue["kM"].size()) {
+//                 int counter = 0;
+//                 std::unordered_map<int, sim::Specie<T>*> species;
+//                 std::unordered_map<int, T> Vmax;
+//                 std::unordered_map<int, T> kM;
+//                 for (auto& specieId : tissue["species"]) {
+//                     auto specie_ptr = simulation.getSpecie(specieId);
+//                     species.try_emplace(specieId, specie_ptr);
+//                     Vmax.try_emplace(specieId, tissue["Vmax"][counter]);
+//                     kM.try_emplace(specieId, tissue["kM"][counter]);
+//                     counter++;
+//                 }
+//                 simulation.addTissue(species, Vmax, kM);
+//             } else {
+//                 throw std::invalid_argument("Please define a Vmax and kM value for each species.");
+//             }
+//         } else {
+//             throw std::invalid_argument("Wrongly defined specie. Please provide following information for species:\ndiffusivity\nsaturationConcentration");
+//         }
+//     }
+// }
 
 template<typename T>
-void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
+void readMixtures(json jsonString, sim::AbstractMixing<T>& simulation) {
     for (auto& mixture : jsonString["simulation"]["mixtures"]) {
         if (mixture.contains("species") && mixture.contains("concentrations")) {
             if (mixture["species"].size() == mixture["concentrations"].size()) {
@@ -208,7 +206,7 @@ void readMixtures(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+void readDropletInjections(json jsonString, sim::AbstractDroplet<T>& simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("bigDropletInjections")) {
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
             int fluid = injection["fluid"];
@@ -225,7 +223,7 @@ void readDropletInjections(json jsonString, sim::Simulation<T>& simulation, int 
 }
 
 template<typename T>
-void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
+void readMixtureInjections(json jsonString, sim::AbstractMixing<T>& simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("mixtureInjections")) {
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["mixtureInjections"]) {
             int mixtureId = injection["mixture"];
@@ -239,7 +237,7 @@ void readMixtureInjections(json jsonString, sim::Simulation<T>& simulation, int 
 }
 
 template<typename T>
-void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Network<T>* network) {
+void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch::Network<T>* network) {
         std::string vtkFolder;
         if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
             throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");
@@ -272,28 +270,28 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
                                                             charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
-            else if (simulator["Type"] == "Mixing")
-            {
-                std::unordered_map<int, sim::Specie<T>*> species;
-                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
-                    species.try_emplace(specieId, speciePtr.get());
-                }
-                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
-                                                            Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-                simulator->setVtkFolder(vtkFolder);
-            }
-            else if (simulator["Type"] == "Organ")
-            {
-                std::unordered_map<int, sim::Specie<T>*> species;
-                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
-                    species.try_emplace(specieId, speciePtr.get());
-                }
-                std::string organStlFile = simulator["organStlFile"];
-                int tissueId = simulator["tissue"];
-                auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
-                                                            Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-                simulator->setVtkFolder(vtkFolder);
-            }
+            // else if (simulator["Type"] == "Mixing")
+            // {
+            //     std::unordered_map<int, sim::Specie<T>*> species;
+            //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+            //         species.try_emplace(specieId, speciePtr.get());
+            //     }
+            //     auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+            //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            //     simulator->setVtkFolder(vtkFolder);
+            // }
+            // else if (simulator["Type"] == "Organ")
+            // {
+            //     std::unordered_map<int, sim::Specie<T>*> species;
+            //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+            //         species.try_emplace(specieId, speciePtr.get());
+            //     }
+            //     std::string organStlFile = simulator["organStlFile"];
+            //     int tissueId = simulator["tissue"];
+            //     auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+            //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            //     simulator->setVtkFolder(vtkFolder);
+            // }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
@@ -308,7 +306,7 @@ void readSimulators(json jsonString, sim::Simulation<T>& simulation, arch::Netwo
 }
 
 template<typename T>
-void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
+void readUpdateScheme(json jsonString, sim::HybridContinuous<T>& simulation) {
 
     /*  Legacy definition of update scheme for hybrid simulation
         Will be deprecated in next release. */
@@ -362,7 +360,7 @@ void readUpdateScheme(json jsonString, sim::Simulation<T>& simulation) {
 template<typename T>
 void readBoundaryConditions(json jsonString, sim::Simulation<T>& simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("boundaryConditions")) {
-        throw std::invalid_argument("Setting boundary condition values in fixture is not yets supported.");
+        throw std::invalid_argument("Setting boundary condition values in fixture is not yet supported.");
     }
 }
 
@@ -424,7 +422,7 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readMixingModel(json jsonString, sim::Simulation<T>& simulation) {
+void readMixingModel(json jsonString, sim::AbstractMixing<T>& simulation) {
     sim::MixingModel<T>* mixingModel;
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
