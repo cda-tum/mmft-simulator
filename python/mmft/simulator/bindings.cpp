@@ -28,8 +28,6 @@ PYBIND11_MODULE(pysimulator, m) {
 		.value("continuous", sim::Platform::Continuous)
 		.value("bigDroplet", sim::Platform::BigDroplet);
 
-	
-
 	py::class_<arch::Network<T>>(m, "Network")
 		.def(py::init<>())
 		.def("sort", &arch::Network<T>::sortGroups, "Sort the nodes, channels and modules of the network.")
@@ -86,19 +84,24 @@ PYBIND11_MODULE(pysimulator, m) {
 				simulation.setResistanceModel(resistanceModel);
 			});
 		baseSimulation.def("print", &sim::Simulation<T>::printResults);
-		baseSimulation.def("loadSimulation", [](sim::Simulation<T> &simulation, arch::Network<T> &network, std::string file) { 
-				porting::simulationFromJSON(file, &network);
-			});
 		baseSimulation.def("saveResult", [](sim::Simulation<T> &simulation, std::string file) {
 				porting::resultToJSON(file, &simulation);
 			});
 
 	py::class_<sim::AbstractContinuous<T>>(m, "AbstractContinuousSimulation", baseSimulation)
 		.def(py::init<arch::Network<T>*>())
+		.def(py::init([](std::string file, arch::Network<T>* network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::unique_ptr<sim::AbstractContinuous<T>>(dynamic_cast<sim::AbstractContinuous<T>*>(tmpPtr.release()));
+			}))
 		.def("simulate", &sim::AbstractContinuous<T>::simulate);
 
 	py::class_<sim::AbstractDroplet<T>>(m, "AbstractDropletSimulation", baseSimulation)
 		.def(py::init<arch::Network<T>*>())
+		.def(py::init([](std::string file, arch::Network<T>* network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::unique_ptr<sim::AbstractDroplet<T>>(dynamic_cast<sim::AbstractDroplet<T>*>(tmpPtr.release()));
+			}))
 		.def("addDroplet", [](sim::AbstractDroplet<T> &simulation, int fluidId, T volume) {
 				return simulation.addDroplet(fluidId, volume)->getId();
 			})
@@ -109,6 +112,10 @@ PYBIND11_MODULE(pysimulator, m) {
 	
 	py::class_<sim::HybridContinuous<T>>(m, "HybridContinuousSimulation", baseSimulation)
 		.def(py::init<arch::Network<T>*>())
+		.def(py::init([](std::string file, arch::Network<T>* network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::unique_ptr<sim::HybridContinuous<T>>(dynamic_cast<sim::HybridContinuous<T>*>(tmpPtr.release()));
+			}))
 		.def("simulate", &sim::HybridContinuous<T>::simulate)
 		.def("addLbmSimulator", [](	sim::HybridContinuous<T> &simulation, 
 									std::string name,
