@@ -124,6 +124,7 @@ public:
      */
     T getConcentrationOfSpecie(int specieId) const;
 
+    /** TODO: Miscellaneous */
     /**
      * @brief Get the largest molecular size in this mixture.
      * @return Largest molecular size in the mixture in \\TODO unit.

@@ -69,18 +69,55 @@ PYBIND11_MODULE(pysimulator, m) {
 			porting::networkFromJSON(file, network);
 		});
 
-	py::class_<sim::Simulation<T>>(m, "Simulation")
-		.def(py::init<>())
-		.def("setPlatform", &sim::Simulation<T>::setPlatform)
-		.def("setType", &sim::Simulation<T>::setType)
-		.def("setNetwork", &sim::Simulation<T>::setNetwork)
-		.def("addFluid", [](sim::Simulation<T> &simulation, T density, T viscosity, T concentration) {
+	py::class_<sim::Simulation<T>> baseSimulation(m, "Simulation");
+		baseSimulation.def("setNetwork", &sim::Simulation<T>::setNetwork);
+		baseSimulation.def("addFluid", [](sim::Simulation<T> &simulation, T density, T viscosity, T concentration) {
 				return simulation.addFluid(viscosity, density, concentration)->getId();
-			})
-		.def("addDroplet", [](sim::Simulation<T> &simulation, int fluidId, T volume) {
+			});
+		baseSimulation.def("setContinuousPhase", py::overload_cast<int>(&sim::Simulation<T>::setContinuousPhase));
+		baseSimulation.def("setRectangularResistanceModel", [](sim::Simulation<T> & simulation) {
+				sim::ResistanceModel1D<T>* resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
+				simulation.setResistanceModel(resistanceModel);
+			});
+		baseSimulation.def("setPoiseuilleResistanceModel", [](sim::Simulation<T> & simulation) {
+				sim::ResistanceModelPoiseuille<T>* resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+				simulation.setResistanceModel(resistanceModel);
+			});
+		baseSimulation.def("print", &sim::Simulation<T>::printResults);
+		baseSimulation.def("saveResult", [](sim::Simulation<T> &simulation, std::string file) {
+				porting::resultToJSON(file, &simulation);
+			});
+
+	py::class_<sim::AbstractContinuous<T>>(m, "AbstractContinuousSimulation", baseSimulation)
+		.def(py::init<arch::Network<T>*>())
+		.def(py::init([](std::string file, arch::Network<T>* network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::unique_ptr<sim::AbstractContinuous<T>>(dynamic_cast<sim::AbstractContinuous<T>*>(tmpPtr.release()));
+			}))
+		.def("simulate", &sim::AbstractContinuous<T>::simulate);
+
+	py::class_<sim::AbstractDroplet<T>>(m, "AbstractDropletSimulation", baseSimulation)
+		.def(py::init<arch::Network<T>*>())
+		.def(py::init([](std::string file, arch::Network<T>* network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::unique_ptr<sim::AbstractDroplet<T>>(dynamic_cast<sim::AbstractDroplet<T>*>(tmpPtr.release()));
+			}))
+		.def("addDroplet", [](sim::AbstractDroplet<T> &simulation, int fluidId, T volume) {
 				return simulation.addDroplet(fluidId, volume)->getId();
 			})
-		.def("addLbmSimulator", [](	sim::Simulation<T> &simulation, 
+		.def("injectDroplet", [](sim::AbstractDroplet<T> &simulation, int dropletId, T injectionTime, int channelId, T injectionPosition) {
+				simulation.addDropletInjection(dropletId, injectionTime, channelId, injectionPosition);
+			})
+		.def("simulate", &sim::AbstractDroplet<T>::simulate);
+	
+	py::class_<sim::HybridContinuous<T>>(m, "HybridContinuousSimulation", baseSimulation)
+		.def(py::init<arch::Network<T>*>())
+		.def(py::init([](std::string file, arch::Network<T>* network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::unique_ptr<sim::HybridContinuous<T>>(dynamic_cast<sim::HybridContinuous<T>*>(tmpPtr.release()));
+			}))
+		.def("simulate", &sim::HybridContinuous<T>::simulate)
+		.def("addLbmSimulator", [](	sim::HybridContinuous<T> &simulation, 
 									std::string name,
 									std::string stlFile,
 									int moduleId,
@@ -112,30 +149,7 @@ PYBIND11_MODULE(pysimulator, m) {
 			return simulation.addLbmSimulator(	name, stlFile, simulation.getNetwork()->getModule(moduleId), openings, charPhysLength,
 												charPhysVelocity, resolution, epsilon, tau)->getId();
 
-			}, "Add a LBM simulator to the simulation.")
-		.def("injectDroplet", [](sim::Simulation<T> &simulation, int dropletId, T injectionTime, int channelId, T injectionPosition) {
-				simulation.addDropletInjection(dropletId, injectionTime, channelId, injectionPosition);
-			})
-		.def("setContinuousPhase", py::overload_cast<int>(&sim::Simulation<T>::setContinuousPhase))
-		.def("setRectangularResistanceModel", [](sim::Simulation<T> & simulation) {
-				sim::ResistanceModel1D<T>* resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
-				simulation.setResistanceModel(resistanceModel);
-			})
-		.def("setPoiseuilleResistanceModel", [](sim::Simulation<T> & simulation) {
-				sim::ResistanceModelPoiseuille<T>* resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
-				simulation.setResistanceModel(resistanceModel);
-			})
-		.def("setNaiveScheme", [](sim::Simulation<T> & simulation, T alpha, T beta, int theta) {
-				simulation.setNaiveHybridScheme(alpha, beta, theta);
-			})
-		.def("simulate", &sim::Simulation<T>::simulate)
-		.def("print", &sim::Simulation<T>::printResults)
-		.def("loadSimulation", [](sim::Simulation<T> &simulation, arch::Network<T> &network, std::string file) { 
-				porting::simulationFromJSON(file, &network, simulation);
-			})
-		.def("saveResult", [](sim::Simulation<T> &simulation, std::string file) {
-				porting::resultToJSON(file, &simulation);
-			});
+			}, "Add a LBM simulator to the simulation.");
 
 	#ifdef VERSION_INFO
 	m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

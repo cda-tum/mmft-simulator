@@ -70,7 +70,7 @@ auto writeModules (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeDroplets (result::State<T>* state, sim::Simulation<T>* simulation);
+auto writeDroplets (result::State<T>* state, sim::AbstractDroplet<T>* simulation);
 
 /**
  * @brief Write set of fluids of the simulation
@@ -81,7 +81,7 @@ template<typename T>
 auto writeFluids (sim::Simulation<T>* simulation);
 
 template<typename T>
-auto writeMixtures (sim::Simulation<T>* simulation);
+auto writeMixtures (sim::AbstractMixing<T>* simulation);
 
 /**
  * @brief Return the simulation type of the simulation

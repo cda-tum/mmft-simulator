@@ -85,8 +85,10 @@ std::vector<arch::RectangularChannel<T>*>& Droplet<T>::getFullyOccupiedChannels(
 
 template<typename T>
 bool Droplet<T>::isAtBifurcation() {
-    // TODO: maybe refine the definition, so it is only true if no channel branches of within the droplet range (then needs a chip reference as input)
-    // right now it is true if the droplet is not in a single channel
+    /** TODO: AbstractDropletSimulation
+     * maybe refine the definition, so it is only true if no channel branches of within the droplet range (then needs a chip reference as input)
+     * right now it is true if the droplet is not in a single channel
+     */
     return !isInsideSingleChannel();
 }
 

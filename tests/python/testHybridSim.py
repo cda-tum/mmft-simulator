@@ -3,6 +3,7 @@ from pysimulator import *
 # Continuous Abstract
 def abstractContinuous():
 
+    # Define the network
     network = Network()
 
     # Nodes
@@ -29,12 +30,8 @@ def abstractContinuous():
     network.sort()
     network.valid()
 
-    simulation = Simulation()
-    
-    # Simulation meta-data
-    simulation.setType(Type.abstract)
-    simulation.setPlatform(Platform.continuous)
-    simulation.setNetwork(network)
+    # Define the simulation
+    simulation = AbstractContinuousSimulation(network)
 
     # Fluid & Resistance Model
     f0 = simulation.addFluid(997, 1e-3, 1.0)
@@ -48,6 +45,7 @@ def abstractContinuous():
 # Droplet Abstract
 def abstractDroplet():
 
+    # Define the network
     network = Network()
 
     # Nodes
@@ -70,12 +68,8 @@ def abstractDroplet():
     network.sort()
     network.valid()
 
-    simulation = Simulation()
-    
-    # Simulation meta-data
-    simulation.setType(Type.abstract)
-    simulation.setPlatform(Platform.bigDroplet)
-    simulation.setNetwork(network)
+    # Define the simulation
+    simulation = AbstractDropletSimulation(network)
 
     # Fluid & Resistance Model
     water = simulation.addFluid(1e3, 1e-3, 1.0)
@@ -92,6 +86,7 @@ def abstractDroplet():
 # Continuous Hybrid
 def hybridContinuous():
 
+    # Define the network
     network = Network()
 
     # Nodes
@@ -131,12 +126,8 @@ def hybridContinuous():
     network.sort()
     network.valid()
 
-    simulation = Simulation()
-    
-    # Simulation meta-data
-    simulation.setType(Type.hybrid)
-    simulation.setPlatform(Platform.continuous)
-    simulation.setNetwork(network)
+    # Define the simulation
+    simulation = HybridContinuousSimulation(network)
 
     # Fluid & Resistance Model
     f0 = simulation.addFluid(1e3, 1e-3, 1.0)
@@ -149,14 +140,14 @@ def hybridContinuous():
 
 def abstractContinuousJSON():
     
+    # Define the network
     network = Network()
     network.loadNetwork("../../../../examples/Abstract/Continuous/Network1.JSON")
 
     network.sort()
     network.valid()
 
-    simulation = Simulation()
-    simulation.loadSimulation(network, "../../../../examples/Abstract/Continuous/Network1.JSON")
+    simulation = AbstractContinuousSimulation("../../../../examples/Abstract/Continuous/Network1.JSON", network)
 
     simulation.simulate()
 
@@ -164,14 +155,14 @@ def abstractContinuousJSON():
 
 def abstractDropletJSON():
 
+    # Define the network
     network = Network()
     network.loadNetwork("../../../../examples/Abstract/Droplet/Network1.JSON")
 
     network.sort()
     network.valid()
 
-    simulation = Simulation()
-    simulation.loadSimulation(network, "../../../../examples/Abstract/Droplet/Network1.JSON")
+    simulation = AbstractDropletSimulation("../../../../examples/Abstract/Droplet/Network1.JSON", network)
 
     simulation.simulate()
 
@@ -179,11 +170,11 @@ def abstractDropletJSON():
 
 def hybridContinuousJSON():
 
+    # Define the network
     network = Network()
     network.loadNetwork("../../../../examples/Hybrid/Network1a.JSON")
 
-    simulation = Simulation()
-    simulation.loadSimulation(network, "../../../../examples/Hybrid/Network1a.JSON")
+    simulation = HybridContinuousSimulation("../../../../examples/Hybrid/Network1a.JSON", network)
 
     network.valid()
 
@@ -196,7 +187,7 @@ def main():
     abstractContinuousJSON()
     abstractDroplet()
     abstractDropletJSON()
-    #hybridContinuous()
+    # hybridContinuous()
     hybridContinuousJSON()
 
 if __name__ == "__main__":
