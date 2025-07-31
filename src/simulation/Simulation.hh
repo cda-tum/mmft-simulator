@@ -2,9 +2,10 @@
 
 namespace sim {
 
-    /**
-     * SIMULATION
-     */
+//=========================================================================================
+//===================================  SIMULATION =========================================
+//=========================================================================================
+
     template<typename T>
     Simulation<T>::Simulation(Type simType_, Platform platform_, arch::Network<T>* network_) : simType(simType_), platform(platform_), network(network_) {
         this->simulationResult = std::make_unique<result::SimulationResult<T>>();
@@ -158,9 +159,9 @@ namespace sim {
         nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network);
     }
 
-    /**
-     * ABSTRACT CONTINUOUS
-     */
+//=========================================================================================
+//===============================  ABSTRACT CONTINUOUS  ===================================
+//=========================================================================================
 
     template<typename T>
     AbstractContinuous<T>::AbstractContinuous(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Continuous, network) { }
@@ -198,9 +199,9 @@ namespace sim {
         this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates);
     }
     
-    /**
-     * ABSTRACT DROPLET
-     */
+//=========================================================================================
+//================================  ABSTRACT DROPLET  =====================================
+//=========================================================================================
 
     template<typename T>
     AbstractDroplet<T>::AbstractDroplet(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::BigDroplet, network) { }
@@ -509,8 +510,10 @@ namespace sim {
             }
         }
 
+        /** TODO: Miscellaneous
+         * Check: Seems like this never happens
+         */
         // time step event
-        // TODO check: Seems like this never happens
         if (dropletsAtBifurcation && this->getMaximalAdaptiveTimeStep() > 0) {
             events.push_back(std::make_unique<TimeStepEvent<T>>(this->getMaximalAdaptiveTimeStep()));
         }
@@ -637,9 +640,9 @@ namespace sim {
         this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, saveDropletPositions);
     }
 
-    /**
-     * ABSTRACT MIXING
-     */
+//=========================================================================================
+//=================================  ABSTRACT MIXING  =====================================
+//=========================================================================================
 
     template<typename T>
     AbstractMixing<T>::AbstractMixing(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Mixing, network) { }
@@ -763,19 +766,22 @@ namespace sim {
     template<typename T>
     MixtureInjection<T>* AbstractMixing<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
         auto id = mixtureInjections.size();
-
+        // Mixtures can only be injected into edges that are channels. Otherwise a nullptr is returned
+        // If the edges are pumps, the mixture is injected into adjacent channels at the pump outflow.
         if (this->getNetwork()->isChannel(edgeId)) {
+            // Insert a mixture into a channel_
             auto channel = this->getNetwork()->getChannel(edgeId);
             auto result = mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             return result.first->second.get();
-            
         } else if (this->getNetwork()->isPressurePump(edgeId)) {
+            // If the edge is a pressure pump, the mixture is injected into channels connected to pump outlet
             auto pump = this->getNetwork()->getPressurePump(edgeId);
             int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
             for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
                 mixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         } else if (this->getNetwork()->isFlowRatePump(edgeId)) {
+            // If the edge is a flow rate pump, the mixture is injected into channels connected to pump outlet
             auto pump = this->getNetwork()->getFlowRatePump(edgeId);
             int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
             for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
@@ -788,18 +794,22 @@ namespace sim {
     template<typename T>
     MixtureInjection<T>* AbstractMixing<T>::addPermanentMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
         auto id = permanentMixtureInjections.size();
-
+        // Mixtures can only be injected into edges that are channels. Otherwise a nullptr is returned
+        // If the edges are pumps, the mixture is injected into adjacent channels at the pump outflow.
         if (this->getNetwork()->isChannel(edgeId)) {
+            // Insert a permanent mixture into a channel
             auto channel = this->getNetwork()->getChannel(edgeId);
             auto result = permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             return result.first->second.get();
         } else if (this->getNetwork()->isPressurePump(edgeId)) {
+            // If the edge is a pressure pump, the permanent mixture is injected into channels connected to pump outlet
             auto pump = this->getNetwork()->getPressurePump(edgeId);
             int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
             for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
                 permanentMixtureInjections.insert_or_assign(id, std::make_unique<MixtureInjection<T>>(id, mixtureId, channel, injectionTime));
             }
         } else if (this->getNetwork()->isFlowRatePump(edgeId)) {
+            // If the edge is a flow rate pump, the permanent mixture is injected into channels connected to pump outlet
             auto pump = this->getNetwork()->getFlowRatePump(edgeId);
             int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
             for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
@@ -948,12 +958,15 @@ namespace sim {
             timestep = nextEvent->getTime();
             this->getTime() += nextEvent->getTime();
             
+            // Depending on the mixing model, the process looks different
             if (this->mixingModel->isInstantaneous()){
+                // Instantaneous mixing model
                 auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
                 assert(instantMixingModel);
                 instantMixingModel->moveMixtures(timestep, this->getNetwork());
                 instantMixingModel->updateNodeInflow(timestep, this->getNetwork());
             } else if (this->mixingModel->isDiffusive()) {
+                // Diffusive mixing model
                 this->mixingModel->updateMixtures(timestep, this->getNetwork(), this, mixtures);
             }
             
@@ -1023,9 +1036,10 @@ namespace sim {
         this->getSimulationResults()->setMixtures(mixtures_ptr);   
     }
 
-    /**
-     * ABSTRACT MEMBRANE
-     */
+//=========================================================================================
+//================================  ABSTRACT MEMBRANE  ====================================
+//=========================================================================================
+
     template<typename T>
     AbstractMembrane<T>::AbstractMembrane(arch::Network<T>* network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) { }
 
@@ -1148,9 +1162,10 @@ namespace sim {
         this->saveMixtures();
     }
 
-    /**
-     * HYBRID CONTINUOUS
-     */
+//=========================================================================================
+//================================  HYBRID CONTINUOUS  ====================================
+//=========================================================================================
+
     template<typename T>
     HybridContinuous<T>::HybridContinuous(arch::Network<T>* network) : Simulation<T>(Type::Hybrid, Platform::Continuous, network) { }
 
@@ -1217,6 +1232,9 @@ namespace sim {
         }
     }
 
+    /** TODO: HybridOocSimulation
+     * Enable hybrid OoC simulation and uncomment code below
+     */
     // template<typename T>
     // lbmOocSimulator<T>* HybridContinuous<T>::addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
     //                                                     std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau)
@@ -1364,6 +1382,8 @@ namespace sim {
             allConverged = conductCFDSimulation(cfdSimulators);
         }
 
+        // Iteratively conduct CFD simulation and nodal analysis until both domains are convered 
+        // both internally and with respect to each other (i.e., aligned values on the boundaries)
         while (! allConverged || !pressureConverged) {
             // conduct CFD simulations
             allConverged = conductCFDSimulation(cfdSimulators);
@@ -1418,6 +1438,9 @@ namespace sim {
         this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, vtkFiles);
     }
 
+    /** TODO: HybridOocSimulation
+     * Enable Tissue object definition for OoC simulation
+     */
     // template<typename T>
     // Tissue<T>* Simulation<T>::addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM) {
     //     auto id = tissues.size();
@@ -1427,6 +1450,9 @@ namespace sim {
     //     return result.first->second.get();
     // }
 
+    /** TODO: HybridMixingSimulation
+     * Enable hybrid mixing simulation and uncomment code below
+     */
     // template<typename T>
     // void HybridMixing<T>::simulate() {
     //     this->assertInitialized();              // perform initialization checks
@@ -1476,6 +1502,9 @@ namespace sim {
     //     }
     // }
 
+    /** TODO: HybridOocSimulation
+     * Enable hybrid OoC simulation and uncomment code below
+     */
     // template<typename T>
     // void HybridOoc<T>::simulate() {
     //     this->assertInitialized();              // perform initialization checks

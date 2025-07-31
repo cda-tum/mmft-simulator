@@ -73,7 +73,7 @@ sim::Platform readPlatform(json jsonString) {
         throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     if (jsonString["simulation"]["platform"] == "Continuous") {
-        platform = sim::Platform::Continuous;
+        return platform;
     } else if (jsonString["simulation"]["platform"] == "BigDroplet") {
         platform = sim::Platform::BigDroplet;
     } else if (jsonString["simulation"]["platform"] == "Mixing") {
@@ -93,7 +93,7 @@ sim::Type readType(json jsonString) {
         throw std::invalid_argument("Please define a simulation type. The following types are possible:\nAbstract\nHybrid\nCFD");
     }
     if (jsonString["simulation"]["type"] == "Abstract") {
-        simType = sim::Type::Abstract;
+        return simType;
     } else if (jsonString["simulation"]["type"] == "Hybrid") {
         simType = sim::Type::Hybrid;
     } else if (jsonString["simulation"]["type"] == "CFD") {
@@ -149,6 +149,9 @@ void readSpecies(json jsonString, sim::AbstractMixing<T>& simulation) {
     }
 }
 
+/** TODO: HybridOocSimulation
+ * Enable hybrid OoC simulation and uncomment code below
+ */
 // template<typename T>
 // void readTissues(json jsonString, sim::Simulation<T>& simulation) {
 //     for (auto& tissue : jsonString["simulation"]["tissues"]) {
@@ -270,6 +273,9 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
                                                             charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
+            /** TODO: HybridMixingSimulation
+             * Enable hybrid mixing simulation and uncomment code below
+             */
             // else if (simulator["Type"] == "Mixing")
             // {
             //     std::unordered_map<int, sim::Specie<T>*> species;
@@ -280,6 +286,9 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
             //     simulator->setVtkFolder(vtkFolder);
             // }
+            /** TODO: HybridOocSimulation
+             * Enable hybrid OoC simulation and uncomment code below
+             */
             // else if (simulator["Type"] == "Organ")
             // {
             //     std::unordered_map<int, sim::Specie<T>*> species;
@@ -308,6 +317,9 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
 template<typename T>
 void readUpdateScheme(json jsonString, sim::HybridContinuous<T>& simulation) {
 
+    /** TODO: UpdateSchemes
+     * Include UpdateScheme definitions and update this function.
+     */
     /*  Legacy definition of update scheme for hybrid simulation
         Will be deprecated in next release. */
     if (!jsonString["simulation"].contains("updateScheme")) {
@@ -439,7 +451,7 @@ void readMixingModel(json jsonString, sim::AbstractMixing<T>& simulation) {
 }
 
 template<typename T>
-int readActiveFixture(json jsonString) {
+unsigned int readActiveFixture(json jsonString) {
     unsigned int activeFixture = 0;
     if (jsonString["simulation"].contains("activeFixture")) {
         activeFixture = jsonString["simulation"]["activeFixture"];
@@ -447,7 +459,7 @@ int readActiveFixture(json jsonString) {
             throw std::invalid_argument("The active fixture does not exist.");
         }
     } else {
-        throw std::invalid_argument("Please define an active fixture.");
+        std::cout << "[" << __FILE__ << "] activeFixture was not defined." << std::endl;
     }
     return activeFixture;
 }

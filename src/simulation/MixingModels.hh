@@ -140,8 +140,10 @@ void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::v
         tmpMixtures.push_back(Mixture<T>(*sim->getMixture(mixtureInjection->getMixtureId())));
         mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
     }
+    /** TODO: HybridMixingSimulation
+     * Enable hybrid mixing simulation and uncomment code below
+     */
     // Add CFD Simulator outflows
-    // TODO
     // for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
     //     for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
     //         // If the node is an outflow
@@ -236,7 +238,9 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std:
 
 template<typename T>
 void InstantaneousMixingModel<T>::storeConcentrations(AbstractMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
-    // TODO
+    /** TODO: HybridMixingSimulation
+     * Enable hybrid mixing simulation and uncomment code below
+     */
     // for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
     //     std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
     //     for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
@@ -807,6 +811,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                 bool filled = false;
                 while (!filled){
                     FlowSection<T> inFlowSection;
+                    /** TODO: Miscellaneous */
                     if (inflowCuts[n_in+1] <= outflowCuts[n_out+1] + 1e-15) {   ///< 1e-16 to account for machine precision. TODO: improve algorithm
                         // The cut is caused on the inflow side
                         T flowRate = (1.0 - start) * std::abs(network->getChannel(channelInId)->getFlowRate());
@@ -894,7 +899,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
 
 template<typename T>
 void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) {
-    // TODO
+    /** TODO: Miscellaneous */
 }
 
 template<typename T>

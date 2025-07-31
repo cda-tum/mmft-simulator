@@ -59,7 +59,7 @@ arch::Network<T> networkFromJSON(nlohmann::json jsonString);
  * @brief Constructor of the Simulation from a JSON file
  * @param[in] jsonFile json file
  * @param[in] network pointer to the network on which the simulation acts
- * @returns Simulation simulation
+ * @returns unique_ptr<sim::Simulation<T>> simulation
 */
 template<typename T>
 std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arch::Network<T>* network);
@@ -68,7 +68,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arc
  * @brief Constructor of the Simulation from a JSON string
  * @param[in] json json string
  * @param[in] network pointer to the network on which the simulation acts
- * @returns Simulation simulation
+ * @returns unique_ptr<sim::Simulation<T>> simulation
 */
 template<typename T>
 std::unique_ptr<sim::Simulation<T>> simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network);

@@ -100,6 +100,9 @@ void readDroplets (json jsonString, sim::AbstractDroplet<T>& simulation);
 template<typename T>
 void readSpecies (json jsonString, sim::AbstractMixing<T>& simulation);
 
+/** TODO: HybridOocSimulation
+ * Uncomment code below for reading tissues
+ */
 // template<typename T>
 // void readTissues (json jsonString, sim::Simulation<T>& simulation);
 
@@ -178,6 +181,6 @@ void readMixingModel (json jsonString, sim::AbstractMixing<T>& simulation);
  * @returns The id of the active fixture
 */
 template<typename T>
-int readActiveFixture (json jsonString);
+unsigned int readActiveFixture (json jsonString);
 
 }   // namespace porting

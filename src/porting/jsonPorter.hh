@@ -7,31 +7,39 @@ using ordered_json = nlohmann::ordered_json;
 
 template<typename T>
 arch::Network<T> networkFromJSON(std::string jsonFile) {
-
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
-    arch::Network<T> network = networkFromJSON<T>(jsonString);
-
-    return network;
+    json jsonString;
+    // Transform given path to jsonFile into json object
+    try {
+        std::ifstream f(jsonFile);
+        jsonString = json::parse(f);
+    } catch (std::exception& e) {
+        throw std::runtime_error(std::string(__func__) + " in file " + __FILE__ + ", line " + std::to_string(__LINE__) + ": Could not read provided json file.");
+    }
+    // Forward json object to networkFromJSON overload and 
+    // return network object
+    return networkFromJSON<T>(jsonString);
 }
 
 template<typename T>
 void networkFromJSON(std::string jsonFile, arch::Network<T>& network) {
-
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
-    readNodes(jsonString, network);
-    readChannels(jsonString, network);
-    readModules(jsonString, network);
+    try {
+        // Transform given path to jsonFile into json object
+        std::ifstream f(jsonFile);
+        json jsonString = json::parse(f);
+        // Read network components
+        readNodes(jsonString, network);
+        readChannels(jsonString, network);
+        readModules(jsonString, network);
+    } catch (std::exception& e) {
+        throw std::runtime_error(std::string(__func__) + " in file " + __FILE__ + ", line " + std::to_string(__LINE__) + ": Could not read provided json file.");
+    }
 }
 
 template<typename T>
 arch::Network<T> networkFromJSON(json jsonString) {
 
     arch::Network<T> network;
-
+    // Read network components
     readNodes(jsonString, network);
     readChannels(jsonString, network);
     readModules(jsonString, network);
@@ -41,9 +49,16 @@ arch::Network<T> networkFromJSON(json jsonString) {
 
 template<typename T>
 std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_) {
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
+    json jsonString;
+    // Transform given path to jsonFile into json object
+    try {
+        std::ifstream f(jsonFile);
+        jsonString = json::parse(f);
+    } catch (std::exception& e) {
+        throw std::runtime_error(std::string(__func__) + " in file " + __FILE__ + ", line " + std::to_string(__LINE__) + ": Could not read provided json file.");
+    }
+    // Forward json object to simulationFromJSON overload and 
+    // return unique_ptr to simulation object
     return simulationFromJSON<T>(jsonString, network_);
 }
 
@@ -54,7 +69,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Ne
 
     sim::Platform platform = readPlatform<T>(jsonString);
     sim::Type simType = readType<T>(jsonString);
-    int activeFixture = readActiveFixture<T>(jsonString);
+    unsigned int activeFixture = readActiveFixture<T>(jsonString);
 
     // Read an Abstract simulation definition
     if (simType == sim::Type::Abstract) {
@@ -101,6 +116,9 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Ne
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
             throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
+            /** TODO: HybridMixingSimulation
+             * Enable hybrid mixing simulation and uncomment code below
+             */
             // readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
             // readResistanceModel<T>(jsonString, *simPtr);
             // readMixingModel<T>(jsonString, *simPtr);
@@ -112,6 +130,9 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Ne
             // network_->sortGroups();
         } else if (platform == sim::Platform::Ooc) {
             throw std::invalid_argument("OoC simulations are currently not supported.");
+            /** TODO: HybridOocSimulation
+             * Enable hybrid OoC simulation and uncomment code below
+             */
             // readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
             // readResistanceModel<T>(jsonString, *simPtr);
             // readMixingModel<T>(jsonString, *simPtr);
@@ -140,6 +161,10 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Ne
     // Invalid simulation definition
     else {
         throw std::invalid_argument("Invalid simulation type. Please select one of the following:\n\tAbstract\n\tHybrid");
+    }
+
+    if (!simPtr) {
+        throw std::runtime_error("Error in constructing the simulation object from the given JSON definition: nullPtr returned.");
     }
 
     return simPtr;

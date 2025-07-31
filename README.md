@@ -133,7 +133,7 @@ network.sort()
 network.valid()
 
 # Initialize Simulation object and load from JSON file
-simulation = Simulation("/path/to/Simulation.JSON", network)
+simulation = AbstractContinuousSimulation("/path/to/Simulation.JSON", network)
 
 # Perform simulation 
 simulation.simulate()

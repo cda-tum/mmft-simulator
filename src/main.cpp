@@ -28,10 +28,6 @@ int main(int argc, char const* argv []) {
     std::cout << "[Main] Create simulation object..." << std::endl;
     std::unique_ptr<sim::Simulation<T>> testSimulation = porting::simulationFromJSON<T>(file, &network);
 
-    if (!testSimulation) {
-        throw std::runtime_error("Something went wrong with constructing the simulation object from the given JSON definition.");
-    }
-
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results
     testSimulation->simulate();

@@ -176,47 +176,47 @@ protected:
     virtual void saveState() = 0;
 
     /**
-     * @brief TODO
+     * @brief Wrapper function that conducts the nodal analysis of the nodalAnalysis object.
      */
     inline void conductNodalAnalysis() { nodalAnalysis->conductNodalAnalysis(); }
 
     /**
-     * @brief TODO
+     * @brief Returns a reference to the nodalAnalysis shared_ptr.
      */
     inline std::shared_ptr<nodal::NodalAnalysis<T>>& getNodalAnalysis() { return nodalAnalysis; }
 
     /**
-     * @brief TODO
+     * @brief Returns a reference to the simulation time.
      */
     inline double& getTime() { return time; }
 
     /**
-     * @brief TODO
+     * @brief Returns the set write interval of the simulation.
      */
     inline double getWriteInterval() { return writeInterval; }
 
     /**
-     * @brief TODO
+     * @brief Returns the timestep size dt.
      */
     inline double& getDt() { return dt; }
 
         /**
-     * @brief TODO
+     * @brief Returns the maximal allowed time, tMax.
      */
     inline double getTMax() { return tMax; }
 
     /**
-     * @brief TODO
+     * @brief Returns the maximal adaptive timestep size.
      */
     inline double getMaximalAdaptiveTimeStep() { return maximalAdaptiveTimeStep; }
 
     /**
-     * @brief TODO
+     * @brief Get the current iteration number.
      */
     inline int& getIterations() { return iteration; }
 
     /**
-     * @brief TODO
+     * @brief Returns the maxmimum allowed simulation iterations.
      */
     inline int getMaxIterations() { return maxIterations; }
 
@@ -232,7 +232,9 @@ public:
      */
     Fluid<T>* addFluid(T viscosity, T density, T concentration);
 
-    // Disabled because no stable simulator uses tissues
+    /** TODO: HybridOocSimulation
+     * Enable definition of Tissue objects for OoC simulation
+     */
     // /**
     //  * @brief Create tissue.
     //  * @param[in] species Map of Species that interacts with this tissue.
@@ -377,6 +379,7 @@ public:
 
     /**
      * @brief Constructor of the abstract continuous simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
      */
     AbstractContinuous(arch::Network<T>* network);
 
@@ -414,6 +417,7 @@ private:
 
     /**
      * @brief Compute all possible next events.
+     * @return Vector of pointers containing unique pointers to the Events.
      */
     std::vector<std::unique_ptr<Event<T>>> computeEvents();
 
@@ -421,6 +425,7 @@ public:
 
     /**
      * @brief Constructor of the abstract droplet simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
      */
     AbstractDroplet(arch::Network<T>* network);
 
@@ -531,7 +536,10 @@ protected:
     std::vector<std::unique_ptr<Event<T>>> computeMixingEvents();
 
     /**
-     * @brief Constructor of the abstract mixing simulator object
+     * @brief Protected constructor of the abstract mixing simulator object, used by derived objects
+     * @param[in] simType Simulation type of the derived simulation object.
+     * @param[in] platform Simulation platform of the derived simulation object.
+     * @param[in] network Pointer to the network object, in which the simulation takes place.
      */
     AbstractMixing(Type simType, Platform platform, arch::Network<T>* network);
 
@@ -540,6 +548,7 @@ protected:
 public:
     /**
      * @brief Constructor of the abstract mixing simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
      */
     AbstractMixing(arch::Network<T>* network);
 
@@ -693,7 +702,7 @@ public:
 };
 
 /**
- * @brief Class that conducts a abstract continuous simulation
+ * @brief Class that conducts an abstract continuous simulation
  */
 template<typename T>
 class AbstractMembrane final : public AbstractMixing<T> {
@@ -706,6 +715,7 @@ public:
 
     /**
      * @brief Constructor of the abstract membrane simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
      */
     AbstractMembrane(arch::Network<T>* network);
 
@@ -755,6 +765,7 @@ public:
 
     /**
      * @brief Constructor of the hybrid continuous simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
      */
     HybridContinuous(arch::Network<T>* network);
 
@@ -886,7 +897,9 @@ public:
 
 };
 
-
+/** TODO: HybridMixingSimulation
+ * Enable hybrid mixing simulation and uncomment code below
+ */
 // /**
 //  * @brief Class that conducts a abstract continuous simulation
 //  */
@@ -902,6 +915,9 @@ public:
 
 // };
 
+/** TODO: HybridOocSimulation
+ * Enable hybrid OoC simulation and uncomment code below
+ */
 // /**
 //  * @brief Class that conducts a abstract continuous simulation
 //  */
