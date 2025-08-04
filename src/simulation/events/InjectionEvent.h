@@ -13,6 +13,12 @@ class Event;
 template<typename T>
 class DropletInjection;
 
+template<typename T>
+class MixtureInjection;
+
+template<typename T>
+class MixingModel;
+
 /**
  * @brief Class for an injection event that takes place when a droplet is injected into the network.
  */

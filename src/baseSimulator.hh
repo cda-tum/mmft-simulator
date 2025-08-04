@@ -1,22 +1,33 @@
-#include "simulation/CFDSim.hh"
-#include "simulation/Droplet.hh"
-#include "simulation/Fluid.hh"
-#include "simulation/Injection.hh"
-#include "simulation/MembraneModels.hh"
-#include "simulation/Mixture.hh"
-#include "simulation/MixtureInjection.hh"
-#include "simulation/MixingModels.hh"
-#include "simulation/ResistanceModels.hh"
-#include "simulation/Simulation.hh"
-#include "simulation/simulators/cfdSimulator.hh"
-#include "simulation/simulators/olbContinuous.hh"
-#include "simulation/simulators/olbMixing.hh"
-#include "simulation/simulators/olbOoc.hh"
-#include "simulation/Specie.hh"
-#include "simulation/Tissue.hh"
+#include "simulation/entities/Droplet.hh"
+#include "simulation/entities/Fluid.hh"
+#include "simulation/entities/Mixture.hh"
+#include "simulation/entities/Specie.hh"
+#include "simulation/entities/Tissue.hh"
+
 #include "simulation/events/BoundaryEvent.hh"
 #include "simulation/events/InjectionEvent.hh"
 #include "simulation/events/MergingEvent.hh"
+
+#include "simulation/operations/Injection.hh"
+#include "simulation/operations/MixtureInjection.hh"
+
+#include "simulation/models/MembraneModels.hh"
+#include "simulation/models/MixingModels.hh"
+#include "simulation/models/ResistanceModels.hh"
+
+#include "simulation/simulators/Simulation.hh"
+#include "simulation/simulators/AbstractContinuous.hh"
+#include "simulation/simulators/AbstractDroplet.hh"
+#include "simulation/simulators/AbstractMixing.hh"
+#include "simulation/simulators/AbstractMembrane.hh"
+#include "simulation/simulators/HybridContinuous.hh"
+
+#include "simulation/simulators/CFDSim.hh"
+#include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
+#include "simulation/simulators/cfdHandlers/olbContinuous.hh"
+// #include "simulation/simulators/cfdHandlers/olbMixing.h" //** TODO: HybridMixingSimulation */
+// #include "simulation/simulators/cfdHandlers/olbOoc.h"    //** TODO: HybridOocSimulation */
+
 
 #include "nodalAnalysis/NodalAnalysis.hh"
 
