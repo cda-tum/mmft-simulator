@@ -98,7 +98,7 @@ auto writeDroplets(result::State<T>* state, sim::AbstractDroplet<T>* simulation)
 template<typename T>
 auto writeFluids(sim::Simulation<T>* simulation) {      
     auto Fluids = ordered_json::array();
-    auto const& simFluids = simulation->getFluids();
+    auto const& simFluids = simulation->readFluids();
     for (long unsigned int i=0; i<simFluids.size(); ++i) {
         auto Fluid = ordered_json::object();
         auto& simFluid = simFluids.at(i);

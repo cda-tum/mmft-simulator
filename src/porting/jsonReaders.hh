@@ -114,7 +114,7 @@ void readFluids(json jsonString, sim::Simulation<T>& simulation) {
             T density = fluid["density"];
             T viscosity = fluid["viscosity"];
             T concentration = fluid["concentration"];
-            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density, concentration);
+            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density, concentration).get();
             std::string name = fluid["name"];
             addedFluid->setName(name);
         } else {
@@ -418,19 +418,17 @@ void readPumps(json jsonString, arch::Network<T>* network) {
 
 template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
-    sim::ResistanceModel<T>* resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
         if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
-            resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
+            simulation.set1DResistanceModel();
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
-            resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+            simulation.setPoiseuilleResistanceModel();
         } else {
             throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
     }
-    simulation.setResistanceModel(resistanceModel);
 }
 
 template<typename T>

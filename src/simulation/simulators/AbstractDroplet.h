@@ -1,5 +1,5 @@
 /**
- * @file Simulation.h
+ * @file AbstractDroplet.h
  */
 
 #pragma once
@@ -64,7 +64,16 @@ public:
      * @brief Constructor of the abstract droplet simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
      */
-    AbstractDroplet(arch::Network<T>* network);
+    AbstractDroplet(std::shared_ptr<arch::Network<T>> network);
+
+    /**
+     * TODO:
+     * Overload the deleteFluid function, to account for droplets that contain that fluid
+     * -> To be deleted? 
+     * -> Throw logic::error?
+     * -> Default to continuous phase?
+    */
+    void removeFluid(const std::shared_ptr<Fluid<T>>& fluid) override { };
 
     /**
      * @brief Create droplet.

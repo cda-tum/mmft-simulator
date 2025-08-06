@@ -102,22 +102,6 @@ private:
     int virtualNodes = 0;
 
     /**
-     * @brief Goes through network and sets all nodes and channels that are visited to true.
-     * @param[in] id Id of the node that is visited.
-     * @param[in, out] visitedNodes Reference to a map that stores which nodes have already been visited.
-     * @param[in, out] visitedChannels Reference to a map that stores which channels have already been visited.
-     */
-    void visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules);
-    
-    /**
-     * @brief Calculate total count across all edge types (channels, flowRatePumps, pressurePumps, membranes, tanks).
-     *
-     * @note Can be used to calculate the next free ID for an edge.
-     */
-    [[nodiscard]] int edgeCount() const;
-
-public:
-    /**
      * @brief Constructor of the Network
      * @param[in] nodes Nodes of the network.
      * @param[in] channels Channels of the network.
@@ -148,15 +132,65 @@ public:
     /**
      * @brief Constructor of the Network from a JSON string
      * @param json json string
-                simulationResult->printLastState();
-     * @return SimulationResult struct
     */
     Network(std::string jsonFile);
 
     /**
      * @brief Constructor of a Network object.
     */
-    Network();
+    Network() { };
+
+    /**
+     * @brief Goes through network and sets all nodes and channels that are visited to true.
+     * @param[in] id Id of the node that is visited.
+     * @param[in, out] visitedNodes Reference to a map that stores which nodes have already been visited.
+     * @param[in, out] visitedChannels Reference to a map that stores which channels have already been visited.
+     */
+    void visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules);
+    
+    /**
+     * @brief Calculate total count across all edge types (channels, flowRatePumps, pressurePumps, membranes, tanks).
+     *
+     * @note Can be used to calculate the next free ID for an edge.
+     */
+    [[nodiscard]] int edgeCount() const;
+
+public:
+
+    /**
+     * @brief Factory function to create a Network object and returns a shared_ptr.
+     * @param[in] nodes Nodes of the network.
+     * @param[in] channels Channels of the network.
+     * @param[in] flowRatePump Flow rate pumps of the network.
+     * @param[in] pressurePump Pressure pumps of the network.
+     * @param[in] modules Modules of the network.
+    */
+    static std::shared_ptr<Network<T>> createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
+                                                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
+                                                    std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
+                                                    std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
+                                                    std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
+
+    /**
+     * @brief Factory function to create a Network object and returns a shared_ptr.
+     * @param[in] nodes Nodes of the network.
+     * @param[in] channels Channels of the network.
+    */
+    static std::shared_ptr<Network<T>> createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
+                                                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels);
+
+    /**
+     * @brief Factory function to create a Network object that generates a fully connected graph 
+     * between the nodes and returns a shared_ptr.
+     * @param[in] nodes Nodes of the network.
+    */
+    static std::shared_ptr<Network<T>> createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
+
+    /**
+     * @brief Factory function to create a Network object and returns a shared_ptr.
+     * @param[in] nodes Nodes of the network.
+    */
+    static std::shared_ptr<Network<T>> createNetwork();
 
     /**
      * @brief Adds a new node to the network.
@@ -525,6 +559,17 @@ public:
      * @brief Calculate the distance between the two given nodes
      */
     [[nodiscard]] T calculateNodeDistance(int nodeAId, int nodeBId);
+
+    // Disable copy constructors
+    Network<T>(const Network<T>& src) = delete;
+    Network<T>(const Network<T>&& src) = delete;
+
+    // Disable assignment constructors
+    Network<T>& operator=(const Network<T>& rhs) = delete;
+    Network<T>& operator=(const Network<T>&& rhs) = delete;
+
+    // Default destructor
+    ~Network<T>() = default;
 };
 
 }   // namespace arch

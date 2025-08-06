@@ -40,8 +40,36 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
 }
 
 template<typename T>
-Network<T>::Network(std::string jsonFile) {
+std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
+                                                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
+                                                    std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
+                                                    std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
+                                                    std::unordered_map<int, std::unique_ptr<Module<T>>> modules_) 
+{
+    return std::shared_ptr<Network<T>>(new Network<T>(nodes_, channels_, flowRatePumps_, pressurePumps_, modules_));
+}
 
+template<typename T>
+std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
+                                                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_)
+{
+    return std::shared_ptr<Network<T>>(new Network<T>(nodes_, channels_));
+}
+
+template<typename T>
+std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_)
+{
+    return std::shared_ptr<Network<T>>(new Network<T>(nodes_));
+}
+
+template<typename T>
+std::shared_ptr<Network<T>> Network<T>::createNetwork()
+{
+    return std::shared_ptr<Network<T>>(new Network<T>());
+}
+
+template<typename T>
+Network<T>::Network(std::string jsonFile) {
     std::ifstream f(jsonFile);
     json jsonString = json::parse(f);
 
@@ -154,8 +182,6 @@ Network<T>::Network(std::string jsonFile) {
     #endif
 }
 
-template<typename T>
-Network<T>::Network() { }
 
 template<typename T>
 void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules) {

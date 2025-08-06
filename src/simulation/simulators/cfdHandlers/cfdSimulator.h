@@ -60,7 +60,7 @@ protected:
      * @param[in] ResistanceModel The resistance model used for the simulation, necessary to set the initial condition.
      */
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
-                std::unordered_map<int, arch::Opening<T>> openings, ResistanceModel<T>* ResistanceModel);
+                std::unordered_map<int, arch::Opening<T>> openings, const ResistanceModel<T>* ResistanceModel);
 
     /**
      * @brief Constructor of a CFDSimulator, which acts as a base definition for other simulators.
@@ -73,7 +73,7 @@ protected:
      * @param[in] ResistanceModel The resistance model used for the simulation, necessary to set the initial condition.
      */
     CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
-                std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme, ResistanceModel<T>* ResistanceModel);
+                std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme, const ResistanceModel<T>* ResistanceModel);
 
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.

@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    AbstractMembrane<T>::AbstractMembrane(arch::Network<T>* network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) { }
+    AbstractMembrane<T>::AbstractMembrane(std::shared_ptr<arch::Network<T>> network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) { }
 
     template<typename T>
     void AbstractMembrane<T>::setMembraneModel(MembraneModel<T>* model_) {
@@ -64,7 +64,7 @@ namespace sim {
             this->calculateNewMixtures(this->getDt());
 
             // update minimal timestep and limit it so that the next time the state should be written is not overstepped
-            instantMixingModel->fixedMinimalTimeStep(this->getNetwork());
+            instantMixingModel->fixedMinimalTimeStep(this->getNetwork().get());
             instantMixingModel->limitMinimalTimeStep(0.0, timeToNextResult);
 
             // compute events
@@ -101,9 +101,9 @@ namespace sim {
             if (nextEventTime > 0.0) {
                 // move droplets until event is reached
                 // moveDroplets(nextEventTime);
-                instantMixingModel->moveMixtures(this->getDt(), this->getNetwork());
-                instantMixingModel->calculateMembraneExchange(this->getDt(), this, this->getNetwork(), this->getMixtures());
-                instantMixingModel->updateNodeInflow(this->getDt(), this->getNetwork());
+                instantMixingModel->moveMixtures(this->getDt(), this->getNetwork().get());
+                instantMixingModel->calculateMembraneExchange(this->getDt(), this, this->getNetwork().get(), this->getMixtures());
+                instantMixingModel->updateNodeInflow(this->getDt(), this->getNetwork().get());
             }
 
             // perform event (inject droplet, move droplet to next channel, block channel, merge channels)

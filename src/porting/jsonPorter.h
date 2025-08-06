@@ -36,7 +36,7 @@ namespace porting {
  * @returns Network network
 */
 template<typename T>
-arch::Network<T> networkFromJSON(std::string jsonFile);
+std::shared_ptr<arch::Network<T>> networkFromJSON(std::string jsonFile);
 
 /**
  * @brief Define an existing Network from a JSON file
@@ -45,7 +45,7 @@ arch::Network<T> networkFromJSON(std::string jsonFile);
  * @returns Network network
 */
 template<typename T>
-void networkFromJSON(std::string jsonFile, arch::Network<T>& network);
+void networkFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>>& network);
 
 /**
  * @brief Constructor of the Network from a JSON string
@@ -53,7 +53,7 @@ void networkFromJSON(std::string jsonFile, arch::Network<T>& network);
  * @returns Network network
 */
 template<typename T>
-arch::Network<T> networkFromJSON(nlohmann::json jsonString);
+std::shared_ptr<arch::Network<T>> networkFromJSON(nlohmann::json jsonString);
 
 /**
  * @brief Constructor of the Simulation from a JSON file
@@ -62,7 +62,7 @@ arch::Network<T> networkFromJSON(nlohmann::json jsonString);
  * @returns unique_ptr<sim::Simulation<T>> simulation
 */
 template<typename T>
-std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arch::Network<T>* network);
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Constructor of the Simulation from a JSON string
@@ -71,7 +71,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arc
  * @returns unique_ptr<sim::Simulation<T>> simulation
 */
 template<typename T>
-std::unique_ptr<sim::Simulation<T>> simulationFromJSON(nlohmann::json jsonString, arch::Network<T>* network);
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(nlohmann::json jsonString, std::shared_ptr<arch::Network<T>> network);
 
 /**
  * @brief Generates a json string of the simulation results and writes it in the provided location

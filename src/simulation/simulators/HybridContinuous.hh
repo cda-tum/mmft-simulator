@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    HybridContinuous<T>::HybridContinuous(arch::Network<T>* network) : Simulation<T>(Type::Hybrid, Platform::Continuous, network) { }
+    HybridContinuous<T>::HybridContinuous(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Hybrid, Platform::Continuous, network) { }
 
     template<typename T>
     std::shared_ptr<mmft::NaiveScheme<T>> HybridContinuous<T>::setNaiveHybridScheme(T alpha, T beta, int theta) {

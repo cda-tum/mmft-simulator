@@ -207,7 +207,7 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std:
             }
         }
         int outflowMixtureId;
-        Mixture<T> newMixture (tmpMixtures.size(), speciePtrs, newConcentrations, sim->getContinuousPhase());
+        Mixture<T> newMixture (tmpMixtures.size(), speciePtrs, newConcentrations, sim->getContinuousPhase().get());
         if (createMixture) {
             outflowMixtureId = tmpMixtures.size();
         } else {

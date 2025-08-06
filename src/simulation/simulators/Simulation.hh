@@ -3,102 +3,88 @@
 namespace sim {
 
     template<typename T>
-    Simulation<T>::Simulation(Type simType_, Platform platform_, arch::Network<T>* network_) : simType(simType_), platform(platform_), network(network_) {
+    Simulation<T>::Simulation(Type simType_, Platform platform_, std::shared_ptr<arch::Network<T>> network_) : simType(simType_), platform(platform_), network(network_) {
         this->simulationResult = std::make_unique<result::SimulationResult<T>>();
     }
 
     template<typename T>
-    Fluid<T>* Simulation<T>::addFluid(T viscosity, T density, T concentration) {
+    void Simulation<T>::set1DResistanceModel() {
+        this->resistanceModel = std::make_unique<ResistanceModel1D<T>>(getContinuousPhase()->getViscosity());
+    }
+
+    template<typename T>
+    void Simulation<T>::setPoiseuilleResistanceModel() {
+        this->resistanceModel = std::make_unique<ResistanceModelPoiseuille<T>>(getContinuousPhase()->getViscosity());
+    }
+
+    template<typename T>
+    std::shared_ptr<Fluid<T>> Simulation<T>::addFluid(T viscosity, T density, T concentration) {
         auto id = fluids.size();
 
-        auto result = fluids.insert_or_assign(id, std::make_unique<Fluid<T>>(id, density, viscosity, concentration));
+        auto result = fluids.insert_or_assign(id, std::make_shared<Fluid<T>>(id, density, viscosity, concentration));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    void Simulation<T>::setFixtureId(int fixtureId_) {
-        this->fixtureId = fixtureId_;
+    std::shared_ptr<Fluid<T>> Simulation<T>::getFluid(int fluidId) const {
+        auto it = fluids.find(fluidId);
+        if (it == fluids.end()) {
+            throw std::logic_error("Could not get fluid with key " + std::to_string(fluidId) + ". Fluid not found.");
+        }
+        return it->second;
     }
 
     template<typename T>
-    void Simulation<T>::setNetwork(arch::Network<T>* network_) {
-        this->network = network_;
-    }
-
-    template<typename T>
-    void Simulation<T>::setFluids(std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids_) {
-        this->fluids = std::move(fluids_);
-    }
-
-    template<typename T>
-    void Simulation<T>::setContinuousPhase(int fluidId_) {
-        this->continuousPhase = fluidId_;
-    }
-
-    template<typename T>
-    void Simulation<T>::setContinuousPhase(Fluid<T>* fluid) {
-        this->continuousPhase = fluid->getId();
-    }
-
-    template<typename T>
-    void Simulation<T>::setResistanceModel(ResistanceModel<T>* model_) {
-        this->resistanceModel = model_;
-    }
-
-    template<typename T>
-    void Simulation<T>::setMaxEndTime(T maxTime) {
-        this->tMax = maxTime;
-    }
-
-    template<typename T>
-    void Simulation<T>::setWriteInterval(T interval) {
-        this->writeInterval = interval;
-    }
-
-    template<typename T>
-    Platform Simulation<T>::getPlatform() const {
-        return this->platform;
-    }
-
-    template<typename T>
-    Type Simulation<T>::getType() const {
-        return this->simType;
-    }
-
-    template<typename T>
-    int Simulation<T>::getFixtureId() const {
-        return this->fixtureId;
-    }
-
-    template<typename T>
-    arch::Network<T>* Simulation<T>::getNetwork() const {
-        return this->network;
-    }
-
-    template<typename T>
-    Fluid<T>* Simulation<T>::getFluid(int fluidId) const {
-        return fluids.at(fluidId).get();
-    }
-
-    template<typename T>
-    const std::unordered_map<int, std::unique_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
+    const std::unordered_map<int, std::shared_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
         return fluids;
     }
 
     template<typename T>
-    Fluid<T>* Simulation<T>::getContinuousPhase() const {
-        return fluids.at(continuousPhase).get();
+    const std::unordered_map<int, const Fluid<T>*> Simulation<T>::readFluids() const {
+        std::unordered_map<int, const Fluid<T>*> fluidPtrs;
+        for (auto& [id, fluid] : this->fluids) {
+            fluidPtrs.try_emplace(id, fluid.get());
+        }
+        return fluidPtrs;
     }
 
     template<typename T>
-    ResistanceModel<T>* Simulation<T>::getResistanceModel() const {
-        return resistanceModel;
+    void Simulation<T>::removeFluid(int fluidId) {
+        if (fluidId == continuousPhase) {
+            throw std::logic_error("Cannot delete continuous phase.");
+        }
+        auto it = fluids.find(fluidId);
+        if (it != fluids.end()) {
+            fluids.erase(it);
+        } else {
+            throw std::logic_error("Could not delete fluid with key " + std::to_string(fluidId) + ". Fluid not found.");
+        }
     }
 
     template<typename T>
-    result::SimulationResult<T>* Simulation<T>::getSimulationResults() const {
-        return simulationResult.get();
+    void Simulation<T>::removeFluid(const std::shared_ptr<Fluid<T>>& fluid) {
+        removeFluid(fluid->getId());
+    }
+
+    template<typename T>
+    std::shared_ptr<Fluid<T>> Simulation<T>::getContinuousPhase() const {
+        return fluids.at(continuousPhase);
+    }
+
+    template<typename T>
+    void Simulation<T>::setContinuousPhase(int fluidId) {
+        auto it = fluids.find(fluidId);
+        if (it != fluids.end()) {
+            this->continuousPhase = fluidId;
+        } else {
+            throw std::logic_error("Could not set continuousPhase fluid with key " + std::to_string(fluidId) + ". Fluid not found.");
+        }
+    }
+
+    template<typename T>
+    void Simulation<T>::setContinuousPhase(const std::shared_ptr<Fluid<T>>& fluid) {
+        setContinuousPhase(fluid->getId());
     }
 
     template<typename T>
@@ -152,7 +138,7 @@ namespace sim {
             channel->setDropletResistance(0.0);
         }
 
-        nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network);
+        nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network.get());
     }
 
 }   /// namespace sim

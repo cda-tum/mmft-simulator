@@ -131,7 +131,7 @@ public:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
     lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
-        ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932);
+        const ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
      * @brief Constructor of an lbm module.
@@ -150,7 +150,7 @@ public:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
     lbmSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, arch::Opening<T>> openings, 
-        std::shared_ptr<mmft::Scheme<T>> updateScheme, ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932);
+        std::shared_ptr<mmft::Scheme<T>> updateScheme, const ResistanceModel<T>* resistanceModel, T charPhysLenth, T charPhysVelocity, T resolution, T epsilon, T relaxationTime=0.932);
 
     /**
      * @brief Initialize an instance of the LBM solver for this simulator.

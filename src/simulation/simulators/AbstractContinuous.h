@@ -1,5 +1,5 @@
 /**
- * @file Simulation.h
+ * @file AbstractContinuous.h
  */
 
 #pragma once
@@ -36,7 +36,7 @@ public:
      * @brief Constructor of the abstract continuous simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
      */
-    AbstractContinuous(arch::Network<T>* network);
+    AbstractContinuous(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Abstract continuous simulation

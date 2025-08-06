@@ -1,5 +1,5 @@
 /**
- * @file Simulation.h
+ * @file AbstractMembrane.h
  */
 
 #pragma once
@@ -43,7 +43,7 @@ public:
      * @brief Constructor of the abstract membrane simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
      */
-    AbstractMembrane(arch::Network<T>* network);
+    AbstractMembrane(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Define which membrane model should be used for the membrane resistance calculations.

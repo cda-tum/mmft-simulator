@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    AbstractDroplet<T>::AbstractDroplet(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::BigDroplet, network) { }
+    AbstractDroplet<T>::AbstractDroplet(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Abstract, Platform::BigDroplet, network) { }
 
     template<typename T>
     Droplet<T>* AbstractDroplet<T>::addDroplet(int fluidId, T volume) {
@@ -159,7 +159,7 @@ namespace sim {
         T concentration = ratio0 * fluid0->getConcentration() + ratio1 * fluid1->getConcentration();
 
         // add new fluid
-        auto newFluid = this->addFluid(viscosity, density, concentration);
+        auto newFluid = this->addFluid(viscosity, density, concentration).get();
 
         //add previous fluids
         newFluid->addMixedFluid(fluid0);
@@ -228,13 +228,13 @@ namespace sim {
                     Droplet<T>* mergeDroplet = nullptr;
 
                     // find droplet to merge (if present)
-                    auto referenceNode = boundary->getOppositeReferenceNode(this->getNetwork());
+                    auto referenceNode = boundary->getOppositeReferenceNode(this->getNetwork().get());
                     mergeDroplet = getDropletAtNode(referenceNode->getId());
 
                     if (mergeDroplet == nullptr) {
                         // no merging will happen => BoundaryHeadEvent
                         if (!boundary->isInWaitState()) {
-                            events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *this->getNetwork()));
+                            events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *this->getNetwork().get()));
                         }
                     } else {
                         // merging of the actual droplet with the merge droplet will happen => MergeBifurcationEvent

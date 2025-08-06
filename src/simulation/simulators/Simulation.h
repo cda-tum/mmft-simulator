@@ -68,14 +68,14 @@ class Simulation {
 private:
     const Type simType;                                                                 ///< The type of simulation that is being done.                                      
     const Platform platform;                                                            ///< The microfluidic platform that is simulated in this simulation.
-    arch::Network<T>* network = nullptr;                                                ///< Network for which the simulation should be conducted.
-    ResistanceModel<T>* resistanceModel = nullptr;                                      ///< The resistance model used for the simulation.
+    std::shared_ptr<arch::Network<T>> network = nullptr;                                ///< Network for which the simulation should be conducted.
+    std::unique_ptr<ResistanceModel<T>> resistanceModel = nullptr;                      ///< The resistance model used for the simulation.
     std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = nullptr;                   ///< The nodal analysis object, used to conduct abstract simulation.
-    std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
+    std::unordered_map<int, std::shared_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
     int fixtureId = 0;
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
-    int iteration = 0;
-    int maxIterations = 1e5;
+    unsigned int iteration = 0;
+    unsigned int maxIterations = 1e5;
     T maximalAdaptiveTimeStep = 0;                                                      ///< Maximal adaptive time step that is applied when droplets change the channel.
     T time = 0.0;                                                                       ///< Current time of the simulation.
     T dt = 0.01;
@@ -90,7 +90,7 @@ protected:
     /**
      * @brief Creates simulation.
      */
-    Simulation(Type simType, Platform platform, arch::Network<T>* network);
+    Simulation(Type simType, Platform platform, std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Asserts that the simulation is initialized.
@@ -118,7 +118,7 @@ protected:
     /**
      * @brief Returns a reference to the nodalAnalysis shared_ptr.
      */
-    inline std::shared_ptr<nodal::NodalAnalysis<T>>& getNodalAnalysis() { return nodalAnalysis; }
+    inline nodal::NodalAnalysis<T>* getNodalAnalysis() const { return nodalAnalysis.get(); }
 
     /**
      * @brief Returns a reference to the simulation time.
@@ -135,28 +135,83 @@ protected:
      */
     inline double& getDt() { return dt; }
 
-        /**
-     * @brief Returns the maximal allowed time, tMax.
-     */
-    inline double getTMax() { return tMax; }
-
     /**
      * @brief Returns the maximal adaptive timestep size.
      */
     inline double getMaximalAdaptiveTimeStep() { return maximalAdaptiveTimeStep; }
 
     /**
-     * @brief Get the current iteration number.
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluid The fluid the continuous phase consists of.
      */
-    inline int& getIterations() { return iteration; }
+    inline void setFluids(std::unordered_map<int, std::shared_ptr<Fluid<T>>> fluids) { this->fluids = std::move(fluids); }
 
     /**
-     * @brief Returns the maxmimum allowed simulation iterations.
+     * @brief Get fluid.
+     * @param[in] fluidId Id of the fluid
+     * @return Pointer to fluid with the corresponding id
      */
-    inline int getMaxIterations() { return maxIterations; }
+    const std::unordered_map<int, std::shared_ptr<Fluid<T>>>& getFluids() const;
+
+    /**
+     * @brief Get the resistance model that is used in the simulation.
+     * @return The resistance model of the simulation.
+     */
+    inline const ResistanceModel<T>* getResistanceModel() const { return resistanceModel.get(); }
+
+    /**
+     * @brief Get the results of the simulation.
+     * @return Pointer to the result of the simulation.a
+     */
+    inline result::SimulationResult<T>* getSimulationResults() const { return simulationResult.get(); }
+
+    /**
+     * @brief Get the current iteration number.
+     */
+    inline unsigned int& getIterations() { return iteration; }
+
+    /**
+     * @brief Removes a fluid from the simulation, based on the fluid id
+     * @param[in] fluidId The id of the fluid that is to be removed
+     * @throws logic error if the fluidId is the continuous phase or does not exist
+    */
+    void removeFluid(int fluidId);
 
 public:
 
+    /**
+     * @brief Get the platform (read-only value) of the simulation.
+     * @return platform of the simulation
+     */
+    [[nodiscard]] inline const Platform& getPlatform() const noexcept { return this->platform; }
+
+    /**
+     * @brief Get the type (read-only value) of the simulation.
+     * @return type of the simulation
+     */
+    [[nodiscard]] inline const Type& getType() const noexcept { return this->simType; }
+
+    /**
+     * @brief Get the network.
+     * @return Network or nullptr if no network is specified.
+     */
+    [[nodiscard]] inline std::shared_ptr<arch::Network<T>> getNetwork() const { return this->network; }
+
+    /**
+     * @brief Set the network for which the simulation should be conducted.
+     * @param[in] network Network on which the simulation will be conducted.
+     */
+    inline void setNetwork(std::shared_ptr<arch::Network<T>> network) { this->network = network; }
+
+    /**
+     * @brief Sets the resistance model for abstract simulation components to the 1D resistance model
+     */
+    void set1DResistanceModel();
+
+    /**
+     * @brief Sets the resistance model for abstract simulation components to the poiseuille resistance model
+     */
+    void setPoiseuilleResistanceModel();
 
     /**
      * @brief Create fluid.
@@ -165,7 +220,116 @@ public:
      * @param[in] concentration Concentration of the fluid in % (between 0.0 and 1.0).
      * @return Pointer to created fluid.
      */
-    Fluid<T>* addFluid(T viscosity, T density, T concentration);
+    [[maybe_unused]] std::shared_ptr<Fluid<T>> addFluid(T viscosity, T density, T concentration);
+
+    /**
+     * @brief Get fluid.
+     * @param[in] fluidId Id of the fluid
+     * @return Pointer to fluid with the corresponding id
+     * @throws logic error if the fluidId is not found
+     */
+    [[nodiscard]] std::shared_ptr<Fluid<T>> getFluid(int fluidId) const;
+
+    /**
+     * @brief Return a read-only map of fluids currently stored in the simulation
+     * @return Unordered map of fluid ids and const pointers to the fluids
+     */
+    [[nodiscard]] const std::unordered_map<int, const Fluid<T>*> readFluids() const;
+
+    /**
+     * @brief Removes a fluid from the simulation, based using the fluid ptr. 
+     * @param[in] fluid Pointer to the fluid that is to be removed
+     * @throws logic error if the fluidId is the continuous phase or does not exist
+    */
+    virtual void removeFluid(const std::shared_ptr<Fluid<T>>& fluid);
+
+    /**
+     * @brief Set the type of the simulation.
+     * @param[in] type
+     */
+    [[nodiscard]] inline int getFixtureId() const { return this->fixtureId; }
+
+    /**
+     * @brief Set the fixtureId.
+     * @param[in] fixtureId
+     */
+    inline void setFixtureId(int fixtureId) { this->fixtureId = fixtureId; }
+
+    /**
+     * @brief Get the continuous phase.
+     * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
+     */
+    [[nodiscard]] std::shared_ptr<Fluid<T>> getContinuousPhase() const;
+
+    /**
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluidId The ID of the fluid the continuous phase consists of.
+     * @throws logic error if the fluidId is not found
+     */
+    void setContinuousPhase(int fluidId);
+
+    /**
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluid The fluid the continuous phase consists of.
+     * @throws logic error if the fluid is not listed
+     */
+    void setContinuousPhase(const std::shared_ptr<Fluid<T>>& fluid);
+
+    /**
+     * @brief Get the current iteration number.
+     */
+    [[nodiscard]] inline unsigned int getCurrentIteration() { return iteration; }
+
+    /**
+     * @brief Returns the maxmimum allowed simulation iterations.
+     */
+    [[nodiscard]] inline unsigned int getMaxIterations() { return maxIterations; }
+
+    /**
+     * @brief Set the maximum amount of iterations for the simulation.
+     * The simulation ends once it reaches the maximum amount of iterations.
+     * @param[in] maxIterations The number of maximum iterations
+     */
+    inline void setMaxIterations(unsigned int maxIterations) { this->maxIterations = maxIterations; }
+
+    /**
+     * @brief Set interval in which the state is saved to the SimulationResult.
+     * @param[in] Interval in [s].
+     */
+    void inline setWriteInterval(T interval) { this->writeInterval = interval; }
+
+    /**
+     * @brief Returns the maximal allowed time, tMax.
+     */
+    [[nodiscard]] inline double getTMax() { return tMax; }
+
+    /**
+     * @brief Set maximal time after which the simulation should end.
+     * @param[in] Maximal end time in [s].
+     */
+    inline void setMaxEndTime(T maxTime) { this->tMax = maxTime; }
+
+    /**
+     * @brief Get the results of the simulation.
+     * @return Pointer to the result of the simulation.
+     */
+    [[nodiscard]] inline const result::SimulationResult<T>* getResults() const { return simulationResult.get(); }
+
+    /**
+     * @brief Print the results as pressure at the nodes and flow rates at the channels
+     */
+    virtual void printResults() const;
+
+    /**
+     * @brief Conduct the simulation.
+     * @return The result of the simulation containing all intermediate simulation steps and calculated parameters.
+     */
+    virtual void simulate() = 0;
+
+    /**
+     * @brief Mandatory virtual destructor is set to default.
+     */
+    virtual ~Simulation() = default;
 
     /** TODO: HybridOocSimulation
      * Enable definition of Tissue objects for OoC simulation
@@ -179,125 +343,6 @@ public:
     //  */
     // Tissue<T>* addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM);
 
-    /**
-     * @brief Set the fixtureId.
-     * @param[in] fixtureId
-     */
-    void setFixtureId(int fixtureId);
-
-    /**
-     * @brief Set the network for which the simulation should be conducted.
-     * @param[in] network Network on which the simulation will be conducted.
-     */
-    void setNetwork(arch::Network<T>* network);
-
-    /**
-     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluid The fluid the continuous phase consists of.
-     */
-    void setFluids(std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids);
-
-    /**
-     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluidId The ID of the fluid the continuous phase consists of.
-     */
-    void setContinuousPhase(int fluidId);
-
-    /**
-     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluid The fluid the continuous phase consists of.
-     */
-    void setContinuousPhase(Fluid<T>* fluid);
-
-    /**
-     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
-     * @param[in] model The resistance model to be used.
-     */
-    void setResistanceModel(ResistanceModel<T>* model);
-
-    /**
-     * @brief Set maximal time after which the simulation should end.
-     * @param[in] Maximal end time in [s].
-     */
-    void setMaxEndTime(T maxTime);
-
-    /**
-     * @brief Set interval in which the state is saved to the SimulationResult.
-     * @param[in] Interval in [s].
-     */
-    void setWriteInterval(T interval);
-
-    /**
-     * @brief Get the platform of the simulation.
-     * @return platform of the simulation
-     */
-    Platform getPlatform() const;
-
-    /**
-     * @brief Get the type of the simulation.
-     * @return type of the simulation
-     */
-    Type getType() const;
-
-    /**
-     * @brief Set the type of the simulation.
-     * @param[in] type
-     */
-    int getFixtureId() const;
-
-    /**
-     * @brief Get the network.
-     * @return Network or nullptr if no network is specified.
-     */
-    arch::Network<T>* getNetwork() const;
-
-    /**
-     * @brief Get fluid.
-     * @param[in] fluidId Id of the fluid
-     * @return Pointer to fluid with the corresponding id
-     */
-    Fluid<T>* getFluid(int fluidId) const;
-
-    /**
-     * @brief Get fluid.
-     * @param[in] fluidId Id of the fluid
-     * @return Pointer to fluid with the corresponding id
-     */
-    const std::unordered_map<int, std::unique_ptr<Fluid<T>>>& getFluids() const;
-
-    /**
-     * @brief Get the continuous phase.
-     * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
-     */
-    Fluid<T>* getContinuousPhase() const;
-
-    /**
-     * @brief Get the resistance model that is used in the simulation.
-     * @return The resistance model of the simulation.
-     */
-    ResistanceModel<T>* getResistanceModel() const;
-
-    /**
-     * @brief Get the results of the simulation.
-     * @return Pointer to the result of the simulation.
-     */
-    result::SimulationResult<T>* getSimulationResults() const;
-
-    /**
-     * @brief Conduct the simulation.
-     * @return The result of the simulation containing all intermediate simulation steps and calculated parameters.
-     */
-    virtual void simulate() = 0;
-
-    /**
-     * @brief Print the results as pressure at the nodes and flow rates at the channels
-     */
-    virtual void printResults() const;
-
-    /**
-     * @brief Mandatory virtual destructor is set to default.
-     */
-    virtual ~Simulation() = default;
 };
 
 }   // namespace sim

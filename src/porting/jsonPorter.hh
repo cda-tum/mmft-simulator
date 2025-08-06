@@ -6,7 +6,7 @@ using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
 
 template<typename T>
-arch::Network<T> networkFromJSON(std::string jsonFile) {
+std::shared_ptr<arch::Network<T>> networkFromJSON(std::string jsonFile) {
     json jsonString;
     // Transform given path to jsonFile into json object
     try {
@@ -21,34 +21,35 @@ arch::Network<T> networkFromJSON(std::string jsonFile) {
 }
 
 template<typename T>
-void networkFromJSON(std::string jsonFile, arch::Network<T>& network) {
+void networkFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>>& network) {
     try {
         // Transform given path to jsonFile into json object
         std::ifstream f(jsonFile);
         json jsonString = json::parse(f);
         // Read network components
-        readNodes(jsonString, network);
-        readChannels(jsonString, network);
-        readModules(jsonString, network);
+        readNodes(jsonString, *network);
+        readChannels(jsonString, *network);
+        readModules(jsonString, *network);
     } catch (std::exception& e) {
         throw std::runtime_error(std::string(__func__) + " in file " + __FILE__ + ", line " + std::to_string(__LINE__) + ": Could not read provided json file.");
     }
 }
 
 template<typename T>
-arch::Network<T> networkFromJSON(json jsonString) {
+std::shared_ptr<arch::Network<T>> networkFromJSON(json jsonString) {
 
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
+
     // Read network components
-    readNodes(jsonString, network);
-    readChannels(jsonString, network);
-    readModules(jsonString, network);
+    readNodes(jsonString, *network);
+    readChannels(jsonString, *network);
+    readModules(jsonString, *network);
 
     return network;
 }
 
 template<typename T>
-std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_) {
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, std::shared_ptr<arch::Network<T>> network_) {
     json jsonString;
     // Transform given path to jsonFile into json object
     try {
@@ -63,7 +64,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arc
 }
 
 template<typename T>
-std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::shared_ptr<arch::Network<T>> network_) {
 
     std::unique_ptr<sim::Simulation<T>> simPtr = nullptr;
 
@@ -77,18 +78,18 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Ne
             simPtr = std::make_unique<sim::AbstractContinuous<T>>(network_);
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
-            readPumps<T>(jsonString, network_);
+            readPumps<T>(jsonString, network_.get());
         } else if (platform == sim::Platform::BigDroplet) {
             simPtr = std::make_unique<sim::AbstractDroplet<T>>(network_);
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
-            readPumps<T>(jsonString, network_);
+            readPumps<T>(jsonString, network_.get());
             readDropletInjections<T>(jsonString, *(dynamic_cast<sim::AbstractDroplet<T>*>(simPtr.get())), activeFixture);
         } else if (platform == sim::Platform::Mixing) {
             simPtr = std::make_unique<sim::AbstractMixing<T>>(network_);
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
-            readPumps<T>(jsonString, network_);
+            readPumps<T>(jsonString, network_.get());
             readMixingModel<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
             readSpecies<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
             readMixtures<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
@@ -111,7 +112,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Ne
             readFluids<T>(jsonString, *simPtr);
             readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
             readResistanceModel<T>(jsonString, *simPtr);
-            readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())), network_);
+            readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())), network_.get());
             readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())));
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
@@ -149,7 +150,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Ne
             throw std::invalid_argument("Invalid platform for Hybrid simulation. Please select one of the following:\n\tcontinuous");
         }
 
-        readPumps<T>(jsonString, network_);
+        readPumps<T>(jsonString, network_.get());
         network_->isNetworkValid();
     }
 
@@ -185,11 +186,11 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
     auto jsonResult = ordered_json::object();
     auto jsonStates = ordered_json::array();
 
-    for (auto const& state : simulation->getSimulationResults()->getStates()) {
+    for (auto const& state : simulation->getResults()->getStates()) {
         auto jsonState = ordered_json::object();
         jsonState["time"] = state->getTime();
         jsonState["nodes"] = writePressures(state.get());
-        jsonState["channels"] = writeChannels(simulation->getNetwork(), state.get());
+        jsonState["channels"] = writeChannels(simulation->getNetwork().get(), state.get());
         if (simulation->getPlatform() == sim::Platform::Continuous && simulation->getType() == sim::Type::Hybrid) {
             jsonState["modules"] = writeModules(state.get());
         }

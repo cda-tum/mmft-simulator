@@ -22,11 +22,11 @@ int main(int argc, char const* argv []) {
 
     // Load and set the network from a JSON file
     std::cout << "[Main] Create network object..." << std::endl;
-    arch::Network<T> network = porting::networkFromJSON<T>(file);
+    std::shared_ptr<arch::Network<T>> network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
     std::cout << "[Main] Create simulation object..." << std::endl;
-    std::unique_ptr<sim::Simulation<T>> testSimulation = porting::simulationFromJSON<T>(file, &network);
+    std::unique_ptr<sim::Simulation<T>> testSimulation = porting::simulationFromJSON<T>(file, network);
 
     std::cout << "[Main] Simulation..." << std::endl;
     // Perform simulation and store results
@@ -34,10 +34,10 @@ int main(int argc, char const* argv []) {
 
     std::cout << "[Main] Results..." << std::endl;
     // Print the results
-    testSimulation->getSimulationResults()->printStates();
+    testSimulation->getResults()->printStates();
 
     //std::cout << "Write diffusive mixtures" << std::endl;
-    //testSimulation.getSimulationResults()->writeMixture(1);
+    //testSimulation->getResults()->writeMixture(1);
 
     #ifdef USE_ESSLBM
     MPI_Finalize();

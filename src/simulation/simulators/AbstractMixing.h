@@ -1,5 +1,5 @@
 /**
- * @file Simulation.h
+ * @file AbstractMixing.h
  */
 
 #pragma once
@@ -77,7 +77,7 @@ protected:
      * @param[in] platform Simulation platform of the derived simulation object.
      * @param[in] network Pointer to the network object, in which the simulation takes place.
      */
-    AbstractMixing(Type simType, Platform platform, arch::Network<T>* network);
+    AbstractMixing(Type simType, Platform platform, std::shared_ptr<arch::Network<T>> network);
 
     void saveState() override;
 
@@ -86,7 +86,7 @@ public:
      * @brief Constructor of the abstract mixing simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
      */
-    AbstractMixing(arch::Network<T>* network);
+    AbstractMixing(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Create specie.

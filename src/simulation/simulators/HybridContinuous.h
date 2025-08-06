@@ -1,5 +1,5 @@
 /**
- * @file Simulation.h
+ * @file HybridContinuous.h
  */
 
 #pragma once
@@ -78,7 +78,7 @@ public:
      * @brief Constructor of the hybrid continuous simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
      */
-    HybridContinuous(arch::Network<T>* network);
+    HybridContinuous(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Define and set the naive update scheme for a hybrid simulation.

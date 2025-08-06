@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    AbstractContinuous<T>::AbstractContinuous(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Continuous, network) { }
+    AbstractContinuous<T>::AbstractContinuous(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Abstract, Platform::Continuous, network) { }
 
     template<typename T>
     void AbstractContinuous<T>::simulate() {

@@ -3,10 +3,10 @@
 namespace sim {
 
     template<typename T>
-    AbstractMixing<T>::AbstractMixing(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::Mixing, network) { }
+    AbstractMixing<T>::AbstractMixing(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Abstract, Platform::Mixing, network) { }
 
     template<typename T>
-    AbstractMixing<T>::AbstractMixing(Type type_, Platform platform_, arch::Network<T>* network) : Simulation<T>(type_, platform_, network) { }
+    AbstractMixing<T>::AbstractMixing(Type type_, Platform platform_, std::shared_ptr<arch::Network<T>> network) : Simulation<T>(type_, platform_, network) { }
 
     template<typename T>
     Specie<T>* AbstractMixing<T>::addSpecie(T diffusivity, T satConc) {
@@ -27,7 +27,7 @@ namespace sim {
             species.try_emplace(specieId, getSpecie(specieId));
         }
 
-        Fluid<T>* carrierFluid = this->getContinuousPhase();
+        Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
         auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, std::move(specieConcentrations), carrierFluid));
 
@@ -38,7 +38,7 @@ namespace sim {
     Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations) {
         auto id = mixtures.size();
 
-        Fluid<T>* carrierFluid = this->getContinuousPhase();
+        Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
         auto result = mixtures.try_emplace(id, std::make_unique<Mixture<T>>(id, species, specieConcentrations, carrierFluid));
 
@@ -59,7 +59,7 @@ namespace sim {
             specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
         }
 
-        Fluid<T>* carrierFluid = this->getContinuousPhase();
+        Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
@@ -78,7 +78,7 @@ namespace sim {
             specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
         }
 
-        Fluid<T>* carrierFluid = this->getContinuousPhase();
+        Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
@@ -97,7 +97,7 @@ namespace sim {
             specieConcentrations.try_emplace(specieId, T(0));
         }
 
-        Fluid<T>* carrierFluid = this->getContinuousPhase();
+        Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
         auto result = mixtures.try_emplace(id, std::make_unique<DiffusiveMixture<T>>(id, species, specieConcentrations, specieDistributions, carrierFluid));
 
@@ -184,7 +184,7 @@ namespace sim {
 
     template<typename T>
     void AbstractMixing<T>::calculateNewMixtures(double timestep_) {
-        this->mixingModel->updateMixtures(timestep_, this->getNetwork(), this, this->mixtures);
+        this->mixingModel->updateMixtures(timestep_, this->getNetwork().get(), this, this->mixtures);
     }
 
     template<typename T>
@@ -280,9 +280,9 @@ namespace sim {
             // Update and propagate the mixtures 
             if (this->mixingModel->isInstantaneous()){
                 calculateNewMixtures(timestep);
-                this->mixingModel->updateMinimalTimeStep(this->getNetwork());
+                this->mixingModel->updateMinimalTimeStep(this->getNetwork().get());
             } else if (this->mixingModel->isDiffusive()) {
-                this->mixingModel->updateMinimalTimeStep(this->getNetwork());
+                this->mixingModel->updateMinimalTimeStep(this->getNetwork().get());
             }
             
             // store simulation results of current state
@@ -321,11 +321,11 @@ namespace sim {
                 // Instantaneous mixing model
                 auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel);
                 assert(instantMixingModel);
-                instantMixingModel->moveMixtures(timestep, this->getNetwork());
-                instantMixingModel->updateNodeInflow(timestep, this->getNetwork());
+                instantMixingModel->moveMixtures(timestep, this->getNetwork().get());
+                instantMixingModel->updateNodeInflow(timestep, this->getNetwork().get());
             } else if (this->mixingModel->isDiffusive()) {
                 // Diffusive mixing model
-                this->mixingModel->updateMixtures(timestep, this->getNetwork(), this, mixtures);
+                this->mixingModel->updateMixtures(timestep, this->getNetwork().get(), this, mixtures);
             }
             
             nextEvent->performEvent();

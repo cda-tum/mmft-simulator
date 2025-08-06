@@ -24,6 +24,9 @@ namespace sim {
 template<typename T>
 class Droplet;
 
+template<typename T>
+class AbstractDroplet;
+
 /**
  * @brief Class that contains all paramaters necessary to conduct an injection.
  */
@@ -35,6 +38,12 @@ class DropletInjection {
     Droplet<T>* droplet = nullptr;            ///< Pointer to droplet to be injected.
     T injectionTime;                          ///< Time at which the injection should take place in s elapsed since the start of the simulation.
     arch::ChannelPosition<T> injectionPosition;   ///< Position at which the droplet should be injected.
+
+    /**
+     * @brief Retrieve pointer to the droplet that should be injected.
+     * @return Droplet to be injected.
+     */
+    Droplet<T>* getDroplet() const; // Declared private for improved encapsulation
 
   public:
     /**
@@ -77,11 +86,9 @@ class DropletInjection {
      */
     const arch::ChannelPosition<T>& getInjectionPosition() const;
 
-    /**
-     * @brief Retrieve pointer to the droplet that should be injected.
-     * @return Droplet to be injected.
-     */
-    Droplet<T>* getDroplet() const;
+    // Friend classes that need access to private member function getDroplet()
+    friend class AbstractDroplet<T>; 
+    friend class DropletInjectionEvent<T>;
 };
 
 }  // namespace sim

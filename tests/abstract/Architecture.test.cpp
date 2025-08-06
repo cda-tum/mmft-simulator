@@ -6,33 +6,33 @@ using T = double;
 
 TEST(Network, testNetwork1) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(0.0, 0.0, false);
-    auto node3 = network.addNode(0.0, 0.0, false);
-    auto node4 = network.addNode(0.0, 0.0, false);
-    auto node0 = network.addNode(0.0, 0.0, false);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(0.0, 0.0, false);
+    auto node3 = network->addNode(0.0, 0.0, false);
+    auto node4 = network->addNode(0.0, 0.0, false);
+    auto node0 = network->addNode(0.0, 0.0, false);
 
     // pressure pump (voltage sources)
-    auto v0 = network.addPressurePump(node0->getId(), node1->getId(), 1.0);
+    auto v0 = network->addPressurePump(node0->getId(), node1->getId(), 1.0);
 
     // flowRate pump (current source)
-    network.addFlowRatePump(node0->getId(), node3->getId(), 1.0);
+    network->addFlowRatePump(node0->getId(), node3->getId(), 1.0);
 
     // channels
-    network.addChannel(node1->getId(), node2->getId(), 5.0, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
-    network.addChannel(node3->getId(), node4->getId(), 5.0, arch::ChannelType::NORMAL);
-    network.addChannel(node4->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
+    network->addChannel(node1->getId(), node2->getId(), 5.0, arch::ChannelType::NORMAL);
+    network->addChannel(node2->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
+    network->addChannel(node3->getId(), node4->getId(), 5.0, arch::ChannelType::NORMAL);
+    network->addChannel(node4->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
 
-    EXPECT_THROW(network.getGroundIds(), std::invalid_argument);
+    EXPECT_THROW(network->getGroundIds(), std::invalid_argument);
 
-    network.setGround(node0->getId());
+    network->setGround(node0->getId());
 
     // compute network
-    network.sortGroups();
-    nodal::NodalAnalysis<T> nodalAnalysis(&network);
+    network->sortGroups();
+    nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
     // check result
@@ -48,31 +48,31 @@ TEST(Network, testNetwork1) {
 
 TEST(Network, testNetwork2) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(0.0, 0.0, false);
-    auto node3 = network.addNode(0.0, 0.0, false);
-    auto node4 = network.addNode(0.0, 0.0, false);
-    auto node5 = network.addNode(0.0, 0.0, false);
-    auto node0 = network.addNode(0.0, 0.0, true);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(0.0, 0.0, false);
+    auto node3 = network->addNode(0.0, 0.0, false);
+    auto node4 = network->addNode(0.0, 0.0, false);
+    auto node5 = network->addNode(0.0, 0.0, false);
+    auto node0 = network->addNode(0.0, 0.0, true);
 
     // pressure pump (voltage sources)
-    auto v0 = network.addPressurePump(node0->getId(), node1->getId(), 1.0);
-    auto v1 = network.addPressurePump(node5->getId(), node0->getId(), 2.0);
+    auto v0 = network->addPressurePump(node0->getId(), node1->getId(), 1.0);
+    auto v1 = network->addPressurePump(node5->getId(), node0->getId(), 2.0);
 
     // flowRate pump (current source)
-    network.addFlowRatePump(node0->getId(), node2->getId(), 1.0);
+    network->addFlowRatePump(node0->getId(), node2->getId(), 1.0);
 
     // channels
-    network.addChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
-    network.addChannel(node0->getId(), node2->getId(), 10, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node3->getId(), 20, arch::ChannelType::NORMAL);
-    network.addChannel(node3->getId(), node4->getId(), 30, arch::ChannelType::NORMAL);
+    network->addChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
+    network->addChannel(node0->getId(), node2->getId(), 10, arch::ChannelType::NORMAL);
+    network->addChannel(node2->getId(), node3->getId(), 20, arch::ChannelType::NORMAL);
+    network->addChannel(node3->getId(), node4->getId(), 30, arch::ChannelType::NORMAL);
 
     // compute network
-    network.sortGroups();
-    nodal::NodalAnalysis<T> nodalAnalysis(&network);
+    network->sortGroups();
+    nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
     // check result
@@ -90,27 +90,27 @@ TEST(Network, testNetwork2) {
 
 TEST(Network, testNetwork3) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(0.0, 0.0, false);
-    auto node3 = network.addNode(0.0, 0.0, false);
-    auto node0 = network.addNode(0.0, 0.0, true);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(0.0, 0.0, false);
+    auto node3 = network->addNode(0.0, 0.0, false);
+    auto node0 = network->addNode(0.0, 0.0, true);
 
     // pressure pump (voltage sources)
-    auto v0 = network.addPressurePump(node2->getId(), node1->getId(), 32.0);
-    auto v1 = network.addPressurePump(node3->getId(), node0->getId(), 20.0);
+    auto v0 = network->addPressurePump(node2->getId(), node1->getId(), 32.0);
+    auto v1 = network->addPressurePump(node3->getId(), node0->getId(), 20.0);
 
     // flowRate pump (current source)
 
     // channels
-    network.addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node3->getId(), 4, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
+    network->addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
+    network->addChannel(node2->getId(), node3->getId(), 4, arch::ChannelType::NORMAL);
+    network->addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
 
     // compute network
-    network.sortGroups();
-    nodal::NodalAnalysis<T> nodalAnalysis(&network);
+    network->sortGroups();
+    nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
     // check result
@@ -126,26 +126,26 @@ TEST(Network, testNetwork3) {
 
 TEST(Network, testNetwork4) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(0.0, 0.0, false);
-    auto node0 = network.addNode(0.0, 0.0, true);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(0.0, 0.0, false);
+    auto node0 = network->addNode(0.0, 0.0, true);
 
     // pressure pump (voltage sources)
-    auto v0 = network.addPressurePump(node1->getId(), node2->getId(), 32.0);
+    auto v0 = network->addPressurePump(node1->getId(), node2->getId(), 32.0);
 
     // flowRate pump (current source)
-    network.addFlowRatePump(node1->getId(), node0->getId(), 20.0);
+    network->addFlowRatePump(node1->getId(), node0->getId(), 20.0);
 
     // channels
-    network.addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
-    network.addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
+    network->addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
+    network->addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::NORMAL);
+    network->addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
 
     // compute network
-    network.sortGroups();
-    nodal::NodalAnalysis<T> nodalAnalysis(&network);
+    network->sortGroups();
+    nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
     // check result
@@ -159,27 +159,27 @@ TEST(Network, testNetwork4) {
 
 TEST(Network, testNetwork5) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(0.0, 0.0, false);
-    auto node3 = network.addNode(0.0, 0.0, false);
-    auto node0 = network.addNode(0.0, 0.0, true);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(0.0, 0.0, false);
+    auto node3 = network->addNode(0.0, 0.0, false);
+    auto node0 = network->addNode(0.0, 0.0, true);
 
     // pressure pump (voltage sources)
 
     // flowRate pump (current source)
-    network.addFlowRatePump(node1->getId(), node0->getId(), 1.0);
-    network.addFlowRatePump(node3->getId(), node0->getId(), 1.5);
+    network->addFlowRatePump(node1->getId(), node0->getId(), 1.0);
+    network->addFlowRatePump(node3->getId(), node0->getId(), 1.5);
 
     // channels
-    network.addChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node3->getId(), 7, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node0->getId(), 10, arch::ChannelType::NORMAL);
+    network->addChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
+    network->addChannel(node2->getId(), node3->getId(), 7, arch::ChannelType::NORMAL);
+    network->addChannel(node2->getId(), node0->getId(), 10, arch::ChannelType::NORMAL);
 
     // compute network
-    network.sortGroups();
-    nodal::NodalAnalysis<T> nodalAnalysis(&network);
+    network->sortGroups();
+    nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
     // check result
@@ -192,21 +192,21 @@ TEST(Network, testNetwork5) {
 
 TEST(Network, networkArchitectureDefinition) {
     // define network
-    arch::Network<T> bionetwork;
-    auto node1 = bionetwork.addNode(0.0, 0.0, false);
-    auto node2 = bionetwork.addNode(0.0, 0.0, false);
-    auto node0 = bionetwork.addNode(0.0, 0.0, true);
+    auto bionetwork = arch::Network<T>::createNetwork();
+    auto node1 = bionetwork->addNode(0.0, 0.0, false);
+    auto node2 = bionetwork->addNode(0.0, 0.0, false);
+    auto node0 = bionetwork->addNode(0.0, 0.0, true);
 
     // pressure pump (voltage sources)
-    auto v0 = bionetwork.addPressurePump(node1->getId(), node2->getId(), 32.0);
+    auto v0 = bionetwork->addPressurePump(node1->getId(), node2->getId(), 32.0);
 
     // flowRate pump (current source)
-    auto i0 = bionetwork.addFlowRatePump(node1->getId(), node0->getId(), 20.0);
+    auto i0 = bionetwork->addFlowRatePump(node1->getId(), node0->getId(), 20.0);
 
     // channels
-    auto c1 = bionetwork.addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
-    auto c2 = bionetwork.addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::BYPASS);
-    auto c3 = bionetwork.addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::CLOGGABLE);
+    auto c1 = bionetwork->addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
+    auto c2 = bionetwork->addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::BYPASS);
+    auto c3 = bionetwork->addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::CLOGGABLE);
 
     EXPECT_EQ(v0->getNodeA(), node1->getId());
     EXPECT_EQ(v0->getNodeB(), node2->getId());

@@ -13,27 +13,27 @@ TEST(Cube, deg0) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(-5e-5, 0.0);
-    network.addNode(0.0, -5e-5);
-    network.addNode(5e-5, 0.0);
-    network.addNode(0.0, 5e-5);
+    network->addNode(-5e-5, 0.0);
+    network->addNode(0.0, -5e-5);
+    network->addNode(5e-5, 0.0);
+    network->addNode(0.0, 5e-5);
 
     // module
-    network.addModule(std::vector<T>({-5e-5, -5e-5}), std::vector<T>({1e-4, 1e-4}), std::vector<int>({0, 1, 2, 3}));
+    network->addModule(std::vector<T>({-5e-5, -5e-5}), std::vector<T>({1e-4, 1e-4}), std::vector<int>({0, 1, 2, 3}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({1.0, 0.0}), 1e-4));
-    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({0.0, 1.0}), 1e-4));
-    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
-    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({0.0, -1.0}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({1.0, 0.0}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({0.0, 1.0}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.0, -1.0}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -59,27 +59,27 @@ TEST(Cube, deg10) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(-4.92404e-5, -8.6824e-6);
-    network.addNode(8.6824e-6, -4.92404e-5);
-    network.addNode(4.92404e-5, 8.6824e-6);
-    network.addNode(-8.6824e-6, 4.92404e-5);
+    network->addNode(-4.92404e-5, -8.6824e-6);
+    network->addNode(8.6824e-6, -4.92404e-5);
+    network->addNode(4.92404e-5, 8.6824e-6);
+    network->addNode(-8.6824e-6, 4.92404e-5);
 
     // module
-    network.addModule(std::vector<T>({-5.79228e-5, -5.79228e-5}), std::vector<T>({1.15846e-4, 1.15846e-4}), std::vector<int>({0, 1, 2, 3}));
+    network->addModule(std::vector<T>({-5.79228e-5, -5.79228e-5}), std::vector<T>({1.15846e-4, 1.15846e-4}), std::vector<int>({0, 1, 2, 3}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
-    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({-0.173648178, 0.984807753}), 1e-4));
-    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-0.984807753, -0.173648178}), 1e-4));
-    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({0.173648178, -0.984807753}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.173648178, 0.984807753}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.984807753, -0.173648178}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.173648178, -0.984807753}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube10", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube10", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -107,27 +107,27 @@ TEST(Cube, deg20) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(-4.698460e-05, -1.71010e-05);
-    network.addNode(1.71010e-05, -4.698460e-05);
-    network.addNode(4.698460e-05, 1.71010e-05);
-    network.addNode(-1.71010e-05, 4.698460e-05);
+    network->addNode(-4.698460e-05, -1.71010e-05);
+    network->addNode(1.71010e-05, -4.698460e-05);
+    network->addNode(4.698460e-05, 1.71010e-05);
+    network->addNode(-1.71010e-05, 4.698460e-05);
 
     // module
-    network.addModule(std::vector<T>({-6.40856e-5, -6.40856e-5}), std::vector<T>({1.28171e-4, 1.28171e-4}), std::vector<int>({0, 1, 2, 3}));
+    network->addModule(std::vector<T>({-6.40856e-5, -6.40856e-5}), std::vector<T>({1.28171e-4, 1.28171e-4}), std::vector<int>({0, 1, 2, 3}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.9396929621, 0.342020143}), 1e-4));
-    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({-0.342020143, 0.9396929621}), 1e-4));
-    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-0.9396929621, -0.342020143}), 1e-4));
-    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({0.342020143, -0.9396929621}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.9396929621, 0.342020143}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.342020143, 0.9396929621}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.9396929621, -0.342020143}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.342020143, -0.9396929621}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube20", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube20", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -155,27 +155,27 @@ TEST(Cube, deg30) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(-4.330130e-05, -2.5e-05);
-    network.addNode(2.5e-05, -4.330130e-05);
-    network.addNode(4.330130e-05, 2.5e-05);
-    network.addNode(-2.5e-05, 4.330130e-05);
+    network->addNode(-4.330130e-05, -2.5e-05);
+    network->addNode(2.5e-05, -4.330130e-05);
+    network->addNode(4.330130e-05, 2.5e-05);
+    network->addNode(-2.5e-05, 4.330130e-05);
 
     // module
-    network.addModule(std::vector<T>({-6.83013e-5, -6.83013e-5}), std::vector<T>({1.36603e-4, 1.36603e-4}), std::vector<int>({0, 1, 2, 3}));
+    network->addModule(std::vector<T>({-6.83013e-5, -6.83013e-5}), std::vector<T>({1.36603e-4, 1.36603e-4}), std::vector<int>({0, 1, 2, 3}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
-    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({-0.5, 0.866025404}), 1e-4));
-    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-0.866025404, -0.5}), 1e-4));
-    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({0.5, -0.866025404}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.5, 0.866025404}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.866025404, -0.5}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.5, -0.866025404}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube30", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube30", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -203,27 +203,27 @@ TEST(Cube, deg45) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(-3.535535e-05, -3.535535e-05);
-    network.addNode(3.535535e-05, -3.535535e-05);
-    network.addNode(3.535535e-05, 3.535535e-05);
-    network.addNode(-3.535535e-05, 3.535535e-05);
+    network->addNode(-3.535535e-05, -3.535535e-05);
+    network->addNode(3.535535e-05, -3.535535e-05);
+    network->addNode(3.535535e-05, 3.535535e-05);
+    network->addNode(-3.535535e-05, 3.535535e-05);
 
     // module
-    network.addModule(std::vector<T>({-7.07107e-5, -7.07107e-5}), std::vector<T>({1.41421e-4, 1.41421e-4}), std::vector<int>({0, 1, 2, 3}));
+    network->addModule(std::vector<T>({-7.07107e-5, -7.07107e-5}), std::vector<T>({1.41421e-4, 1.41421e-4}), std::vector<int>({0, 1, 2, 3}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
-    Openings.try_emplace(1, arch::Opening<T>(network.getNode(1), std::vector<T>({-0.707106781, 0.707106781}), 1e-4));
-    Openings.try_emplace(2, arch::Opening<T>(network.getNode(2), std::vector<T>({-0.707106781, -0.707106781}), 1e-4));
-    Openings.try_emplace(3, arch::Opening<T>(network.getNode(3), std::vector<T>({0.707106781, -0.707106781}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
+    Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.707106781, 0.707106781}), 1e-4));
+    Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.707106781, -0.707106781}), 1e-4));
+    Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.707106781, -0.707106781}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube45", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube45", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -251,21 +251,21 @@ TEST(Cross, deg10) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(3.79807e-6, 2.06588e-4);
+    network->addNode(3.79807e-6, 2.06588e-4);
 
     // module
-    network.addModule(std::vector<T>({-4.88436e-06, -4.88436e-06}), std::vector<T>({5.09769e-4, 5.09769e-4}), std::vector<int>({0}));
+    network->addModule(std::vector<T>({-4.88436e-06, -4.88436e-06}), std::vector<T>({5.09769e-4, 5.09769e-4}), std::vector<int>({0}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -286,21 +286,21 @@ TEST(Cross, deg20) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(1.507681e-5, 1.64495e-4);
+    network->addNode(1.507681e-5, 1.64495e-4);
 
     // module
-    network.addModule(std::vector<T>({-2.02418e-06, -2.02418e-06}), std::vector<T>({5.04049e-4, 5.04049e-4}), std::vector<int>({0}));
+    network->addModule(std::vector<T>({-2.02418e-06, -2.02418e-06}), std::vector<T>({5.04049e-4, 5.04049e-4}), std::vector<int>({0}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.93969261, 0.342020143}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.93969261, 0.342020143}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -321,21 +321,21 @@ TEST(Cross, deg30) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(3.349362e-5, 1.25e-4);
+    network->addNode(3.349362e-5, 1.25e-4);
 
     // module
-    network.addModule(std::vector<T>({8.49364e-06, 8.49364e-06}), std::vector<T>({4.83014e-4, 4.83014e-4}), std::vector<int>({0}));
+    network->addModule(std::vector<T>({8.49364e-06, 8.49364e-06}), std::vector<T>({4.83014e-4, 4.83014e-4}), std::vector<int>({0}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
@@ -356,21 +356,21 @@ TEST(Cross, deg45) {
     T dx = 1e-4/resolution;
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    network.addNode(7.3223e-5, 7.3223e-5);
+    network->addNode(7.3223e-5, 7.3223e-5);
 
     // module
-    network.addModule(std::vector<T>({3.78679e-05, 3.78679e-05}), std::vector<T>({4.24264e-4, 4.24264e-4}), std::vector<int>({0}));
+    network->addModule(std::vector<T>({3.78679e-05, 3.78679e-05}), std::vector<T>({4.24264e-4, 4.24264e-4}), std::vector<int>({0}));
 
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
-    Openings.try_emplace(0, arch::Opening<T>(network.getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
+    Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
 
     // simulator
     sim::ResistanceModelPoiseuille<T> resistanceModel = sim::ResistanceModelPoiseuille<T>(1e-6);
-    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network.getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
+    sim::lbmSimulator<T> s0 (0, "cube0", stlFile, network->getModule(0), Openings, &resistanceModel, 0.0, 0.0, 0.0, resolution, 0.0);
     s0.readGeometryStl(dx, false);
     s0.readOpenings(dx);
 
