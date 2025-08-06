@@ -10,9 +10,12 @@
 #include <vector>
 
 #include "../src/baseSimulator.h"
-#include "test_helpers.h"
+#include "../test_helpers.h"
+#include "../test_definitions.h"
 
 using T = double;
+
+class GradientGenerator : public test::definitions::GlobalTest<T> {};
 
 /*
 Continuous Fluid Simulation Tests based on
@@ -20,7 +23,7 @@ Gerold Fink et al. “Automatic Design of Microfluidic Gradient Generators”. I
 10 (2022), pp. 28155–28164. DOI: 10.1109/ACCESS.2022.3158327 (cit. on pp. 50, 51, 62).
 */
 
-TEST(GradientGenerator, GradientGeneratorSmall) { // Result 50%
+TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   /* Settings Gradient Generator to generate this network:
   let w = 300e-6;
   let h = 100e-6;
@@ -109,7 +112,7 @@ TEST(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   network->sortGroups();
 
   // fluids
-  auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3, 1.0);
+  auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3);
   // auto water = sim.addFluid(8.65269e-4, 1.56e3, 1.0, 9e-10);  // 27 Grad
   // auto glucose = sim.addFluid(1.306489e-3, 1e3, 1.0, 9e-10);  // 27 Grad
 
@@ -151,7 +154,7 @@ TEST(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   ASSERT_NEAR(fluidConcentrations13.at(waterBlue->getId()), 1.0, std::numeric_limits<T>::epsilon());
 }
 
-TEST(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 38.63%
+TEST_F(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 38.63%
   /* Settings Gradient Generator to generate this network:
   let w = 300e-6; // mentioned in paper
   let h = 200e-6; // mentioned in paper
@@ -238,7 +241,7 @@ TEST(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 
   network->sortGroups();
 
   // fluids
-  auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3, 1.0);
+  auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3);
   // auto water = sim.addFluid(8.65269e-4, 1.56e3, 1.0, 9e-10);  // 27 Grad
   // auto glucose = sim.addFluid(1.306489e-3, 1e3, 1.0, 9e-10);  // 27 Grad
 
@@ -278,7 +281,7 @@ TEST(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Paper 
   ASSERT_NEAR(fluidConcentrations13.at(waterBlue->getId()), 1.0, std::numeric_limits<T>::epsilon());
 }
 
-TEST(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.64%/40.12%/21.82%/0%
+TEST_F(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.64%/40.12%/21.82%/0%
   /* Settings Gradient Generator to generate this network:
   let w = 300e-6;
   let h = 200e-6;
@@ -436,7 +439,7 @@ TEST(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.64%
   network->sortGroups();
 
   // fluids
-  auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3, 1.0 /* molecular size: 9e-10*/);
+  auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3 /* molecular size: 9e-10*/);
   // auto water = sim.addFluid(8.65269e-4, 1.56e3, 1.0, 9e-10);  // 27 Grad
   // auto glucose = sim.addFluid(1.306489e-3, 1e3, 1.0, 9e-10);  // 27 Grad
 

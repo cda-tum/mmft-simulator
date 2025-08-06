@@ -71,7 +71,7 @@ private:
     std::shared_ptr<arch::Network<T>> network = nullptr;                                ///< Network for which the simulation should be conducted.
     std::unique_ptr<ResistanceModel<T>> resistanceModel = nullptr;                      ///< The resistance model used for the simulation.
     std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = nullptr;                   ///< The nodal analysis object, used to conduct abstract simulation.
-    std::unordered_map<int, std::shared_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
+    std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>> fluids;                 ///< Fluids specified for the simulation.
     int fixtureId = 0;
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     unsigned int iteration = 0;
@@ -144,14 +144,14 @@ protected:
      * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
      * @param[in] fluid The fluid the continuous phase consists of.
      */
-    inline void setFluids(std::unordered_map<int, std::shared_ptr<Fluid<T>>> fluids) { this->fluids = std::move(fluids); }
+    inline void setFluids(std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>> fluids) { this->fluids = std::move(fluids); }
 
     /**
      * @brief Get fluid.
      * @param[in] fluidId Id of the fluid
      * @return Pointer to fluid with the corresponding id
      */
-    const std::unordered_map<int, std::shared_ptr<Fluid<T>>>& getFluids() const;
+    const std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>>& getFluids() const;
 
     /**
      * @brief Get the resistance model that is used in the simulation.
@@ -213,14 +213,13 @@ public:
      */
     void setPoiseuilleResistanceModel();
 
-    /**
+    /** TODO:
      * @brief Create fluid.
      * @param[in] viscosity Viscosity of the fluid in Pas.
      * @param[in] density Density of the fluid in kg/m^3.
-     * @param[in] concentration Concentration of the fluid in % (between 0.0 and 1.0).
      * @return Pointer to created fluid.
      */
-    [[maybe_unused]] std::shared_ptr<Fluid<T>> addFluid(T viscosity, T density, T concentration);
+    [[maybe_unused]] std::shared_ptr<Fluid<T>> addFluid(T viscosity, T density);
 
     /**
      * @brief Get fluid.
@@ -234,7 +233,7 @@ public:
      * @brief Return a read-only map of fluids currently stored in the simulation
      * @return Unordered map of fluid ids and const pointers to the fluids
      */
-    [[nodiscard]] const std::unordered_map<int, const Fluid<T>*> readFluids() const;
+    [[nodiscard]] const std::unordered_map<unsigned int, const Fluid<T>*> readFluids() const;
 
     /**
      * @brief Removes a fluid from the simulation, based using the fluid ptr. 

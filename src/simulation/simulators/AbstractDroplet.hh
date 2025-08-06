@@ -156,14 +156,9 @@ namespace sim {
         // compute new fluid values
         T viscosity = ratio0 * fluid0->getViscosity() + ratio1 * fluid1->getViscosity();
         T density = ratio0 * fluid0->getDensity() + ratio1 * fluid1->getDensity();
-        T concentration = ratio0 * fluid0->getConcentration() + ratio1 * fluid1->getConcentration();
 
         // add new fluid
-        auto newFluid = this->addFluid(viscosity, density, concentration).get();
-
-        //add previous fluids
-        newFluid->addMixedFluid(fluid0);
-        newFluid->addMixedFluid(fluid1);
+        auto newFluid = this->addFluid(viscosity, density).get();
 
         return newFluid;
     }

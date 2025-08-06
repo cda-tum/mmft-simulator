@@ -1,10 +1,13 @@
 #include "../src/baseSimulator.h"
 
 #include "gtest/gtest.h"
+#include "../test_definitions.h"
 
 using T = double;
 
-TEST(Continuous, allResultValues) {
+class Continuous : public test::definitions::GlobalTest<T> {};
+
+TEST_F(Continuous, allResultValues) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -39,7 +42,7 @@ TEST(Continuous, allResultValues) {
     sim::AbstractContinuous<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 997.0, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 997.0);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -77,7 +80,7 @@ TEST(Continuous, allResultValues) {
 
 }
 
-TEST(Continuous, jsonDefinition) {
+TEST_F(Continuous, jsonDefinition) {
     std::string file = "../examples/Abstract/Continuous/Network1.JSON";
 
     // Load and set the network from a JSON file
@@ -116,7 +119,7 @@ TEST(Continuous, jsonDefinition) {
 
 }
 
-TEST(Continuous, triangleNetwork) {
+TEST_F(Continuous, triangleNetwork) {
     // define network 1
     auto network1 = arch::Network<T>::createNetwork();
 
@@ -153,8 +156,8 @@ TEST(Continuous, triangleNetwork) {
     auto pump2 = network2->addPressurePump(node02->getId(), node12->getId(), pressure);
 
     // fluids
-    auto fluid1 = testSimulation1.addFluid(1e-3, 1e3, 1.0);
-    auto fluid2 = testSimulation2.addFluid(1e-3, 1e3, 1.0);
+    auto fluid1 = testSimulation1.addFluid(1e-3, 1e3);
+    auto fluid2 = testSimulation2.addFluid(1e-3, 1e3);
     //--- continuousPhase ---
     testSimulation1.setContinuousPhase(fluid1->getId());
     testSimulation2.setContinuousPhase(fluid2->getId());
@@ -192,7 +195,7 @@ TEST(Continuous, triangleNetwork) {
                 result2->getStates().at(0)->getFlowRates().at(pump2->getId()), 1e-16);
 }
 
-TEST(Continuous, Y_Network) {
+TEST_F(Continuous, Y_Network) {
     // define network 1
     auto network1 = arch::Network<T>::createNetwork();
 
@@ -239,8 +242,8 @@ TEST(Continuous, Y_Network) {
     auto pump22 = network2->addPressurePump(node52->getId(), node32->getId(), pressure);
 
     // fluids
-    auto fluid1 = testSimulation1.addFluid(1e-3, 1e3, 1.0);
-    auto fluid2 = testSimulation2.addFluid(1e-3, 1e3, 1.0);
+    auto fluid1 = testSimulation1.addFluid(1e-3, 1e3);
+    auto fluid2 = testSimulation2.addFluid(1e-3, 1e3);
     //--- continuousPhase ---
     testSimulation1.setContinuousPhase(fluid1->getId());
     testSimulation2.setContinuousPhase(fluid2->getId());
@@ -289,7 +292,7 @@ TEST(Continuous, Y_Network) {
 
 }
 
-TEST(Continuous, Network2) {
+TEST_F(Continuous, Network2) {
     std::string file = "../examples/Abstract/Continuous/Network2.JSON";
 
     // Load and set the network from a JSON file

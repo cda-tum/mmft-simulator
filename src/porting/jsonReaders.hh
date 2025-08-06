@@ -110,11 +110,10 @@ void readFluids(json jsonString, sim::Simulation<T>& simulation) {
         throw std::invalid_argument("No fluids are defined. Please define at least 1 fluid.");
     }
     for (auto& fluid : jsonString["simulation"]["fluids"]) {
-        if (fluid.contains("density") && fluid.contains("viscosity") && fluid.contains("concentration") && fluid.contains("name")) {
+        if (fluid.contains("density") && fluid.contains("viscosity") && fluid.contains("name")) {
             T density = fluid["density"];
             T viscosity = fluid["viscosity"];
-            T concentration = fluid["concentration"];
-            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density, concentration).get();
+            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density).get();
             std::string name = fluid["name"];
             addedFluid->setName(name);
         } else {

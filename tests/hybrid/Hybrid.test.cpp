@@ -3,10 +3,13 @@
     #include <mpi.h>
 #endif
 #include "gtest/gtest.h"
+#include "../test_definitions.h"
 
 using T = double;
 
-TEST(Hybrid, Case1a) {
+class Hybrid : public test::definitions::GlobalTest<T> {};
+
+TEST_F(Hybrid, Case1a) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     
@@ -54,7 +57,7 @@ TEST(Hybrid, Case1a) {
     sim::HybridContinuous<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -111,7 +114,7 @@ TEST(Hybrid, Case1a) {
 }
 
 #ifdef USE_ESSLBM
-TEST(Hybrid, esstest) {
+TEST_F(Hybrid, esstest) {
 
     MPI_Init(NULL, NULL);
     std::string file = "../examples/Hybrid/Network1a_ESS.JSON";
@@ -150,7 +153,7 @@ TEST(Hybrid, esstest) {
 }
 #endif
 
-TEST(Hybrid, Case1aJSON) {
+TEST_F(Hybrid, Case1aJSON) {
     
     std::string file = "../examples/Hybrid/Network1a.JSON";
     
@@ -185,7 +188,7 @@ TEST(Hybrid, Case1aJSON) {
     EXPECT_NEAR(network->getChannels().at(8)->getFlowRate(), 4.69188e-9, 1e-14);
 }
 
-TEST(Hybrid, testCase2a) {
+TEST_F(Hybrid, testCase2a) {
     
 std::string file = "../examples/Hybrid/Network2a.JSON";
 
@@ -221,7 +224,7 @@ std::string file = "../examples/Hybrid/Network2a.JSON";
 
 }
 
-TEST(Hybrid, testCase3a) {
+TEST_F(Hybrid, testCase3a) {
     
     std::string file = "../examples/Hybrid/Network3a.JSON";
     
@@ -267,7 +270,7 @@ TEST(Hybrid, testCase3a) {
 
 }
 
-TEST(Hybrid, testCase4a) {
+TEST_F(Hybrid, testCase4a) {
     
     std::string file = "../examples/Hybrid/Network4a.JSON";
     

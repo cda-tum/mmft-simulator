@@ -2,11 +2,14 @@
 
 #include "gtest/gtest.h"
 
-#include "test_helpers.h"
+#include "../test_helpers.h"
+#include "../test_definitions.h"
 
 using T = double;
 
-TEST(BigDroplet, allResultValues) {
+class BigDroplet : public test::definitions::GlobalTest<T> { };
+
+TEST_F(BigDroplet, allResultValues) {
 
     // define network
     auto network = arch::Network<T>::createNetwork();
@@ -44,8 +47,8 @@ TEST(BigDroplet, allResultValues) {
     sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -119,12 +122,10 @@ TEST(BigDroplet, allResultValues) {
     EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getName(), "");
     EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getViscosity(), 1e-3);
     EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getDensity(), 1e3);
-    EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getConcentration(), 1.0);
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getId(), fluid1->getId());
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getName(), "");
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getViscosity(), 3e-3);
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getDensity(), 1e3);
-    EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getConcentration(), 1.0);
 
     EXPECT_EQ(testSimulation.getDroplet(droplet0->getId())->getId(), droplet0->getId());
     EXPECT_EQ(testSimulation.getDroplet(droplet0->getId())->getName(), "");
@@ -278,7 +279,7 @@ TEST(BigDroplet, allResultValues) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST(BigDroplet, inverseDirectionChannels) {
+TEST_F(BigDroplet, inverseDirectionChannels) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -315,8 +316,8 @@ TEST(BigDroplet, inverseDirectionChannels) {
     sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -487,7 +488,7 @@ TEST(BigDroplet, inverseDirectionChannels) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST(BigDroplet, mixedDirectionChannels) {
+TEST_F(BigDroplet, mixedDirectionChannels) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -524,8 +525,8 @@ TEST(BigDroplet, mixedDirectionChannels) {
     sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -695,7 +696,7 @@ TEST(BigDroplet, mixedDirectionChannels) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST(BigDroplet, jsonDefinition) {
+TEST_F(BigDroplet, jsonDefinition) {
     std::string file = "../examples/Abstract/Droplet/Network1.JSON";
 
     // Load and set the network from a JSON file
@@ -861,7 +862,7 @@ TEST(BigDroplet, jsonDefinition) {
     EXPECT_EQ(testSimulation->getContinuousPhase()->getId(), 0);
 }
 
-TEST(BigDroplet, noSink1) {
+TEST_F(BigDroplet, noSink1) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -889,8 +890,8 @@ TEST(BigDroplet, noSink1) {
     sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -910,7 +911,7 @@ TEST(BigDroplet, noSink1) {
     testSimulation.simulate();
 }
 
-TEST(BigDroplet, noSink2) {
+TEST_F(BigDroplet, noSink2) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -938,8 +939,8 @@ TEST(BigDroplet, noSink2) {
     sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -959,7 +960,7 @@ TEST(BigDroplet, noSink2) {
     testSimulation.simulate();
 }
 
-TEST(BigDroplet, noSinkTwoDroplets) {
+TEST_F(BigDroplet, noSinkTwoDroplets) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -987,8 +988,8 @@ TEST(BigDroplet, noSinkTwoDroplets) {
     sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -1015,7 +1016,7 @@ Gerold Fink et al. “Automatic Design of Droplet-Based Microfluidic Ring Networ
 IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 40.2 (2021),
 pp. 339–349. DOI: 10.1109/TCAD.2020.2997000 (cit. on pp. 27, 54, 55, 56, 57).
 */
-TEST(Droplet, RingNetworkE1) {
+TEST_F(BigDroplet, RingNetworkE1) {
   constexpr auto cContinuousPhaseViscosity = 1e-3;
   sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
   auto network = arch::Network<T>::createNetwork();
@@ -1165,8 +1166,8 @@ TEST(Droplet, RingNetworkE1) {
   network->sortGroups();
 
   // fluids
-  auto fluid0 = sim.addFluid(1e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
-  auto fluid1 = sim.addFluid(4e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
+  auto fluid0 = sim.addFluid(1e-3, 1e3 /*, molecular size: 9e-10*/);
+  auto fluid1 = sim.addFluid(4e-3, 1e3 /*, molecular size: 9e-10*/);
   //--- continuousPhase ---
   sim.setContinuousPhase(fluid0);
 
@@ -1235,7 +1236,7 @@ Gerold Fink et al. “Automatic Design of Droplet-Based Microfluidic Ring Networ
 IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 40.2 (2021),
 pp. 339–349. DOI: 10.1109/TCAD.2020.2997000 (cit. on pp. 27, 54, 55, 56, 57).
 */
-TEST(Droplet, RingNetworkE2) {
+TEST_F(BigDroplet, RingNetworkE2) {
   constexpr auto cContinuousPhaseViscosity = 1e-3;
   sim::InstantaneousMixingModel<T> mixingModel;
   sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
@@ -1384,8 +1385,8 @@ TEST(Droplet, RingNetworkE2) {
   network->sortGroups();
 
   // fluids
-  auto fluid0 = sim.addFluid(1e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
-  auto fluid1 = sim.addFluid(4e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
+  auto fluid0 = sim.addFluid(1e-3, 1e3 /*, molecular size: 9e-10*/);
+  auto fluid1 = sim.addFluid(4e-3, 1e3 /*, molecular size: 9e-10*/);
   //--- continuousPhase ---
   sim.setContinuousPhase(fluid0);
 

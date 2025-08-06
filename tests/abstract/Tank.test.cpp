@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-#include "test_helpers.h"
+#include "../test_helpers.h"
 
 using T = double;
 
@@ -73,7 +73,7 @@ TEST(Tank, TwoTank) {
   network->sortGroups();
 
   // fluids
-  auto continuousPhaseFluid = sim.addFluid(cContinuousPhaseViscosity, 0.993e3, 1.0 /*molecular size: 9e-10, diffusivity: 4.4e-10, saturation: 0.0*/);
+  auto continuousPhaseFluid = sim.addFluid(cContinuousPhaseViscosity, 0.993e3 /*molecular size: 9e-10, diffusivity: 4.4e-10, saturation: 0.0*/);
 
   // define which fluid is the continuous phase
   sim.setContinuousPhase(continuousPhaseFluid);

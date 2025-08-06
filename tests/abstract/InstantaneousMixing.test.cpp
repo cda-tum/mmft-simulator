@@ -1,10 +1,13 @@
 #include "../src/baseSimulator.h"
 
 #include "gtest/gtest.h"
+#include "../test_definitions.h"
 
 using T = double;
 
-TEST(InstantaneousMixing, Case1) {
+class InstantaneousMixing : public test::definitions::GlobalTest<T> {};
+
+TEST_F(InstantaneousMixing, Case1) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network1.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case1.JSON";
@@ -77,7 +80,7 @@ TEST(InstantaneousMixing, Case1) {
         0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
 }
 
-TEST(InstantaneousMixing, Case2) {
+TEST_F(InstantaneousMixing, Case2) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network1.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case2.JSON";
@@ -212,7 +215,7 @@ TEST(InstantaneousMixing, Case2) {
     
 }
 
-TEST(InstantaneousMixing, Case3) {
+TEST_F(InstantaneousMixing, Case3) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network2.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case3.JSON";
@@ -288,7 +291,7 @@ TEST(InstantaneousMixing, Case3) {
 
 }
 
-TEST(InstantaneousMixing, Case4) {
+TEST_F(InstantaneousMixing, Case4) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network2.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case4.JSON";
@@ -424,7 +427,7 @@ TEST(InstantaneousMixing, Case4) {
 
 }
 
-TEST(InstantaneousMixing, Case5) {
+TEST_F(InstantaneousMixing, Case5) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network3.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case5.JSON";
@@ -466,7 +469,7 @@ TEST(InstantaneousMixing, Case5) {
 
 }
 
-TEST(InstantaneousMixing, Case6) {
+TEST_F(InstantaneousMixing, Case6) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network3.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case6.JSON";
@@ -516,7 +519,7 @@ TEST(InstantaneousMixing, Case6) {
 
 }
 
-TEST(InstantaneousMixing, Case7) {
+TEST_F(InstantaneousMixing, Case7) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network4.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case7.JSON";
@@ -558,7 +561,7 @@ TEST(InstantaneousMixing, Case7) {
 
 }
 
-TEST(InstantaneousMixing, Case8) {
+TEST_F(InstantaneousMixing, Case8) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network4.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case8.JSON";
@@ -623,7 +626,7 @@ TEST(InstantaneousMixing, Case8) {
 
 }
 
-TEST(InstantaneousMixing, Case9) {
+TEST_F(InstantaneousMixing, Case9) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network5.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case9.JSON";
@@ -684,7 +687,7 @@ TEST(InstantaneousMixing, Case9) {
 
 }
 
-TEST(InstantaneousMixing, Case10) {
+TEST_F(InstantaneousMixing, Case10) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network5.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case10.JSON";
@@ -757,7 +760,7 @@ TEST(InstantaneousMixing, Case10) {
 
 }
 
-TEST(InstantaneousMixing, Case11) {
+TEST_F(InstantaneousMixing, Case11) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network6.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case11.JSON";
@@ -802,7 +805,7 @@ TEST(InstantaneousMixing, Case11) {
         0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
 }
 
-TEST(InstantaneousMixing, Case12) {
+TEST_F(InstantaneousMixing, Case12) {
     // Define JSON files
     std::string networkFile = "../examples/Abstract/Mixing/Network6.JSON";
     std::string simFile = "../examples/Abstract/Mixing/Case12.JSON";

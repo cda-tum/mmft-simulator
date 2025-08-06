@@ -104,7 +104,6 @@ auto writeFluids(sim::Simulation<T>* simulation) {
         auto& simFluid = simFluids.at(i);
         Fluid["id"] = simFluid->getId();
         Fluid["name"] = simFluid->getName();
-        Fluid["concentration"] = simFluid->getConcentration();
         Fluid["density"] = simFluid->getDensity();
         Fluid["viscosity"] = simFluid->getViscosity();
         Fluids.push_back(Fluid);

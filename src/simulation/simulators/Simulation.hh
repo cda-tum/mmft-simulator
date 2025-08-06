@@ -18,10 +18,10 @@ namespace sim {
     }
 
     template<typename T>
-    std::shared_ptr<Fluid<T>> Simulation<T>::addFluid(T viscosity, T density, T concentration) {
-        auto id = fluids.size();
+    std::shared_ptr<Fluid<T>> Simulation<T>::addFluid(T viscosity, T density) {
+        auto id = Fluid<T>::getFluidCounter();
 
-        auto result = fluids.insert_or_assign(id, std::make_shared<Fluid<T>>(id, density, viscosity, concentration));
+        auto result = fluids.insert_or_assign(id, std::shared_ptr<Fluid<T>>(new Fluid<T>(id, density, viscosity)));
 
         return result.first->second;
     }
@@ -36,13 +36,13 @@ namespace sim {
     }
 
     template<typename T>
-    const std::unordered_map<int, std::shared_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
+    const std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
         return fluids;
     }
 
     template<typename T>
-    const std::unordered_map<int, const Fluid<T>*> Simulation<T>::readFluids() const {
-        std::unordered_map<int, const Fluid<T>*> fluidPtrs;
+    const std::unordered_map<unsigned int, const Fluid<T>*> Simulation<T>::readFluids() const {
+        std::unordered_map<unsigned int, const Fluid<T>*> fluidPtrs;
         for (auto& [id, fluid] : this->fluids) {
             fluidPtrs.try_emplace(id, fluid.get());
         }
