@@ -1173,7 +1173,7 @@ TEST_F(BigDroplet, RingNetworkE1) {
 
   // droplets
   auto dropletVolume = lDroplet * cWidth * cHeight;
-  auto *droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
+  auto droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
   sim.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
   // auto* droplet1 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet1->getId(), d_m1 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
@@ -1392,7 +1392,7 @@ TEST_F(BigDroplet, RingNetworkE2) {
 
   // droplets
   auto dropletVolume = lDroplet * cWidth * cHeight;
-  auto *droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
+  auto droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
   sim.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
   // auto* droplet1 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet1->getId(), d_m1 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
@@ -1442,3 +1442,15 @@ TEST_F(BigDroplet, RingNetworkE2) {
   // check_path(droplet3Path, expectedDropletHeaderPath);
   // check_path(droplet4Path, expectedDropletHeaderPath);
 }
+
+/**
+ * Test ideas:
+ * 
+ * Droplets consisting of a fluid that gets deleted are defaulted to continuous phase. Or should have been removed.
+ * 
+ * A removed droplet means that its dropletInjections are also removed.
+ * 
+ * Does a simulation still work after the droplets are removed?
+ * 
+ * I can still adapt a removed droplet, but doesn't affect simulation result. Same goes with injection.
+ */

@@ -6,18 +6,117 @@ namespace sim {
     AbstractDroplet<T>::AbstractDroplet(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Abstract, Platform::BigDroplet, network) { }
 
     template<typename T>
-    Droplet<T>* AbstractDroplet<T>::addDroplet(int fluidId, T volume) {
-        auto id = droplets.size();
+    std::shared_ptr<Droplet<T>> AbstractDroplet<T>::addDroplet(int fluidId, T volume) {
+        auto id = DropletImplementation<T>::getDropletCounter();
         auto fluid = this->getFluids().at(fluidId).get();
 
-        auto result = droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluid));
+        auto result = droplets.insert_or_assign(id, std::shared_ptr<DropletImplementation<T>>(new DropletImplementation<T>(id, volume, fluid)));
 
-        return result.first->second.get();
+        return result.first->second;
     }
 
     template<typename T>
-    DropletInjection<T>* AbstractDroplet<T>::addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition) {
-        auto id = dropletInjections.size();
+    std::shared_ptr<Droplet<T>> AbstractDroplet<T>::addDroplet(const std::shared_ptr<Fluid<T>>& fluid, T volume) {
+        return addDroplet(fluid->getId(), volume);
+    }
+
+    template<typename T>
+    std::shared_ptr<DropletImplementation<T>> AbstractDroplet<T>::addMergedDropletImplementation(const DropletImplementation<T>& droplet0, const DropletImplementation<T>& droplet1) {
+        // compute volumes
+        T volume0 = droplet0.getVolume();
+        T volume1 = droplet1.getVolume();
+        T volume = volume0 + volume1;
+
+        // merge fluids
+        auto fluid = this->addMixedFluid(droplet0.getFluid()->getId(), volume0, droplet1.getFluid()->getId(), volume1);
+
+        // add new droplet
+        auto newDroplet = addDroplet(fluid->getId(), volume);
+
+        return droplets.at(newDroplet->getId()); 
+    }
+
+    template<typename T>
+    std::shared_ptr<Droplet<T>> AbstractDroplet<T>::addMergedDroplet(int droplet0Id, int droplet1Id) {
+        // check if droplets are identically (no merging needed) and if they exist
+        if (droplet0Id == droplet1Id) {
+            // try to get the droplet (throws error if the droplet is not present)
+            return droplets.at(droplet0Id);
+        }
+
+        // get droplets
+        auto droplet0 = droplets.at(droplet0Id);
+        auto droplet1 = droplets.at(droplet1Id);
+
+        return addMergedDropletImplementation(*droplet0, *droplet1);
+    }
+
+    template<typename T>
+    std::shared_ptr<Droplet<T>> AbstractDroplet<T>::addMergedDroplet(const std::shared_ptr<Droplet<T>>& droplet0, const std::shared_ptr<Droplet<T>>& droplet1) {
+        return addMergedDroplet(droplet0->getId(), droplet1->getId());
+    }
+
+    template<typename T>
+    std::tuple<bool, std::shared_ptr<Droplet<T>>> AbstractDroplet<T>::getDropletAtNode(int nodeId) const {
+        // loop through all droplets
+        for (auto& [id, droplet] : droplets) {
+            // do not consider droplets which are not inside the network
+            if (droplet->getDropletState() != DropletState::NETWORK) {
+                continue;
+            }
+
+            // do not consider droplets inside a single channel (because they cannot span over a node)
+            if (droplet->isInsideSingleChannel()) {
+                continue;
+            }
+
+            // check if a boundary is connected with the reference node and if yes then return the droplet immediately
+            auto connectedBoundaries = droplet->getConnectedBoundaries(nodeId);
+            if (connectedBoundaries.size() != 0) {
+                return {1, droplet};
+            }
+
+            // check if a fully occupied channel is connected with the reference node and if yes then return the droplet immediately
+            auto connectedFullyOccupiedChannels = droplet->getConnectedFullyOccupiedChannels(nodeId);
+            if (connectedFullyOccupiedChannels.size() != 0) {
+                return {1, droplet};
+            }
+        }
+
+        // if nothing was found than return nullptr
+        return {0, nullptr};
+    }
+
+    template<typename T>
+    std::tuple<bool, std::shared_ptr<Droplet<T>>> AbstractDroplet<T>::getDropletAtNode(const std::shared_ptr<arch::Node<T>>& node) const {
+        return getDropletAtNode(node->getId());
+    }
+
+    template<typename T>
+    void AbstractDroplet<T>::removeDroplet(int dropletId) {
+        if (droplets.erase(dropletId)) {
+            auto it = injectionMap.find(dropletId);
+            if (it != injectionMap.end()) {
+                // Remove the injections that are coupled to this droplet,
+                // from the simulator
+                for (auto injectionId : it->second) {
+                    removeDropletInjection(injectionId);
+                }
+                injectionMap.erase(it);
+            }
+        } else {
+            throw std::logic_error("Could not delete droplet with key " + std::to_string(dropletId) + ". Droplet not found.");
+        }
+    }
+
+    template<typename T>
+    void AbstractDroplet<T>::removeDroplet(const std::shared_ptr<Droplet<T>>& droplet) {
+        removeDroplet(droplet->getId());
+    }
+
+    template<typename T>
+    std::shared_ptr<DropletInjection<T>> AbstractDroplet<T>::addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition) {
+        auto id = DropletInjection<T>::getDropletInjectionCounter();
         auto droplet = droplets.at(dropletId).get();
         auto channel = this->getNetwork()->getChannel(channelId);
 
@@ -38,84 +137,57 @@ namespace sim {
             throw std::invalid_argument("Injection of droplet " + droplet->getName() + " is not valid. Tail and head of the droplet must lie inside the channel " + std::to_string(channel->getId()) + ". Consider to set the injection position in the middle of the channel.");
         }
 
-        auto result = dropletInjections.insert_or_assign(id, std::make_unique<DropletInjection<T>>(id, droplet, injectionTime, channel, injectionPosition));
-        return result.first->second.get();
+        auto result = dropletInjections.try_emplace(id, std::shared_ptr<DropletInjection<T>>(new DropletInjection<T>(id, droplet, injectionTime, channel, injectionPosition)));
+        if (result.second) { injectionMapInsertion(dropletId, id); }
+        return result.first->second;
     }
 
     template<typename T>
-    void AbstractDroplet<T>::setDroplets(std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets_) {
-        this->droplets = std::move(droplets_);
+    std::shared_ptr<DropletInjection<T>> AbstractDroplet<T>::addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::RectangularChannel<T>>& channel, T injectionPosition) {
+        addDropletInjection(droplet->getId(), injectionTime, channel->getId(), injectionPosition);
     }
 
     template<typename T>
-    Droplet<T>* AbstractDroplet<T>::getDroplet(int dropletId) const {
-        return droplets.at(dropletId).get();
+    void AbstractDroplet<T>::removeDropletInjection(int dropletInjectionId) {
+        auto it = dropletInjections.find(dropletInjectionId);
+        if (it != dropletInjections.end()) {
+            int dropletId = it->second->getDroplet()->getId();
+            dropletInjections.erase(it);
+            injectionMap.at(dropletId).erase(dropletInjectionId);
+            if (injectionMap.at(dropletId).empty()) { injectionMap.erase(dropletId); }
+        } else {
+            throw std::logic_error("Could not delete droplet injection with key " + std::to_string(dropletInjectionId) + ". Injection not found.");
+        }
     }
 
     template<typename T>
-    Droplet<T>* AbstractDroplet<T>::getDropletAtNode(int nodeId) const {
-        // loop through all droplets
+    void AbstractDroplet<T>::removeDropletInjection(const std::shared_ptr<DropletInjection<T>>& dropletInjection) {
+        removeDropletInjection(dropletInjection->getId());
+    }
+
+    template<typename T>
+    void AbstractDroplet<T>::removeFluid(const std::shared_ptr<Fluid<T>>& fluid) {
         for (auto& [id, droplet] : droplets) {
-            // do not consider droplets which are not inside the network
-            if (droplet->getDropletState() != DropletState::NETWORK) {
-                continue;
-            }
-
-            // do not consider droplets inside a single channel (because they cannot span over a node)
-            if (droplet->isInsideSingleChannel()) {
-                continue;
-            }
-
-            // check if a boundary is connected with the reference node and if yes then return the droplet immediately
-            auto connectedBoundaries = droplet->getConnectedBoundaries(nodeId);
-            if (connectedBoundaries.size() != 0) {
-                return droplet.get();
-            }
-
-            // check if a fully occupied channel is connected with the reference node and if yes then return the droplet immediately
-            auto connectedFullyOccupiedChannels = droplet->getConnectedFullyOccupiedChannels(nodeId);
-            if (connectedFullyOccupiedChannels.size() != 0) {
-                return droplet.get();
-            }
+            // Check if droplets are pointing to the fluid that is to be removed
+            if (droplet->getFluid()->getId() == fluid->getId()) {
+                // Set the droplet's fluid to default, i.e., continuous phase
+                droplet->setFluid(this->getContinuousPhase().get());
+            } 
         }
 
-        // if nothing was found than return nullptr
-        return nullptr;
+        // Remove the fluid as defined in base class
+        Simulation<T>::removeFluid(fluid);
     }
 
     template<typename T>
-    DropletInjection<T>* AbstractDroplet<T>::getDropletInjection(int injectionId) const {
-        return dropletInjections.at(injectionId).get();
-    }
-
-    template<typename T>
-    Droplet<T>* AbstractDroplet<T>::mergeDroplets(int droplet0Id, int droplet1Id) {
-        // check if droplets are identically (no merging needed) and if they exist
-        if (droplet0Id == droplet1Id) {
-            // try to get the droplet (throws error if the droplet is not present)
-            return droplets.at(droplet0Id).get();
+    void AbstractDroplet<T>::injectionMapInsertion(int dropletId, int injectionId) {
+        auto result = injectionMap.find(dropletId);
+        if (result != injectionMap.end()) {
+            result->second.insert(injectionId);
+        } else {
+            // Set is automatically ordered and ensures uniqueness of injection ids
+            injectionMap.try_emplace(dropletId, std::set<int>{injectionId});
         }
-
-        // get droplets
-        auto droplet0 = getDroplet(droplet0Id);
-        auto droplet1 = getDroplet(droplet1Id);
-
-        // compute volumes
-        T volume0 = droplet0->getVolume();
-        T volume1 = droplet1->getVolume();
-        T volume = volume0 + volume1;
-
-        // merge fluids
-        auto fluid = mixFluids(droplet0->getFluid()->getId(), volume0, droplet1->getFluid()->getId(), volume1);
-
-        // add new droplet
-        auto newDroplet = addDroplet(fluid->getId(), volume);
-
-        //add previous droplets
-        newDroplet->addMergedDroplet(droplet0);
-        newDroplet->addMergedDroplet(droplet1);
-
-        return newDroplet; 
     }
 
     template<typename T>
@@ -134,33 +206,6 @@ namespace sim {
 
             droplet->addDropletResistance(*(this->getResistanceModel()));
         }
-    }
-
-    template<typename T>
-    Fluid<T>* AbstractDroplet<T>::mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1) {
-        // check if fluids are identically (no merging needed) and if they exist
-        if (fluid0Id == fluid1Id) {
-            // try to get the fluid (throws error if the fluid is not present)
-            return this->getFluids().at(fluid0Id).get();
-        }
-
-        // get fluids
-        auto fluid0 = this->getFluids().at(fluid0Id).get();
-        auto fluid1 = this->getFluids().at(fluid1Id).get();
-
-        // compute ratios
-        T volume = volume0 + volume1;
-        T ratio0 = volume0 / volume;
-        T ratio1 = volume1 / volume;
-
-        // compute new fluid values
-        T viscosity = ratio0 * fluid0->getViscosity() + ratio1 * fluid1->getViscosity();
-        T density = ratio0 * fluid0->getDensity() + ratio1 * fluid1->getDensity();
-
-        // add new fluid
-        auto newFluid = this->addFluid(viscosity, density).get();
-
-        return newFluid;
     }
 
     template<typename T>
@@ -195,7 +240,7 @@ namespace sim {
 
         // define maps that are used for detecting merging inside channels
         std::unordered_map<int, std::vector<DropletBoundary<T>*>> channelBoundariesMap;
-        std::unordered_map<DropletBoundary<T>*, Droplet<T>*> boundaryDropletMap;
+        std::unordered_map<DropletBoundary<T>*, DropletImplementation<T>*> boundaryDropletMap;
 
         for (auto& [key, droplet] : droplets) {
             // only consider droplets inside the network (but no trapped droplets)
@@ -220,20 +265,24 @@ namespace sim {
                     // hence it is either a MergeBifurcationEvent or a BoundaryHeadEvent that will happen
 
                     // check if merging is enabled
-                    Droplet<T>* mergeDroplet = nullptr;
-
                     // find droplet to merge (if present)
                     auto referenceNode = boundary->getOppositeReferenceNode(this->getNetwork().get());
-                    mergeDroplet = getDropletAtNode(referenceNode->getId());
 
-                    if (mergeDroplet == nullptr) {
+                    // mergeDropletRef is here sliced to Droplet<T> object, following getDropletAtNode return type
+                    // if not handled with care, this can lead to issues. When used, obtain a new droplet reference 
+                    // from droplets using the unique identifier.
+                    auto [isMerged, mergeDropletRef] = getDropletAtNode(referenceNode->getId());
+
+                    if (!isMerged) {
                         // no merging will happen => BoundaryHeadEvent
                         if (!boundary->isInWaitState()) {
                             events.push_back(std::make_unique<BoundaryHeadEvent<T>>(time, *droplet, *boundary, *this->getNetwork().get()));
                         }
                     } else {
+                        // mergeDropletRef is sliced to Droplet<T>. Hence we need a reference to DropletImplementation<T>
+                        auto mergeDropletImplementation = droplets.at(mergeDropletRef->getId());
                         // merging of the actual droplet with the merge droplet will happen => MergeBifurcationEvent
-                        events.push_back(std::make_unique<MergeBifurcationEvent<T>>(time, *droplet, *mergeDroplet, *boundary, *this));
+                        events.push_back(std::make_unique<MergeBifurcationEvent<T>>(time, *droplet, *mergeDropletImplementation, *boundary, *this));
                     }
                 }
 
@@ -418,7 +467,7 @@ namespace sim {
                 // get channel position
                 auto channelPosition = boundary->getChannelPosition();
                 // add boundary
-                newDropletPosition.boundaries.emplace_back(channelPosition.getChannel(), channelPosition.getPosition(), boundary->isVolumeTowardsNodeA(), static_cast<BoundaryState>(static_cast<int>(boundary->getState())));
+                newDropletPosition.boundaries.emplace_back(DropletBoundary<T>{channelPosition.getChannel(), channelPosition.getPosition(), boundary->isVolumeTowardsNodeA(), static_cast<BoundaryState>(static_cast<int>(boundary->getState()))});
             }
 
             // add fully occupied channels

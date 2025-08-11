@@ -4,7 +4,7 @@
 namespace sim {
 
 template<typename T>
-BoundaryHeadEvent<T>::BoundaryHeadEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
+BoundaryHeadEvent<T>::BoundaryHeadEvent(T time, DropletImplementation<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
     Event<T>(time, 1), droplet(droplet), boundary(boundary), network(network) { }
 
 template<typename T>
@@ -76,7 +76,7 @@ void BoundaryHeadEvent<T>::print() {
 }
 
 template<typename T>
-BoundaryTailEvent<T>::BoundaryTailEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
+BoundaryTailEvent<T>::BoundaryTailEvent(T time, DropletImplementation<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
     Event<T>(time, 1), droplet(droplet), boundary(boundary), network(network) { }
 
 template<typename T>

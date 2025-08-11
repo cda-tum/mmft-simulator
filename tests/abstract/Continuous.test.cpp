@@ -320,3 +320,18 @@ TEST_F(Continuous, Network2) {
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(12), result->getStates().at(0)->getFlowRates().at(13), 5e-10);
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(13), result->getStates().at(0)->getFlowRates().at(14), 5e-10);
 }
+
+/**
+ * Test ideas:
+ * 
+ * Add 3 fluids -> simulate -> remove 1 fluid -> simulate -> add 1 fluid -> simulate
+ * 
+ * Add 2 fluids -> simulate -> change density1, viscosity2, name2 -> simulate
+ * 
+ * Add 3 fluids -> simulate -> create and set new network -> simulate -> change resistanceModel -> simulate 
+ * -> set new continuous phase -> simulate -> try to delete continuous phase (expect error) -> delete other fluid -> simulate
+ * 
+ * Set a network with modules (expect error, inconsistent network type)
+ * 
+ * I can change a fluid after it was removed, but it doesn't affect simulation result.
+ */

@@ -27,6 +27,38 @@ namespace sim {
     }
 
     template<typename T>
+    std::shared_ptr<Fluid<T>> Simulation<T>::addMixedFluid(int fluid0Id, T volume0, int fluid1Id, T volume1) {
+        // check if fluids are identically (no merging needed) and if they exist
+        if (fluid0Id == fluid1Id) {
+            // try to get the fluid (throws error if the fluid is not present)
+            return fluids.at(fluid0Id);
+        }
+
+        // get fluids
+        auto fluid0 = fluids.at(fluid0Id).get();
+        auto fluid1 = fluids.at(fluid1Id).get();
+
+        // compute ratios
+        T volume = volume0 + volume1;
+        T ratio0 = volume0 / volume;
+        T ratio1 = volume1 / volume;
+
+        // compute new fluid values
+        T viscosity = ratio0 * fluid0->getViscosity() + ratio1 * fluid1->getViscosity();
+        T density = ratio0 * fluid0->getDensity() + ratio1 * fluid1->getDensity();
+
+        // add new fluid
+        auto newFluid = this->addFluid(viscosity, density);
+
+        return newFluid;
+    }
+
+    template<typename T>
+    std::shared_ptr<Fluid<T>> Simulation<T>::addMixedFluid(const std::shared_ptr<Fluid<T>>& fluid0, T volume0, const std::shared_ptr<Fluid<T>>& fluid1, T volume1) {
+        return addMixedFluid(fluid0->getId(), volume0, fluid1->getId(), volume1);
+    }
+
+    template<typename T>
     std::shared_ptr<Fluid<T>> Simulation<T>::getFluid(int fluidId) const {
         auto it = fluids.find(fluidId);
         if (it == fluids.end()) {
@@ -54,10 +86,7 @@ namespace sim {
         if (fluidId == continuousPhase) {
             throw std::logic_error("Cannot delete continuous phase.");
         }
-        auto it = fluids.find(fluidId);
-        if (it != fluids.end()) {
-            fluids.erase(it);
-        } else {
+        if (!fluids.erase(fluidId)) {
             throw std::logic_error("Could not delete fluid with key " + std::to_string(fluidId) + ". Fluid not found.");
         }
     }

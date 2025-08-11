@@ -10,8 +10,9 @@ template<typename T>
 class GlobalTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        std::cout << "I'm being called" << std::endl;
         sim::Fluid<T>::resetFluidCounter();
+        sim::DropletImplementation<T>::resetDropletCounter();
+        sim::DropletInjection<T>::resetDropletInjectionCounter();
     }
 };
 

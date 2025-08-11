@@ -7,9 +7,6 @@
 #include <string>
 #include <vector>
 
-// Forward declared dependencies
-class BigDropletTest;
-
 namespace test::definitions {
 // Forward declared dependencies
 template<typename T>

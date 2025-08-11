@@ -173,7 +173,7 @@ protected:
     /**
      * @brief Removes a fluid from the simulation, based on the fluid id
      * @param[in] fluidId The id of the fluid that is to be removed
-     * @throws logic error if the fluidId is the continuous phase or does not exist
+     * @throws logic_error if the fluidId is the continuous phase or is not listed in the simulator.
     */
     void removeFluid(int fluidId);
 
@@ -213,13 +213,33 @@ public:
      */
     void setPoiseuilleResistanceModel();
 
-    /** TODO:
-     * @brief Create fluid.
+    /**
+     * @brief Create fluid and add to the simulation.
      * @param[in] viscosity Viscosity of the fluid in Pas.
      * @param[in] density Density of the fluid in kg/m^3.
      * @return Pointer to created fluid.
      */
     [[maybe_unused]] std::shared_ptr<Fluid<T>> addFluid(T viscosity, T density);
+
+    /**
+     * @brief Creates and adds a new fluid out of two existing fluids.
+     * @param fluid0Id Id of the first fluid.
+     * @param volume0 The volume of the first fluid.
+     * @param fluid1Id Id of the second fluid.
+     * @param volume1 The volume of the second fluid.
+     * @return Pointer to new fluid.
+     */
+    std::shared_ptr<Fluid<T>> addMixedFluid(int fluid0Id, T volume0, int fluid1Id, T volume1);
+
+    /**
+     * @brief Creates and adds a new fluid out of two existing fluids.
+     * @param fluid0 Pointer to the first fluid.
+     * @param volume0 The volume of the first fluid.
+     * @param fluid1 Pointer to the second fluid.
+     * @param volume1 The volume of the second fluid.
+     * @return Pointer to new fluid.
+     */
+    std::shared_ptr<Fluid<T>> addMixedFluid(const std::shared_ptr<Fluid<T>>& fluid0, T volume0, const std::shared_ptr<Fluid<T>>& fluid1, T volume1);
 
     /**
      * @brief Get fluid.
@@ -238,7 +258,7 @@ public:
     /**
      * @brief Removes a fluid from the simulation, based using the fluid ptr. 
      * @param[in] fluid Pointer to the fluid that is to be removed
-     * @throws logic error if the fluidId is the continuous phase or does not exist
+     * @throws logic_error if the fluidId is the continuous phase or is not listed in the simulator.
     */
     virtual void removeFluid(const std::shared_ptr<Fluid<T>>& fluid);
 

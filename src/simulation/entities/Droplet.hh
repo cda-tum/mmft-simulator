@@ -8,83 +8,75 @@ DropletPosition<T>::DropletPosition() { }
 ///-----------------------------Droplet------------------------------------///
 
 template<typename T>
-Droplet<T>::Droplet(int id, T volume, Fluid<T>* fluid) : 
+Droplet<T>::Droplet(unsigned int id, T volume, Fluid<T>* fluid) : 
     id(id), volume(volume), fluid(fluid) { }
 
 template<typename T>
-void Droplet<T>::setVolume(T volume) {
-    this->volume = volume;
+void Droplet<T>::setFluid(Fluid<T>* fluid) {
+    if(fluid) {
+        this->fluid = fluid;
+    } else{
+        throw std::logic_error("Tried to set invalid fluid for droplet: nullPtr.");
+    }
 }
 
 template<typename T>
-void Droplet<T>::setName(std::string name) {
-    this->name = std::move(name);
+const std::vector<const DropletBoundary<T>*> Droplet<T>::readBoundaries() const {
+    std::vector<const DropletBoundary<T>*> boundaryPtrs;
+    for (auto& boundary : this->boundaries) {
+        boundaryPtrs.push_back(boundary.get());
+    }
+    return boundaryPtrs;
 }
 
 template<typename T>
-void Droplet<T>::setDropletState(DropletState dropletState) {
+const std::vector<const arch::RectangularChannel<T>*> Droplet<T>::readFullyOccupiedChannels() const {
+    std::vector<const arch::RectangularChannel<T>*> channelPtrs;
+    for (auto& channel : this->channels) {
+        channelPtrs.push_back(channel);
+    }
+    return channelPtrs;
+}
+
+
+template<typename T>
+DropletImplementation<T>::DropletImplementation(unsigned int id, T volume, Fluid<T>* fluid) 
+    : Droplet<T>(id, volume, fluid) { ++dropletCounter; }
+
+template<typename T>
+void DropletImplementation<T>::setDropletState(DropletState dropletState) {
     this->dropletState = dropletState;
 }
 
 template<typename T>
-int Droplet<T>::getId() const {
-    return id;
-}
-
-template<typename T>
-std::string Droplet<T>::getName() const {
-    return name;
-}
-
-template<typename T>
-T Droplet<T>::getVolume() const {
-    return volume;
-}
-
-template<typename T>
-DropletState Droplet<T>::getDropletState() const {
+DropletState DropletImplementation<T>::getDropletState() const {
     return dropletState;
 }
 
 template<typename T>
-const Fluid<T>* Droplet<T>::getFluid() const {
-    return fluid;
-}
-
-template<typename T>
-void Droplet<T>::addDropletResistance(const ResistanceModel<T>& model) {
+void DropletImplementation<T>::addDropletResistance(const ResistanceModel<T>& model) {
     // check if droplet is in a single channel
     if (isInsideSingleChannel()) {
-        auto channel = boundaries[0]->getChannelPosition().getChannel();
+        auto channel = this->boundaries[0]->getChannelPosition().getChannel();
         // volumeInsideChannel = volumeChannel - (volumeBoundary0 - volumeChannel) - (volumeBoundary1 - volumeChannel) = volumeBoundary0 + volumeBoundary1 - volumeChannel
-        T volumeInsideChannel = boundaries[0]->getVolume() + boundaries[1]->getVolume() - channel->getVolume();
+        T volumeInsideChannel = this->boundaries[0]->getVolume() + this->boundaries[1]->getVolume() - channel->getVolume();
         channel->addDropletResistance(model.getDropletResistance(channel, this, volumeInsideChannel));
     } else {
         // loop through boundaries
-        for (auto& boundary : boundaries) {
+        for (auto& boundary : this->boundaries) {
             auto channel = boundary->getChannelPosition().getChannel();
             channel->addDropletResistance(model.getDropletResistance(channel, this, boundary->getVolume()));
         }
 
         // loop through fully occupied channels (if present)
-        for (auto& channel : channels) {
+        for (auto& channel : this->channels) {
             channel->addDropletResistance(model.getDropletResistance(channel, this, channel->getVolume()));
         }
     }
 }
 
 template<typename T>
-const std::vector<std::unique_ptr<DropletBoundary<T>>>& Droplet<T>::getBoundaries() {
-    return boundaries;
-}
-
-template<typename T>
-std::vector<arch::RectangularChannel<T>*>& Droplet<T>::getFullyOccupiedChannels() {
-    return channels;
-}
-
-template<typename T>
-bool Droplet<T>::isAtBifurcation() {
+bool DropletImplementation<T>::isAtBifurcation() {
     /** TODO: AbstractDropletSimulation
      * maybe refine the definition, so it is only true if no channel branches of within the droplet range (then needs a chip reference as input)
      * right now it is true if the droplet is not in a single channel
@@ -93,47 +85,48 @@ bool Droplet<T>::isAtBifurcation() {
 }
 
 template<typename T>
-bool Droplet<T>::isInsideSingleChannel() {
+bool DropletImplementation<T>::isInsideSingleChannel() {
     // is inside a single channel when only two boundaries are present and they are in the same channel
-    return channels.size() == 0 && boundaries.size() == 2 && boundaries[0]->getChannelPosition().getChannel() == boundaries[1]->getChannelPosition().getChannel();
+    return this->channels.size() == 0 && this->boundaries.size() == 2 && this->boundaries[0]->getChannelPosition().getChannel() == this->boundaries[1]->getChannelPosition().getChannel();
 }
 
 template<typename T>
-void Droplet<T>::addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) { 
-    boundaries.push_back(std::make_unique<DropletBoundary<T>>(channel, position, volumeTowardsNodeA, state));
+void DropletImplementation<T>::addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) { 
+    this->boundaries.push_back(std::unique_ptr<DropletBoundary<T>>(new DropletBoundary<T>(channel, position, volumeTowardsNodeA, state)));
 }
 
 template<typename T>
-void Droplet<T>::addFullyOccupiedChannel(arch::RectangularChannel<T>* channel) {
-    channels.push_back(channel);
+void DropletImplementation<T>::addFullyOccupiedChannel(arch::RectangularChannel<T>* channel) {
+    this->channels.push_back(channel);
 }
 
 template<typename T>
-void Droplet<T>::removeBoundary(DropletBoundary<T>& boundaryReference) {
-    // TODO: remove more than one boundary at once (remove_if)
-
-    for (unsigned int i = 0; i < boundaries.size(); i++) {
-        if (boundaries[i].get() == &boundaryReference) {
-            boundaries.erase(boundaries.begin() + i);
+void DropletImplementation<T>::removeBoundary(DropletBoundary<T>& boundaryReference) {
+    /** TODO: Miscellaneous
+     * remove more than one boundary at once (remove_if)
+     */
+    for (unsigned int i = 0; i < this->boundaries.size(); i++) {
+        if (this->boundaries[i].get() == &boundaryReference) {
+            this->boundaries.erase(this->boundaries.begin() + i);
             break;
         }
     }
 }
 
 template<typename T>
-void Droplet<T>::removeFullyOccupiedChannel(int channelId) {
-    for (unsigned int i = 0; i < channels.size(); i++) {
-        if (channels[i]->getId() == channelId) {
-            channels.erase(channels.begin() + i);
+void DropletImplementation<T>::removeFullyOccupiedChannel(int channelId) {
+    for (unsigned int i = 0; i < this->channels.size(); i++) {
+        if (this->channels[i]->getId() == channelId) {
+            this->channels.erase(this->channels.begin() + i);
             break;
         }
     }
 }
 
 template<typename T>
-std::vector<DropletBoundary<T>*> Droplet<T>::getConnectedBoundaries(int nodeId, DropletBoundary<T>* doNotConsider) {
+std::vector<DropletBoundary<T>*> DropletImplementation<T>::getConnectedBoundaries(int nodeId, DropletBoundary<T>* doNotConsider) {
     std::vector<DropletBoundary<T>*> connectedBoundaries;
-    for (auto& boundary : boundaries) {
+    for (auto& boundary : this->boundaries) {
         // do not consider boundary
         if (boundary.get() == doNotConsider) {
             continue;
@@ -148,9 +141,9 @@ std::vector<DropletBoundary<T>*> Droplet<T>::getConnectedBoundaries(int nodeId, 
 }
 
 template<typename T>
-std::vector<arch::RectangularChannel<T>*> Droplet<T>::getConnectedFullyOccupiedChannels(int nodeId) {
+std::vector<arch::RectangularChannel<T>*> DropletImplementation<T>::getConnectedFullyOccupiedChannels(int nodeId) {
     std::vector<arch::RectangularChannel<T>*> connectedChannels;
-    for (auto& channel : channels) {
+    for (auto& channel : this->channels) {
         if (nodeId == channel->getNodeA() || nodeId == channel->getNodeB()) {
             connectedChannels.push_back(channel);
         }
@@ -160,7 +153,7 @@ std::vector<arch::RectangularChannel<T>*> Droplet<T>::getConnectedFullyOccupiedC
 }
 
 template<typename T>
-void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
+void DropletImplementation<T>::updateBoundaries(const arch::Network<T>& network) {
     // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
     // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
     // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
@@ -172,7 +165,7 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
     std::vector<DropletBoundary<T>*> inflowBoundaries;
 
     // loop through boundaries
-    for (auto& boundary : boundaries) {
+    for (auto& boundary : this->boundaries) {
         // a boundary can stop at a bifurcation, e.g., when all flow rates of the connected channels have an inflow (point to the center of the boundary), or when only a bypass channel is present
         // when this happens it usually goes into a WaitOutflow state where the flow rate of the boundary becomes zero
         // here we have to check again, if this state still holds, or if the boundary can flow normally again
@@ -207,7 +200,7 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
         // possible solution would be to split the droplet, or that slower boundaries get dragged along faster ones
 
         // just print a warning
-        std::cout << "WARNING: All boundaries of droplet (id=" << id << ") move away from the center of the droplet. Droplet volume conservation cannot be guaranteed, hence the droplet movement is stopped." << std::endl;
+        std::cout << "WARNING: All boundaries of droplet (id=" << this->getId() << ") move away from the center of the droplet. Droplet volume conservation cannot be guaranteed, hence the droplet movement is stopped." << std::endl;
 
         for (auto boundary : outflowBoundaries) {
             boundary->setFlowRate(0);
@@ -217,7 +210,7 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
         // this scenario is not supported yet and just stops the movement of all boundaries of this droplet
 
         // just print a warning
-        std::cout << "WARNING: All boundaries of droplet (id=" << id << ") move towards the center of the droplet. Droplet volume conservation cannot be guaranteed, hence the droplet movement is stopped." << std::endl;
+        std::cout << "WARNING: All boundaries of droplet (id=" << this->getId() << ") move towards the center of the droplet. Droplet volume conservation cannot be guaranteed, hence the droplet movement is stopped." << std::endl;
 
         for (auto boundary : inflowBoundaries) {
             boundary->setFlowRate(0);
@@ -245,56 +238,11 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
     }
 }
 
-template<typename T>
-void Droplet<T>::addMergedDroplet(Droplet<T>* droplet) {
-    mergedDroplets.push_back(droplet);
-}
-
-template<typename T>
-const std::vector<Droplet<T>*>& Droplet<T>::getMergedDroplets() const {
-    return mergedDroplets;
-}
-
 ///--------------------------DropletBoundary------------------------------------///
 
 template<typename T>
 DropletBoundary<T>::DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) : 
     channelPosition(channel, position), volumeTowardsNodeA(volumeTowardsNodeA), state(state) { }
-
-template<typename T>
-arch::ChannelPosition<T>& DropletBoundary<T>::getChannelPosition() {
-    return channelPosition;
-}
-
-template<typename T>
-T DropletBoundary<T>::getFlowRate() const {
-    return flowRate;
-}
-
-template<typename T>
-bool DropletBoundary<T>::isVolumeTowardsNodeA() const {
-    return volumeTowardsNodeA;
-}
-
-template<typename T>
-BoundaryState DropletBoundary<T>::getState() const {
-    return state;
-}
-
-template<typename T>
-void DropletBoundary<T>::setFlowRate(T flowRate) {
-    this->flowRate = flowRate;
-}
-
-template<typename T>
-void DropletBoundary<T>::setVolumeTowardsNodeA(bool volumeTowardsNodeA) {
-    this->volumeTowardsNodeA = volumeTowardsNodeA;
-}
-
-template<typename T>
-void DropletBoundary<T>::setState(BoundaryState state) {
-    this->state = state;
-}
 
 template<typename T>
 arch::Node<T>* DropletBoundary<T>::getReferenceNode(arch::Network<T>* network) {
