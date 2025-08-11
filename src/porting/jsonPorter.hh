@@ -7,31 +7,39 @@ using ordered_json = nlohmann::ordered_json;
 
 template<typename T>
 arch::Network<T> networkFromJSON(std::string jsonFile) {
-
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
-    arch::Network<T> network = networkFromJSON<T>(jsonString);
-
-    return network;
+    json jsonString;
+    // Transform given path to jsonFile into json object
+    try {
+        std::ifstream f(jsonFile);
+        jsonString = json::parse(f);
+    } catch (std::exception& e) {
+        throw std::runtime_error(std::string(__func__) + " in file " + __FILE__ + ", line " + std::to_string(__LINE__) + ": Could not read provided json file.");
+    }
+    // Forward json object to networkFromJSON overload and 
+    // return network object
+    return networkFromJSON<T>(jsonString);
 }
 
 template<typename T>
 void networkFromJSON(std::string jsonFile, arch::Network<T>& network) {
-
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
-    readNodes(jsonString, network);
-    readChannels(jsonString, network);
-    readModules(jsonString, network);
+    try {
+        // Transform given path to jsonFile into json object
+        std::ifstream f(jsonFile);
+        json jsonString = json::parse(f);
+        // Read network components
+        readNodes(jsonString, network);
+        readChannels(jsonString, network);
+        readModules(jsonString, network);
+    } catch (std::exception& e) {
+        throw std::runtime_error(std::string(__func__) + " in file " + __FILE__ + ", line " + std::to_string(__LINE__) + ": Could not read provided json file.");
+    }
 }
 
 template<typename T>
 arch::Network<T> networkFromJSON(json jsonString) {
 
     arch::Network<T> network;
-
+    // Read network components
     readNodes(jsonString, network);
     readChannels(jsonString, network);
     readModules(jsonString, network);
@@ -40,97 +48,101 @@ arch::Network<T> networkFromJSON(json jsonString) {
 }
 
 template<typename T>
-sim::Simulation<T> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_) {
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
-    sim::Simulation<T> simulation = sim::Simulation<T>();
-
-    simulationFromJSON<T>(jsonFile, network_, simulation);
-
-    return simulation;
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(std::string jsonFile, arch::Network<T>* network_) {
+    json jsonString;
+    // Transform given path to jsonFile into json object
+    try {
+        std::ifstream f(jsonFile);
+        jsonString = json::parse(f);
+    } catch (std::exception& e) {
+        throw std::runtime_error(std::string(__func__) + " in file " + __FILE__ + ", line " + std::to_string(__LINE__) + ": Could not read provided json file.");
+    }
+    // Forward json object to simulationFromJSON overload and 
+    // return unique_ptr to simulation object
+    return simulationFromJSON<T>(jsonString, network_);
 }
 
 template<typename T>
-sim::Simulation<T> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
-    sim::Simulation<T> simulation = sim::Simulation<T>();
+std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, arch::Network<T>* network_) {
 
-    simulationFromJSON<T>(jsonString, network_, simulation);
+    std::unique_ptr<sim::Simulation<T>> simPtr = nullptr;
 
-    return simulation;
-}
-
-template<typename T>
-void simulationFromJSON(std::string jsonFile, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
-    std::ifstream f(jsonFile);
-    json jsonString = json::parse(f);
-
-    simulationFromJSON<T>(jsonString, network_, simulation);
-}
-
-template<typename T>
-void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simulation<T>& simulation) {
-
-    sim::Platform platform = readPlatform<T>(jsonString, simulation);
-    sim::Type simType = readType<T>(jsonString, simulation);
-    int activeFixture = readActiveFixture<T>(jsonString);
-    simulation.setFixtureId(activeFixture);
-
-    simulation.setNetwork(network_);
-
-    readFluids<T>(jsonString, simulation);
+    sim::Platform platform = readPlatform<T>(jsonString);
+    sim::Type simType = readType<T>(jsonString);
+    unsigned int activeFixture = readActiveFixture<T>(jsonString);
 
     // Read an Abstract simulation definition
     if (simType == sim::Type::Abstract) {
-
-        readPumps<T>(jsonString, network_);
-
         if (platform == sim::Platform::Continuous) {
-
+            simPtr = std::make_unique<sim::AbstractContinuous<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
+            readPumps<T>(jsonString, network_);
         } else if (platform == sim::Platform::BigDroplet) {
-            readDropletInjections<T>(jsonString, simulation, activeFixture);
+            simPtr = std::make_unique<sim::AbstractDroplet<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
+            readPumps<T>(jsonString, network_);
+            readDropletInjections<T>(jsonString, *(dynamic_cast<sim::AbstractDroplet<T>*>(simPtr.get())), activeFixture);
         } else if (platform == sim::Platform::Mixing) {
-            readMixingModel<T>(jsonString, simulation);
-            readSpecies<T>(jsonString, simulation);
-            readMixtures<T>(jsonString, simulation);
-            readMixtureInjections<T>(jsonString, simulation, activeFixture);
+            simPtr = std::make_unique<sim::AbstractMixing<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
+            readPumps<T>(jsonString, network_);
+            readMixingModel<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
+            readSpecies<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
+            readMixtures<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
+            readMixtureInjections<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())), activeFixture);
         } else {
             throw std::invalid_argument("Invalid platform for Abstract simulation. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
         }
 
-        readContinuousPhase<T>(jsonString, simulation, activeFixture);
-        readResistanceModel<T>(jsonString, simulation);
+        readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+        readResistanceModel<T>(jsonString, *simPtr);
         network_->sortGroups();
         network_->isNetworkValid();
     }
 
     // Read a Hybrid simulation definition
     else if (simType == sim::Type::Hybrid) {
-
-        readContinuousPhase<T>(jsonString, simulation, activeFixture);
-        readResistanceModel<T>(jsonString, simulation);
-
         if (platform == sim::Platform::Continuous) {
-            readSimulators<T>(jsonString, simulation, network_);
-            readUpdateScheme(jsonString, simulation);
+            simPtr = std::make_unique<sim::HybridContinuous<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
+            readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+            readResistanceModel<T>(jsonString, *simPtr);
+            readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())), network_);
+            readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())));
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
-            readMixingModel<T>(jsonString, simulation);
-            readSpecies<T>(jsonString, simulation);
-            readMixtures<T>(jsonString, simulation);
-            readMixtureInjections<T>(jsonString, simulation, activeFixture);
-            readSimulators<T>(jsonString, simulation, network_);
-            readUpdateScheme(jsonString, simulation);
-            network_->sortGroups();
+            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
+            /** TODO: HybridMixingSimulation
+             * Enable hybrid mixing simulation and uncomment code below
+             */
+            // readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+            // readResistanceModel<T>(jsonString, *simPtr);
+            // readMixingModel<T>(jsonString, *simPtr);
+            // readSpecies<T>(jsonString, *simPtr);
+            // readMixtures<T>(jsonString, *simPtr);
+            // readMixtureInjections<T>(jsonString, *simPtr, activeFixture);
+            // readSimulators<T>(jsonString, *simPtr, network_);
+            // readUpdateScheme(jsonString, *simPtr);
+            // network_->sortGroups();
         } else if (platform == sim::Platform::Ooc) {
-            readMixingModel<T>(jsonString, simulation);
-            readSpecies<T>(jsonString, simulation);
-            readMixtures<T>(jsonString, simulation);
-            readMixtureInjections<T>(jsonString, simulation, activeFixture);
-            readTissues<T>(jsonString, simulation);
-            readSimulators<T>(jsonString, simulation, network_);
-            readUpdateScheme(jsonString, simulation);
-            network_->sortGroups();
+            throw std::invalid_argument("OoC simulations are currently not supported.");
+            /** TODO: HybridOocSimulation
+             * Enable hybrid OoC simulation and uncomment code below
+             */
+            // readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+            // readResistanceModel<T>(jsonString, *simPtr);
+            // readMixingModel<T>(jsonString, *simPtr);
+            // readSpecies<T>(jsonString, *simPtr);
+            // readMixtures<T>(jsonString, *simPtr);
+            // readMixtureInjections<T>(jsonString, *simPtr, activeFixture);
+            // readTissues<T>(jsonString, *simPtr);
+            // readSimulators<T>(jsonString, *simPtr, network_);
+            // readUpdateScheme(jsonString, *simPtr);
+            // network_->sortGroups();
         } else if (platform == sim::Platform::BigDroplet) {
             throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
         } else {
@@ -151,6 +163,11 @@ void simulationFromJSON(json jsonString, arch::Network<T>* network_, sim::Simula
         throw std::invalid_argument("Invalid simulation type. Please select one of the following:\n\tAbstract\n\tHybrid");
     }
 
+    if (!simPtr) {
+        throw std::runtime_error("Error in constructing the simulation object from the given JSON definition: nullPtr returned.");
+    }
+
+    return simPtr;
 }
 
 template<typename T>
@@ -177,7 +194,7 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
             jsonState["modules"] = writeModules(state.get());
         }
         if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
-            jsonState["bigDroplets"] = writeDroplets(state.get(), simulation);
+            jsonState["bigDroplets"] = writeDroplets(state.get(), dynamic_cast<sim::AbstractDroplet<T>*>(simulation));
         }
         jsonStates.push_back(jsonState);
     }
@@ -187,7 +204,7 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
     jsonResult["platform"] = writeSimPlatform(simulation);
     jsonResult["fluids"] =  writeFluids(simulation);
     if (simulation->getPlatform() == sim::Platform::Mixing && simulation->getType() == sim::Type::Abstract) {
-        jsonResult["mixtures"] = writeMixtures(simulation);
+        jsonResult["mixtures"] = writeMixtures(dynamic_cast<sim::AbstractMixing<T>*>(simulation));
     }
     jsonResult.push_back({"network", jsonStates});
 

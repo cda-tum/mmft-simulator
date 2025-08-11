@@ -62,7 +62,7 @@ auto writeModules(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeDroplets(result::State<T>* state, sim::Simulation<T>* simulation) {      
+auto writeDroplets(result::State<T>* state, sim::AbstractDroplet<T>* simulation) {      
     auto BigDroplets = ordered_json::array();
     for (auto& [key, dropletPosition] : state->getDropletPositions()) {
         //dropletPosition
@@ -113,7 +113,7 @@ auto writeFluids(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-auto writeMixtures (sim::Simulation<T>* simulation) {
+auto writeMixtures (sim::AbstractMixing<T>* simulation) {
     auto Mixtures = ordered_json::array();
     auto const& simMixtures = simulation->getMixtures();
     for (long unsigned int i=0; i<simMixtures.size(); ++i) {
@@ -149,7 +149,7 @@ std::string writeSimPlatform(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-void writeMixtures (json& jsonString, result::State<T>* state, sim::Simulation<T>* simulation) {
+void writeMixtures (json& jsonString, result::State<T>* state, sim::AbstractMixing<T>* simulation) {
     auto mixturePositions = json::array();
     for (auto& [key, mixturePosition] : state->getMixturePositions()) {
         // mixture object

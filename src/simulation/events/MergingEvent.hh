@@ -3,7 +3,7 @@
 namespace sim {
 
 template<typename T>
-MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, Simulation<T>& simulation) : 
+MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, AbstractDroplet<T>& simulation) : 
     Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), simulation(simulation) { }
 
 template<typename T>
@@ -53,7 +53,7 @@ void MergeBifurcationEvent<T>::print() {
 }
 
 template<typename T>
-MergeChannelEvent<T>::MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, Simulation<T>& simulation) : 
+MergeChannelEvent<T>::MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, AbstractDroplet<T>& simulation) : 
     Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), boundary1(boundary1), simulation(simulation) {}
 
 template<typename T>

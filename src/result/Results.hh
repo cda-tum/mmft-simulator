@@ -243,8 +243,10 @@ const void SimulationResult<T>::printMixtures() {
 
 template<typename T>
 const void SimulationResult<T>::writeMixture(int mixtureId) {
-    // TODO Maria, CSV Writer here
-    // TODO get a channel pointer
+    /** TODO: Miscellaneous
+     * - CSV Writer here
+     * - get a channel pointer
+     */
     int numValues = 101; // Number of points to calculate
 
     std::cout << "Generating CSV files" << std::endl;
@@ -266,8 +268,9 @@ const void SimulationResult<T>::writeMixture(int mixtureId) {
             std::cout << "Generating CSV file: " << outputFileName << std::endl;
             // Open a file in write mode.
             std::ofstream outputFile;
-            outputFile.open(outputFileName); // TODO maybe define this inside of the loop
-            // Write the header to the CSV file TODO adapt this to fit the specific mixture
+            /** TODO: Miscellaneous */
+            outputFile.open(outputFileName); // maybe define this inside of the loop
+            // Write the header to the CSV file -> adapt this to fit the specific mixture
             outputFile << "x,f(x)\n";
             // Calculate and write the values to the file
             for (int i = 0; i < numValues; ++i) {

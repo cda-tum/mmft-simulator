@@ -25,7 +25,7 @@ TEST(Tank, TwoTank) {
   arch::Network<T> network;
 
   // simulator last since it has non-owning references to other objects
-  sim::Simulation<T> sim;
+  sim::AbstractMembrane<T> sim(&network);
 
   // network setup
   auto cWidth = 5e-3;
@@ -72,7 +72,6 @@ TEST(Tank, TwoTank) {
 
   EXPECT_TRUE(network.isNetworkValid());
   network.sortGroups();
-  sim.setNetwork(&network);
 
   // fluids
   auto *continuousPhaseFluid = sim.addFluid(cContinuousPhaseViscosity, 0.993e3, 1.0 /*molecular size: 9e-10, diffusivity: 4.4e-10, saturation: 0.0*/);
@@ -89,8 +88,6 @@ TEST(Tank, TwoTank) {
   sim.setMixingModel(&mixingModel);
   sim.setResistanceModel(&resistanceModel);
   sim.setMembraneModel(&membraneModel);
-  sim.setType(sim::Type::Abstract);
-  sim.setPlatform(sim::Platform::Membrane);
 
   sim.setMaxEndTime(86'400.0);  // 24h
   sim.setWriteInterval(1800.0); // 0.5h

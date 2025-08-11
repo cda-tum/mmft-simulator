@@ -182,9 +182,7 @@ public:
     */
     virtual bool hasConverged() const = 0;
 
-    /** TODO:
-     * 
-     */
+    /** TODO: Miscellaneous */
     virtual void storePressures(std::unordered_map<int, T> pressure) = 0;
 
     /**

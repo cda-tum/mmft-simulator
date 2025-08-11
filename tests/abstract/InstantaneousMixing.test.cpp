@@ -13,17 +13,17 @@ TEST(InstantaneousMixing, Case1) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 1:
@@ -86,17 +86,17 @@ TEST(InstantaneousMixing, Case2) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 2:
@@ -221,17 +221,17 @@ TEST(InstantaneousMixing, Case3) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 3:
@@ -297,17 +297,17 @@ TEST(InstantaneousMixing, Case4) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 4:
@@ -433,17 +433,17 @@ TEST(InstantaneousMixing, Case5) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 5:
@@ -475,17 +475,17 @@ TEST(InstantaneousMixing, Case6) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 6:
@@ -525,17 +525,17 @@ TEST(InstantaneousMixing, Case7) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 7:
@@ -567,17 +567,17 @@ TEST(InstantaneousMixing, Case8) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 8:
@@ -632,17 +632,17 @@ TEST(InstantaneousMixing, Case9) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 9:
@@ -693,17 +693,17 @@ TEST(InstantaneousMixing, Case10) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 10:
@@ -766,17 +766,17 @@ TEST(InstantaneousMixing, Case11) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 11:
@@ -811,17 +811,17 @@ TEST(InstantaneousMixing, Case12) {
     arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
 
     // Load and set the simulations from the JSON files
-    sim::Simulation<T> sim = porting::simulationFromJSON<T>(simFile, &network);
+    auto sim = porting::simulationFromJSON<T>(simFile, &network);
 
     // Check if network is valid
     network.isNetworkValid();
     network.sortGroups();
 
     // simulate
-    sim.simulate();
+    sim->simulate();
 
     // results
-    result::SimulationResult<T>* result = sim.getSimulationResults();
+    result::SimulationResult<T>* result = sim->getSimulationResults();
 
     /**
      * Case 12:

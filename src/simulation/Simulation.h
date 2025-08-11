@@ -131,24 +131,13 @@ enum class Platform {
 template<typename T>
 class Simulation {
 private:
-    int fixtureId = 0;
-    Type simType = Type::Abstract;                                                      ///< The type of simulation that is being done.                                      
-    Platform platform = Platform::Continuous;                                           ///< The microfluidic platform that is simulated in this simulation.
+    const Type simType;                                                                 ///< The type of simulation that is being done.                                      
+    const Platform platform;                                                            ///< The microfluidic platform that is simulated in this simulation.
     arch::Network<T>* network = nullptr;                                                ///< Network for which the simulation should be conducted.
-    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis;                             ///< The nodal analysis object, used to conduct abstract simulation.
-    std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
-    std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
-    std::unordered_map<int, std::unique_ptr<Specie<T>>> species;                        ///< Species specified for the simulation.
-    std::unordered_map<int, std::shared_ptr<Tissue<T>>> tissues;                        ///< Tissues specified for the simulation.
-    std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
-    std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
-    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;            ///< The set of CFD simulators, that conduct CFD simulations on <arch::Module>.
     ResistanceModel<T>* resistanceModel = nullptr;                                      ///< The resistance model used for the simulation.
-    MembraneModel<T>* membraneModel = nullptr;                                          ///< The membrane model used for an OoC simulation.
-    MixingModel<T>* mixingModel = nullptr;                                              ///< The mixing model used for a mixing simulation.
-    std::unordered_map<int, std::shared_ptr<mmft::Scheme<T>>> updateSchemes;            ///< The update scheme for Abstract-CFD coupling
+    std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = nullptr;                   ///< The nodal analysis object, used to conduct abstract simulation.
+    std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids;                          ///< Fluids specified for the simulation.
+    int fixtureId = 0;
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     int iteration = 0;
     int maxIterations = 1e5;
@@ -157,10 +146,16 @@ private:
     T dt = 0.01;
     T writeInterval = 0.1;
     T tMax = 100;
-    bool writePpm = true;
-    bool eventBasedWriting = false;
-    bool dropletsAtBifurcation = false;                                                 ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
     std::unique_ptr<result::SimulationResult<T>> simulationResult = nullptr;
+
+    // Disabled because no stable simulator uses tissues
+    // std::unordered_map<int, std::shared_ptr<Tissue<T>>> tissues;                        ///< Tissues specified for the simulation.
+
+protected:
+    /**
+     * @brief Creates simulation.
+     */
+    Simulation(Type simType, Platform platform, arch::Network<T>* network);
 
     /**
      * @brief Asserts that the simulation is initialized.
@@ -168,49 +163,65 @@ private:
      * @throws std::logic_error if the simulation is not initialized correctly.
      * @note This function is called at the start of the simulate() function.
      */
-    void assertInitialized();
+    virtual void assertInitialized() const;
 
     /**
      * @brief Initializes the resistance model and the channel resistances of the empty channels.
      */
-    void initialize();
-
-    /**
-     * @brief Update the droplet resistances of the channels based on the current positions of the droplets.
-     */
-    void updateDropletResistances();
-
-    /**
-     * @brief Compute all possible next events.
-     */
-    std::vector<std::unique_ptr<Event<T>>> computeEvents();
-
-    /**
-     * @brief Compute all possible next events for mixing simulation.
-     */
-    std::vector<std::unique_ptr<Event<T>>> computeMixingEvents();
-
-    /**
-     * @brief Moves all droplets according to the given time step.
-     * @param[in] timeStep to which the droplets should be moved to.
-     */
-    void moveDroplets(T timeStep);
+    virtual void initialize();
 
     /**
      * @brief Store the current simulation state in simulationResult.
     */
-    void saveState();
+    virtual void saveState() = 0;
 
     /**
-     * @brief Store the mixtures in this simulation in simulationResult.
-    */
-    void saveMixtures();
+     * @brief Wrapper function that conducts the nodal analysis of the nodalAnalysis object.
+     */
+    inline void conductNodalAnalysis() { nodalAnalysis->conductNodalAnalysis(); }
+
+    /**
+     * @brief Returns a reference to the nodalAnalysis shared_ptr.
+     */
+    inline std::shared_ptr<nodal::NodalAnalysis<T>>& getNodalAnalysis() { return nodalAnalysis; }
+
+    /**
+     * @brief Returns a reference to the simulation time.
+     */
+    inline double& getTime() { return time; }
+
+    /**
+     * @brief Returns the set write interval of the simulation.
+     */
+    inline double getWriteInterval() { return writeInterval; }
+
+    /**
+     * @brief Returns the timestep size dt.
+     */
+    inline double& getDt() { return dt; }
+
+        /**
+     * @brief Returns the maximal allowed time, tMax.
+     */
+    inline double getTMax() { return tMax; }
+
+    /**
+     * @brief Returns the maximal adaptive timestep size.
+     */
+    inline double getMaximalAdaptiveTimeStep() { return maximalAdaptiveTimeStep; }
+
+    /**
+     * @brief Get the current iteration number.
+     */
+    inline int& getIterations() { return iteration; }
+
+    /**
+     * @brief Returns the maxmimum allowed simulation iterations.
+     */
+    inline int getMaxIterations() { return maxIterations; }
 
 public:
-    /**
-     * @brief Creates simulation.
-     */
-    Simulation();
+
 
     /**
      * @brief Create fluid.
@@ -221,6 +232,203 @@ public:
      */
     Fluid<T>* addFluid(T viscosity, T density, T concentration);
 
+    /** TODO: HybridOocSimulation
+     * Enable definition of Tissue objects for OoC simulation
+     */
+    // /**
+    //  * @brief Create tissue.
+    //  * @param[in] species Map of Species that interacts with this tissue.
+    //  * @param[in] Vmax
+    //  * @param[in] kM
+    //  * @return Pointer to created tissue.
+    //  */
+    // Tissue<T>* addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM);
+
+    /**
+     * @brief Set the fixtureId.
+     * @param[in] fixtureId
+     */
+    void setFixtureId(int fixtureId);
+
+    /**
+     * @brief Set the network for which the simulation should be conducted.
+     * @param[in] network Network on which the simulation will be conducted.
+     */
+    void setNetwork(arch::Network<T>* network);
+
+    /**
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluid The fluid the continuous phase consists of.
+     */
+    void setFluids(std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids);
+
+    /**
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluidId The ID of the fluid the continuous phase consists of.
+     */
+    void setContinuousPhase(int fluidId);
+
+    /**
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluid The fluid the continuous phase consists of.
+     */
+    void setContinuousPhase(Fluid<T>* fluid);
+
+    /**
+     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
+     * @param[in] model The resistance model to be used.
+     */
+    void setResistanceModel(ResistanceModel<T>* model);
+
+    /**
+     * @brief Set maximal time after which the simulation should end.
+     * @param[in] Maximal end time in [s].
+     */
+    void setMaxEndTime(T maxTime);
+
+    /**
+     * @brief Set interval in which the state is saved to the SimulationResult.
+     * @param[in] Interval in [s].
+     */
+    void setWriteInterval(T interval);
+
+    /**
+     * @brief Get the platform of the simulation.
+     * @return platform of the simulation
+     */
+    Platform getPlatform() const;
+
+    /**
+     * @brief Get the type of the simulation.
+     * @return type of the simulation
+     */
+    Type getType() const;
+
+    /**
+     * @brief Set the type of the simulation.
+     * @param[in] type
+     */
+    int getFixtureId() const;
+
+    /**
+     * @brief Get the network.
+     * @return Network or nullptr if no network is specified.
+     */
+    arch::Network<T>* getNetwork() const;
+
+    /**
+     * @brief Get fluid.
+     * @param[in] fluidId Id of the fluid
+     * @return Pointer to fluid with the corresponding id
+     */
+    Fluid<T>* getFluid(int fluidId) const;
+
+    /**
+     * @brief Get fluid.
+     * @param[in] fluidId Id of the fluid
+     * @return Pointer to fluid with the corresponding id
+     */
+    const std::unordered_map<int, std::unique_ptr<Fluid<T>>>& getFluids() const;
+
+    /**
+     * @brief Get the continuous phase.
+     * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
+     */
+    Fluid<T>* getContinuousPhase() const;
+
+    /**
+     * @brief Get the resistance model that is used in the simulation.
+     * @return The resistance model of the simulation.
+     */
+    ResistanceModel<T>* getResistanceModel() const;
+
+    /**
+     * @brief Get the results of the simulation.
+     * @return Pointer to the result of the simulation.
+     */
+    result::SimulationResult<T>* getSimulationResults() const;
+
+    /**
+     * @brief Conduct the simulation.
+     * @return The result of the simulation containing all intermediate simulation steps and calculated parameters.
+     */
+    virtual void simulate() = 0;
+
+    /**
+     * @brief Print the results as pressure at the nodes and flow rates at the channels
+     */
+    virtual void printResults() const;
+
+    /**
+     * @brief Mandatory virtual destructor is set to default.
+     */
+    virtual ~Simulation() = default;
+};
+
+
+/**
+ * @brief Class that conducts a abstract continuous simulation
+ */
+template<typename T>
+class AbstractContinuous final : public Simulation<T> {
+private:
+
+    void saveState() override;
+
+public:
+
+    /**
+     * @brief Constructor of the abstract continuous simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
+     */
+    AbstractContinuous(arch::Network<T>* network);
+
+    /**
+     * @brief Abstract continuous simulation
+     * - Conduct nodal analysis
+     * - Save state
+     */
+    void simulate() override;
+
+};
+
+/**
+ * @brief Class that conducts a abstract continuous simulation
+ */
+template<typename T>
+class AbstractDroplet final : public Simulation<T> {
+private:
+    std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets;                      ///< Droplets which are simulated in droplet simulation.
+    std::unordered_map<int, std::unique_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
+    bool dropletsAtBifurcation = false;                                                 ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
+
+    void saveState() override;
+
+    /**
+     * @brief Update the droplet resistances of the channels based on the current positions of the droplets.
+     */
+    void updateDropletResistances();
+
+    /**
+     * @brief Moves all droplets according to the given time step.
+     * @param[in] timeStep to which the droplets should be moved to.
+     */
+    void moveDroplets(T timeStep);
+
+    /**
+     * @brief Compute all possible next events.
+     * @return Vector of pointers containing unique pointers to the Events.
+     */
+    std::vector<std::unique_ptr<Event<T>>> computeEvents();
+
+public:
+
+    /**
+     * @brief Constructor of the abstract droplet simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
+     */
+    AbstractDroplet(arch::Network<T>* network);
+
     /**
      * @brief Create droplet.
      * @param[in] fluidId Unique identifier of the fluid the droplet consists of.
@@ -230,21 +438,127 @@ public:
     Droplet<T>* addDroplet(int fluidId, T volume, T Ca_);
 
     /**
+     * @brief Create injection.
+     * @param[in] dropletId Id of the droplet that should be injected.
+     * @param[in] injectionTime Time at which the droplet should be injected in s.
+     * @param[in] channelId Id of the channel, where droplet should be injected.
+     * @param[in] injectionPosition Position inside the channel at which the droplet should be injected (relative to the channel length between 0.0 and 1.0).
+     * @return Pointer to created injection.
+     */
+    DropletInjection<T>* addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition);
+
+    /**
+     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
+     * @param[in] fluid The fluid the continuous phase consists of.
+     */
+    void setDroplets(std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets);
+
+    /**
+     * @brief Get droplet
+     * @param dropletId Id of the droplet
+     * @return Pointer to droplet with the corresponding id
+     */
+    Droplet<T>* getDroplet(int dropletId) const;
+
+    /**
+     * @brief Gets droplet that is present at the corresponding node (i.e., the droplet spans over this node).
+     * @param nodeId The id of the node
+     * @return Pointer to droplet or nullptr if no droplet was found
+     */
+    Droplet<T>* getDropletAtNode(int nodeId) const;
+
+    /**
+     * @brief Get injection
+     * @param injectionId The id of the injection
+     * @return Pointer to injection with the corresponding id.
+     */
+    DropletInjection<T>* getDropletInjection(int injectionId) const;
+
+    /**
+     * @brief Creates a new droplet from two existing droplets. Please note that this only creates a new 
+     * droplet inside the simulation, but the actual boundaries have to be set separately, which is usually 
+     * done inside the corresponding merge events.
+     * @param droplet0Id Id of the first droplet.
+     * @param droplet1Id Id of the second droplet.
+     * @return Pointer to new droplet.
+     */
+    Droplet<T>* mergeDroplets(int droplet0Id, int droplet1Id);
+
+    /**
+     * @brief Creates a new fluid out of two existing fluids.
+     * @param fluid0Id Id of the first fluid.
+     * @param volume0 The volume of the first fluid.
+     * @param fluid1Id Id of the second fluid.
+     * @param volume1 The volume of the second fluid.
+     * @return Pointer to new fluid.
+     */
+    Fluid<T>* mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1);
+
+    /**
+     * @brief Abstract droplet simulation for droplets that 'fill' a channel's cross-section. (i.e., no 'free, floating' droplets, but 'squeezed' droplets)
+     * Simulation loop:
+     * - update droplet resistances
+     * - conduct nodal analysis
+     * - update droplets (flow rates of boundaries)
+     * - compute events
+     * - search for next event (break if no event is left)
+     * - move droplets
+     * - perform event
+     */
+    void simulate() override;
+
+};
+
+/**
+ * @brief Class that conducts a abstract continuous simulation
+ */
+template<typename T>
+class AbstractMixing : public Simulation<T> {
+private:
+    std::unordered_map<int, std::unique_ptr<Specie<T>>> species;                        ///< Species specified for the simulation.
+    std::unordered_map<int, std::unique_ptr<Mixture<T>>> mixtures;                      ///< Mixtures present in the simulation.
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> mixtureInjections;    ///< Injections of fluids that should take place during the simulation.
+    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>> permanentMixtureInjections; ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
+    MixingModel<T>* mixingModel = nullptr;                                              ///< The mixing model used for a mixing simulation.
+
+protected:
+    
+    void assertInitialized() const override;
+    
+    /**
+     * @brief Store the mixtures in this simulation in simulationResult.
+    */
+    void saveMixtures();
+
+    /**
+     * @brief Compute all possible next events for mixing simulation.
+     */
+    std::vector<std::unique_ptr<Event<T>>> computeMixingEvents();
+
+    /**
+     * @brief Protected constructor of the abstract mixing simulator object, used by derived objects
+     * @param[in] simType Simulation type of the derived simulation object.
+     * @param[in] platform Simulation platform of the derived simulation object.
+     * @param[in] network Pointer to the network object, in which the simulation takes place.
+     */
+    AbstractMixing(Type simType, Platform platform, arch::Network<T>* network);
+
+    void saveState() override;
+
+public:
+    /**
+     * @brief Constructor of the abstract mixing simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
+     */
+    AbstractMixing(arch::Network<T>* network);
+
+    /**
      * @brief Create specie.
      * @param[in] diffusivity Diffusion coefficient of the specie in the carrier medium in m^2/s.
      * @param[in] satConc Saturation concentration of the specie in the carrier medium in g/m^3.
      * @return Pointer to created specie.
      */
     Specie<T>* addSpecie(T diffusivity, T satConc);
-
-    /**
-     * @brief Create tissue.
-     * @param[in] species Map of Species that interacts with this tissue.
-     * @param[in] Vmax
-     * @param[in] kM
-     * @return Pointer to created tissue.
-     */
-    Tissue<T>* addTissue(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> Vmax, std::unordered_map<int, T> kM);
 
     /**
      * @brief Create mixture.
@@ -292,6 +606,170 @@ public:
     Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
     /**
+     * @brief Create mixture injection. The injection is always performed at the beginning (position 0.0) of the channel.
+     * @param[in] mixtureId Id of the mixture that should be injected.
+     * @param[in] channelId Id of the channel, where specie should be injected.
+     * @param[in] injectionTime Time at which the injection should be injected in s.
+     * @return Pointer to created injection.
+     */
+    MixtureInjection<T>* addMixtureInjection(int mixtureId, int channelId, T injectionTime);
+
+    /**
+     * @brief Create permanent mixture injection which will continuously inject the mixture.
+     *        The injection is always performed at the beginning (position 0.0) of the channel.
+     * @param[in] mixtureId Id of the mixture that should be injected.
+     * @param[in] channelId Id of the channel, where specie should be injected.
+     * @param[in] injectionTime Time at which the injection should be injected in s.
+     * @return Pointer to created injection.
+     */
+    MixtureInjection<T>* addPermanentMixtureInjection(int mixtureId, int channelId, T injectionTime);
+
+    /**
+     * @brief Define which mixing model should be used for the concentrations.
+     * @param[in] model The mixing model to be used.
+     */
+    void setMixingModel(MixingModel<T>* model);
+
+    /**
+     * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
+     * @param[in] timeStep Time step in s for which the new mixtures state should be calculated.
+     */
+    void calculateNewMixtures(double timeStep);
+
+    /**
+     * @brief Get injection
+     * @param injectionId The id of the injection
+     * @return Pointer to injection with the corresponding id.
+     */
+    MixtureInjection<T>* getMixtureInjection(int injectionId) const;
+
+    /**
+     * @brief Get injection
+     * @return Reference to the unordered map of MixtureInjections
+     */
+    const std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getMixtureInjections() const;
+
+    /**
+     * @brief Get injection
+     * @return Reference to the unordered map of MixtureInjections
+     */
+    const std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getPermanentMixtureInjections() const;
+
+    /**
+     * @brief Get the mixing model that is used in the simulation.
+     * @return The mixing model of the simulation.
+     */
+    MixingModel<T>* getMixingModel() const;
+
+    /**
+     * @brief Get mixture.
+     * @param mixtureId Id of the mixture
+     * @return Pointer to mixture with the correspondig id
+     */
+    Mixture<T>* getMixture(int mixtureId) const;
+
+    /**
+     * @brief Get mixtures.
+     * @return Reference to the unordered map of mixtures
+     */
+    const std::unordered_map<int, std::unique_ptr<Mixture<T>>>& getMixtures() const;
+
+    /**
+     * @brief Get specie.
+     * @param specieId Id of the specie.
+     * @return Pointer to specie with the correspondig id
+     */
+    Specie<T>* getSpecie(int specieId) const;
+
+    /**
+     * @brief Get mixture.
+     * @param mixtureId Id of the mixture
+     * @return Pointer to mixture with the correspondig id
+     */
+    const std::unordered_map<int, std::unique_ptr<Specie<T>>>& getSpecies() const;
+
+    /**
+     * @brief Abstract mixing simulation for flow with species concentrations
+     * Simulation loop:
+     * - Update pressure and flowrates
+     * - Calculate next mixture event
+     * - Sort events
+     * - Propagate mixtures to next event time
+     * - Perform next event
+     */
+    void simulate() override;
+
+};
+
+/**
+ * @brief Class that conducts an abstract continuous simulation
+ */
+template<typename T>
+class AbstractMembrane final : public AbstractMixing<T> {
+private:
+    MembraneModel<T>* membraneModel = nullptr;                                          ///< The membrane model used for an OoC simulation.
+
+    void assertInitialized() const override;
+
+public:
+
+    /**
+     * @brief Constructor of the abstract membrane simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
+     */
+    AbstractMembrane(arch::Network<T>* network);
+
+    /**
+     * @brief Define which membrane model should be used for the membrane resistance calculations.
+     * @param[in] model The membrane model to be used.
+     */
+    void setMembraneModel(MembraneModel<T>* model);
+
+    /**
+     * @brief Get the membrane model that is used in the simulation.
+     * @return The membrane model of the simulation
+     */
+    MembraneModel<T>* getMembraneModel() const;
+    
+    /**
+     * @brief Abstract simulation with membranes/tanks
+     * Simulation loop:
+     * - conduct nodal analysis
+     * - compute events
+     * - sort events
+     * - search for next event (break if no event is left)
+     * - perform next event
+     */
+    void simulate() override;
+
+};
+
+/**
+ * @brief Class that conducts a abstract continuous simulation
+ */
+template<typename T>
+class HybridContinuous : public Simulation<T> {
+private:
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>> cfdSimulators;            ///< The set of CFD simulators, that conduct CFD simulations on <arch::Module>.
+    std::unordered_map<int, std::shared_ptr<mmft::Scheme<T>>> updateSchemes;            ///< The update scheme for Abstract-CFD coupling
+    bool writePpm = true;
+    bool eventBasedWriting = false;
+
+    void initialize() override;
+
+    void saveState() override;
+
+    inline bool conductNodalAnalysis() { return this->getNodalAnalysis()->conductNodalAnalysis(cfdSimulators); }
+
+public:
+
+    /**
+     * @brief Constructor of the hybrid continuous simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
+     */
+    HybridContinuous(arch::Network<T>* network);
+
+    /**
      * @brief Define and set the naive update scheme for a hybrid simulation.
      * @param[in] alpha The relaxation value for the pressure value update for all nodes.
      * @param[in] beta The relaxation value for the flow rate value update for all nodes.
@@ -317,35 +795,6 @@ public:
      * @returns A shared_ptr to the created naive update scheme.
      */
     std::shared_ptr<mmft::NaiveScheme<T>> setNaiveHybridScheme(int moduleId, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
-
-    /**
-     * @brief Create injection.
-     * @param[in] dropletId Id of the droplet that should be injected.
-     * @param[in] injectionTime Time at which the droplet should be injected in s.
-     * @param[in] channelId Id of the channel, where droplet should be injected.
-     * @param[in] injectionPosition Position inside the channel at which the droplet should be injected (relative to the channel length between 0.0 and 1.0).
-     * @return Pointer to created injection.
-     */
-    DropletInjection<T>* addDropletInjection(int dropletId, T injectionTime, int channelId, T injectionPosition);
-
-    /**
-     * @brief Create mixture injection. The injection is always performed at the beginning (position 0.0) of the channel.
-     * @param[in] mixtureId Id of the mixture that should be injected.
-     * @param[in] channelId Id of the channel, where specie should be injected.
-     * @param[in] injectionTime Time at which the injection should be injected in s.
-     * @return Pointer to created injection.
-     */
-    MixtureInjection<T>* addMixtureInjection(int mixtureId, int channelId, T injectionTime);
-
-    /**
-     * @brief Create permanent mixture injection which will continuously inject the mixture.
-     *        The injection is always performed at the beginning (position 0.0) of the channel.
-     * @param[in] mixtureId Id of the mixture that should be injected.
-     * @param[in] channelId Id of the channel, where specie should be injected.
-     * @param[in] injectionTime Time at which the injection should be injected in s.
-     * @return Pointer to created injection.
-     */
-    MixtureInjection<T>* addPermanentMixtureInjection(int mixtureId, int channelId, T injectionTime);
 
     /**
      * @brief Adds a new simulator to the network.
@@ -381,24 +830,24 @@ public:
                                             std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
 
-    /**
-     * @brief Adds a new simulator to the network.
-     * @param[in] name Name of the simulator.
-     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
-     * @param[in] tissueId The Id of the tissue that the organ in this nodule consists of.
-     * @param[in] organStlFile The location of the stl file describing the geometry of the organ.
-     * @param[in] module Shared pointer to the module on which this solver acts.
-     * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
-     * @param[in] openings Map of openings corresponding to the nodes.
-     * @param[in] charPhysLength Characteristic physical length of this simulator.
-     * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
-     * @param[in] resolution Resolution of this simulator.
-     * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
-     * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
-     * @return Pointer to the newly created simulator.
-    */
-    lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
-                                            std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
+    // /**
+    //  * @brief Adds a new simulator to the network.
+    //  * @param[in] name Name of the simulator.
+    //  * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+    //  * @param[in] tissueId The Id of the tissue that the organ in this nodule consists of.
+    //  * @param[in] organStlFile The location of the stl file describing the geometry of the organ.
+    //  * @param[in] module Shared pointer to the module on which this solver acts.
+    //  * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
+    //  * @param[in] openings Map of openings corresponding to the nodes.
+    //  * @param[in] charPhysLength Characteristic physical length of this simulator.
+    //  * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
+    //  * @param[in] resolution Resolution of this simulator.
+    //  * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
+    //  * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
+    //  * @return Pointer to the newly created simulator.
+    // */
+    // lbmOocSimulator<T>* addLbmOocSimulator(std::string name, std::string stlFile, int tissueId, std::string organStlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
+    //                                         std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Adds a new simulator to the network.
@@ -410,280 +859,29 @@ public:
                                         T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
-     * @brief Set the platform of the simulation.
-     * @param[in] platform
-     */
-    void setPlatform(Platform platform);
-
-    /**
-     * @brief Set the type of the simulation.
-     * @param[in] type
-     */
-    void setType(Type type);
-
-    /**
-     * @brief Set the type of the simulation.
-     * @param[in] type
-     */
-    void setFixtureId(int fixtureId);
-
-    /**
-     * @brief Set the network for which the simulation should be conducted.
-     * @param[in] network Network on which the simulation will be conducted.
-     */
-    void setNetwork(arch::Network<T>* network);
-
-    /**
-     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluid The fluid the continuous phase consists of.
-     */
-    void setFluids(std::unordered_map<int, std::unique_ptr<Fluid<T>>> fluids);
-
-    /**
-     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluid The fluid the continuous phase consists of.
-     */
-    void setDroplets(std::unordered_map<int, std::unique_ptr<Droplet<T>>> droplets);
-
-    /**
-     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluidId The ID of the fluid the continuous phase consists of.
-     */
-    void setContinuousPhase(int fluidId);
-
-    /**
-     * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
-     * @param[in] fluid The fluid the continuous phase consists of.
-     */
-    void setContinuousPhase(Fluid<T>* fluid);
-
-    /**
-     * @brief Define which resistance model should be used for the channel and droplet resistance calculations.
-     * @param[in] model The resistance model to be used.
-     */
-    void setResistanceModel(ResistanceModel<T>* model);
-
-    /**
-     * @brief Define which membrane model should be used for the membrane resistance calculations.
-     * @param[in] model The membrane model to be used.
-     */
-    void setMembraneModel(MembraneModel<T>* model);
-
-    /**
-     * @brief Define which mixing model should be used for the concentrations.
-     * @param[in] model The mixing model to be used.
-     */
-    void setMixingModel(MixingModel<T>* model);
-
-    /**
-     * @brief Set maximal time after which the simulation should end.
-     * @param[in] Maximal end time in [s].
-     */
-    void setMaxEndTime(T maxTime);
-
-    /**
-     * @brief Set interval in which the state is saved to the SimulationResult.
-     * @param[in] Interval in [s].
-     */
-    void setWriteInterval(T interval);
-
-    /**
-     * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
-     * @param[in] timeStep Time step in s for which the new mixtures state should be calculated.
-     */
-    void calculateNewMixtures(double timeStep);
-
-    /**
-     * @brief Get the platform of the simulation.
-     * @return platform of the simulation
-     */
-    Platform getPlatform();
-
-    /**
-     * @brief Get the type of the simulation.
-     * @return type of the simulation
-     */
-    Type getType();
-
-    /**
-     * @brief Set the type of the simulation.
-     * @param[in] type
-     */
-    int getFixtureId();
-
-    /**
-     * @brief Get the network.
-     * @return Network or nullptr if no network is specified.
-     */
-    arch::Network<T>* getNetwork();
-
-    /**
-     * @brief Get fluid.
-     * @param[in] fluidId Id of the fluid
-     * @return Pointer to fluid with the corresponding id
-     */
-    Fluid<T>* getFluid(int fluidId);
-
-    /**
-     * @brief Get fluid.
-     * @param[in] fluidId Id of the fluid
-     * @return Pointer to fluid with the corresponding id
-     */
-    std::unordered_map<int, std::unique_ptr<Fluid<T>>>& getFluids();
-
-    /**
-     * @brief Get droplet
-     * @param dropletId Id of the droplet
-     * @return Pointer to droplet with the corresponding id
-     */
-    Droplet<T>* getDroplet(int dropletId);
-
-    /**
-     brief Get fluid.
-     param[in] fluidId Id of the fluid
-     return Pointer to fluid with the corresponding id
-     */
-    //std::unordered_map<int, std::unique_ptr<Droplet<T>>>& getDroplets();
-
-    /**
-     * @brief Gets droplet that is present at the corresponding node (i.e., the droplet spans over this node).
-     * @param nodeId The id of the node
-     * @return Pointer to droplet or nullptr if no droplet was found
-     */
-    Droplet<T>* getDropletAtNode(int nodeId);
-
-    /**
-     * @brief Get injection
-     * @param injectionId The id of the injection
-     * @return Pointer to injection with the corresponding id.
-     */
-    DropletInjection<T>* getDropletInjection(int injectionId);
-
-    /**
-     * @brief Get injection
-     * @param injectionId The id of the injection
-     * @return Pointer to injection with the corresponding id.
-     */
-    MixtureInjection<T>* getMixtureInjection(int injectionId);
-
-    /**
-     * @brief Get injection
-     * @return Reference to the unordered map of MixtureInjections
-     */
-    std::unordered_map<int, std::unique_ptr<MixtureInjection<T>>>& getMixtureInjections();
-
-    /**
      * @brief Get injection
      * @param simulatorId The id of the injection
      * @return Pointer to injection with the corresponding id.
      */
-    CFDSimulator<T>* getCFDSimulator(int simulatorId);
+    CFDSimulator<T>* getCFDSimulator(int simulatorId) const;
 
     /**
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& getCFDSimulators();
-
-    /**
-     * @brief Get the continuous phase.
-     * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
-     */
-    Fluid<T>* getContinuousPhase();
-
-    /**
-     * @brief Get the mixing model that is used in the simulation.
-     * @return The mixing model of the simulation.
-     */
-    MixingModel<T>* getMixingModel();
-
-    /**
-     * @brief Get the resistance model that is used in the simulation.
-     * @return The resistance model of the simulation.
-     */
-    ResistanceModel<T>* getResistanceModel();
-
-    /**
-     * @brief Get the membrane model that is used in the simulation.
-     * @return The membrane model of the simulation
-     */
-    MembraneModel<T>* getMembraneModel();
-
-    /**
-     * @brief Get mixture.
-     * @param mixtureId Id of the mixture
-     * @return Pointer to mixture with the correspondig id
-     */
-    Mixture<T>* getMixture(int mixtureId);
-
-    /**
-     * @brief Get mixtures.
-     * @return Reference to the unordered map of mixtures
-     */
-    std::unordered_map<int, std::unique_ptr<Mixture<T>>>& getMixtures();
-
-    /**
-     * @brief Get specie.
-     * @param specieId Id of the specie.
-     * @return Pointer to specie with the correspondig id
-     */
-    Specie<T>* getSpecie(int specieId);
-
-    /**
-     * @brief Get mixture.
-     * @param mixtureId Id of the mixture
-     * @return Pointer to mixture with the correspondig id
-     */
-    std::unordered_map<int, std::unique_ptr<Specie<T>>>& getSpecies();
-
-    /**
-     * @brief Get the results of the simulation.
-     * @return Pointer to the result of the simulation.
-     */
-    result::SimulationResult<T>* getSimulationResults();
+    std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& getCFDSimulators() const;
 
     /**
      * @brief Get the global bounds of pressure values in the CFD simulators.
      * @return A tuple with the global bounds for pressure values <pMin, pMax>
      */
-    std::tuple<T, T> getGlobalPressureBounds();
+    std::tuple<T, T> getGlobalPressureBounds() const;
     
     /**
      * @brief Get the global bounds of velocity magnitude values in the CFD simulators.
      * @return A tuple with the global bounds for velocity magnitude values <velMin, velMax>
      */
-    std::tuple<T, T> getGlobalVelocityBounds();
-
-    /**
-     * @brief Creates a new fluid out of two existing fluids.
-     * @param fluid0Id Id of the first fluid.
-     * @param volume0 The volume of the first fluid.
-     * @param fluid1Id Id of the second fluid.
-     * @param volume1 The volume of the second fluid.
-     * @return Pointer to new fluid.
-     */
-    Fluid<T>* mixFluids(int fluid0Id, T volume0, int fluid1Id, T volume1);
-
-    /**
-     * @brief Creates a new droplet from two existing droplets. Please note that this only creates a new 
-     * droplet inside the simulation, but the actual boundaries have to be set separately, which is usually 
-     * done inside the corresponding merge events.
-     * @param droplet0Id Id of the first droplet.
-     * @param droplet1Id Id of the second droplet.
-     * @return Pointer to new droplet.
-     */
-    Droplet<T>* mergeDroplets(int droplet0Id, int droplet1Id);
-
-    /**
-     * @brief Conduct the simulation.
-     * @return The result of the simulation containing all intermediate simulation steps and calculated parameters.
-     */
-    void simulate();
-
-    /**
-     * @brief Print the results as pressure at the nodes and flow rates at the channels
-     */
-    void printResults();
+    std::tuple<T, T> getGlobalVelocityBounds() const;
 
     /**
      * @brief Write the pressure field in .ppm image format for all cfdSimulators
@@ -694,6 +892,45 @@ public:
      * @brief Write the velocity field in .ppm image format for all cfdSimulators
      */
     void writeVelocityPpm(std::tuple<T, T> bounds, int resolution=600);
+
+    void simulate() override;
+
 };
+
+/** TODO: HybridMixingSimulation
+ * Enable hybrid mixing simulation and uncomment code below
+ */
+// /**
+//  * @brief Class that conducts a abstract continuous simulation
+//  */
+// template<typename T>
+// class HybridMixing : public HybridContinuous<T> {
+// private:
+//     /**
+//      * @brief Constructor of the hybrid mixing simulator object
+//      */
+//     HybridMixing();
+
+//     void simulate() override;
+
+// };
+
+/** TODO: HybridOocSimulation
+ * Enable hybrid OoC simulation and uncomment code below
+ */
+// /**
+//  * @brief Class that conducts a abstract continuous simulation
+//  */
+// template<typename T>
+// class HybridOoc final : public HybridMixing<T> {
+// private:
+//     /**
+//      * @brief Constructor of the hybrid mixing simulator object
+//      */
+//     HybridOoc();
+
+//     void simulate() override;
+
+// };
 
 }   // namespace sim
