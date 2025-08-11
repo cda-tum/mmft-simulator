@@ -17,6 +17,13 @@ namespace sim {
     }
 
     template<typename T>
+<<<<<<< Updated upstream
+=======
+    void Simulation<T>::setFixtureId(int fixtureId_) {
+        this->fixtureId = fixtureId_;
+    }
+    template<typename T>
+>>>>>>> Stashed changes
     Droplet<T>* Simulation<T>::addDroplet(int fluidId, T volume, T Ca_) {
         int id = droplets.size();
         auto fluid = fluids.at(fluidId).get();
