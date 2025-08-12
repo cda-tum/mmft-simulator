@@ -429,7 +429,7 @@ class DropletImplementation : public Droplet<T> {
 
     /**
      * @brief Update the flow-rates of the droplet boundaries according to the flowRates inside the channels
-     * @param chip Chip
+     * @param network Network
      */
     void updateBoundaries(const arch::Network<T>& network);
 

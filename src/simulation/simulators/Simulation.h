@@ -89,6 +89,11 @@ private:
 protected:
     /**
      * @brief Creates simulation.
+     * @param[in] simType_ Type of the simulation.
+     * @param[in] platform_ Platform of the simulation.
+     * @param[in] network_ Pointer to the network on which the simulation is conducted.
+     * @throws std::logic_error if the network is null.
+     * @note network must not be null.
      */
     Simulation(Type simType, Platform platform, std::shared_ptr<arch::Network<T>> network);
 
@@ -279,6 +284,12 @@ public:
      * @return Fluid if the continuous phase or nullptr if no continuous phase is specified.
      */
     [[nodiscard]] std::shared_ptr<Fluid<T>> getContinuousPhase() const;
+
+    /** TODO: AbstractDroplet
+     * If a new continuous phase is set, the droplets should be adapted to not be the new continuous phase.
+     ** TODO: AbstractMixing
+     * If a new continuous phase is set, the continuous phase of the Mixtures should be adapted to the new continuous phase.
+     */
 
     /**
      * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.

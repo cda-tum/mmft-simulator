@@ -17,8 +17,8 @@ class Specie {
   private:
     int const id;                       ///< Unique identifier of the specie.
     std::string name = "";              ///< Name of the specie.
-    T diffusivity;                      ///< Diffusivity coefficient of the specie in the continuous phase in m^2/s.
-    T satConc;                          ///< Saturation concentration of the specie in the continuous phase in g/m^3.
+    T diffusivity = 0.0;                ///< Diffusivity coefficient of the specie in the continuous phase in m^2/s.
+    T satConc = 0.0;                    ///< Saturation concentration of the specie in the continuous phase in g/m^3.
 
   public:
     /**

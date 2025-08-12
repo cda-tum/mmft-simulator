@@ -95,10 +95,9 @@ namespace sim {
     template<typename T>
     void AbstractDroplet<T>::removeDroplet(int dropletId) {
         if (droplets.erase(dropletId)) {
+            // Remove all injections of this droplet
             auto it = injectionMap.find(dropletId);
             if (it != injectionMap.end()) {
-                // Remove the injections that are coupled to this droplet,
-                // from the simulator
                 for (auto injectionId : it->second) {
                     removeDropletInjection(injectionId);
                 }

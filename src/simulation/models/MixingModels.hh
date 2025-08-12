@@ -195,7 +195,7 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std:
         std::unordered_map<int, T> newConcentrations;
         for (auto& mixtureInflow : mixtureInflowList) {
             for (auto& [specieId, oldConcentration] : tmpMixtures[mixtureInflow.mixtureId].getSpecieConcentrations()) {
-                speciePtrs.try_emplace(specieId, sim->getSpecie(specieId));
+                speciePtrs.try_emplace(specieId, sim->getSpecie(specieId).get());
                 T newConcentration = oldConcentration * mixtureInflow.inflowVolume / totalInflowVolumeAtNode.at(nodeId);
                 auto [iterator, inserted] = newConcentrations.try_emplace(specieId, newConcentration);
                 if (!inserted) {
@@ -258,7 +258,7 @@ void InstantaneousMixingModel<T>::storeConcentrations(AbstractMixing<T>* sim, co
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void InstantaneousMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) {
     generateNodeOutflow(sim, mixtures);
     updateChannelInflow(timeStep, sim, network, mixtures);
 
@@ -412,7 +412,7 @@ int InstantaneousMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::N
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::generateNodeOutflow(AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void InstantaneousMixingModel<T>::generateNodeOutflow(AbstractMixing<T>* sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) {
 
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         std::unordered_map<int, T> newConcentrations;
@@ -436,7 +436,7 @@ void InstantaneousMixingModel<T>::generateNodeOutflow(AbstractMixing<T>* sim, st
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, AbstractMixing<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, AbstractMixing<T>* sim, arch::Network<T>* network, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) {
 
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
@@ -479,7 +479,7 @@ void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, AbstractMixing
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, AbstractMembrane<T>* sim, arch::Network<T>* network, const std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, AbstractMembrane<T>* sim, arch::Network<T>* network, const std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) {
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto membrane : network->getMembranesAtNode(nodeId)) {
             auto* tank = membrane->getTank();
@@ -560,6 +560,8 @@ void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, Abstract
 
                             mixtures.at(tankMixtureId)->changeSpecieConcentration(specieId, concentrationChangeTank);
                             mixtures.at(channelMixtureId)->changeSpecieConcentration(specieId, concentrationChangeChannel);
+                        } else if (specieSaturation == 0.0) {
+                            throw std::runtime_error("Saturation concentration of specie " + std::to_string(specieId) + " is zero, which is not allowed in membrane exchange.");
                         }
                     }
                     startPos = endPos;
@@ -616,7 +618,7 @@ template<typename T>
 DiffusionMixingModel<T>::DiffusionMixingModel() : MixingModel<T>() { }
 
 template<typename T>
-void DiffusionMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void DiffusionMixingModel<T>::updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) {
     updateNodeInflow(timeStep, network);
     generateInflows(timeStep, network, sim, mixtures);
     clean(network);
@@ -656,7 +658,7 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& mixtures) {
+void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& mixtures) {
     // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
     // It is unlikely that this exact mixture, with same species and functions already exists
     for (auto& nodeId : mixingNodes) {
@@ -1029,7 +1031,7 @@ std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAna
 template<typename T>
 std::tuple<std::function<T(T)>,std::vector<T>,T> DiffusionMixingModel<T>::getAnalyticalSolutionTotal(
     T channelLength, T currChannelFlowRate, T channelWidth, int resolution, int speciesId, 
-    T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::unique_ptr<Mixture<T>>>& Mixtures) { 
+    T pecletNr, const std::vector<FlowSection<T>>& flowSections, std::unordered_map<int, std::shared_ptr<Mixture<T>>>& Mixtures) { 
     
     T prevEndWidth = 0.0;
 

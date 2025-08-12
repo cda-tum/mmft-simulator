@@ -4,6 +4,9 @@ namespace sim {
 
     template<typename T>
     Simulation<T>::Simulation(Type simType_, Platform platform_, std::shared_ptr<arch::Network<T>> network_) : simType(simType_), platform(platform_), network(network_) {
+        if (network_ == nullptr) {
+            throw std::logic_error("Network cannot be null.");
+        }
         this->simulationResult = std::make_unique<result::SimulationResult<T>>();
     }
 

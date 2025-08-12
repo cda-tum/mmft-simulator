@@ -64,7 +64,7 @@ class ResistanceModel {
  * @brief Class that defines the functionality of the 1D resistance model.
  */
 template<typename T>
-class ResistanceModel1D : public ResistanceModel<T> {
+class ResistanceModel1D final : public ResistanceModel<T> {
 
   public:
     /**
@@ -103,7 +103,7 @@ class ResistanceModel1D : public ResistanceModel<T> {
  * @brief Class that defines the functionality of the 1D resistance model assuming a 2D poiseuille flow.
  */
 template<typename T>
-class ResistanceModelPoiseuille : public ResistanceModel<T>{
+class ResistanceModelPoiseuille final : public ResistanceModel<T>{
 
   public:
     /**

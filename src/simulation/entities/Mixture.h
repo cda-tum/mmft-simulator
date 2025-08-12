@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <unordered_map>
 
 namespace arch { 
@@ -34,10 +35,10 @@ class Specie;
 */
 template<typename T>
 struct MixturePosition {
-    int mixtureId;
-    int channel;
-    T position1;
-    T position2;
+    int mixtureId;              ///< Id of the mixture.
+    int channel;                ///< Id of the channel containing the mixture.
+    T position1;                ///< Position of the start of this mixture, relative to channel length (0.0 - 1.0).
+    T position2;                ///< Position of the end of this mixture, relative to channel length (0.0 - 1.0).
 
     /**
      * @brief Constructs a mixture position
@@ -57,12 +58,12 @@ template<typename T>
 class Mixture {
 private:
 
-    int const id;
-    std::unordered_map<int, Specie<T>*> species;
-    std::unordered_map<int, T> specieConcentrations;
-    T viscosity;
-    T density;
-    T largestMolecularSize;
+    int const id;                                                   ///< Unique identifier of the mixture.      
+    std::unordered_map<int, Specie<T>*> species;                    ///< Map of specie id and pointer to the specie in this mixture.
+    std::unordered_map<int, T> specieConcentrations;                ///< Map of specie id and concentration.
+    T viscosity;                                                    ///< Viscosity of the mixture in [Pa s].     
+    T density;                                                      ///< Density of the mixture in [kg/m^3].
+    T largestMolecularSize;                                         ///< Largest molecular size in the mixture in [m^3].
 
 public:
     /**
@@ -135,7 +136,7 @@ public:
      * @brief Get the number of fluids this mixture consists of.
      * @return Number of fluids this mixture consists of. 
      */
-    int getSpecieCount() const;
+    [[nodiscard]] inline unsigned int getSpecieCount() const { return species.size(); }
 
     /**
      * @brief Get a map of all flud id ids and their volume concentrations of the mixture.
@@ -161,18 +162,51 @@ template<typename T>
 class DiffusiveMixture : public Mixture<T> {
 private:
 
-    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
-    int resolution;
-    bool isConstant = true;
+    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;     ///< Map of specie id and tuple of distribution function, parameters and maximum value.
+    int resolution;                                     ///< Spectral resolution of the distribution function.
+    bool isConstant = true;                             ///< If the distribution is constant or not.
 
 public:
 
+    /**
+     * @brief Construct a new DiffusiveMixture object.
+     * @param id Id of the mixture.
+     * @param species Map of specie id and pointer to the specie in this mixture.
+     * @param specieConcentrations Map of specie id and concentration.
+     * @param specieDistributions Map of specie id and tuple of distribution function, parameters and maximum value.
+     * @param viscosity Viscosity of the mixture in [Pa s].
+     * @param density Density of the mixture in [kg/m^3].
+     * @param largestMolecularSize Largest molecular size in the mixture in [m^3].
+     * @param resolution Spectral resolution of the distribution function.
+     */
     DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions,T viscosity, T density, T largestMolecularSize, int resolution=10);
-
+    
+    /**
+     * @brief Construct a new DiffusiveMixture object.
+     * @param id Id of the mixture.
+     * @param species Map of specie id and pointer to the specie in this mixture.
+     * @param specieConcentrations Map of specie id and concentration.
+     * @param specieDistributions Map of specie id and tuple of distribution function, parameters and maximum value.
+     * @param viscosity Viscosity of the mixture in [Pa s].
+     * @param density Density of the mixture in [kg/m^3].
+     * @param largestMolecularSize Largest molecular size in the mixture in [m^3].
+     * @param resolution Spectral resolution of the distribution function.
+     */
     DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution=10);
 
+    /**
+     * @brief Construct a new DiffusiveMixture object.
+     * @param id Id of the mixture.
+     * @param species Map of specie id and pointer to the specie in this mixture.
+     * @param specieConcentrations Map of specie id and concentration.
+     * @param specieDistributions Map of specie id and tuple of distribution function, parameters and maximum value.
+     * @param viscosity Viscosity of the mixture in [Pa s].
+     * @param density Density of the mixture in [kg/m^3].
+     * @param largestMolecularSize Largest molecular size in the mixture in [m^3].
+     * @param resolution Spectral resolution of the distribution function.
+     */
     DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
         std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution=10);
 

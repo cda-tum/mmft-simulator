@@ -53,7 +53,7 @@ public:
  * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
 */
 template<typename T>
-class PermeabilityMembraneModel : public MembraneModel<T> {
+class PermeabilityMembraneModel final : public MembraneModel<T> {
 
 private:
 
@@ -70,7 +70,7 @@ public:
  * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
 */
 template<typename T>
-class PoreResistanceMembraneModel : public MembraneModel<T> {
+class PoreResistanceMembraneModel final : public MembraneModel<T> {
 
 private:
 
@@ -89,7 +89,7 @@ public:
  * Based on Source: M. Ishahak, J. Hill, Q. Amin, L. Wubker, A. Hernandez, A. Mitrofanova, A. Sloan, A. Fornoni and A. Agarwal. "Modular Microphysiological System for Modeling of Biologic Barrier Function". In: Front. Bioeng. Biotechnol. 8:581163. (2020). doi: 10.3389/fbioe.2020.581163
  */
 template<typename T>
-class MembraneModel0 : public MembraneModel<T> {
+class MembraneModel0 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreResistance(arch::Membrane<T> const*  membrane, Mixture<T> const* mixture) const;
 
@@ -106,7 +106,7 @@ class MembraneModel0 : public MembraneModel<T> {
  * Based on Source: J. J. VanDersarl, A. M. Xu, and N. A. Melosh. “Rapid spatial and temporal controlled signal delivery over large cell culture areas”. In: Lab Chip 11 (18 2011), pp. 3057–3063. doi: 10.1039/C1LC20311H. url: https://dx.doi.org/10.1039/C1LC20311H.
  */
 template<typename T>
-class MembraneModel1 : public MembraneModel<T> {
+class MembraneModel1 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreExitResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
     [[nodiscard]] T getPoreResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
@@ -133,7 +133,7 @@ private:
  * Based on Source: J.L. Snyder, A. Clark, D.Z. Fang, T.R. Gaborski, C.C. Striemer, P.M. Fauchet, J.L. McGrath, "An experimental and theoretical analysis of molecular separations by diffusion through ultrathin nanoporous membranes". Journal of Membrane Science Volume 369, Issues 1–2, 2011, Pages 119-129. ISSN 0376-7388,https://doi.org/10.1016/j.memsci.2010.11.056.
  */
 template<typename T>
-class MembraneModel2 : public MembraneModel<T> {
+class MembraneModel2 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T area, T freeDiffusionCoefficient) const;
 
@@ -155,7 +155,7 @@ class MembraneModel2 : public MembraneModel<T> {
  * Based on Source: H.C. Berg. Random Walks in Biology. Princeton paperbacks. Princeton University Press, 1993. isbn: 9780691000640. url: https://books.google.at/books?id=DjdgXGLoJY8C
  */
 template<typename T>
-class MembraneModel3 : public MembraneModel<T> {
+class MembraneModel3 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
 
@@ -176,7 +176,7 @@ class MembraneModel3 : public MembraneModel<T> {
  * Based on Source: C.-W. Ho, A. Ruehli, and P. Brennan. “The modified nodal approach to network analysis”. In: IEEE Transactions on Circuits and Systems 22.6 (1975), pp. 504–509. doi: 10.1109/TCS.1975.1084079.
  */
 template<typename T>
-class MembraneModel4 : public MembraneModel<T> {
+class MembraneModel4 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
 
@@ -198,7 +198,7 @@ class MembraneModel4 : public MembraneModel<T> {
  * Based on Source: C.-W. Ho, A. Ruehli, and P. Brennan. “The modified nodal approach to network analysis”. In: IEEE Transactions on Circuits and Systems 22.6 (1975), pp. 504–509. doi: 10.1109/TCS.1975.1084079.
  */
 template<typename T>
-class MembraneModel5 : public MembraneModel<T> {
+class MembraneModel5 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
 
@@ -219,7 +219,7 @@ class MembraneModel5 : public MembraneModel<T> {
  * Based on Source: K. Ronaldson-Bouchard et al. “A multi-organ chip with matured tissue niches linked by vascular flow”. In: Nature Biomedical Engineering 6.4 (2022), pp. 351–371. doi: 10.1038/s41551-022-00882-6. url: https://doi.org/10.1038/s41551-022-00882-6 (cit. on p. 35).
  */
 template<typename T>
-class MembraneModel6 : public MembraneModel<T> {
+class MembraneModel6 final : public MembraneModel<T> {
   private:
     static constexpr T diffusionFactorMembrane = 1.58e-11;  // MultiOrgan
     //static constexpr T diffusionFactorMembrane = 4.4e-11;  // TwoOrgan
@@ -239,7 +239,7 @@ class MembraneModel6 : public MembraneModel<T> {
  * Based on Source: H.C. Berg. Random Walks in Biology. Princeton paperbacks. Princeton University Press, 1993. isbn: 9780691000640. url: https://books.google.at/books?id=DjdgXGLoJY8C
  */
 template<typename T>
-class MembraneModel7 : public MembraneModel<T> {
+class MembraneModel7 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
 
@@ -261,7 +261,7 @@ class MembraneModel7 : public MembraneModel<T> {
  * Based on Source: H.C. Berg. Random Walks in Biology. Princeton paperbacks. Princeton University Press, 1993. isbn: 9780691000640. url: https://books.google.at/books?id=DjdgXGLoJY8C
  */
 template<typename T>
-class MembraneModel8 : public MembraneModel<T> {
+class MembraneModel8 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
 
@@ -283,7 +283,7 @@ class MembraneModel8 : public MembraneModel<T> {
  * Based on Source: H.C. Berg. Random Walks in Biology. Princeton paperbacks. Princeton University Press, 1993. isbn: 9780691000640. url: https://books.google.at/books?id=DjdgXGLoJY8C
  */
 template<typename T>
-class MembraneModel9 : public MembraneModel<T> {
+class MembraneModel9 final : public MembraneModel<T> {
   private:
     [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
 

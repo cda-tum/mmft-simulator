@@ -182,22 +182,16 @@ void readMixtures(json jsonString, sim::AbstractMixing<T>& simulation) {
     for (auto& mixture : jsonString["simulation"]["mixtures"]) {
         if (mixture.contains("species") && mixture.contains("concentrations")) {
             if (mixture["species"].size() == mixture["concentrations"].size()) {
-                int counter = 0;
-                std::unordered_map<int, sim::Specie<T>*> species;
-                std::unordered_map<int, T> concentrations;
+                std::vector<std::shared_ptr<sim::Specie<T>>> species;
+                std::vector<T> concentrations;
                 for (auto& specie : mixture["species"]) {
                     auto specie_ptr = simulation.getSpecie(specie);
-                    species.try_emplace(specie, specie_ptr);
-                    concentrations.try_emplace(specie, mixture["concentrations"][counter]);
-                    counter++;
+                    species.push_back(specie_ptr);
                 }
-                if (simulation.getMixingModel()->isInstantaneous()) {
-                    simulation.addMixture(species, concentrations);
-                } else if (simulation.getMixingModel()->isDiffusive()) {
-                    simulation.addDiffusiveMixture(species, concentrations);
-                } else {
-                    throw std::invalid_argument("Please define a mixing model before adding mixtures.");
+                for (auto& conc : mixture["concentrations"]) {
+                    concentrations.push_back(conc);
                 }
+                simulation.addMixture(species, concentrations);
             } else {
                 throw std::invalid_argument("Wrongly defined mixture. Please provide as many concentrations as species.");
             }
@@ -432,19 +426,17 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
 
 template<typename T>
 void readMixingModel(json jsonString, sim::AbstractMixing<T>& simulation) {
-    sim::MixingModel<T>* mixingModel;
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
-            mixingModel = new sim::InstantaneousMixingModel<T>();
+            simulation.setInstantaneousMixingModel();
         } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
-            mixingModel = new sim::DiffusionMixingModel<T>();
+            simulation.setDiffusiveMixingModel();
         } else {
             throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous\nDiffusion");
         }
     } else {
         throw std::invalid_argument("No mixing model defined.");
     }
-    simulation.setMixingModel(mixingModel);
 }
 
 template<typename T>

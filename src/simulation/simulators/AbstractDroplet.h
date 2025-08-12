@@ -38,7 +38,7 @@ class AbstractDroplet final : public Simulation<T> {
 private:
     std::unordered_map<int, std::shared_ptr<DropletImplementation<T>>> droplets;        ///< Droplets which are simulated in droplet simulation.
     std::unordered_map<int, std::shared_ptr<DropletInjection<T>>> dropletInjections;    ///< Injections of droplets that should take place during a droplet simulation.
-    std::unordered_map<int, std::set<int>> injectionMap;                                ///< Mapping of injections to droplets stored as <dropletId, set<injectionId>>.
+    std::unordered_map<int, std::set<int>> injectionMap;                                ///< Mapping of injections to droplets stored as <dropletId, <injectionId1, injectionId2, ...>>.
     bool dropletsAtBifurcation = false;                                                 ///< If one or more droplets are currently at a bifurcation. Triggers the usage of the maximal adaptive time step.
 
     void saveState() override;
