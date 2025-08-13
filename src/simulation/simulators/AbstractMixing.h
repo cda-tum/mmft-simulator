@@ -155,7 +155,7 @@ protected:
      * @brief Get the mixing model that is used in the simulation.
      * @return The mixing model of the simulation.
      */
-    MixingModel<T>* getMixingModel() const;
+    MixingModel<T>* getMixingModel() const { return mixingModel.get(); }
 
     /**
      * @brief Get mixtures.
@@ -274,6 +274,12 @@ public:
     [[nodiscard]] std::shared_ptr<Mixture<T>> getMixture(int mixtureId) const { return mixtures.at(mixtureId); }
 
     /**
+     * @brief Return a read-only map of mixtures currently stored in the simulation
+     * @return Unordered map of mixture ids and const pointers to the mixtures
+     */
+    [[nodiscard]] const std::unordered_map<unsigned int, const Mixture<T>*> readMixtures() const;
+
+    /**
      * @brief Remove mixture from the simulation.
      * @param[in] mixture Pointer to the mixture that should be removed.
      * @throws std::logic_error if the mixture is not present in the simulation.
@@ -300,6 +306,25 @@ public:
      * @return Pointer to created injection.
      */
     [[maybe_unused]] std::shared_ptr<MixtureInjection<T>> addMixtureInjection(const std::shared_ptr<Mixture<T>>& mixture, const std::shared_ptr<arch::Edge<T>>& edge, T injectionTime, bool isPermanent = false);
+
+    /**
+     * @brief Create mixture permanent injection. The injection is always performed at the beginning (position 0.0) of the edge.
+     * @param[in] mixtureId Id of the mixture that should be injected.
+     * @param[in] edgeId Id of the edge, where specie should be injected.
+     * @param[in] injectionTime Time at which the injection should be injected in s.
+     * @return Pointer to created injection.
+     */
+    [[maybe_unused]] std::shared_ptr<MixtureInjection<T>> addPermanentMixtureInjection(int mixtureId, int edgeId, T injectionTime);
+
+    /**
+     * @brief Create mixture permanent injection. The injection is always performed at the beginning (position 0.0) of the edge.
+     * @param[in] mixture Pointer to the mixture that should be injected.
+     * @param[in] edge Pointer to the edge, where specie should be injected.
+     * @param[in] injectionTime Time at which the injection should be injected in s.
+     * @return Pointer to created injection.
+     */
+    [[maybe_unused]] std::shared_ptr<MixtureInjection<T>> addPermanentMixtureInjection(const std::shared_ptr<Mixture<T>>& mixture, const std::shared_ptr<arch::Edge<T>>& edge, T injectionTime);
+
 
     /**
      * @brief Get injection

@@ -12,11 +12,17 @@ namespace sim {
 
     template<typename T>
     void Simulation<T>::set1DResistanceModel() {
+        if (fluids.empty()) {
+            throw std::logic_error("Cannot set resistance model: No fluids defined.");
+        }
         this->resistanceModel = std::make_unique<ResistanceModel1D<T>>(getContinuousPhase()->getViscosity());
     }
 
     template<typename T>
     void Simulation<T>::setPoiseuilleResistanceModel() {
+        if (fluids.empty()) {
+            throw std::logic_error("Cannot set resistance model: No fluids defined.");
+        }
         this->resistanceModel = std::make_unique<ResistanceModelPoiseuille<T>>(getContinuousPhase()->getViscosity());
     }
 
@@ -109,6 +115,8 @@ namespace sim {
         auto it = fluids.find(fluidId);
         if (it != fluids.end()) {
             this->continuousPhase = fluidId;
+            /** TODO: Miscellaneous
+             * update resistance model for new continuous phase */
         } else {
             throw std::logic_error("Could not set continuousPhase fluid with key " + std::to_string(fluidId) + ". Fluid not found.");
         }

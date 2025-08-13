@@ -41,7 +41,6 @@ TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   */
   // create the simulator
   constexpr auto cContinuousPhaseViscosity = 1e-3;
-  sim::InstantaneousMixingModel<T> mixingModel;
   sim::MembraneModel9<T> membraneModel;
   auto network = arch::Network<T>::createNetwork();
 
@@ -119,18 +118,19 @@ TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   // define which fluid is the continuous phase
   sim.setContinuousPhase(waterYellow);
 
+  // Set simuation models
+  sim.setInstantaneousMixingModel();
+  sim.set1DResistanceModel();
+  sim.setMembraneModel(&membraneModel);
+
   // permanent/continuous fluid injection
-  auto *waterBlue = sim.addSpecie(0.0, 0.0);
-  auto *injectionMixture = sim.addMixture({{waterBlue->getId(), 1.0}});
+  auto waterBlue = sim.addSpecie(0.0, 0.0);
+  auto injectionMixture = sim.addMixture(waterBlue, 1.0);
 
   sim.addPermanentMixtureInjection(injectionMixture->getId(), pump1->getId(), 0.0);
 
   sim.setMaxEndTime(100.0);
   sim.setWriteInterval(100.0);
-
-  sim.setMixingModel(&mixingModel);
-  sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
 
   // simulate the microfluidic network
   sim.simulate();
@@ -248,18 +248,19 @@ TEST_F(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Pape
   // define which fluid is the continuous phase
   sim.setContinuousPhase(waterYellow);
 
+  // Set simuation models
+  sim.setInstantaneousMixingModel();
+  sim.set1DResistanceModel();
+  sim.setMembraneModel(&membraneModel);
+
   // permanent/continuous fluid injection
-  auto *injectionSpecie = sim.addSpecie(0.0, 0.0);
-  auto *waterBlue = sim.addMixture({{injectionSpecie->getId(), 1.0}});
+  auto injectionSpecie = sim.addSpecie(0.0, 0.0);
+  auto waterBlue = sim.addMixture(injectionSpecie, 1.0);
 
   sim.addPermanentMixtureInjection(waterBlue->getId(), pump1->getId(), 0.0);
 
   sim.setMaxEndTime(100.0);
   sim.setWriteInterval(100.0);
-
-  sim.setMixingModel(&mixingModel);
-  sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
 
   // simulate the microfluidic network
   sim.simulate();
@@ -446,18 +447,19 @@ TEST_F(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.6
   // define which fluid is the continuous phase
   sim.setContinuousPhase(waterYellow);
 
+  // Set simuation models
+  sim.setInstantaneousMixingModel();
+  sim.set1DResistanceModel();
+  sim.setMembraneModel(&membraneModel);
+
   // permanent/continuous fluid injection
-  auto *injectionSpecie = sim.addSpecie(0.0, 0.0);
-  auto *waterBlue = sim.addMixture({{injectionSpecie->getId(), 1.0}});
+  auto injectionSpecie = sim.addSpecie(0.0, 0.0);
+  auto waterBlue = sim.addMixture(injectionSpecie, 1.0);
 
   sim.addPermanentMixtureInjection(waterBlue->getId(), pump1->getId(), 0.0);
 
   sim.setMaxEndTime(1000.0);
   sim.setWriteInterval(1000.0);
-
-  sim.setMixingModel(&mixingModel);
-  sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
 
   // simulate the microfluidic network
   sim.simulate();

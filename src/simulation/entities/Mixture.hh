@@ -61,11 +61,6 @@ T Mixture<T>::getLargestMolecularSize() const {
 }
 
 template<typename T>
-int Mixture<T>::getSpecieCount() const {
-    return species.size();
-}
-
-template<typename T>
 const std::unordered_map<int, T>& Mixture<T>::getSpecieConcentrations() const {
     return specieConcentrations;
 }

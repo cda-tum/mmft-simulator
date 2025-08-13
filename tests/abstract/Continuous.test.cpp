@@ -334,4 +334,7 @@ TEST_F(Continuous, Network2) {
  * Set a network with modules (expect error, inconsistent network type)
  * 
  * I can change a fluid after it was removed, but it doesn't affect simulation result.
+ * 
+ * Play with different orders of simulation definition: E.g., define resistance model before adding first fluid
+ * Does the resistance model update with new continuous phase?
  */

@@ -78,15 +78,16 @@ TEST(Tank, TwoTank) {
   // define which fluid is the continuous phase
   sim.setContinuousPhase(continuousPhaseFluid);
 
-  auto *injectionSpecie = sim.addSpecie(4.4e-10, 3.894e-3);
-  auto *injectionMixture = sim.addMixture({{injectionSpecie->getId(), 1.0}});
+  auto injectionSpecie = sim.addSpecie(4.4e-10, 3.894e-3);
+  auto injectionMixture = sim.addMixture(injectionSpecie, 1.0);
+
+  // Set simuation models
+  sim.setInstantaneousMixingModel();
+  sim.set1DResistanceModel();
+  sim.setMembraneModel(&membraneModel);
 
   // permanent/continuous fluid injection
   sim.addPermanentMixtureInjection(injectionMixture->getId(), pump0->getId(), 0.0);
-
-  sim.setMixingModel(&mixingModel);
-  sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
 
   sim.setMaxEndTime(86'400.0);  // 24h
   sim.setWriteInterval(1800.0); // 0.5h

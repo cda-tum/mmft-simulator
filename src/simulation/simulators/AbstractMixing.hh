@@ -62,7 +62,7 @@ namespace sim {
 
     template<typename T>
     std::shared_ptr<Mixture<T>> AbstractMixing<T>::addMixture(const std::shared_ptr<Specie<T>>& specie, T concentration) {
-        return addMixture({specie}, {concentration});
+        return addMixture(std::vector<std::shared_ptr<Specie<T>>> {specie}, std::vector<T>{concentration});
     }
 
     template<typename T>
@@ -71,10 +71,10 @@ namespace sim {
 
         Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
-        if (species.size() != concentrations.size()) {
+        if (speciesVec.size() != concentrations.size()) {
             throw std::logic_error("Species and concentrations vectors must have the same size.");
         }
-        if (species.empty()) {
+        if (speciesVec.empty()) {
             throw std::invalid_argument("At least one species must be present in a mixture.");
         }
         // Transform the vector of species and concentrations into an unordered_map
@@ -88,6 +88,15 @@ namespace sim {
         auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(id, speciesMap, specieConcentrationsMap, carrierFluid)));
 
         return result.first->second;
+    }
+
+    template<typename T>
+    const std::unordered_map<unsigned int, const Mixture<T>*> AbstractMixing<T>::readMixtures() const {
+        std::unordered_map<unsigned int, const Mixture<T>*> mixturePtrs;
+        for (auto& [id, mixture] : this->mixtures) {
+            mixturePtrs.try_emplace(id, mixture.get());
+        }
+        return mixturePtrs;
     }
 
     template<typename T>
@@ -172,6 +181,16 @@ namespace sim {
     template<typename T>
     std::shared_ptr<MixtureInjection<T>> AbstractMixing<T>::addMixtureInjection(const std::shared_ptr<Mixture<T>>& mixture, const std::shared_ptr<arch::Edge<T>>& edge, T injectionTime, bool isPermanent) {
         return addMixtureInjection(mixture->getId(), edge->getId(), injectionTime, isPermanent);
+    }
+
+    template<typename T>
+    std::shared_ptr<MixtureInjection<T>> AbstractMixing<T>::addPermanentMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
+        return addMixtureInjection(mixtureId, edgeId, injectionTime, true);
+    }
+
+    template<typename T>
+    std::shared_ptr<MixtureInjection<T>> AbstractMixing<T>::addPermanentMixtureInjection(const std::shared_ptr<Mixture<T>>& mixture, const std::shared_ptr<arch::Edge<T>>& edge, T injectionTime) {
+        return addMixtureInjection(mixture->getId(), edge->getId(), injectionTime, true);
     }
 
     template<typename T>

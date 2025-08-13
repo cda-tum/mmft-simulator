@@ -114,7 +114,7 @@ auto writeFluids(sim::Simulation<T>* simulation) {
 template<typename T>
 auto writeMixtures (sim::AbstractMixing<T>* simulation) {
     auto Mixtures = ordered_json::array();
-    auto const& simMixtures = simulation->getMixtures();
+    auto const& simMixtures = simulation->readMixtures();
     for (long unsigned int i=0; i<simMixtures.size(); ++i) {
         auto Mixture = ordered_json::object();
         auto& simMixture = simMixtures.at(i);
