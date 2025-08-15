@@ -502,7 +502,7 @@ void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, Abstract
                 }
 
                 auto addContinuousMixtures = [&](auto edgeId, auto endPos) {
-                    auto* continuousPhaseMixture = sim->createMixture({});
+                    auto continuousPhaseMixture = sim->createMixture({});
                     this->injectMixtureInEdge(continuousPhaseMixture->getId(), edgeId, endPos);
                 };
 
@@ -534,11 +534,11 @@ void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, Abstract
 
                     auto copyMixture = [&](auto mixtureId) {
                         auto& mixture = mixtures.at(mixtureId);
-                        auto* newMixture = sim->createMixture(mixture->getSpecieConcentrations());
+                        auto newMixture = sim->createMixture(mixture->getSpecieConcentrations());
                         return newMixture->getId();
                     };
 
-                    auto* originalTankMixture = mixtures.at(tankMixtureId).get();
+                    auto originalTankMixture = mixtures.at(tankMixtureId).get();
                     tankMixtureId = copyMixture(tankMixtureId);
 
                     auto& channelMixtureId = mixturePositionsInChannel.at(dequeIdx).first;

@@ -70,7 +70,7 @@ auto writeDroplets(result::State<T>* state, sim::AbstractDroplet<T>* simulation)
 
         //state
         BigDroplet["id"] = key;
-        BigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
+        BigDroplet["fluid"] = simulation->getDroplet(key)->readFluid()->getId();
         BigDroplet["volume"] = simulation->getDroplet(key)->getVolume();
 
         //boundaries
@@ -118,9 +118,9 @@ auto writeMixtures (sim::AbstractMixing<T>* simulation) {
     for (size_t i=0; i<simMixtures.size(); ++i) {
         auto Mixture = ordered_json::object();
         auto& simMixture = simMixtures.at(i);
-        for(auto& [key, specie] : simMixture->getSpecies()) {
+        for(auto& [key, specie] : simMixture->readSpecies()) {
             Mixture["species"].push_back(specie->getId());
-            Mixture["concentrations"].push_back(simMixture->getConcentrationOfSpecie(specie->getId()));
+            Mixture["concentrations"].push_back(simMixture->getConcentrationOfSpecie(specie));
         }
         Mixtures.push_back(Mixture);
     }

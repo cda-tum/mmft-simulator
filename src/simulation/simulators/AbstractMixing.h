@@ -244,7 +244,6 @@ public:
      */
     [[nodiscard]] inline std::shared_ptr<Specie<T>> getSpecie(int specieId) const { return species.at(specieId); }
 
-    /** TODO: reset the simHash */
     /**
      * @brief Remove specie from the simulator. If a mixture contains the specie, it is removed from the mixture as well.
      * A mixture consisting of a single specie is removed from the simulation.
@@ -287,7 +286,6 @@ public:
      */
     [[nodiscard]] const std::unordered_map<size_t, const Mixture<T>*> readMixtures() const;
 
-    /** TODO: reset the simHash */
     /**
      * @brief Remove mixture from the simulation.
      * @param[in] mixture Pointer to the mixture that should be removed.

@@ -48,7 +48,7 @@ template<typename T>
 class MixtureInjection final {
   private:
     inline static size_t injectionCounter = 0;                ///< Global counter for amount of created mixtureInjection objects.
-    const size_t simHash;                                     ///< TODO
+    const size_t simHash;                                     ///< Hash of the simulation that created this mixture injection object.
     const size_t id;                                          ///< Unique identifier of an injection.
     Mixture<T>* const mixture;                                ///< Pointer to mixture to be injected.
     arch::RectangularChannel<T>* injectionChannel = nullptr;  ///< Edge at which the fluid is injected.

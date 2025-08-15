@@ -71,7 +71,7 @@ private:
     std::shared_ptr<arch::Network<T>> network = nullptr;                                ///< Network for which the simulation should be conducted.
     std::unique_ptr<ResistanceModel<T>> resistanceModel = nullptr;                      ///< The resistance model used for the simulation.
     std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = nullptr;                   ///< The nodal analysis object, used to conduct abstract simulation.
-    std::unordered_map<size_t, std::shared_ptr<Fluid<T>>> fluids;                 ///< Fluids specified for the simulation.
+    std::unordered_map<size_t, std::shared_ptr<Fluid<T>>> fluids;                       ///< Fluids specified for the simulation.
     int fixtureId = 0;
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
     size_t iteration = 0;
@@ -182,7 +182,11 @@ protected:
     */
     void removeFluid(int fluidId);
 
-    inline size_t getHash() const { return std::hash<const Simulation<T>*>{}(this); }
+    /**
+     * @brief Get the hash of the simulation.
+     * @return Hash of the simulation.
+     */
+    [[nodiscard]] inline size_t getHash() const { return std::hash<const Simulation<T>*>{}(this); }
 
 public:
 
@@ -262,7 +266,9 @@ public:
      */
     [[nodiscard]] const std::unordered_map<size_t, const Fluid<T>*> readFluids() const;
 
-    /** TODO: reset the simHash */
+    /** TODO: Miscellaneous
+     * reset the simHash
+     */
     /**
      * @brief Removes a fluid from the simulation, based using the fluid ptr. 
      * @param[in] fluid Pointer to the fluid that is to be removed
@@ -290,7 +296,7 @@ public:
 
     /** TODO: AbstractDroplet
      * If a new continuous phase is set, the droplets should be adapted to not be the new continuous phase.
-     ** TODO: AbstractMixing
+     ** TODO: AbstractMixing 
      * If a new continuous phase is set, the continuous phase of the Mixtures should be adapted to the new continuous phase.
      */
 

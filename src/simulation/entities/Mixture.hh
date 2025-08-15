@@ -35,16 +35,6 @@ bool Mixture<T>::checkHashes(Specie<T>* speciePtr) const {
 }
 
 template<typename T>
-bool Mixture<T>::findSpecie(size_t specieId) const {
-    if (species.find(specieId) != species.end()) {
-        if (specieConcentrations.find(specieId) != specieConcentrations.end()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-template<typename T>
 void Mixture<T>::changeSpecieConcentration(int specieId, T concentrationChange) {
     auto specieIter = specieConcentrations.find(specieId);
     if (specieIter != specieConcentrations.end()) {
@@ -71,24 +61,30 @@ bool Mixture<T>::operator== (const Mixture<T>& t) {
 }
 
 template<typename T>
-void Mixture<T>::addSpecie(Specie<T>* speciePtr, T concentration) {
+bool Mixture<T>::addSpecie(Specie<T>* speciePtr, T concentration) {
     size_t key = speciePtr->getId();
     // Check if the Mixture and Specie combination is valid.
     checkMutability();
-    if (findSpecie(key)) {
+    if (species.find(key) != species.end()) {
         throw std::invalid_argument("Cannot add specie with id " + std::to_string(key) + ". Specie already listed.");
     }
     checkHashes(speciePtr);
 
     // Checks passed, we can add the new specie
-    species.try_emplace(key, speciePtr);
-    specieConcentrations.try_emplace(key, concentration);
+    auto& result1 = species.try_emplace(key, speciePtr);
+    auto& result2 = specieConcentrations.try_emplace(key, concentration);
+
+    return result1.second && result2.second; // Return true if both insertions were successful
 }
 
+template<typename T>
+bool Mixture<T>::addSpecie(std::shared_ptr<Specie<T>>& speciePtr, T concentration) {
+    return addSpecie(speciePtr.get(), concentration);
+}
 
 template<typename T>
 std::tuple<const Specie<T>*, T> Mixture<T>::readSpecie(size_t specieId) const {
-    if(!findSpecie(specieId)) {
+    if(species.find(specieId) == species.end()) {
         throw std::invalid_argument("Cannot read specie with id: " + std::to_string(specieId) + ". Specie not found.");
     }
     return {species.at(specieId), specieConcentrations.at(specieId)};
@@ -106,34 +102,58 @@ std::unordered_map<size_t, const Specie<T>*> Mixture<T>::readSpecies() const {
 
 template<typename T>
 T Mixture<T>::getConcentrationOfSpecie(size_t specieId) const {
-    if (!findSpecie(specieId)) { 
-        throw std::invalid_argument("Cannot return specie concentration with id: " + std::to_string(specieId) + ". Specie not found.");
+    auto it = specieConcentrations.find(specieId);
+    if (it != specieConcentrations.end()) {
+        return it->second;
     }
-    return specieConcentrations.at(specieId);
+    return 0.0;
 }
 
 template<typename T>
-void Mixture<T>::setSpecieConcentration(const Specie<T>* speciePtr, T concentration) {
+T Mixture<T>::getConcentrationOfSpecie(const Specie<T>* speciePtr) const {
+    return getConcentrationOfSpecie(speciePtr->getId());
+}
+
+template<typename T>
+T Mixture<T>::getConcentrationOfSpecie(const std::shared_ptr<Specie<T>>& speciePtr) const {
+    return getConcentrationOfSpecie(speciePtr->getId());
+}
+
+template<typename T>
+bool Mixture<T>::setSpecieConcentration(const Specie<T>* speciePtr, T concentration) {
     // Check if the Mixture and Specie combination is valid
     checkMutability();
     checkHashes(speciePtr);
-    if (!findSpecie(speciePtr->getId())) {
+    if (species.find(speciePtr->getId()) == species.end()) {
         throw std::invalid_argument("Cannot set concentration for specie with id: " + std::to_string(speciePtr->getId()) + ". Specie not found.");
     }
     specieConcentrations.at(speciePtr->getId()) = concentration;
+    return true; // Indicate that the concentration was set successfully
 }
 
 template<typename T>
-void Mixture<T>::removeSpecie(Specie<T>* speciePtr) {
+bool Mixture<T>::setSpecieConcentration(const std::shared_ptr<Specie<T>>& speciePtr, T concentration) {
+    return setSpecieConcentration(speciePtr.get(), concentration);
+}
+
+template<typename T>
+bool Mixture<T>::removeSpecie(Specie<T>* speciePtr) {
     size_t key = speciePtr->getId();
     // Check if the Mixture and Specie combination is valid
     checkMutability();
     checkHashes(speciePtr);
-    if (!findSpecie(key)) {
+    if (species.find(key) == species.end()) {
         throw std::invalid_argument("Cannot set concentration for specie with id: " + std::to_string(speciePtr->getId()) + ". Specie not found.");
     }
-    specieConcentrations.erase(key); 
-    species.erase(key);
+    auto& result1 = specieConcentrations.erase(key); 
+    auto& result2 = species.erase(key);
+
+    return (result1 > 0 && result2 > 0); // Return true if both removals were successful
+}
+
+template<typename T>
+bool Mixture<T>::removeSpecie(std::shared_ptr<Specie<T>>& speciePtr) {
+    return removeSpecie(speciePtr.get());
 }
 
 // ================================================================================================================
@@ -165,6 +185,16 @@ std::function<T(T)> DiffusiveMixture<T>::getDistributionOfSpecie(size_t specieId
     // Return a default function if the specie is not found
     // For example, a function that always returns 0
     return [](T) -> T { return 0.0; };
+}
+
+template<typename T>
+std::function<T(T)> DiffusiveMixture<T>::getDistributionOfSpecie(const Specie<T>* speciePtr) const {
+    return getDistributionOfSpecie(speciePtr->getId());
+}
+
+template<typename T>
+std::function<T(T)> DiffusiveMixture<T>::getDistributionOfSpecie(const std::shared_ptr<Specie<T>>& speciePtr) const {
+    return getDistributionOfSpecie(speciePtr->getId());
 }
 
 }   // namespace sim

@@ -74,7 +74,7 @@ template<typename T>
 class Mixture {
 private:
     inline static size_t mixtureCounter = 0;                        ///< Global counter for amount of created mixture objects.
-    size_t simHash = 0;                                             ///< TODO
+    size_t simHash = 0;                                             ///< Hash of the simulation that created this mixture object.
     const size_t id;                                                ///< Unique identifier of the mixture.   
     std::string name = "";                                          ///< Name of the mixture.   
     std::unordered_map<size_t, Specie<T>*> species;                 ///< Map of specie id and pointer to the specie in this mixture.
@@ -115,6 +115,12 @@ private:
      */
     inline void setMutable() { this->isMutable = true; }
 
+    /**
+     * @brief Set the simulation hash of this mixture.
+     * @param[in] simHash Hash of the simulation that created this mixture object.
+     */
+    void resetHash() noexcept { this->simHash = 0; }
+
 protected:
 
     /**
@@ -129,7 +135,7 @@ protected:
 
     /**
      * @brief Construct a new mixture out of a list of fluids and their concentration values.
-     * TODO add simHash
+     * @param simHash Hash of the simulation that created this mixture object.  
      * @param id Id of the mixture.
      * @param fluidConcentrations Map of fluid id and fluid concentration pairs.
      * @param fluid Carrier fluid of the mixture.
@@ -149,11 +155,12 @@ protected:
     bool checkHashes(Specie<T>* speciePtr) const;
 
     /**
-     * @brief Checks whether a specie is listed in the Mixture.
-     * @param[in] specieId Identification of the specie to be found.
-     * @returns A boolean whether a specie is listed or not.
+     * @brief Get the concentration of a specific specie in that mixture.
+     * @param[in] specieId Id of the specie.
+     * @return Volume concentration of that specie within the mixture.
+     * @throws invalid_argument if the specie is not listed in the mixture.
      */
-    bool findSpecie(size_t specieId) const;
+    [[nodiscard]] T getConcentrationOfSpecie(size_t specieId) const;
 
     /**
      * @brief Get a map of all flud id ids and their volume concentrations of the mixture.
@@ -198,15 +205,27 @@ public:
      */
     inline void setName(std::string name) { this->name = std::move(name); }
 
-    /** 
+    /**
      * @brief Adds a specie to a mixture.
      * @param[in] speciePtr A pointer to the Specie object that is to be added.
      * @param[in] concentration The concentration value of the specie.
+     * @returns True if the specie was added successfully, false if it was already listed.
      * @throws invalid_argument if the passed Specie is already listed in the Mixture object.
      * @note A specie can only be added to mutable Mixture objects.
      * @note A specie can only be added if they were created by the same Simulation object.
      */
-    void addSpecie(Specie<T>* speciePtr, T concentration);
+    [[maybe_unused]] bool addSpecie(Specie<T>* speciePtr, T concentration);
+
+    /**
+     * @brief Adds a specie to a mixture.
+     * @param[in] speciePtr A pointer to the Specie object that is to be added.
+     * @param[in] concentration The concentration value of the specie.
+     * @returns True if the specie was added successfully, false if it was already listed.
+     * @throws invalid_argument if the passed Specie is already listed in the Mixture object.
+     * @note A specie can only be added to mutable Mixture objects.
+     * @note A specie can only be added if they were created by the same Simulation object.
+     */
+    [[maybe_unused]] bool addSpecie(std::shared_ptr<Specie<T>>& speciePtr, T concentration);
 
     /** 
      * @brief Returns a read-only pointer to a set of <specie, concentration>.
@@ -226,15 +245,24 @@ public:
      * @brief Returns a read-only map of the listed specieConcentrations
      * @returns Reference of the concentrations unordered_map<id, conc>
      */
-    const std::unordered_map<int, T>& readSpecieConcentrations() const { return specieConcentrations; }
+    const std::unordered_map<size_t, T>& readSpecieConcentrations() const { return specieConcentrations; }
 
     /**
      * @brief Get the concentration of a specific specie in that mixture.
-     * @param[in] specieId Id of the specie.
+     * @param[in] speciePtr Pointer to the specie.
      * @return Volume concentration of that specie within the mixture.
      * @throws invalid_argument if the specie is not listed in the mixture.
      */
-    T getConcentrationOfSpecie(size_t specieId) const;
+    [[nodiscard]] T getConcentrationOfSpecie(const Specie<T>* speciePtr) const;
+
+    /**
+     * @brief Get the concentration of a specific specie in that mixture.
+     * @param[in] speciePtr Pointer to the specie.
+     * @return Volume concentration of that specie within the mixture.
+     * @throws invalid_argument if the specie is not listed in the mixture.
+     */
+    [[nodiscard]] T getConcentrationOfSpecie(const std::shared_ptr<Specie<T>>& speciePtr) const;
+
 
     /**
      * @throws logic_error if called on this type.
@@ -248,9 +276,19 @@ public:
      * @brief Set a new concentration value for a Specie listed in this mixture.
      * @param[in] speciePtr Pointer to the Specie which is listed.
      * @param[in] concentration New concentration value.
+     * @returns True if the concentration was set successfully.
      * @throws invalid_argument if the specie is not listed in the mixture.
      */
-    void setSpecieConcentration(const Specie<T>* speciePtr, T concentration);
+    [[maybe_unused]] bool setSpecieConcentration(const Specie<T>* speciePtr, T concentration);
+
+    /**
+     * @brief Set a new concentration value for a Specie listed in this mixture.
+     * @param[in] speciePtr Pointer to the Specie which is listed.
+     * @param[in] concentration New concentration value.
+     * @returns True if the concentration was set successfully.
+     * @throws invalid_argument if the specie is not listed in the mixture.
+     */
+    [[maybe_unused]] bool setSpecieConcentration(const std::shared_ptr<Specie<T>>&, T concentration);
 
     /**
      * @brief Get the number of species listed in this mixture.
@@ -261,9 +299,18 @@ public:
     /**
      * @brief Removes a specie from a mixture, if it is mutable.
      * @param[in] speciePtr pointer to the specie that should be removed from the mixture.
+     * @return True if the specie was removed successfully, false if it was not listed.
      * @throws invalid_argument if the specie is not listed in the Mixture.
      */
-    void removeSpecie(Specie<T>* speciePtr);
+    [[maybe_unused]] bool removeSpecie(Specie<T>* speciePtr);
+
+    /**
+     * @brief Removes a specie from a mixture, if it is mutable.
+     * @param[in] speciePtr pointer to the specie that should be removed from the mixture.
+     * @return True if the specie was removed successfully, false if it was not listed.
+     * @throws invalid_argument if the specie is not listed in the Mixture.
+     */
+    [[maybe_unused]] bool removeSpecie(std::shared_ptr<Specie<T>>& speciePtr);
 
     /**
      * @brief Get the density of this mixture.
@@ -342,19 +389,58 @@ private:
     DiffusiveMixture(size_t simHash, size_t id, std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations, 
         std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution=10);
 
-    bool getIsConstant() const { return this->isConstant; }
+    /**
+     * @brief Get the distribution function of a specific specie in this mixture.
+     * @param[in] specieId Id of the specie.
+     * @return Distribution function of the specie.
+     */
+    [[nodiscard]] std::function<T(T)> getDistributionOfSpecie(size_t specieId) const;
 
-    void setNonConstant() { this->isConstant = false; }
+    /**
+     * @brief Set whether the distribution is constant (uniform distribution) or not.
+     * @returns True if the distribution is constant, false otherwise.
+     */
+    [[nodiscard]] bool inline getIsConstant() const { return this->isConstant; }
+
+    /**
+     * @brief Set the distribution to be non-constant.
+     * @note This function can only be called once, after which the distribution is set to non-constant.
+     */
+    inline void setNonConstant() { this->isConstant = false; }
 
 public:
 
-    std::function<T(T)> getDistributionOfSpecie(size_t specieId) const;
+    /**
+     * @brief Get the distribution function of a specific specie in this mixture.
+     * @param[in] speciePtr Pointer to the specie.
+     * @return Distribution function of the specie.`
+     */
+    [[nodiscard]] std::function<T(T)> getDistributionOfSpecie(const Specie<T>* speciePtr) const;
 
+    /**
+     * @brief Get the distribution function of a specific specie in this mixture.
+     * @param[in] speciePtr Pointer to the specie.
+     * @return Distribution function of the specie.`
+     */
+    [[nodiscard]] std::function<T(T)> getDistributionOfSpecie(const std::shared_ptr<Specie<T>>& speciePtr) const;
+
+    /**
+     * @brief Get the specie distributions of this mixture.
+     * @return Map of specie id and tuple of distribution function, and parameters.
+     */
     [[nodiscard]] inline const std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>>& getSpecieDistributions() const override { return specieDistributions; }
 
-    void setResolution(int resolution) { this->resolution = resolution; }
+    /**
+     * @brief Set the spectral resolution of the distribution function.
+     * @param[in] resolution The new spectral resolution of the distribution function.
+     */
+    inline void setResolution(int resolution) { this->resolution = resolution; }
 
-    int getResolution() { return this->resolution; }
+    /**
+     * @brief Get the spectral resolution of the distribution function.
+     * @return The spectral resolution of the distribution function.
+     */
+    [[nodiscard]] inline int getResolution() { return this->resolution; }
 
     // Friend class definitions
     friend class AbstractMixing<T>;

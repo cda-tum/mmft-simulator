@@ -13,6 +13,8 @@ protected:
         sim::Fluid<T>::resetFluidCounter();
         sim::DropletImplementation<T>::resetDropletCounter();
         sim::DropletInjection<T>::resetDropletInjectionCounter();
+        sim::Specie<T>::resetSpecieCounter();
+        sim::Mixture<T>::resetMixtureCounter();
         sim::MixtureInjection<T>::resetMixtureInjectionCounter();
     }
 };

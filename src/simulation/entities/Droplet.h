@@ -284,6 +284,7 @@ class Droplet {
      */
     [[nodiscard]] inline const Fluid<T>* readFluid() const { return fluid; }
 
+    /** TODO: Miscellaneous */
     /**
      * @brief Set the fluid of this droplet.
      * TODO add SimHash to confirm this fluid belongs to same simulator

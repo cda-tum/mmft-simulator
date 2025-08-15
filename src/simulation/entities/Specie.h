@@ -27,7 +27,7 @@ template<typename T>
 class Specie {
   private:
     inline static size_t specieCounter = 0; ///< Global counter for amount of created specie objects.
-    size_t simHash;                         ///< TODO
+    size_t simHash;                         ///< Hash of the simulation that created this specie object.
     const size_t id;                        ///< Unique identifier of the specie.
     std::string name = "";                  ///< Name of the specie.
     T diffusivity = 0.0;                    ///< Diffusivity coefficient of the specie in the continuous phase in m^2/s.
@@ -49,12 +49,18 @@ class Specie {
 
     /**
      * @brief Constructs a specie.
-     * TODO add simHash
+     * @param[in] simHash Hash of the simulation that created this specie object.
      * @param[in] id Unique identifier of the specie.
      * @param[in] diffusivity Diffusivity of the specie in the continuous phase in m^2/s.
      * @param[in] satConc Saturation concentration of the specie in de continuous phase in g/m^3.
      */
     Specie(size_t simHash, size_t id, T diffusivity, T satConc);
+
+    /**
+     * @brief Set the simulation hash of this specie.
+     * @param[in] simHash Hash of the simulation that created this specie object.
+     */
+    void resetHash() noexcept { this->simHash = 0; }
 
   public:
 

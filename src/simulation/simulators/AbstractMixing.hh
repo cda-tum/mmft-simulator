@@ -46,15 +46,21 @@ namespace sim {
 
     template<typename T>
     void AbstractMixing<T>::removeSpecie(int specieId) {
-        if (species.erase(specieId)) {
-            for (auto& [mixtureId, mixture] : mixtures) {
-                // If the mixture has no species left, remove it from the simulation.
-                if (mixture->getSpecieCount() == 1) {
-                    removeMixture(mixtureId);
-                } else {
-                    mixture->removeSpecie(specieId);
+        auto& it = species.find(specieId);
+        if (it != species.end()) {
+            it->second->resetHash();  // Reset the hash of the specie to avoid dangling references
+            // Remove the specie from the species map
+            // and remove it from all mixtures that contain it.
+            if (species.erase(specieId)) {
+                for (auto& [mixtureId, mixture] : mixtures) {
+                    // If the mixture has no species left, remove it from the simulation.
+                    if (mixture->getSpecieCount() == 1) {
+                        removeMixture(mixtureId);
+                    } else {
+                        mixture->removeSpecie(specieId);
+                    }
                 }
-            }
+            } 
         } else {
             throw std::out_of_range("Specie with id " + std::to_string(specieId) + " does not exist.");
         }
@@ -121,14 +127,18 @@ namespace sim {
 
     template<typename T>
     void AbstractMixing<T>::removeMixture(int mixtureId) {
-        if (mixtures.erase(mixtureId)) {
-            // Remove all injections of this mixture
-            auto it = injectionMap.find(mixtureId);
-            if (it != injectionMap.end()) {
-                for (int injectionId : it->second) {
-                    removeMixtureInjection(injectionId);
+        auto& it = mixtures.find(mixtureId);
+        if (it != mixtures.end()) {
+            it->second->resetHash();  // Reset the hash of the mixture to avoid dangling references
+            if (mixtures.erase(mixtureId)) {
+                // Remove all injections of this mixture
+                auto it = injectionMap.find(mixtureId);
+                if (it != injectionMap.end()) {
+                    for (int injectionId : it->second) {
+                        removeMixtureInjection(injectionId);
+                    }
+                    injectionMap.erase(it);
                 }
-                injectionMap.erase(it);
             }
         } else {
             throw std::out_of_range("Mixture with id " + std::to_string(mixtureId) + " does not exist.");
@@ -141,7 +151,10 @@ namespace sim {
         removeMixture(mixture->getId());
     }
 
-    // TODO: lot of duplicate code, refactor
+    /**
+     * TODO: Miscellaneous
+     * lot of duplicate code, refactor
+     */
     template<typename T>
     std::shared_ptr<MixtureInjection<T>> AbstractMixing<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime, bool isPermanent) {
         size_t id = MixtureInjection<T>::getMixtureInjectionCounter();

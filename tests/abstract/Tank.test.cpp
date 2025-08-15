@@ -1,12 +1,15 @@
 #include "../src/baseSimulator.h"
 
 #include "gtest/gtest.h"
+#include "../test_definitions.h"
 
 #include <cmath>
 
 #include "../test_helpers.h"
 
 using T = double;
+
+class Tank : public test::definitions::GlobalTest<T> {};
 
 // Membrane and Tank Example based on
 //
@@ -16,10 +19,9 @@ using T = double;
 // D0LC00424C (cit. on pp. 32, 59, 60, 61).
 //
 // executed with MembraneModel9.
-TEST(Tank, TwoTank) {
+TEST_F(Tank, TwoTank) {
   // create the simulator
   constexpr auto cContinuousPhaseViscosity = 0.7e-3;
-  sim::InstantaneousMixingModel<T> mixingModel;
   sim::MembraneModel9<T> membraneModel;
   auto network = arch::Network<T>::createNetwork();
 
@@ -80,6 +82,8 @@ TEST(Tank, TwoTank) {
 
   auto injectionSpecie = sim.addSpecie(4.4e-10, 3.894e-3);
   auto injectionMixture = sim.addMixture(injectionSpecie, 1.0);
+
+  std::cout << "We have: " <<injectionMixture->getConcentrationOfSpecie(injectionSpecie) << std::endl;
 
   // Set simuation models
   sim.setInstantaneousMixingModel();
