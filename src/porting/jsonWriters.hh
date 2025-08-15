@@ -28,7 +28,7 @@ auto writeChannels(arch::Network<T>* network, result::State<T>* state) {
 
     // since edge ids should be continuous, iterate over number of total edges;
     // not all edges necessarily have a flowrate (membranes, tanks) or a mixturePosition
-    for (long unsigned int i = 0; i < edgeCount; ++i) {
+    for (size_t i = 0; i < edgeCount; ++i) {
         auto channel = ordered_json::object();
         if (flowRates.count(i)) {
             channel["flowRate"] = flowRates.at(i);
@@ -99,7 +99,7 @@ template<typename T>
 auto writeFluids(sim::Simulation<T>* simulation) {      
     auto Fluids = ordered_json::array();
     auto const& simFluids = simulation->readFluids();
-    for (long unsigned int i=0; i<simFluids.size(); ++i) {
+    for (size_t i=0; i<simFluids.size(); ++i) {
         auto Fluid = ordered_json::object();
         auto& simFluid = simFluids.at(i);
         Fluid["id"] = simFluid->getId();
@@ -115,7 +115,7 @@ template<typename T>
 auto writeMixtures (sim::AbstractMixing<T>* simulation) {
     auto Mixtures = ordered_json::array();
     auto const& simMixtures = simulation->readMixtures();
-    for (long unsigned int i=0; i<simMixtures.size(); ++i) {
+    for (size_t i=0; i<simMixtures.size(); ++i) {
         auto Mixture = ordered_json::object();
         auto& simMixture = simMixtures.at(i);
         for(auto& [key, specie] : simMixture->getSpecies()) {

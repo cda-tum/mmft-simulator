@@ -27,7 +27,7 @@ template<typename T>
 class Fluid {
   private:
     inline static int fluidCounter = 0;                     ///< Global counter for amount of created fluid objects.
-    unsigned int const id;                                  ///< Unique identifier of the fluid.
+    size_t const id;                                  ///< Unique identifier of the fluid.
     std::string name = "";                                  ///< Name of the fluid.
     T density = 1.0e3;                                      ///< Density of the continuous phase in [kg/m^3].
     T viscosity = 1.0e-3;                                   ///< Dynamic viscosity of the continuous phase in [Pa s].
@@ -45,7 +45,7 @@ class Fluid {
      * Is used in (friend) Simulation<T>::addFluid() to create a fluid object and add it to the simulation.
      * @returns The number of created fluid objects: fluidCounter.
      */
-    static unsigned int getFluidCounter() { return fluidCounter; }
+    static size_t getFluidCounter() { return fluidCounter; }
 
     /**
      * @brief Constructs a fluid.
@@ -53,7 +53,7 @@ class Fluid {
      * @param[in] density Density of the fluid in [kg/m^3].
      * @param[in] viscosity Viscosity of the fluid in [Pa s].
      */
-    Fluid(unsigned int id, T density, T viscosity);
+    Fluid(size_t id, T density, T viscosity);
 
     /**
      * @brief Constructs a fluid.
@@ -62,7 +62,7 @@ class Fluid {
      * @param[in] viscosity Viscosity of the fluid in [Pa s].
      * @param[in] name Name of the fluid.
      */
-    Fluid(unsigned int id, T density, T viscosity, std::string name);
+    Fluid(size_t id, T density, T viscosity, std::string name);
 
   public:
 
@@ -70,7 +70,7 @@ class Fluid {
      * @brief Retrieve the unique identifier of the fluid.
      * @return Unique identifier of the fluid.
      */
-    [[nodiscard]] inline unsigned int getId() const { return id; }
+    [[nodiscard]] inline size_t getId() const { return id; }
 
     /**
      * @brief Set name of fluid.

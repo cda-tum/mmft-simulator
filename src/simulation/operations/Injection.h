@@ -29,22 +29,22 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
-class Droplet;
+class AbstractDroplet;
 
 template<typename T>
-class AbstractDroplet;
+class Droplet;
 
 /**
  * @brief Class that contains all paramaters necessary to conduct an injection.
  */
 template<typename T>
-class DropletInjection {
+class DropletInjection final {
   private:
     inline static int injectionCounter = 0;       ///< Global counter for amount of created dropletInjection objects.
-    const unsigned int id;                        ///< Unique identifier of an injection.
+    const size_t id;                        ///< Unique identifier of an injection.
     DropletImplementation<T>* const droplet;      ///< Pointer to droplet to be injected.
     std::string name = "";                        ///< Name of the injection.
-    T injectionTime;                              ///< Time at which the injection should take place in s elapsed since the start of the simulation.
+    T injectionTime = 0.0;                        ///< Time at which the injection should take place in s elapsed since the start of the simulation.
     arch::ChannelPosition<T> injectionPosition;   ///< Position at which the droplet should be injected.
 
     /**
@@ -59,7 +59,7 @@ class DropletInjection {
      * Is used in (friend) AbstractDroplet<T>::addDropletInjection() to create a droplet object and add it to the simulation.
      * @returns The number of created dropletInjection objects: injectionCounter.
      */
-    static unsigned int getDropletInjectionCounter() { return injectionCounter; }
+    static size_t getDropletInjectionCounter() { return injectionCounter; }
 
     /**
      * @brief Create an injection.
@@ -69,7 +69,7 @@ class DropletInjection {
      * @param[in] channel Channel in which the droplet should be injected. The channel must be able to fully contain the droplet.
      * @param[in] injectionPosition Relative position (between 0.0 and 1.0) of the middle of the droplet in channel. Head and tail position must be in same channel.
      */
-    DropletInjection(unsigned int id, DropletImplementation<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition);
+    DropletInjection(size_t id, DropletImplementation<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition);
 
     /**
      * @brief Retrieve pointer to the droplet that should be injected.
@@ -83,7 +83,7 @@ class DropletInjection {
      * @brief Retrieve unique identifier of injection.
      * @return Unique identifier of injection.
      */
-    [[nodiscard]] inline unsigned int getId() const { return id; }
+    [[nodiscard]] inline size_t getId() const { return id; }
 
     /**
      * @brief Retrieve name of injection.
@@ -121,7 +121,7 @@ class DropletInjection {
      */
     inline void setInjectionPosition(arch::ChannelPosition<T> position) { this->injectionPosition = std::move(position); }
 
-    // Friend classes that need access to private member function getDroplet()
+    // Friend classes that need access to private member functions
     friend class AbstractDroplet<T>; 
     friend class DropletInjectionEvent<T>;
     friend class test::definitions::GlobalTest<T>;

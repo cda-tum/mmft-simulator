@@ -3,71 +3,45 @@
 namespace sim {
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-                    T viscosity, T density, T largestMolecularSize) : 
-                    id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
-                    density(density), largestMolecularSize(largestMolecularSize) { }
+Mixture<T>::Mixture(size_t id, std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations, 
+    Fluid<T>* carrierFluid) : 
+    id(id), species(species), specieConcentrations(specieConcentrations), viscosity(carrierFluid->getViscosity()), 
+    density(carrierFluid->getDensity()), largestMolecularSize(0.0) {  }
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-                    T viscosity, T density) : 
-                    id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
-                    density(density), largestMolecularSize(0.0) { }
+Mixture<T>::Mixture(size_t simHash, size_t id, std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations, 
+    T viscosity, T density, T largestMolecularSize) : 
+    simHash(simHash), id(id), species(species), specieConcentrations(specieConcentrations), viscosity(viscosity), 
+    density(density), largestMolecularSize(largestMolecularSize) { ++mixtureCounter; }
 
 template<typename T>
-Mixture<T>::Mixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-                    Fluid<T>* carrierFluid) : 
-                    id(id), species(species), specieConcentrations(specieConcentrations), 
-                    viscosity(carrierFluid->getViscosity()), density(carrierFluid->getDensity()), 
-                    largestMolecularSize(0.0) { }
+Mixture<T>::Mixture(size_t simHash, size_t id, std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations, 
+    Fluid<T>* carrierFluid) : Mixture<T>(simHash, id, species, specieConcentrations, carrierFluid->getViscosity(), carrierFluid->getDensity()) { }
 
 template<typename T>
-bool Mixture<T>::operator== (const Mixture<T> &t) {
-    if (species == t.species && 
-        specieConcentrations == t.specieConcentrations && 
-        viscosity == t.viscosity &&
-        density == t.density) { 
-        return true; 
+bool Mixture<T>::checkMutability() const {
+    if (!isMutable) {
+        throw std::logic_error("Tried to modify non-mutable Mixture object.");
+    }
+    return isMutable;
+}
+
+template<typename T>
+bool Mixture<T>::checkHashes(Specie<T>* speciePtr) const {
+    if (speciePtr->getHash() != simHash) {
+        throw std::invalid_argument("Hash mismatch. Specie was removed from Simulation or created by other Simulation.");
+    }
+    return true;
+}
+
+template<typename T>
+bool Mixture<T>::findSpecie(size_t specieId) const {
+    if (species.find(specieId) != species.end()) {
+        if (specieConcentrations.find(specieId) != specieConcentrations.end()) {
+            return true;
+        }
     }
     return false;
-}
-
-template<typename T>
-int Mixture<T>::getId() const {
-    return id;
-}
-
-template<typename T>
-T Mixture<T>::getDensity() const {
-    return density;
-}
-
-template<typename T>
-T Mixture<T>::getViscosity() const {
-    return viscosity;
-}
-
-template<typename T>
-T Mixture<T>::getConcentrationOfSpecie(int specieId) const {
-    if (specieConcentrations.count(specieId) == 1) {
-        return specieConcentrations.at(specieId);
-    }
-    return 0.0;
-}
-
-template<typename T>
-T Mixture<T>::getLargestMolecularSize() const {
-    return largestMolecularSize;
-}
-
-template<typename T>
-const std::unordered_map<int, T>& Mixture<T>::getSpecieConcentrations() const {
-    return specieConcentrations;
-}
-
-template<typename T>
-const std::unordered_map<int, Specie<T>*>& Mixture<T>::getSpecies() const {
-    return species;
 }
 
 template<typename T>
@@ -86,22 +60,103 @@ void Mixture<T>::changeSpecieConcentration(int specieId, T concentrationChange) 
 }
 
 template<typename T>
-DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, T largestMolecularSize, int resolution) : 
-    Mixture<T>(id, species, specieConcentrations, viscosity, density, largestMolecularSize), specieDistributions(specieDistributions), resolution(resolution) { }
+bool Mixture<T>::operator== (const Mixture<T>& t) {
+    if (species == t.species && 
+        specieConcentrations == t.specieConcentrations && 
+        viscosity == t.viscosity &&
+        density == t.density) { 
+        return true; 
+    }
+    return false;
+}
 
 template<typename T>
-DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution) :
-    Mixture<T>(id, species, specieConcentrations, viscosity, density), specieDistributions(specieDistributions), resolution(resolution) { }
+void Mixture<T>::addSpecie(Specie<T>* speciePtr, T concentration) {
+    size_t key = speciePtr->getId();
+    // Check if the Mixture and Specie combination is valid.
+    checkMutability();
+    if (findSpecie(key)) {
+        throw std::invalid_argument("Cannot add specie with id " + std::to_string(key) + ". Specie already listed.");
+    }
+    checkHashes(speciePtr);
+
+    // Checks passed, we can add the new specie
+    species.try_emplace(key, speciePtr);
+    specieConcentrations.try_emplace(key, concentration);
+}
+
 
 template<typename T>
-DiffusiveMixture<T>::DiffusiveMixture(int id, std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations, 
-    std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution) : 
-    Mixture<T>(id, species, specieConcentrations, carrierFluid), specieDistributions(specieDistributions), resolution(resolution) { }
+std::tuple<const Specie<T>*, T> Mixture<T>::readSpecie(size_t specieId) const {
+    if(!findSpecie(specieId)) {
+        throw std::invalid_argument("Cannot read specie with id: " + std::to_string(specieId) + ". Specie not found.");
+    }
+    return {species.at(specieId), specieConcentrations.at(specieId)};
+}
 
 template<typename T>
-std::function<T(T)> DiffusiveMixture<T>::getDistributionOfSpecie(int specieId) const {
+std::unordered_map<size_t, const Specie<T>*> Mixture<T>::readSpecies() const {
+    std::unordered_map<size_t, const Specie<T>*> speciesMap;
+    for (auto& [key, speciePtr] : species) {
+        // Copy necessary for element-wise const cast of Specie<T>*
+        speciesMap.try_emplace(key, speciePtr);
+    }
+    return speciesMap;
+}
+
+template<typename T>
+T Mixture<T>::getConcentrationOfSpecie(size_t specieId) const {
+    if (!findSpecie(specieId)) { 
+        throw std::invalid_argument("Cannot return specie concentration with id: " + std::to_string(specieId) + ". Specie not found.");
+    }
+    return specieConcentrations.at(specieId);
+}
+
+template<typename T>
+void Mixture<T>::setSpecieConcentration(const Specie<T>* speciePtr, T concentration) {
+    // Check if the Mixture and Specie combination is valid
+    checkMutability();
+    checkHashes(speciePtr);
+    if (!findSpecie(speciePtr->getId())) {
+        throw std::invalid_argument("Cannot set concentration for specie with id: " + std::to_string(speciePtr->getId()) + ". Specie not found.");
+    }
+    specieConcentrations.at(speciePtr->getId()) = concentration;
+}
+
+template<typename T>
+void Mixture<T>::removeSpecie(Specie<T>* speciePtr) {
+    size_t key = speciePtr->getId();
+    // Check if the Mixture and Specie combination is valid
+    checkMutability();
+    checkHashes(speciePtr);
+    if (!findSpecie(key)) {
+        throw std::invalid_argument("Cannot set concentration for specie with id: " + std::to_string(speciePtr->getId()) + ". Specie not found.");
+    }
+    specieConcentrations.erase(key); 
+    species.erase(key);
+}
+
+// ================================================================================================================
+// ==================================Diffusive==Mixing=============================================================
+// ================================================================================================================
+
+template<typename T>
+DiffusiveMixture<T>::DiffusiveMixture(size_t simHash, size_t id, std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations, 
+    std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, T largestMolecularSize, int resolution) : 
+    Mixture<T>(simHash, id, species, specieConcentrations, viscosity, density, largestMolecularSize), specieDistributions(specieDistributions), resolution(resolution) { }
+
+template<typename T>
+DiffusiveMixture<T>::DiffusiveMixture(size_t simHash, size_t id, std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations, 
+    std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, T viscosity, T density, int resolution) :
+    Mixture<T>(simHash, id, species, specieConcentrations, viscosity, density), specieDistributions(specieDistributions), resolution(resolution) { }
+
+template<typename T>
+DiffusiveMixture<T>::DiffusiveMixture(size_t simHash, size_t id, std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations, 
+    std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution) : 
+    Mixture<T>(simHash, id, species, specieConcentrations, carrierFluid), specieDistributions(specieDistributions), resolution(resolution) { }
+
+template<typename T>
+std::function<T(T)> DiffusiveMixture<T>::getDistributionOfSpecie(size_t specieId) const {
     auto it = this->speciesDistributions.find(specieId);
     if (it != this->speciesDistributions.end()) {
         // Return the function part of the pair directly
@@ -110,31 +165,6 @@ std::function<T(T)> DiffusiveMixture<T>::getDistributionOfSpecie(int specieId) c
     // Return a default function if the specie is not found
     // For example, a function that always returns 0
     return [](T) -> T { return 0.0; };
-}
-
-template<typename T>
-const std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>>& DiffusiveMixture<T>::getSpecieDistributions() const {
-    return this->specieDistributions;
-}
-
-template<typename T>
-bool DiffusiveMixture<T>::getIsConstant() {
-    return this->isConstant;
-}
-
-template<typename T>
-void DiffusiveMixture<T>::setNonConstant() {
-    this->isConstant = false;
-}
-
-template<typename T>
-void DiffusiveMixture<T>::setResolution(int resolution) {
-    this->resolution = resolution;
-}
-
-template<typename T>
-int DiffusiveMixture<T>::getResolution() {
-    return this->resolution;
 }
 
 }   // namespace sim

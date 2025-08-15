@@ -70,7 +70,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
 
     sim::Platform platform = readPlatform<T>(jsonString);
     sim::Type simType = readType<T>(jsonString);
-    unsigned int activeFixture = readActiveFixture<T>(jsonString);
+    size_t activeFixture = readActiveFixture<T>(jsonString);
 
     // Read an Abstract simulation definition
     if (simType == sim::Type::Abstract) {

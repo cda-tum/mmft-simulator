@@ -12,7 +12,7 @@ NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D(int x0_, int x1_, in
   :  x0(x0_), x1(x1_), y0(y0_), y1(y1_), velFactors(velFactors_), partners(partners_)
 {
   this->getName() = "NavierStokesAdvectionDiffusionSingleCouplingPostProcessor2D";
-  for (long unsigned int i = 0; i<partners_.size(); i++) {
+  for (size_t i = 0; i<partners_.size(); i++) {
     tPartners.emplace_back(static_cast<BlockLattice<T,descriptors::D2Q5<descriptors::VELOCITY>> *>(partners[i]));
   }
 }
@@ -28,7 +28,7 @@ processSubDomain(BlockLattice<T,DESCRIPTOR>& blockLattice,
          x0_, x1_, y0_, y1_,
          newX0, newX1, newY0, newY1 ) ) {
 
-    for (long unsigned int i = 0; i<partners.size(); i++) {
+    for (size_t i = 0; i<partners.size(); i++) {
       for (int iX=newX0; iX<=newX1; ++iX) {
         for (int iY=newY0; iY<=newY1; ++iY) {
           auto cell = blockLattice.get(iX,iY);

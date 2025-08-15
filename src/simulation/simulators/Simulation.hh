@@ -77,13 +77,13 @@ namespace sim {
     }
 
     template<typename T>
-    const std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
+    const std::unordered_map<size_t, std::shared_ptr<Fluid<T>>>& Simulation<T>::getFluids() const {
         return fluids;
     }
 
     template<typename T>
-    const std::unordered_map<unsigned int, const Fluid<T>*> Simulation<T>::readFluids() const {
-        std::unordered_map<unsigned int, const Fluid<T>*> fluidPtrs;
+    const std::unordered_map<size_t, const Fluid<T>*> Simulation<T>::readFluids() const {
+        std::unordered_map<size_t, const Fluid<T>*> fluidPtrs;
         for (auto& [id, fluid] : this->fluids) {
             fluidPtrs.try_emplace(id, fluid.get());
         }

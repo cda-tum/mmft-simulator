@@ -57,12 +57,12 @@ class Specie;
 template<typename T>
 class AbstractMixing : public Simulation<T> {
 private:
-    std::unique_ptr<MixingModel<T>> mixingModel = nullptr;                                      ///< The mixing model used for a mixing simulation.
-    std::unordered_map<int, std::shared_ptr<Specie<T>>> species;                                ///< Species specified for the simulation.
-    std::unordered_map<int, std::shared_ptr<Mixture<T>>> mixtures;                              ///< Mixtures present in the simulation.
-    std::unordered_map<int, std::shared_ptr<MixtureInjection<T>>> mixtureInjections;            ///< Injections of fluids that should take place during the simulation.
-    std::unordered_map<int, std::shared_ptr<MixtureInjection<T>>> permanentMixtureInjections;   ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
-    std::unordered_map<int, std::set<int>> injectionMap;                                        ///< Map of injections to mixtures stored as <mixtureId, <injectionId1, injectionId2, ...>>.
+    std::unique_ptr<MixingModel<T>> mixingModel = nullptr;                                          ///< The mixing model used for a mixing simulation.
+    std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;                                 ///< Species specified for the simulation.
+    std::unordered_map<size_t, std::shared_ptr<Mixture<T>>> mixtures;                               ///< Mixtures present in the simulation.
+    std::unordered_map<size_t, std::shared_ptr<MixtureInjection<T>>> mixtureInjections;             ///< Injections of fluids that should take place during the simulation.
+    std::unordered_map<size_t, std::shared_ptr<MixtureInjection<T>>> permanentMixtureInjections;    ///< Permanent injections of fluids that should take place during the simulation. Used to simulate a fluid change or include an exposure of the system to a specific mixture/concentration.
+    std::unordered_map<size_t, std::set<size_t>> injectionMap;                                      ///< Map of injections to mixtures stored as <mixtureId, <injectionId1, injectionId2, ...>>.
 
 protected:
     
@@ -93,7 +93,7 @@ protected:
      * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addMixture(std::unordered_map<int, T> specieConcentrations);
+    Mixture<T>* addMixture(std::unordered_map<size_t, T> specieConcentrations);
 
     /**
      * @brief Create mixture.
@@ -101,14 +101,14 @@ protected:
      * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+    Mixture<T>* addMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations);
 
     /**
      * @brief Create mixture.
      * @param[in] specieConcentrations
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, T> specieConcentrations);
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, T> specieConcentrations);
 
     /**
      * @brief Create mixture.
@@ -116,14 +116,14 @@ protected:
      * @param[in] specieConcentrations
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, T> specieConcentrations);
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations);
 
     /**
      * @brief Create mixture.
      * @param[in] specieConcentrations
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
     
     /**
      * @brief Create mixture.
@@ -131,7 +131,14 @@ protected:
      * @param[in] specieConcentrations
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addDiffusiveMixture(std::unordered_map<int, Specie<T>*> species, std::unordered_map<int, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
+
+    /**
+     * @brief Create and add a mixture to the simulation.
+     * @param[in] concentration Concentration of the specie in the mixture in g/m^3.
+     * @return Pointer to created mixture.
+     */
+    [[maybe_unused]] std::shared_ptr<Mixture<T>> createMixture(std::unordered_map<size_t, T> specieConcentrations);
 
     /**
      * @brief Calculate and set new state of the continuous fluid simulation. Move mixture positions and create new mixtures if necessary.
@@ -143,13 +150,13 @@ protected:
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    [[nodiscard]] inline const std::unordered_map<int, std::shared_ptr<MixtureInjection<T>>>& getMixtureInjections() const { return mixtureInjections; }
+    [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<MixtureInjection<T>>>& getMixtureInjections() const { return mixtureInjections; }
 
     /**
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    [[nodiscard]] inline const std::unordered_map<int, std::shared_ptr<MixtureInjection<T>>>& getPermanentMixtureInjections() const { return permanentMixtureInjections; }
+    [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<MixtureInjection<T>>>& getPermanentMixtureInjections() const { return permanentMixtureInjections; }
 
     /**
      * @brief Get the mixing model that is used in the simulation.
@@ -161,14 +168,14 @@ protected:
      * @brief Get mixtures.
      * @return Reference to the unordered map of mixtures
      */
-    [[nodiscard]] inline const std::unordered_map<int, std::shared_ptr<Mixture<T>>>& getMixtures() const { return mixtures; }
+    [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& getMixtures() const { return mixtures; }
 
     /**
      * @brief Get mixture.
      * @param mixtureId Id of the mixture
      * @return Pointer to mixture with the correspondig id
      */
-    [[nodiscard]] inline const std::unordered_map<int, std::shared_ptr<Specie<T>>>& getSpecies() const { return species; }
+    [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<Specie<T>>>& getSpecies() const { return species; }
 
     /**
      * @brief Remove specie from the simulator. If a mixture contains the specie, it is removed from the mixture as well.
@@ -237,6 +244,7 @@ public:
      */
     [[nodiscard]] inline std::shared_ptr<Specie<T>> getSpecie(int specieId) const { return species.at(specieId); }
 
+    /** TODO: reset the simHash */
     /**
      * @brief Remove specie from the simulator. If a mixture contains the specie, it is removed from the mixture as well.
      * A mixture consisting of a single specie is removed from the simulation.
@@ -277,8 +285,9 @@ public:
      * @brief Return a read-only map of mixtures currently stored in the simulation
      * @return Unordered map of mixture ids and const pointers to the mixtures
      */
-    [[nodiscard]] const std::unordered_map<unsigned int, const Mixture<T>*> readMixtures() const;
+    [[nodiscard]] const std::unordered_map<size_t, const Mixture<T>*> readMixtures() const;
 
+    /** TODO: reset the simHash */
     /**
      * @brief Remove mixture from the simulation.
      * @param[in] mixture Pointer to the mixture that should be removed.

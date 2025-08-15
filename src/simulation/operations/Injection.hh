@@ -3,7 +3,7 @@
 namespace sim {
 
 template<typename T>
-DropletInjection<T>::DropletInjection(unsigned int id, DropletImplementation<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition) : 
-    id(id), droplet(droplet), injectionTime(injectionTime), injectionPosition(arch::ChannelPosition<T>(channel, injectionPosition)) { }
+DropletInjection<T>::DropletInjection(size_t id, DropletImplementation<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition) : 
+    id(id), droplet(droplet), injectionTime(injectionTime), injectionPosition(arch::ChannelPosition<T>(channel, injectionPosition)) { ++injectionCounter; }
 
 }  // namespace sim

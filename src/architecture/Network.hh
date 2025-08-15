@@ -27,8 +27,8 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
     }
 
     int channel_counter = 0;
-    for (long unsigned int i = 0; i < nodeIds.size(); ++i){
-        for (long unsigned int j = i+1; j < nodeIds.size(); ++j){
+    for (size_t i = 0; i < nodeIds.size(); ++i){
+        for (size_t j = i+1; j < nodeIds.size(); ++j){
             std::shared_ptr<Node<T>> nA = nodes.at(nodeIds[i]);
             std::shared_ptr<Node<T>> nB = nodes.at(nodeIds[j]);
             auto addChannel = std::make_unique<RectangularChannel<T>>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
@@ -735,7 +735,7 @@ void Network<T>::sortGroups() {
                     }
                 }
             }
-            for (long unsigned int i=0; i < nodeVector.size(); i++) {
+            for (size_t i=0; i < nodeVector.size(); i++) {
                 if (nodeVector[i] == nodeVector.front()) {
                     nodeVector.erase(nodeVector.begin() + i);
                 }
@@ -758,7 +758,7 @@ void Network<T>::sortGroups() {
                         }
                     }
                 }
-                for (long unsigned int i=0; i < nodeVector.size(); i++) {
+                for (size_t i=0; i < nodeVector.size(); i++) {
                     if (nodeVector[i] == connectedNodes.front()) {
                         nodeVector.erase(nodeVector.begin() + i);
                     }

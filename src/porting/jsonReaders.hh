@@ -440,8 +440,8 @@ void readMixingModel(json jsonString, sim::AbstractMixing<T>& simulation) {
 }
 
 template<typename T>
-unsigned int readActiveFixture(json jsonString) {
-    unsigned int activeFixture = 0;
+size_t readActiveFixture(json jsonString) {
+    size_t activeFixture = 0;
     if (jsonString["simulation"].contains("activeFixture")) {
         activeFixture = jsonString["simulation"]["activeFixture"];
         if (!jsonString["simulation"].contains("fixtures") || jsonString["simulation"]["fixtures"].size()-1 < activeFixture) {

@@ -8,7 +8,7 @@ DropletPosition<T>::DropletPosition() { }
 ///-----------------------------Droplet------------------------------------///
 
 template<typename T>
-Droplet<T>::Droplet(unsigned int id, T volume, Fluid<T>* fluid) : 
+Droplet<T>::Droplet(size_t id, T volume, Fluid<T>* fluid) : 
     id(id), volume(volume), fluid(fluid) { }
 
 template<typename T>
@@ -40,7 +40,7 @@ const std::vector<const arch::RectangularChannel<T>*> Droplet<T>::readFullyOccup
 
 
 template<typename T>
-DropletImplementation<T>::DropletImplementation(unsigned int id, T volume, Fluid<T>* fluid) 
+DropletImplementation<T>::DropletImplementation(size_t id, T volume, Fluid<T>* fluid) 
     : Droplet<T>(id, volume, fluid) { ++dropletCounter; }
 
 template<typename T>
@@ -105,7 +105,7 @@ void DropletImplementation<T>::removeBoundary(DropletBoundary<T>& boundaryRefere
     /** TODO: Miscellaneous
      * remove more than one boundary at once (remove_if)
      */
-    for (unsigned int i = 0; i < this->boundaries.size(); i++) {
+    for (size_t i = 0; i < this->boundaries.size(); i++) {
         if (this->boundaries[i].get() == &boundaryReference) {
             this->boundaries.erase(this->boundaries.begin() + i);
             break;
@@ -115,7 +115,7 @@ void DropletImplementation<T>::removeBoundary(DropletBoundary<T>& boundaryRefere
 
 template<typename T>
 void DropletImplementation<T>::removeFullyOccupiedChannel(int channelId) {
-    for (unsigned int i = 0; i < this->channels.size(); i++) {
+    for (size_t i = 0; i < this->channels.size(); i++) {
         if (this->channels[i]->getId() == channelId) {
             this->channels.erase(this->channels.begin() + i);
             break;

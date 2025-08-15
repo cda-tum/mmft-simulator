@@ -181,6 +181,6 @@ void readMixingModel (json jsonString, sim::AbstractMixing<T>& simulation);
  * @returns The id of the active fixture
 */
 template<typename T>
-unsigned int readActiveFixture (json jsonString);
+size_t readActiveFixture (json jsonString);
 
 }   // namespace porting

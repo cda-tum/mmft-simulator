@@ -71,11 +71,11 @@ private:
     std::shared_ptr<arch::Network<T>> network = nullptr;                                ///< Network for which the simulation should be conducted.
     std::unique_ptr<ResistanceModel<T>> resistanceModel = nullptr;                      ///< The resistance model used for the simulation.
     std::shared_ptr<nodal::NodalAnalysis<T>> nodalAnalysis = nullptr;                   ///< The nodal analysis object, used to conduct abstract simulation.
-    std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>> fluids;                 ///< Fluids specified for the simulation.
+    std::unordered_map<size_t, std::shared_ptr<Fluid<T>>> fluids;                 ///< Fluids specified for the simulation.
     int fixtureId = 0;
     int continuousPhase = 0;                                                            ///< Fluid of the continuous phase.
-    unsigned int iteration = 0;
-    unsigned int maxIterations = 1e5;
+    size_t iteration = 0;
+    size_t maxIterations = 1e5;
     T maximalAdaptiveTimeStep = 0;                                                      ///< Maximal adaptive time step that is applied when droplets change the channel.
     T time = 0.0;                                                                       ///< Current time of the simulation.
     T dt = 0.01;
@@ -149,14 +149,14 @@ protected:
      * @brief Define which fluid should act as continuous phase, i.e., as carrier fluid for the droplets.
      * @param[in] fluid The fluid the continuous phase consists of.
      */
-    inline void setFluids(std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>> fluids) { this->fluids = std::move(fluids); }
+    inline void setFluids(std::unordered_map<size_t, std::shared_ptr<Fluid<T>>> fluids) { this->fluids = std::move(fluids); }
 
     /**
      * @brief Get fluid.
      * @param[in] fluidId Id of the fluid
      * @return Pointer to fluid with the corresponding id
      */
-    const std::unordered_map<unsigned int, std::shared_ptr<Fluid<T>>>& getFluids() const;
+    const std::unordered_map<size_t, std::shared_ptr<Fluid<T>>>& getFluids() const;
 
     /**
      * @brief Get the resistance model that is used in the simulation.
@@ -173,7 +173,7 @@ protected:
     /**
      * @brief Get the current iteration number.
      */
-    inline unsigned int& getIterations() { return iteration; }
+    inline size_t& getIterations() { return iteration; }
 
     /**
      * @brief Removes a fluid from the simulation, based on the fluid id
@@ -181,6 +181,8 @@ protected:
      * @throws logic_error if the fluidId is the continuous phase or is not listed in the simulator.
     */
     void removeFluid(int fluidId);
+
+    inline size_t getHash() const { return std::hash<const Simulation<T>*>{}(this); }
 
 public:
 
@@ -258,8 +260,9 @@ public:
      * @brief Return a read-only map of fluids currently stored in the simulation
      * @return Unordered map of fluid ids and const pointers to the fluids
      */
-    [[nodiscard]] const std::unordered_map<unsigned int, const Fluid<T>*> readFluids() const;
+    [[nodiscard]] const std::unordered_map<size_t, const Fluid<T>*> readFluids() const;
 
+    /** TODO: reset the simHash */
     /**
      * @brief Removes a fluid from the simulation, based using the fluid ptr. 
      * @param[in] fluid Pointer to the fluid that is to be removed
@@ -308,19 +311,19 @@ public:
     /**
      * @brief Get the current iteration number.
      */
-    [[nodiscard]] inline unsigned int getCurrentIteration() { return iteration; }
+    [[nodiscard]] inline size_t getCurrentIteration() { return iteration; }
 
     /**
      * @brief Returns the maxmimum allowed simulation iterations.
      */
-    [[nodiscard]] inline unsigned int getMaxIterations() { return maxIterations; }
+    [[nodiscard]] inline size_t getMaxIterations() { return maxIterations; }
 
     /**
      * @brief Set the maximum amount of iterations for the simulation.
      * The simulation ends once it reaches the maximum amount of iterations.
      * @param[in] maxIterations The number of maximum iterations
      */
-    inline void setMaxIterations(unsigned int maxIterations) { this->maxIterations = maxIterations; }
+    inline void setMaxIterations(size_t maxIterations) { this->maxIterations = maxIterations; }
 
     /**
      * @brief Set interval in which the state is saved to the SimulationResult.

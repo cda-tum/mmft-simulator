@@ -94,7 +94,7 @@ TEST(Cube, deg10) {
     EXPECT_NEAR(Openings.at(3).radial, 1.39626, 1e-5);
 
     for (unsigned char m : {3, 4, 5, 6}) {
-        unsigned int voxels = s0.readGeometry().getStatistics().getNvoxel(m);
+        size_t voxels = s0.readGeometry().getStatistics().getNvoxel(m);
         EXPECT_GE(voxels, resolution);
         EXPECT_LE(voxels, 2*resolution);
     }
@@ -142,7 +142,7 @@ TEST(Cube, deg20) {
     EXPECT_NEAR(Openings.at(3).radial, 1.22173, 1e-5);
 
     for (unsigned char m : {3, 4, 5, 6}) {
-        unsigned int voxels = s0.readGeometry().getStatistics().getNvoxel(m);
+        size_t voxels = s0.readGeometry().getStatistics().getNvoxel(m);
         EXPECT_GE(voxels, resolution);
         EXPECT_LE(voxels, 2*resolution);
     }
@@ -190,7 +190,7 @@ TEST(Cube, deg30) {
     EXPECT_NEAR(Openings.at(3).radial, 1.0472, 1e-5);
 
     for (unsigned char m : {3, 4, 5, 6}) {
-        unsigned int voxels = s0.readGeometry().getStatistics().getNvoxel(m);
+        size_t voxels = s0.readGeometry().getStatistics().getNvoxel(m);
         EXPECT_GE(voxels, resolution);
         EXPECT_LE(voxels, 2*resolution);
     }
@@ -238,7 +238,7 @@ TEST(Cube, deg45) {
     EXPECT_NEAR(Openings.at(3).radial, 0.785398, 1e-5);
 
     for (unsigned char m : {3, 4, 5, 6}) {
-        unsigned int voxels = s0.readGeometry().getStatistics().getNvoxel(m);
+        size_t voxels = s0.readGeometry().getStatistics().getNvoxel(m);
         EXPECT_GE(voxels, resolution);
         EXPECT_LE(voxels, 2*resolution);
     }

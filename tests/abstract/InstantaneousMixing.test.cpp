@@ -856,3 +856,9 @@ TEST_F(InstantaneousMixing, Case12) {
         0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(1), 1e-7);
 
 }
+
+/**
+ * Test ideas:
+ * 
+ * Check if the system with hashes works, and throws errors when expected.
+ */

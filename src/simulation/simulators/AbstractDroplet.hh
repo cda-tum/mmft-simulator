@@ -28,7 +28,7 @@ namespace sim {
         T volume = volume0 + volume1;
 
         // merge fluids
-        auto fluid = this->addMixedFluid(droplet0.getFluid()->getId(), volume0, droplet1.getFluid()->getId(), volume1);
+        auto fluid = this->addMixedFluid(droplet0.readFluid()->getId(), volume0, droplet1.readFluid()->getId(), volume1);
 
         // add new droplet
         auto newDroplet = addDroplet(fluid->getId(), volume);
@@ -168,7 +168,7 @@ namespace sim {
     void AbstractDroplet<T>::removeFluid(const std::shared_ptr<Fluid<T>>& fluid) {
         for (auto& [id, droplet] : droplets) {
             // Check if droplets are pointing to the fluid that is to be removed
-            if (droplet->getFluid()->getId() == fluid->getId()) {
+            if (droplet->readFluid()->getId() == fluid->getId()) {
                 // Set the droplet's fluid to default, i.e., continuous phase
                 droplet->setFluid(this->getContinuousPhase().get());
             } 

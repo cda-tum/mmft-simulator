@@ -230,7 +230,7 @@ struct DropletPosition {
 template<typename T>
 class Droplet {
   private:
-    const unsigned int id;                                          ///< Unique identifier of the droplet.
+    const size_t id;                                          ///< Unique identifier of the droplet.
     std::string name = "";                                          ///< Name of the droplet.
     T volume = 1e-11;                                               ///< Volume of the droplet in m^3.
     Fluid<T>* fluid = nullptr;                                      ///< Pointer to fluid of which the droplet consists of.
@@ -245,14 +245,14 @@ class Droplet {
      * @param[in] volume Volume of the droplet in m^3.
      * @param[in] fluid Pointer to fluid the droplet consists of.
      */
-    Droplet(unsigned int id, T volume, Fluid<T>* fluid);
+    Droplet(size_t id, T volume, Fluid<T>* fluid);
 
   public:
     /**
      * @brief Returns unique identifier of the droplet.
      * @return Unique identifier of the droplet.
      */
-    [[nodiscard]] inline unsigned int getId() const { return id; }
+    [[nodiscard]] inline size_t getId() const { return id; }
 
     /**
      * @brief Retrieve the name of the droplet.
@@ -280,12 +280,13 @@ class Droplet {
 
     /**
      * @brief Retrieve the fluid of the droplet.
-     * @return The fluid the droplet consists of in m^3.
+     * @return A read-only pointer to the fluid this droplet consists of.
      */
-    [[nodiscard]] inline const Fluid<T>* getFluid() const { return fluid; }
+    [[nodiscard]] inline const Fluid<T>* readFluid() const { return fluid; }
 
     /**
      * @brief Set the fluid of this droplet.
+     * TODO add SimHash to confirm this fluid belongs to same simulator
      * @param[in] fluid A pointer to the fluid that composes the droplet.
      * @throws a logic_error is the fluid pointer is a nullptr.
      */
@@ -322,14 +323,14 @@ class DropletImplementation : public Droplet<T> {
      * Used as a helper function to reset the static variable between tests.
      * Is called in (friend) test::definitions::GlobalTest<T>::SetUp(), which overrides ::testing::Test.
      */
-    static void resetDropletCounter() { dropletCounter = 0; }
+    static void resetDropletCounter() noexcept { dropletCounter = 0; }
 
     /**
      * @brief A static member function that returns the amount of droplet objects that have been created.
      * Is used in (friend) AbstractDroplet<T>::addDroplet() to create a droplet object and add it to the simulation.
      * @returns The number of created droplet objects: dropletCounter.
      */
-    static unsigned int getDropletCounter() { return dropletCounter; }
+    static size_t getDropletCounter() noexcept { return dropletCounter; }
 
     /**
      * @brief Constructor of a droplet implementation objcet. This is a derived class of Droplet<T> and 
@@ -339,7 +340,7 @@ class DropletImplementation : public Droplet<T> {
      * @param[in] volume Volume of the droplet in m^3.
      * @param[in] fluid Pointer to fluid the droplet consists of.
      */
-    DropletImplementation(unsigned int id, T volume, Fluid<T>* fluid);
+    DropletImplementation(size_t id, T volume, Fluid<T>* fluid);
 
   public:
 
