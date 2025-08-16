@@ -22,7 +22,6 @@ class Tank : public test::definitions::GlobalTest<T> {};
 TEST_F(Tank, TwoTank) {
   // create the simulator
   constexpr auto cContinuousPhaseViscosity = 0.7e-3;
-  sim::MembraneModel9<T> membraneModel;
   auto network = arch::Network<T>::createNetwork();
 
   // simulator last since it has non-owning references to other objects
@@ -83,12 +82,10 @@ TEST_F(Tank, TwoTank) {
   auto injectionSpecie = sim.addSpecie(4.4e-10, 3.894e-3);
   auto injectionMixture = sim.addMixture(injectionSpecie, 1.0);
 
-  std::cout << "We have: " <<injectionMixture->getConcentrationOfSpecie(injectionSpecie) << std::endl;
-
   // Set simuation models
   sim.setInstantaneousMixingModel();
   sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
+  sim.setMembraneModel9();
 
   // permanent/continuous fluid injection
   sim.addPermanentMixtureInjection(injectionMixture->getId(), pump0->getId(), 0.0);

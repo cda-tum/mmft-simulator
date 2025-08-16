@@ -3,17 +3,8 @@
 namespace sim {
 
     template<typename T>
-    AbstractMembrane<T>::AbstractMembrane(std::shared_ptr<arch::Network<T>> network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) { }
-
-    template<typename T>
-    void AbstractMembrane<T>::setMembraneModel(MembraneModel<T>* model_) {
-        this->membraneModel = model_;
-    }
-
-    template<typename T>
-    MembraneModel<T>* AbstractMembrane<T>::getMembraneModel() const {
-        static MembraneModel9<T> defaultMembraneModel;
-        return membraneModel ? membraneModel : &defaultMembraneModel;
+    AbstractMembrane<T>::AbstractMembrane(std::shared_ptr<arch::Network<T>> network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) {
+        membraneModel = std::unique_ptr<MembraneModel9<T>>(new MembraneModel9<T>());
     }
 
     template<typename T>

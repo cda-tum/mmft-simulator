@@ -41,7 +41,6 @@ TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   */
   // create the simulator
   constexpr auto cContinuousPhaseViscosity = 1e-3;
-  sim::MembraneModel9<T> membraneModel;
   auto network = arch::Network<T>::createNetwork();
 
   // simulator last since it has non-owning references to other objects
@@ -121,7 +120,7 @@ TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   // Set simuation models
   sim.setInstantaneousMixingModel();
   sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
+  sim.setMembraneModel9();
 
   // permanent/continuous fluid injection
   auto waterBlue = sim.addSpecie(0.0, 0.0);
@@ -171,8 +170,6 @@ TEST_F(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Pape
   let nInlets = 2; // due to concentrations
   */
   constexpr auto cContinuousPhaseViscosity = 1e-3;
-  sim::InstantaneousMixingModel<T> mixingModel;
-  sim::MembraneModel9<T> membraneModel;
   auto network = arch::Network<T>::createNetwork();
 
   sim::AbstractMembrane<T> sim(network); // simulator last since it has non-owning references to other
@@ -251,7 +248,7 @@ TEST_F(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Pape
   // Set simuation models
   sim.setInstantaneousMixingModel();
   sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
+  sim.setMembraneModel9();
 
   // permanent/continuous fluid injection
   auto injectionSpecie = sim.addSpecie(0.0, 0.0);
@@ -300,9 +297,6 @@ TEST_F(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.6
   let nInlets = 2;
   */
   constexpr auto cContinuousPhaseViscosity = 1e-3;
-  sim::InstantaneousMixingModel<T> mixingModel;
-  sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
-  sim::MembraneModel9<T> membraneModel;
   auto network = arch::Network<T>::createNetwork();
 
   sim::AbstractMembrane<T> sim(network); // simulator last since it has non-owning references to other objects
@@ -450,7 +444,7 @@ TEST_F(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.6
   // Set simuation models
   sim.setInstantaneousMixingModel();
   sim.set1DResistanceModel();
-  sim.setMembraneModel(&membraneModel);
+  sim.setMembraneModel9();
 
   // permanent/continuous fluid injection
   auto injectionSpecie = sim.addSpecie(0.0, 0.0);

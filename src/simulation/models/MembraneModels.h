@@ -13,6 +13,9 @@ class Membrane;
 
 namespace sim { 
 template<typename T>
+class AbstractMembrane;
+
+template<typename T>
 class Mixture;
 
 template<typename T>
@@ -24,19 +27,12 @@ class Specie;
 template<typename T>
 class MembraneModel {
 protected:
-
-public:
-
     /**
      * @brief Constructor of a membrane model.
     */
     MembraneModel();
 
-    /**
-     * @brief Virtual default destructor for inheritance.
-     */
-    virtual ~MembraneModel() = default;
-
+public:
     /**
      * @brief Get the resistance caused by the membrane based on the specific resistance model.
      *
@@ -47,6 +43,12 @@ public:
      * @return The resistance of this membrane to this mixture in [Pa].
      */
     virtual T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const = 0;
+
+    /**
+     * @brief Virtual default destructor for inheritance.
+     */
+    virtual ~MembraneModel() = default;
+
 };
 
 /**
@@ -57,13 +59,12 @@ class PermeabilityMembraneModel final : public MembraneModel<T> {
 
 private:
 
-public:
-
     /**
      * @brief Constructor of a poreResistance membrane model.
     */
     PermeabilityMembraneModel();
-
+    
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -74,12 +75,12 @@ class PoreResistanceMembraneModel final : public MembraneModel<T> {
 
 private:
 
-public:
-
     /**
      * @brief Constructor of a poreResistance membrane model.
     */
     PoreResistanceMembraneModel();
+
+    friend class AbstractMembrane<T>;
 
 };
 
@@ -90,14 +91,16 @@ public:
  */
 template<typename T>
 class MembraneModel0 final : public MembraneModel<T> {
-  private:
-    [[nodiscard]] T getPoreResistance(arch::Membrane<T> const*  membrane, Mixture<T> const* mixture) const;
 
-  public:
+  private:
+
     MembraneModel0();
 
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreResistance(arch::Membrane<T> const*  membrane, Mixture<T> const* mixture) const;
     [[nodiscard]] T getPermeabilityParameter(const arch::Membrane<T>* membrane) const;
+    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -108,11 +111,8 @@ class MembraneModel0 final : public MembraneModel<T> {
 template<typename T>
 class MembraneModel1 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreExitResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPoreResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPoreDensityDependentResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
+    T deviceAdjustment{};
 
-  public:
     /**
      * @brief Instantiate the resistance model.
      *
@@ -121,10 +121,12 @@ class MembraneModel1 final : public MembraneModel<T> {
      */
     explicit MembraneModel1(T deviceAdjustment = 1.9);
 
+    [[nodiscard]] T getPoreExitResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPoreResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPoreDensityDependentResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
-private:
-    T deviceAdjustment{};
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -135,17 +137,16 @@ private:
 template<typename T>
 class MembraneModel2 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T area, T freeDiffusionCoefficient) const;
-
-    [[nodiscard]] T getTransmembraneResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient, T area) const;
-
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel2();
 
+    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T area, T freeDiffusionCoefficient) const;
+    [[nodiscard]] T getTransmembraneResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient, T area) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -157,17 +158,16 @@ class MembraneModel2 final : public MembraneModel<T> {
 template<typename T>
 class MembraneModel3 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient, T area) const;
-
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel3();
 
+    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient, T area) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -178,17 +178,16 @@ class MembraneModel3 final : public MembraneModel<T> {
 template<typename T>
 class MembraneModel4 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel4();
 
+    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -200,17 +199,16 @@ class MembraneModel4 final : public MembraneModel<T> {
 template<typename T>
 class MembraneModel5 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel5();
 
+    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -224,13 +222,14 @@ class MembraneModel6 final : public MembraneModel<T> {
     static constexpr T diffusionFactorMembrane = 1.58e-11;  // MultiOrgan
     //static constexpr T diffusionFactorMembrane = 4.4e-11;  // TwoOrgan
 
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel6();
 
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -241,17 +240,16 @@ class MembraneModel6 final : public MembraneModel<T> {
 template<typename T>
 class MembraneModel7 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
-
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel7();
 
+    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -263,17 +261,16 @@ class MembraneModel7 final : public MembraneModel<T> {
 template<typename T>
 class MembraneModel8 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
-
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel8();
 
+    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 /**
@@ -285,17 +282,16 @@ class MembraneModel8 final : public MembraneModel<T> {
 template<typename T>
 class MembraneModel9 final : public MembraneModel<T> {
   private:
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
-
-  public:
     /**
      * @brief Instantiate the resistance model.
      */
     MembraneModel9();
 
+    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
     [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+
+    friend class AbstractMembrane<T>;
 };
 
 }   // namespace sim

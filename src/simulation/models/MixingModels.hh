@@ -538,7 +538,7 @@ void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, Abstract
                         return newMixture->getId();
                     };
 
-                    auto originalTankMixture = mixtures.at(tankMixtureId).get();
+                    auto originalTankMixture = mixtures.at(tankMixtureId);
                     tankMixtureId = copyMixture(tankMixtureId);
 
                     auto& channelMixtureId = mixturePositionsInChannel.at(dequeIdx).first;
@@ -546,7 +546,7 @@ void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, Abstract
 
                     for (auto& [specieId, specie] : sim->getSpecies()) {
                         T area = membrane->getWidth() * mixtureLengthAbs;
-                        T resistance = sim->getMembraneModel()->getMembraneResistance(membrane, originalTankMixture, specie.get(), area);
+                        T resistance = sim->getMembraneResistance(membrane, originalTankMixture, specie, area);
                         T specieSaturation = specie->getSatConc();
                         if (specieSaturation != 0.0 && mixtureLengthAbs > 0.0) {
                             T concentrationChannel = mixtures.at(channelMixtureId)->getConcentrationOfSpecie(specieId);
