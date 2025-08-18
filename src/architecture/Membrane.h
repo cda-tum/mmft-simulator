@@ -26,7 +26,7 @@ class Membrane : public Edge<T> {
     T porosity = 0;                             ///< Porosity of the membrane in [%] (between 0.0 and 1.0)
     T numberOfPores = 0;                        ///< Numbers of pores of the membrane.
     T membraneResistance = 0;                   ///< Resistance of the membrane in [Pa s/m^3].
-    RectangularChannel<T>* channel = nullptr;   ///< Pointer to the channel this membrane is attached to (length must be equal).
+    Channel<T>* channel = nullptr;              ///< Pointer to the channel this membrane is attached to (length must be equal).
     Tank<T>* tank = nullptr;                    ///< Pointer to the tank this membrane is attached to (length must be equal).
 
   public:
@@ -97,7 +97,7 @@ class Membrane : public Edge<T> {
      * 
      * @param[in] channel Pointer to the channel the membrane is attached to.
      */
-    void setChannel(RectangularChannel<T>* channel);
+    void setChannel(Channel<T>* channel);
 
     /**
      * @brief Set tank the membrane is connected to.
@@ -140,7 +140,7 @@ class Membrane : public Edge<T> {
      * 
      * @return Pointer to the channel the membrane is connected to.
      */
-    [[nodiscard]] RectangularChannel<T>* getChannel() const;
+    [[nodiscard]] Channel<T>* getChannel() const;
 
     /**
     * @brief Get pointer to the tank the membrane is connected to.

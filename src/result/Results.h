@@ -50,6 +50,7 @@ struct State {
     std::unordered_map<int, int> filledEdges;                           ///< Contains the mixture ids that fill the edges of the network <EdgeID, MixtureID>
     std::unordered_map<int, T> relativeVelocities;                  ///<dropletId, RelativeVelocity>
     std::unordered_map<int, T>dropletLengths;                        ///<dropletId, dropletLength>
+    std::unordered_map<int, T>uniformHs;                            ///<dropletId, uniformH>
 
     //std::unordered_map<int, T> dropletResistances;                      ///< Contains Resistances of each droplet in the network <DroplteId, DropletResistance>
 
@@ -117,6 +118,19 @@ struct State {
      * @param[in] time Value of the current time step.
      * @param[in] pressures The pressure values at the nodes at the current time step.
      * @param[in] flowRates The flowRate values at the nodes at the current time step.
+     * @param[in] dropletPositions The positions of the droplets at the current time step.
+     * @param[in] relativeVelocities The resistances of the droplets at the current time step.
+     * @param[in] dropletLengths The droplet lengths at the current time step.
+     * @param[in] uniformHs uniform film thickness at current time step.
+     */
+    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T> dropletLengths, std::unordered_map<int, T> uniformHs);
+
+    /**
+     * @brief Constructs a state, which represent a time step during a simulation.
+     * @param[in] id Id of the state
+     * @param[in] time Value of the current time step.
+     * @param[in] pressures The pressure values at the nodes at the current time step.
+     * @param[in] flowRates The flowRate values at the nodes at the current time step.
      * @param[in] mixturePositions The positions of the mixtures at the current time step.
      */
     State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
@@ -163,6 +177,11 @@ struct State {
      */
     std::unordered_map<int, T>& getDropletLengths();
 
+    /**
+     * @brief Function to get the uniform film thickness
+     * @return dropletLengths.
+     */
+    std::unordered_map<int, T>& getUniformHs();
 
     /**
      * @brief Function to get the time of a state.
@@ -238,6 +257,11 @@ struct SimulationResult {
     */
     void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T> dropletLengths);
 
+    /**
+     * @brief Adds a state to the simulation results.
+     * @param[in] state
+    */
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T> dropletLengths, std::unordered_map<int, T> uniformHs);
 
     /**
      * @brief Adds a state to the simulation results.

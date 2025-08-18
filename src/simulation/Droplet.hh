@@ -81,7 +81,7 @@ void Droplet<T>::addDropletResistance(const ResistanceModel<T>& model) {
         auto channel = boundaries[0]->getChannelPosition().getChannel();
         // volumeInsideChannel = volumeChannel - (volumeBoundary0 - volumeChannel) - (volumeBoundary1 - volumeChannel) = volumeBoundary0 + volumeBoundary1 - volumeChannel
         T volumeInsideChannel = boundaries[0]->getVolume() + boundaries[1]->getVolume() - channel->getVolume();
-        channel->addDropletResistance(model.getDropletResistance(channel, this, volumeInsideChannel));
+        channel->addDropletResistance(model.getDropletResistance(channel, this, volumeInsideChannel)); 
     } else {
         // loop through boundaries
         for (auto& boundary : boundaries) {
@@ -97,12 +97,36 @@ void Droplet<T>::addDropletResistance(const ResistanceModel<T>& model) {
 }
 
 template<typename T>
+T Droplet<T>::getVolumeInsideChannel() const {
+    T volumeInsideChannel = 0;
+    // check if droplet is in a single channel
+    if (isInsideSingleChannel()) {
+        auto channel = boundaries[0]->getChannelPosition().getChannel();
+        // volumeInsideChannel = volumeChannel - (volumeBoundary0 - volumeChannel) - (volumeBoundary1 - volumeChannel) = volumeBoundary0 + volumeBoundary1 - volumeChannel
+        volumeInsideChannel = boundaries[0]->getVolume() + boundaries[1]->getVolume() - channel->getVolume();
+        return volumeInsideChannel;
+    } else {                                                   //do we even need this?
+        // loop through boundaries
+        for (auto& boundary : boundaries) {
+            volumeInsideChannel += boundary->getVolume();
+        }
+;
+        // loop through fully occupied channels (if present)
+        for (auto& channel : channels) {
+            volumeInsideChannel += channel->getVolume();
+        }
+
+        return volumeInsideChannel;
+    }
+}
+
+template<typename T>
 const std::vector<std::unique_ptr<DropletBoundary<T>>>& Droplet<T>::getBoundaries() {
     return boundaries;
 }
 
 template<typename T>
-std::vector<arch::RectangularChannel<T>*>& Droplet<T>::getFullyOccupiedChannels() {
+std::vector<arch::Channel<T>*>& Droplet<T>::getFullyOccupiedChannels() {
     return channels;
 }
 
@@ -116,18 +140,18 @@ bool Droplet<T>::isAtBifurcation() {
 }
 
 template<typename T>
-bool Droplet<T>::isInsideSingleChannel() {
+bool Droplet<T>::isInsideSingleChannel() const {
     // is inside a single channel when only two boundaries are present and they are in the same channel
     return channels.size() == 0 && boundaries.size() == 2 && boundaries[0]->getChannelPosition().getChannel() == boundaries[1]->getChannelPosition().getChannel();
 }
 
 template<typename T>
-void Droplet<T>::addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) { 
+void Droplet<T>::addBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) { 
     boundaries.push_back(std::make_unique<DropletBoundary<T>>(channel, position, volumeTowardsNodeA, state));
 }
 
 template<typename T>
-void Droplet<T>::addFullyOccupiedChannel(arch::RectangularChannel<T>* channel) {
+void Droplet<T>::addFullyOccupiedChannel(arch::Channel<T>* channel) {
     channels.push_back(channel);
 }
 
@@ -171,8 +195,8 @@ std::vector<DropletBoundary<T>*> Droplet<T>::getConnectedBoundaries(int nodeId, 
 }
 
 template<typename T>
-std::vector<arch::RectangularChannel<T>*> Droplet<T>::getConnectedFullyOccupiedChannels(int nodeId) {
-    std::vector<arch::RectangularChannel<T>*> connectedChannels;
+std::vector<arch::Channel<T>*> Droplet<T>::getConnectedFullyOccupiedChannels(int nodeId) {
+    std::vector<arch::Channel<T>*> connectedChannels;
     for (auto& channel : channels) {
         if (nodeId == channel->getNodeA() || nodeId == channel->getNodeB()) {
             connectedChannels.push_back(channel);
@@ -213,15 +237,21 @@ void Droplet<T>::updateBoundaries(const arch::Network<T>& network) {
 
         if (flowRate < 0) {
             // inflow occurs
+            //std::cout << "inflow occurs here as flowrate negative" <<std::endl;
             inflowBoundaries.push_back(boundary.get());
             qInflow += -flowRate;  // only the absolute value of qInflow is important, hence, the minus sign
+            //std::cout<<"qInflow here = " <<qInflow <<std::endl;
         } else if (flowRate > 0) {
             // outflow occurs
+            //std::cout << "outflow occurs here as flowrate positive" <<std::endl;
             outflowBoundaries.push_back(boundary.get());
             qOutflow += flowRate;
+            //std::cout<<"qOutflow here = " << qOutflow <<std::endl;
         } else {
             // flow rate is zero and, thus, does not contribute to the in/outflow
         }
+        //std::cout<<"Inflow Boundary vector size = " << inflowBoundaries.size()<<std::endl;
+        //std::cout<<"Outflow Boundary vector size = "<< outflowBoundaries.size() <<std::endl;
     }
 
     if (inflowBoundaries.size() == 0 && outflowBoundaries.size() != 0) {
@@ -281,7 +311,7 @@ const std::vector<Droplet<T>*>& Droplet<T>::getMergedDroplets() const {
 ///--------------------------DropletBoundary------------------------------------///
 
 template<typename T>
-DropletBoundary<T>::DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) : 
+DropletBoundary<T>::DropletBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) : 
     channelPosition(channel, position), volumeTowardsNodeA(volumeTowardsNodeA), state(state) { }
 
 template<typename T>
@@ -391,8 +421,12 @@ template<typename T>
 T DropletBoundary<T>::getChannelFlowRate() {
     T flowRate = channelPosition.getChannel()->getFlowRate();
     if (volumeTowardsNodeA) {
+        //std::cout<<"Volume towards NodeA true"<<std::endl;
+        //std::cout<<"flowrate being returned = +" << flowRate << std::endl;
         return flowRate;
     } else {
+        //std::cout<<"Volume towards NodeA false"<<std::endl;
+        //std::cout<<"flowrate being returned = -" << flowRate << std::endl;
         return -flowRate;
     }
 }

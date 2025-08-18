@@ -33,7 +33,7 @@ class Opening;
 namespace mmft {
 
 // Forward declared dependencies
-template<typename T>
+template<typename T> 
 class Scheme;
 
 template<typename T>

@@ -30,6 +30,10 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_), relativeVelocities(relativeVelocities_), dropletLengths(dropletLengths_) { }
 
 template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions_, std::unordered_map<int, T>relativeVelocities_, std::unordered_map<int, T>dropletLengths_, std::unordered_map<int, T>uniformHs_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), dropletPositions(dropletPositions_), relativeVelocities(relativeVelocities_), dropletLengths(dropletLengths_), uniformHs{uniformHs_} {}
+
+template<typename T>
 const std::unordered_map<int, T>& State<T>::getPressures() const {
     return pressures;
 }
@@ -52,6 +56,11 @@ std::unordered_map<int, sim::DropletPosition<T>>& State<T>::getDropletPositions(
 template<typename T>
 std::unordered_map<int, T>& State<T>::getRelativeVelocities() {
     return relativeVelocities;
+}
+
+template<typename T>
+std::unordered_map<int, T>& State<T>::getUniformHs() {
+    return uniformHs;
 }
 
 template<typename T>
@@ -133,6 +142,13 @@ const void State<T>::printState() {
         }
         std::cout << "\n";
     }
+    //print the uniform film thicknesses
+    if(!uniformHs.empty()) {
+        for (auto& [dropletId, uniformH] : uniformHs) {
+            std::cout << "\t[Result] for Droplet " << dropletId << " the uniform film thickness is " << uniformH << "\n";
+        }
+        std::cout << "\n";
+    }
 }
 
 template<typename T>
@@ -176,6 +192,13 @@ template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T>dropletLengths) {
     int id = states.size();
     std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, dropletPositions, relativeVelocities, dropletLengths);
+    states.push_back(std::move(newState));
+}
+
+template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions, std::unordered_map<int, T> relativeVelocities, std::unordered_map<int, T>dropletLengths, std::unordered_map<int, T>uniformHs) {
+    int id = states.size();
+    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, dropletPositions, relativeVelocities, dropletLengths, uniformHs);
     states.push_back(std::move(newState));
 }
 
@@ -243,10 +266,8 @@ const void SimulationResult<T>::printMixtures() {
 
 template<typename T>
 const void SimulationResult<T>::writeMixture(int mixtureId) {
-    /** TODO: Miscellaneous
-     * - CSV Writer here
-     * - get a channel pointer
-     */
+    // TODO Maria, CSV Writer here
+    // TODO get a channel pointer
     int numValues = 101; // Number of points to calculate
 
     std::cout << "Generating CSV files" << std::endl;
@@ -268,9 +289,8 @@ const void SimulationResult<T>::writeMixture(int mixtureId) {
             std::cout << "Generating CSV file: " << outputFileName << std::endl;
             // Open a file in write mode.
             std::ofstream outputFile;
-            /** TODO: Miscellaneous */
-            outputFile.open(outputFileName); // maybe define this inside of the loop
-            // Write the header to the CSV file -> adapt this to fit the specific mixture
+            outputFile.open(outputFileName); // TODO maybe define this inside of the loop
+            // Write the header to the CSV file TODO adapt this to fit the specific mixture
             outputFile << "x,f(x)\n";
             // Calculate and write the values to the file
             for (int i = 0; i < numValues; ++i) {

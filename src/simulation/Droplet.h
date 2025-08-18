@@ -26,6 +26,9 @@ template<typename T>
 class Node;
 
 template<typename T>
+class Channel;
+
+template<typename T>
 class RectangularChannel;
 
 template<typename T>
@@ -77,7 +80,7 @@ class DropletBoundary {
      * @param volumeTowardsNodeA Direction in which the volume of the boundary is located (true if it is towards node0).
      * @param state State in which the boundary is in.
      */
-    DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
+    DropletBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
     /**
      * @brief Get the channel position of the boundary.
@@ -217,7 +220,7 @@ class Droplet {
     std::vector<Droplet<T>*> mergedDroplets;              ///< List of previous droplets, if this droplet got merged.
     DropletState dropletState = DropletState::INJECTION;  ///< Current state of the droplet
     std::vector<std::unique_ptr<DropletBoundary<T>>> boundaries;
-    std::vector<arch::RectangularChannel<T>*> channels;              ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
+    std::vector<arch::Channel<T>*> channels;              ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
     T Ca = 0.0;                                 /// Capillary number
     bool isCaSet = false;
    public:
@@ -298,8 +301,13 @@ class Droplet {
      * @param[in] model The resistance model on which basis the resistance caused by the droplet is calculated.
      */
     void addDropletResistance(const ResistanceModel<T>& model);
-    //attention!!
 
+    /**
+    * @brief Get the Volume of the Droplet Fluid inside the channel
+    * @return the Volume of the Droplet Fluid inside the channel
+    */
+    T getVolumeInsideChannel() const;
+    
     /**
     * @brief Get the Viscosity of the Droplet Fluid
     * @return the viscosity of the droplet fluid
@@ -316,7 +324,7 @@ class Droplet {
      * @brief Get all fully occupied channels
      * @return all fully occupied channels
      */
-    std::vector<arch::RectangularChannel<T>*>& getFullyOccupiedChannels();
+    std::vector<arch::Channel<T>*>& getFullyOccupiedChannels();
 
     /**
      * @brief If the droplet currently is at a bifurcation
@@ -330,7 +338,7 @@ class Droplet {
      * @return true
      * @return false
      */
-    bool isInsideSingleChannel();
+    bool isInsideSingleChannel() const;
 
     /**
      * @brief Add a boundary to the boundary list of the droplet
@@ -339,13 +347,13 @@ class Droplet {
      * @param volumeTowardsNodeA Direction in which the droplet lies within the channel (in regards to node0)
      * @param state State the boundary is in
      */
-    void addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
+    void addBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
     /**
      * @brief Add fully occupied channel to the fully occupied channel list.
      * @param channel New fully occupied channel.
      */
-    void addFullyOccupiedChannel(arch::RectangularChannel<T>* channel);
+    void addFullyOccupiedChannel(arch::Channel<T>* channel);
 
     /**
      * @brief Remove boundary from the boundary list.
@@ -372,7 +380,7 @@ class Droplet {
      * @param nodeId Id of the node
      * @return List of connected fully occupied channels
      */
-    std::vector<arch::RectangularChannel<T>*> getConnectedFullyOccupiedChannels(int nodeId);
+    std::vector<arch::Channel<T>*> getConnectedFullyOccupiedChannels(int nodeId);
 
     /**
      * @brief Update the flow-rates of the droplet boundaries according to the flowRates inside the channels

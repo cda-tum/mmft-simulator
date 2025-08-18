@@ -39,7 +39,7 @@ int main(int argc, char const* argv []) {
     std::cout << "[Main] Results..." << std::endl;
     // Print the results
     testSimulation->getSimulationResults()->printStates();
-
+   
     //std::cout << "Write diffusive mixtures" << std::endl;
     //testSimulation.getSimulationResults()->writeMixture(1);
 

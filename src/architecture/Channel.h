@@ -74,6 +74,9 @@ struct Arc {
 template<typename T>
 class Channel : public Edge<T>{
     protected:
+        T width = 0;                                ///< width of channel
+        T height = 0;                               ///< height of channel
+        T radius = 0;                               ///< radius of channel
         T length = 0;                               ///< Length of the channel in m.
         T area = 0;                                 ///< Area of the channel cross-section in m^2.
         T pressure = 0;                             ///< Pressure of a channel in Pa.
@@ -104,6 +107,28 @@ class Channel : public Edge<T>{
          * @param[in] nodeB Node at the other end of the channel.
         */
         Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB);
+
+        //Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T height, T width);
+
+        //Channel(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T radius);
+        
+        /**
+         * @brief set width of channel
+         * @param[in] width new width of this channel in m.
+        */
+        void setWidth(T width);
+
+        /**
+         * @brief set height of channel
+         * @param[in] height new height of this channel in m.
+        */
+        void setHeight(T height);
+
+        /**
+         * @brief set radius of channel
+         * @param[in] radius new radius of this channel in m.
+        */
+        void setRadius(T radius);
 
         /**
          * @brief Set length of channel.
@@ -140,7 +165,31 @@ class Channel : public Edge<T>{
          * @param[in] channelType Which kind of channel it is.
          */
         void setChannelType(ChannelType channelType);
+
+        /**
+         * @brief Set channel shape.
+         * @param[in] channelShape What is the channel shape.
+         */
+        void setChannelShape(ChannelShape channelShape);
         
+        /**
+         * @brief Returns the width of this channel.
+         * @returns Width of channel in m.
+        */
+        T getWidth() const;
+
+        /**
+         * @brief Returns the height of this channel.
+         * @returns Height of channel in m.
+        */
+        T getHeight() const;
+
+        /**
+         * @brief Returns the radius of this channel.
+         * @returns radius of channel in m.
+        */
+        T getRadius() const;
+
         /**
          * @brief Returns the length of this channel.
          * @returns Length of channel in m.
@@ -169,7 +218,7 @@ class Channel : public Edge<T>{
          * @brief Returns area of a channel.
          * @returns Area in m^2.
          */
-        virtual T getArea() const = 0;
+        T getArea() const;
 
         /**
          * @brief Calculates and returns volume of the channel.
@@ -193,9 +242,9 @@ class Channel : public Edge<T>{
 
 template<typename T>
 class RectangularChannel : public Channel<T> {
-    private:
-        T width;                                        ///< Width of a channel in m.
-        T height;                                       ///< Height of a channel in m.    
+    //private:
+    //T width;                                        ///< Width of a channel in m.
+    //T height;                                       ///< Height of a channel in m.    
     public:
         /**
          * @brief Constructor of a channel with rectangular cross-section
@@ -225,38 +274,38 @@ class RectangularChannel : public Channel<T> {
          * @brief Set width of rectangular channel.
          * @param[in] width The width of the channel.
         */
-        void setWidth(T width);
+        //void setWidth(T width);
 
         /**
          * @brief Returns the width of this channel.
          * @returns Width of channel in m.
         */
-        T getWidth() const;
+        //T getWidth() const;
 
         /**
          * @brief Set height of rectangular channel.
          * @param[in] height The height of the channel.
         */
-        void setHeight(T height);
+        //void setHeight(T height);
 
         /**
          * @brief Returns the height of this channel.
          * @returns Height of channel in m.
         */
-        T getHeight() const;
+        //T getHeight() const;
 
         /**
          * @brief Returns area of a channel.
          * @returns Area in m^2.
          */
-        T getArea() const override;
+        //T getArea() const override;
 
 };
 
 template<typename T>
 class CylindricalChannel : public Channel<T> {
-    private:
-        T radius;                                       ///< Radius of a channel in m.
+    //private:
+    //    T radius;                                       ///< Radius of a channel in m.
 
     public:
         /**
@@ -272,19 +321,19 @@ class CylindricalChannel : public Channel<T> {
          * @brief Set radius of cilyndrical channel.
          * @param[in] radius The radius of the channel.
         */
-        void setRadius(T radius);
+        //void setRadius(T radius);
 
         /**
          * @brief Returns the radius of this channel.
          * @returns Radius of channel in m.
         */
-        T getRadius() const;
+        //T getRadius() const;
 
         /**
          * @brief Returns area of a channel.
          * @returns Area in m^2.
          */
-        T getArea() const override;
+        //T getArea() const override;
 
 };
 }  // namespace arch
