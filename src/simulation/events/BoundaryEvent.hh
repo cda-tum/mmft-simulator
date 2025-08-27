@@ -22,11 +22,11 @@ void BoundaryHeadEvent<T>::performEvent() {
     }
 
     // get next channels
-    std::vector<arch::RectangularChannel<T>*> nextChannels = network.getChannelsAtNode(node);
+    std::vector<arch::Channel<T>*> nextChannels = network.getChannelsAtNode(node);
 
     // choose branch with the highest instantaneous flow rate
     T maxFlowRate;
-    arch::RectangularChannel<T>* nextChannel = nullptr;
+    arch::Channel<T>* nextChannel = nullptr;
     for (auto* channel : nextChannels) {
         // do not consider the boundary channel and only consider Normal channels
         if (channel == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {

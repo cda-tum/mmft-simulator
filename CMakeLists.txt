@@ -6,6 +6,9 @@ project(MMFT-simulator
     LANGUAGES CXX C
 )
 
+# error fix: Force inclusion of <cstdint> to fix uintptr_t issues from OpenLB only for c++ files
+set_source_files_properties(${CXX_ONLY_FILES} PROPERTIES COMPILE_FLAGS "-include cstdint")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

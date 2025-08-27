@@ -39,15 +39,43 @@ void readChannels(json jsonString, arch::Network<T>& network) {
         if (channel.contains("virtual") && channel["virtual"]) {
             channelId++;
             continue;
-        } else {
+        } 
+        std::string shapeStr = "RECTANGULAR";
+        if (channel.contains("shape") && channel["shape"].is_string()) {
+            shapeStr = channel["shape"];
+            std::transform(shapeStr.begin(), shapeStr.end(), shapeStr.begin(), [](unsigned char c){return std::toupper(c); });
+        }
+        if (shapeStr =="RECTANGULAR") {
             if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
-                throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+                throw std::invalid_argument(" Rectangular Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
-            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            arch::ChannelShape shape = arch::ChannelShape::RECTANGULAR;
+            int thisChannelId = channel.contains("id") ? int(channel["id"]) : channelId;                                                      //if JSON file does not include channel id then channel id counter from the function is used to initialize the channels.
+            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, shape, thisChannelId);
+            channelId++;
+        } else if (shapeStr == "CYLINDRICAL") {
+            if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("radius")) {
+                throw std::invalid_argument(" Cylindrical Channel is ill-defined. Please define:\nnode1\nnode2\nradius");
+            }
+            arch::ChannelType type = arch::ChannelType::NORMAL;
+            arch::ChannelShape shape = arch::ChannelShape::CYLINDRICAL;
+            int thisChannelId = channel.contains("id") ? int(channel["id"]) : channelId;                                                      //if JSON file does not include channel id then channel id counter from the function is used to initialize the channels.
+            network.addChannel(channel["node1"], channel["node2"], channel["radius"], type, shape, thisChannelId);
+            channelId++;
+        } else {
+            if (!channel.contains("node1") || !channel.contains("node2") || !channel.contains("height") || !channel.contains("width")) {
+                throw std::invalid_argument(" Default Rectangular Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
+            }
+
+            arch::ChannelType type = arch::ChannelType::NORMAL;
+            arch::ChannelShape shape = arch::ChannelShape::RECTANGULAR;
+            int thisChannelId = channel.contains("id") ? int(channel["id"]) : channelId;                                                      //if JSON file does not include channel id then channel id counter from the function is used to initialize the channels.
+            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, shape, thisChannelId);
             channelId++;
         }
     }
+    std::cout<< "Channels okk" <<std::endl;
 }
 
 template<typename T>
@@ -69,7 +97,7 @@ void readModules(json jsonString, arch::Network<T>& network) {
 template<typename T>
 sim::Platform readPlatform(json jsonString) {
     sim::Platform platform = sim::Platform::Continuous;
-    if (!jsonString["simulation"].contains("platform")) {
+   if (!jsonString["simulation"].contains("platform")) {
         throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
     }
     if (jsonString["simulation"]["platform"] == "Continuous") {
@@ -85,6 +113,9 @@ sim::Platform readPlatform(json jsonString) {
     }
     return platform;
 } 
+
+
+
 
 template<typename T>
 sim::Type readType(json jsonString) {
@@ -130,6 +161,13 @@ void readDroplets(json jsonString, sim::AbstractDroplet<T>& simulation) {
             int fluid = droplet["fluid"];
             T volume = droplet["volume"];
             auto newDroplet = simulation.addDroplet(fluid, volume);
+
+            // Optional: Set Capillary number if present
+            if (droplet.contains("Ca")) {
+                T Ca = droplet["Ca"];
+                newDroplet->setCa(Ca);  
+                
+            }
         } else {
             throw std::invalid_argument("Wrongly defined droplet. Please provide following information for droplets:\nfluid\nvolume");
         }
@@ -214,7 +252,8 @@ void readDropletInjections(json jsonString, sim::AbstractDroplet<T>& simulation,
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
             int fluid = injection["fluid"];
             T volume = injection["volume"];
-            auto newDroplet = simulation.addDroplet(fluid, volume);
+            T Ca = injection["Ca"];
+            auto newDroplet = simulation.addDroplet(fluid, volume, Ca);
             int channelId = injection["channel"];
             T injectionTime = injection["t0"];
             T injectionPosition = injection["pos"];
@@ -422,10 +461,10 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
     if (jsonString["simulation"].contains("resistanceModel")) {
         if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
             resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
-        } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
-            resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+        } else if (jsonString["simulation"]["resistanceModel"] == "BiPoiseuille") {
+            resistanceModel = new sim::ResistanceModelBiPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
         } else {
-            throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
+            throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nBiPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");

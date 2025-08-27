@@ -33,7 +33,7 @@ class Opening;
 namespace mmft {
 
 // Forward declared dependencies
-template<typename T>
+template<typename T> 
 class Scheme;
 
 template<typename T>
@@ -126,7 +126,7 @@ enum class Platform {
 };
 
 /**
- * @brief Class that conducts the simulation and owns all parameters necessary for it.
+ * @brief Class that conducts the simulation and owns all parameters necessary for it
  */
 template<typename T>
 class Simulation {
@@ -435,7 +435,7 @@ public:
      * @param[in] volume Volume of the fluid in m^3.
      * @return Pointer to created droplet.
      */
-    Droplet<T>* addDroplet(int fluidId, T volume);
+    Droplet<T>* addDroplet(int fluidId, T volume, T Ca_);
 
     /**
      * @brief Create injection.

@@ -4,7 +4,7 @@ namespace arch {
 
 template<typename T>
 Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
+                    std::unordered_map<int, std::unique_ptr<Channel<T>>> channels_,
                     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
                     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
                     std::unordered_map<int, std::unique_ptr<Module<T>>> modules_) :
@@ -13,7 +13,7 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
 
 template<typename T>
 Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_) :
+                    std::unordered_map<int, std::unique_ptr<Channel<T>>> channels_) :
                     nodes(nodes_), channels(std::move(channels_)) { }
 
 template<typename T>
@@ -31,7 +31,9 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
         for (long unsigned int j = i+1; j < nodeIds.size(); ++j){
             std::shared_ptr<Node<T>> nA = nodes.at(nodeIds[i]);
             std::shared_ptr<Node<T>> nB = nodes.at(nodeIds[j]);
-            auto addChannel = std::make_unique<RectangularChannel<T>>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
+            auto addChannel = std::make_unique<Channel<T>>(channel_counter, nA, nB);
+            addChannel->setWidth((T) 1e-4);
+            addChannel->setHeight((T) 1e-4);
             auto [it, is_inserted] = channels.try_emplace(channel_counter, std::move(addChannel));
             assert(is_inserted);
             ++channel_counter;
@@ -62,7 +64,7 @@ Network<T>::Network(std::string jsonFile) {
     #endif
 
     for (auto& channel : jsonString["Network"]["Channels"]) {
-        std::unique_ptr<RectangularChannel<T>> addChannel = nullptr;
+        std::unique_ptr<Channel<T>> addChannel = nullptr;
         if (channel.contains("pieces")) {
             std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments;
             std::vector<std::shared_ptr<Arc<T,2>>> arcs;
@@ -112,11 +114,18 @@ Network<T>::Network(std::string jsonFile) {
                     arcs.emplace_back(addArc);
                 }
             }
-            addChannel = std::make_unique<RectangularChannel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
-                line_segments, arcs, channel["width"], channel["height"]);
+            addChannel = std::make_unique<Channel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
+                line_segments, arcs);
+            T width = channel["width"];
+            T height = channel["height"];
+            addChannel->setWidth(width);
+            addChannel->setHeight(height);
         } else {
-            addChannel = std::make_unique<RectangularChannel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
-                channel["width"], channel["height"]);
+            addChannel = std::make_unique<Channel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]));
+            T width = channel["width"];
+            T height = channel["height"];
+            addChannel->setWidth(width);
+            addChannel->setHeight(height);
         }
         auto [it, is_inserted] = channels.try_emplace(channel["iD"], std::move(addChannel));
         assert(is_inserted);
@@ -195,7 +204,7 @@ std::shared_ptr<Node<T>> Network<T>::addNode(T x_, T y_, bool ground_) {
 
     if (result.second) {
         // insertion happened and we have to add an additional entry into the reach
-        reach.insert_or_assign(nodeId, std::unordered_map<int, RectangularChannel<T>*>{});
+        reach.insert_or_assign(nodeId, std::unordered_map<int, Channel<T>*>{});
     } else {
         std::out_of_range(  "Could not add Node " + std::to_string(nodeId) + " at (" + std::to_string(x_) +
                             ", " + std::to_string(y_) + "). Nodes out of bounds.");
@@ -215,7 +224,7 @@ std::shared_ptr<Node<T>> Network<T>::addNode(int nodeId, T x_, T y_, bool ground
 
     if (result.second) {
         // insertion happened and we have to add an additional entry into the reach
-        reach.insert_or_assign(nodeId, std::unordered_map<int, RectangularChannel<T>*>{});
+        reach.insert_or_assign(nodeId, std::unordered_map<int, Channel<T>*>{});
     } else {
         std::out_of_range(  "Could not add Node " + std::to_string(nodeId) + " at (" + std::to_string(x_) +
                             ", " + std::to_string(y_) + "). Nodes out of bounds.");
@@ -229,6 +238,107 @@ std::shared_ptr<Node<T>> Network<T>::addNode(int nodeId, T x_, T y_, bool ground
     return result.first->second;
 }
 
+template<typename T>
+Channel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, ChannelShape shape) {
+    // create channel
+    auto nodeA = nodes.at(nodeAId);
+    auto nodeB = nodes.at(nodeBId);
+    auto id = edgeCount();
+    auto addChannel = std::make_unique<Channel<T>>(id, nodeA, nodeB);
+
+    addChannel->setChannelType(type);
+    addChannel->setChannelShape(shape);
+    addChannel->setWidth(width);
+    addChannel->setHeight(height);
+
+    // add to network as long as channel is still a valid pointer
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addChannel.get());
+    assert(is_inserted1);
+    assert(is_inserted2);
+
+    // add channel
+    auto [it, is_inserted] = channels.try_emplace(id, std::move(addChannel));
+    assert(is_inserted);
+    
+    return channels.at(id).get();
+}
+
+template<typename T>
+Channel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, ChannelShape shape, int channelId) {
+    // create channel
+    auto nodeA = nodes.at(nodeAId);
+    auto nodeB = nodes.at(nodeBId);
+    auto addChannel = std::make_unique<Channel<T>>(channelId, nodeA, nodeB);
+
+    addChannel->setChannelType(type);
+    addChannel->setChannelShape(shape);
+    addChannel->setWidth(width);
+    addChannel->setHeight(height);
+
+    // add to network as long as channel is still a valid pointer
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(channelId, addChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(channelId, addChannel.get());
+    assert(is_inserted1);
+    assert(is_inserted2);
+
+    // add channel
+    auto [it, is_inserted] = channels.try_emplace(channelId, std::move(addChannel));
+    assert(is_inserted);
+
+    return channels.at(channelId).get();
+}
+
+template<typename T>
+Channel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T radius, ChannelType type, ChannelShape shape) {
+    // create channel
+    auto nodeA = nodes.at(nodeAId);
+    auto nodeB = nodes.at(nodeBId);
+    auto id = edgeCount();
+    auto addChannel = std::make_unique<Channel<T>>(id, nodeA, nodeB);
+
+    addChannel->setChannelType(type);
+    addChannel->setChannelShape(shape);
+    addChannel->setRadius(radius);
+
+    // add to network as long as channel is still a valid pointer
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addChannel.get());
+    assert(is_inserted1);
+    assert(is_inserted2);
+
+    // add channel
+    auto [it, is_inserted] = channels.try_emplace(id, std::move(addChannel));
+    assert(is_inserted);
+    
+    return channels.at(id).get();
+}
+
+template<typename T>
+Channel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T radius, ChannelType type, ChannelShape shape, int channelId) {
+    // create channel
+    auto nodeA = nodes.at(nodeAId);
+    auto nodeB = nodes.at(nodeBId);
+    auto addChannel = std::make_unique<Channel<T>>(channelId, nodeA, nodeB);
+
+    addChannel->setChannelType(type);
+    addChannel->setChannelShape(shape);
+    addChannel->setRadius(radius);
+
+    // add to network as long as channel is still a valid pointer
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(channelId, addChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(channelId, addChannel.get());
+    assert(is_inserted1);
+    assert(is_inserted2);
+
+    // add channel
+    auto [it, is_inserted] = channels.try_emplace(channelId, std::move(addChannel));
+    assert(is_inserted);
+    
+    return channels.at(channelId).get();
+}
+
+/** 
 template<typename T>
 RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type) {
     // create channel
@@ -321,6 +431,7 @@ RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T resist
 
     return channels.at(id).get();
 }
+*/
 
 template<typename T>
 Membrane<T>* Network<T>::addMembraneToChannel(int channelId, T height, T width, T poreRadius, T porosity) {
@@ -556,9 +667,11 @@ std::set<std::shared_ptr<Node<T>>> Network<T>::getGroundNodes() const {
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
-    return channels.at(channelId_).get();
-}
+Channel<T>* Network<T>::getChannel(int channelId_) const {
+    auto Ch = channels.at(channelId_).get();
+   
+    return Ch; //couldnot return in a single statement because there was a strange error here.
+}                                    
 
 template<typename T>
 PressurePump<T>* Network<T>::getPressurePump(int pumpId_) const {
@@ -585,7 +698,7 @@ Tank<T>* Network<T>::getTank(int tankId) {
 }
 
 template<typename T>
-const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& Network<T>::getChannels() const {
+const std::unordered_map<int, std::unique_ptr<Channel<T>>>& Network<T>::getChannels() const {
     return channels;
 }
 
@@ -600,9 +713,9 @@ const std::unordered_map<int, std::unique_ptr<Tank<T>>>& Network<T>::getTanks() 
 }
 
 template<typename T>
-const std::vector<RectangularChannel<T>*> Network<T>::getChannelsAtNode(int nodeId_) const {
+const std::vector<Channel<T>*> Network<T>::getChannelsAtNode(int nodeId_) const {
     try {
-        std::vector<RectangularChannel<T>*> tmp;
+        std::vector<Channel<T>*> tmp;
         for (auto& [key, channel] : reach.at(nodeId_)) {
             tmp.push_back(channel);
         }
@@ -778,11 +891,11 @@ bool Network<T>::isNetworkValid() {
             // between nodeA and nodeB of the channel
             throw std::invalid_argument("Channel " + std::to_string(k) + ": length is less than the node distance.");
         }
-        if (v->getHeight() <= 0) {
-            throw std::invalid_argument("Channel " + std::to_string(k) + ": height is <= 0.");
+        if (v->getHeight() <= 0 && v->getRadius() <= 0) {
+            throw std::invalid_argument("Channel " + std::to_string(k) + ": height and radius both <= 0.");
         }
-        if (v->getWidth() <= 0) {
-            throw std::invalid_argument("Channel " + std::to_string(k) + ": width is <= 0.");
+        if (v->getWidth() <= 0 && v->getRadius() <= 0) {
+            throw std::invalid_argument("Channel " + std::to_string(k) + ": width and radius <= 0.");
         }
     }
 

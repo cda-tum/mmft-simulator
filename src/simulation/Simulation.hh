@@ -207,11 +207,11 @@ namespace sim {
     AbstractDroplet<T>::AbstractDroplet(arch::Network<T>* network) : Simulation<T>(Type::Abstract, Platform::BigDroplet, network) { }
 
     template<typename T>
-    Droplet<T>* AbstractDroplet<T>::addDroplet(int fluidId, T volume) {
+    Droplet<T>* AbstractDroplet<T>::addDroplet(int fluidId, T volume, T Ca) {
         auto id = droplets.size();
         auto fluid = this->getFluids().at(fluidId).get();
-
-        auto result = droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluid));
+        
+        auto result = droplets.insert_or_assign(id, std::make_unique<Droplet<T>>(id, volume, fluid, Ca));
 
         return result.first->second.get();
     }
@@ -252,6 +252,21 @@ namespace sim {
     Droplet<T>* AbstractDroplet<T>::getDroplet(int dropletId) const {
         return droplets.at(dropletId).get();
     }
+
+    //template<typename T>
+    //std::unordered_map<int, std::unique_ptr<Droplet<T>>>& Simulation<T>::getDroplets() {
+     //   return droplets;
+    //}
+
+    /*template<typename T>
+    std::unordered_map<int, T>& Simulation<T>::getDropletResistanceMap() {
+        std::unordered_map<int, T> resistanceList;
+        for(auto& [id, droplet] : droplets) {
+            drop = getDroplet(id);
+            resistanceList.try_emplace(id, drop->)
+        }
+    }
+    */
 
     template<typename T>
     Droplet<T>* AbstractDroplet<T>::getDropletAtNode(int nodeId) const {
@@ -309,8 +324,11 @@ namespace sim {
         // merge fluids
         auto fluid = mixFluids(droplet0->getFluid()->getId(), volume0, droplet1->getFluid()->getId(), volume1);
 
+        //Ca of merged droplet
+        T Ca = droplet0->getCa();
+
         // add new droplet
-        auto newDroplet = addDroplet(fluid->getId(), volume);
+        auto newDroplet = addDroplet(fluid->getId(), volume, Ca);
 
         //add previous droplets
         newDroplet->addMergedDroplet(droplet0);
@@ -597,6 +615,9 @@ namespace sim {
         std::unordered_map<int, T> savePressures;
         std::unordered_map<int, T> saveFlowRates;
         std::unordered_map<int, DropletPosition<T>> saveDropletPositions;
+        std::unordered_map<int, T> saveRelativeVelocities;
+        std::unordered_map<int, T> saveDropletLengths;
+        std::unordered_map<int, T> saveUniformHs;
 
         // pressures
         for (auto& [id, node] : this->getNetwork()->getNodes()) {
@@ -636,8 +657,28 @@ namespace sim {
             saveDropletPositions.try_emplace(droplet->getId(), newDropletPosition);
         }
 
+        // relative velocities
+        for (auto& [id, droplet] : droplets) { 
+            T relVel;
+            T drop_Len;
+            T H_uniform;
+            auto resistanceModel = this->getResistanceModel(); 
+            if (!droplet->isInsideSingleChannel()) {
+                continue;
+            }
+            for (auto& boundary : droplet->getBoundaries()) {
+                auto Ch = boundary->getChannelPosition().getChannel();
+                relVel = resistanceModel->getRelativeDropletVelocity(Ch, droplet.get()); 
+                drop_Len = resistanceModel->getDropletLength(Ch, droplet->getVolumeInsideChannel());
+                H_uniform = resistanceModel->computeH_inf(Ch, droplet.get());
+            }
+            saveRelativeVelocities.try_emplace(droplet->getId(), relVel);
+            saveDropletLengths.try_emplace(droplet->getId(), drop_Len);
+            saveUniformHs.try_emplace(droplet->getId(), H_uniform);
+        }
+
         // state
-        this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, saveDropletPositions);
+        this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, saveDropletPositions, saveRelativeVelocities, saveDropletLengths, saveUniformHs);
     }
 
 //=========================================================================================

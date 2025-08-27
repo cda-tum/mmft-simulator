@@ -1,7 +1,9 @@
 //#include <pybind11/pybind11.h>
 
 //namespace py = pybind11;
+
 #include <iostream>
+#include <cstdint>
 
 #include <baseSimulator.h>
 #include <baseSimulator.hh>
@@ -20,6 +22,8 @@ int main(int argc, char const* argv []) {
 
     std::string file = argv[1];
 
+    
+
     // Load and set the network from a JSON file
     std::cout << "[Main] Create network object..." << std::endl;
     arch::Network<T> network = porting::networkFromJSON<T>(file);
@@ -35,7 +39,7 @@ int main(int argc, char const* argv []) {
     std::cout << "[Main] Results..." << std::endl;
     // Print the results
     testSimulation->getSimulationResults()->printStates();
-
+   
     //std::cout << "Write diffusive mixtures" << std::endl;
     //testSimulation.getSimulationResults()->writeMixture(1);
 

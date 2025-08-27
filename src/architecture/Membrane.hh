@@ -43,7 +43,7 @@ void Membrane<T>::setPorosity(T porosity_) {
 }
 
 template<typename T>
-void Membrane<T>::setChannel(RectangularChannel<T>* channel_) {
+void Membrane<T>::setChannel(Channel<T>* channel_) {
     this->channel = channel_;
 }
 
@@ -68,7 +68,7 @@ T Membrane<T>::getLength() const {
 }
 
 template<typename T>
-RectangularChannel<T>* Membrane<T>::getChannel() const {
+Channel<T>* Membrane<T>::getChannel() const {
     return channel;
 }
 

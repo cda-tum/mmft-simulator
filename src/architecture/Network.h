@@ -38,7 +38,7 @@ class Opening;
 template<typename T>
 class PressurePump;
 template<typename T>
-class RectangularChannel;
+class Channel;
 template<typename T>
 class Tank;
 
@@ -89,14 +89,14 @@ private:
     std::unordered_map<int, std::shared_ptr<Node<T>>> nodes;                    ///< Nodes the network consists of.
     std::set<std::shared_ptr<Node<T>>> sinks;                                   ///< Pointers to nodes that are sinks.
     std::set<std::shared_ptr<Node<T>>> groundNodes;                             ///< Pointers to nodes that are ground nodes.
-    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels;   ///< Map of ids and channel pointers to channels in the network.
+    std::unordered_map<int, std::unique_ptr<Channel<T>>> channels;              ///< Map of ids and channel pointers to channels in the network.
     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps;    ///< Map of ids and channel pointers to flow rate pumps in the network.
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
     std::unordered_map<int, std::unique_ptr<Membrane<T>>> membranes;            ///< Map of ids and membrane pointer of all membranes in the network.
     std::unordered_map<int, std::unique_ptr<Tank<T>>> tanks;                    ///< Map of ids and tank pointer of all tanks in the network.
     std::unordered_map<int, std::shared_ptr<Module<T>>> modules;                ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
-    std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
+    std::unordered_map<int, std::unordered_map<int, Channel<T>*>> reach;        ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
     std::unordered_map<int, std::shared_ptr<Module<T>>> modularReach;           ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     int virtualNodes = 0;
@@ -126,7 +126,7 @@ public:
      * @param[in] modules Modules of the network.
     */
     Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-            std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
+            std::unordered_map<int, std::unique_ptr<Channel<T>>> channels,
             std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
             std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
@@ -137,7 +137,7 @@ public:
      * @param[in] channels Channels of the network.
     */
     Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes, 
-            std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels);
+            std::unordered_map<int, std::unique_ptr<Channel<T>>> channels);
 
     /**
      * @brief Constructor of the Network that generates a fully connected graph between the nodes.
@@ -174,11 +174,59 @@ public:
      * @param[in] nodeBId Id of the node at the other end of the channel.
      * @param[in] height Height of the channel in m.
      * @param[in] width Width of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @param[in] shape what is the shape of the channel. 
+     * @return Id of the newly created channel.
+     */
+    Channel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, ChannelShape shape); 
+    
+    /**
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @param[in] shape what is the shape of the channel. 
+     * @param[in] channelId fi of the channel being added.
+     * @return Id of the newly created channel.
+     */
+    Channel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, ChannelShape shape, int channelId);
+    
+    /**
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] radius radius of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @param[in] shape what is the shape of the channel.
+     * @return Id of the newly created channel.
+     */
+    Channel<T>* addChannel(int nodeAId, int nodeBId, T radius, ChannelType type, ChannelShape shape);
+    
+    /**
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] radius radius of the channel in m.
+     * @param[in] type What kind of channel it is.
+     * @param[in] shape what is the shape of the channel. 
+     * @param[in] channelId fi of the channel being added.
+     * @return Id of the newly created channel.
+     */
+    Channel<T>* addChannel(int nodeAId, int nodeBId, T radius, ChannelType type, ChannelShape shape, int channelId);
+    
+    /**
+     * @brief Adds a new channel to the chip.
+     * @param[in] nodeAId Id of the node at one end of the channel.
+     * @param[in] nodeBId Id of the node at the other end of the channel.
+     * @param[in] height Height of the channel in m.
+     * @param[in] width Width of the channel in m.
      * @param[in] length Length of the channel in m.
      * @param[in] type What kind of channel it is.
      * @return Id of the newly created channel.
      */
-    RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type);
+    RectangularChannel<T>* addChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type); 
 
     /**
      * @brief Adds a new channel to the chip.
@@ -392,7 +440,7 @@ public:
     /**
      * @brief Get a pointer to the channel with the specific id.
     */
-    RectangularChannel<T>* getChannel(int channelId) const;
+    Channel<T>* getChannel(int channelId) const;
 
     /**
      * @brief Get a pointer to the pressure pump with the specific id.
@@ -424,7 +472,7 @@ public:
      * @brief Get the channels of the network.
      * @returns Channels.
     */
-    const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& getChannels() const;
+    const std::unordered_map<int, std::unique_ptr<Channel<T>>>& getChannels() const;
 
     /**
      * @brief Get a map of all membranes of the chip.
@@ -443,7 +491,7 @@ public:
      * @param[in] nodeId Id of the node at which the adherent channels should be returned.
      * @return Vector of pointers to channels adherent to this node.
      */
-    const std::vector<RectangularChannel<T>*> getChannelsAtNode(int nodeId) const;
+    const std::vector<Channel<T>*> getChannelsAtNode(int nodeId) const;
         
     /**
      * @brief Get the flow rate pumps of the network.

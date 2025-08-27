@@ -87,6 +87,21 @@ namespace arch {
     }
 
     template<typename T>
+    void Channel<T>::setWidth(T width_) {
+        this->width = width_;
+    }
+
+    template<typename T>
+    void Channel<T>::setHeight(T height_) {
+        this->height = height_;
+    }
+
+    template<typename T>
+    void Channel<T>::setRadius(T radius_) {
+        this->radius = radius_;
+    }
+
+    template<typename T>
     void Channel<T>::setLength(T length_) {
         this->length = length_;
     }
@@ -107,13 +122,34 @@ namespace arch {
     }
 
     template<typename T>
-    void Channel<T>::addDropletResistance(T dropletResistance) {
+    void Channel<T>::addDropletResistance(T dropletResistance) {                 
         this->dropletResistance += dropletResistance;
     }
+
 
     template<typename T>
     void Channel<T>::setChannelType(ChannelType type_) {
         this->type = type_;
+    }
+
+    template<typename T>
+    void Channel<T>::setChannelShape(ChannelShape shape_) {
+        this->shape = shape_;
+    }
+
+    template<typename T>
+    T Channel<T>::getWidth() const {
+        return width;
+    }
+
+    template<typename T>
+    T Channel<T>::getHeight() const {
+        return height;
+    }
+
+    template<typename T>
+    T Channel<T>::getRadius() const {
+        return radius;
     }
 
     template<typename T>
@@ -132,10 +168,19 @@ namespace arch {
     }
 
     template<typename T>
+    T Channel<T>::getArea() const {
+        if (getChannelShape() == arch::ChannelShape::CYLINDRICAL) {
+            return M_PI * getRadius() * getRadius();
+        } else {
+            return getHeight() * getWidth();
+        }
+    }
+
+    template<typename T>
     T Channel<T>::getVolume() const {
         return getArea() * length;
     }
-
+    
     template<typename T>
     T Channel<T>::getResistance() const {
         return channelResistance + dropletResistance;
@@ -157,42 +202,58 @@ namespace arch {
 
     template<typename T>
     RectangularChannel<T>::RectangularChannel(int id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, T width_, T height_) : 
-    Channel<T>(id_, nodeA_, nodeB_), width(width_), height(height_) { 
-        this->area = width*height;
+    Channel<T>(id_, nodeA_, nodeB_) {
+        this->setWidth(width_);
+        this->setHeight(height_); 
+        this->area = this->getWidth() * this->getHeight();
+        this->setChannelShape(arch::ChannelShape::RECTANGULAR);
     }
 
     template<typename T>
     RectangularChannel<T>::RectangularChannel(int id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, 
                         std::vector<Line_segment<T,2>*> line_segments_,
                         std::vector<Arc<T,2>*> arcs_, T width_, T height_) : 
-    Channel<T>(id_, nodeA_, nodeB_, line_segments_, arcs_), width(width_), height(height_) { 
-        this->area = width*height;
+    Channel<T>(id_, nodeA_, nodeB_, line_segments_, arcs_){
+        this->setWidth(width_);
+        this->setHeight(height_); 
+        this->area = this->getWidth() * this->getHeight();
+        this->setChannelShape() = arch::ChannelShape::RECTANGULAR;
     }
 
+    /** 
     template<typename T>
     void RectangularChannel<T>::setWidth(T width_) {
         this->width = width_;
     }
+    */
 
+    /** 
     template<typename T>
     T RectangularChannel<T>::getWidth() const {
         return width;
     }
+    */
 
+    /** 
     template<typename T>
     void RectangularChannel<T>::setHeight(T height_) {
         this->height = height_;
     }
+    */
 
+    /** 
     template<typename T>
     T RectangularChannel<T>::getHeight() const {
         return height;
     }
-
+    */
+   
+    /** 
     template<typename T>
     T RectangularChannel<T>::getArea() const {
         return width * height;
     }
+    */
 
     //=====================================================================================
     //================================  CylindricalChannel ================================
@@ -201,23 +262,34 @@ namespace arch {
 
     template<typename T>
     CylindricalChannel<T>::CylindricalChannel(int id_, int nodeA_, int nodeB_, T radius_) : 
-        Channel<T>(id_, nodeA_, nodeB_), radius(radius_) { 
+        Channel<T>(id_, nodeA_, nodeB_){ 
+            this->setRadius(radius_);
             this->shape = ChannelShape::CYLINDRICAL;
+            this->area = M_PI * this->getRadius() * this->getRadius();
+            this->setChannelShape() = arch::ChannelShape::CYLINDRICAL;
+
     }
 
+    
+    /** 
     template<typename T>
     void CylindricalChannel<T>::setRadius(T radius_) {
         this->radius = radius_;
     }
+    */
 
+    /** 
     template<typename T>
     T CylindricalChannel<T>::getRadius() const {
         return radius;
     }
+    */
 
-        template<typename T>
+    /** 
+    template<typename T>
     T CylindricalChannel<T>::getArea() const {
         return M_PI * radius * radius;
     }
+    */
 
 }   // namespace arch
