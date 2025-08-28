@@ -1,12 +1,23 @@
-add_subdirectory(definitions)
-add_subdirectory(entities)
-
 set(SOURCE_LIST
-    Network.hh
+    Channel.hh
+    Membrane.hh
+    Module.hh
+    Tank.hh
+    Edge.hh
+    FlowRatePump.hh
+    Node.hh
+    PressurePump.hh
 )
     
 set(HEADER_LIST
-    Network.h
+    Channel.h
+    Membrane.h
+    Module.h
+    Tank.h
+    Edge.h
+    FlowRatePump.h
+    Node.h
+    PressurePump.h
 )
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})

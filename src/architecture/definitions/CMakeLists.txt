@@ -1,12 +1,10 @@
-add_subdirectory(definitions)
-add_subdirectory(entities)
-
 set(SOURCE_LIST
-    Network.hh
+    ChannelPosition.hh
 )
     
 set(HEADER_LIST
-    Network.h
+    ChannelPosition.h
+    ModuleOpening.h
 )
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})

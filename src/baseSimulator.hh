@@ -34,16 +34,18 @@
 #include "hybridDynamics/Scheme.hh"
 #include "hybridDynamics/Naive.hh"
 
-#include "architecture/Channel.hh"
-#include "architecture/ChannelPosition.hh"
-#include "architecture/Edge.hh"
-#include "architecture/FlowRatePump.hh"
-#include "architecture/Membrane.hh"
-#include "architecture/Module.hh"
+#include "architecture/definitions/ChannelPosition.hh"
+
+#include "architecture/entities/Channel.hh"
+#include "architecture/entities/Edge.hh"
+#include "architecture/entities/FlowRatePump.hh"
+#include "architecture/entities/Membrane.hh"
+#include "architecture/entities/Module.hh"
+#include "architecture/entities/Node.hh"
+#include "architecture/entities/PressurePump.hh"
+#include "architecture/entities/Tank.hh"
+
 #include "architecture/Network.hh"
-#include "architecture/Node.hh"
-#include "architecture/PressurePump.hh"
-#include "architecture/Tank.hh"
 
 #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
 #include "olbProcessors/saturatedFluxPostProcessor2D.hh"
