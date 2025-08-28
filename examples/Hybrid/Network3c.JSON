@@ -165,17 +165,126 @@
         {
             "position": [3.75e-3, 2.95e-3],
             "size": [5e-4, 3e-4],
-            "nodes": [3, 9, 10]
+            "stlFile": "../examples/STL/T-shape.stl",
+            "Openings":
+            [
+                {
+                    "node": 3,
+                    "normal": {
+                        "x": 1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {
+                    "node": 9,
+                    "normal": {
+                        "x": 0.0,
+                        "y": -1.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {
+                    "node": 10,
+                    "normal": {
+                        "x": -1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                }
+            ]
         },
         {
             "position": [6.75e-3, 2.75e-3],
             "size": [5e-4, 5e-4],
-            "nodes": [5, 11, 12, 13]
+            "stlFile": "../examples/STL/cross.stl",
+            "Openings":
+            [
+                {
+                    "node": 5,
+                    "normal": {
+                        "x": 1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {
+                    "node": 11,
+                    "normal": {
+                        "x": 0.0,
+                        "y": -1.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {
+                    "node": 12,
+                    "normal": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {
+                    "node": 13,
+                    "normal": {
+                        "x": -1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                }
+            ]
         },
         {
             "position": [9.75e-3, -0.05e-3],
             "size": [5e-4, 3e-4],
-            "nodes": [8, 14, 15]
+            "stlFile": "../examples/STL/T-shape.stl",
+            "Openings":
+            [
+                {
+                    "node": 8,
+                    "normal": {
+                        "x": 1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {
+                    "node": 14,
+                    "normal": {
+                        "x": 0.0,
+                        "y": -1.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {
+                    "node": 15,
+                    "normal": {
+                        "x": -1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                }
+            ]
         }
     ]
 },
@@ -210,147 +319,35 @@
             {
                 "Type":"LBM",
                 "name": "Paper3c-T-0",
-                "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.005,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "moduleId": 0,
-                "Openings":
-                [
-                    {
-                        "node": 3,
-                        "normal": {
-                            "x": 1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {
-                        "node": 9,
-                        "normal": {
-                            "x": 0.0,
-                            "y": -1.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {
-                        "node": 10,
-                        "normal": {
-                            "x": -1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    }
-                ]
+                "moduleId": 0
             },
             {
                 "Type":"LBM",
                 "name": "Paper3c-cross-1",
-                "stlFile": "../examples/STL/cross.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.005,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "moduleId": 1,
-                "Openings":
-                [
-                    {
-                        "node": 5,
-                        "normal": {
-                            "x": 1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {
-                        "node": 11,
-                        "normal": {
-                            "x": 0.0,
-                            "y": -1.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {
-                        "node": 12,
-                        "normal": {
-                            "x": 0.0,
-                            "y": 1.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {
-                        "node": 13,
-                        "normal": {
-                            "x": -1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    }
-                ]
+                "moduleId": 1
             },
             {
                 "Type":"LBM",
                 "name": "Paper3c-T-2",
-                "stlFile": "../examples/STL/T-shape.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.005,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "moduleId": 2,
-                "Openings":
-                [
-                    {
-                        "node": 8,
-                        "normal": {
-                            "x": 1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {
-                        "node": 14,
-                        "normal": {
-                            "x": 0.0,
-                            "y": -1.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {
-                        "node": 15,
-                        "normal": {
-                            "x": -1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    }
-                ]
+                "moduleId": 2
             }
         ]
     }

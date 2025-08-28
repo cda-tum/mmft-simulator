@@ -5,9 +5,9 @@ namespace sim{
 
 template<typename T>
 lbmSimulator<T>::lbmSimulator (
-    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::CfdModule<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
+    int id_, std::string name_, std::shared_ptr<arch::CfdModule<T>> cfdModule_,
     size_t resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_) : 
-        CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_), 
+        CFDSimulator<T>(id_, name_, cfdModule_), 
         resolution(resolution_), charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_),  
         epsilon(epsilon_), relaxationTime(relaxationTime_)
 { 
@@ -19,9 +19,9 @@ lbmSimulator<T>::lbmSimulator (
 
 template<typename T>
 lbmSimulator<T>::lbmSimulator (
-    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::CfdModule<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
-    std::shared_ptr<mmft::Scheme<T>> updateScheme_, size_t resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_) : 
-        lbmSimulator(id_, name_, stlFile_, cfdModule_, openings_, resolution_, charPhysLength_, charPhysVelocity_, epsilon_, relaxationTime_)
+    int id_, std::string name_, std::shared_ptr<arch::CfdModule<T>> cfdModule_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, 
+    size_t resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_) : 
+        lbmSimulator(id_, name_, cfdModule_, resolution_, charPhysLength_, charPhysVelocity_, epsilon_, relaxationTime_)
 { 
     if (name_ == "") {
         this->name = std::move(getDefaultName(id_));
@@ -93,7 +93,7 @@ void lbmSimulator<T>::prepareLattice () {
 template<typename T>
 void lbmSimulator<T>::setBoundaryValues (int iT) {
 
-    for (auto& [key, Opening] : this->moduleOpenings) {
+    for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         if (this->groundNodes.at(key)) {
             setFlowProfile2D(key, Opening.width);
         } else {
@@ -136,7 +136,7 @@ void lbmSimulator<T>::writeVTK (int iT) {
     if (iT %1000 == 0) {
         #ifdef VERBOSE
             std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
-            for (auto& [key, Opening] : this->moduleOpenings) {
+            for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
                 if (this->groundNodes.at(key)) {
                     meanPressures.at(key)->print();
                 } else {
@@ -206,7 +206,7 @@ void lbmSimulator<T>::initValueContainers () {
     flowRates.clear();
 
     // Initialize pressure and flow rate value-containers
-    for (auto& [key, node] : this->moduleOpenings) {
+    for (auto& [key, node] : this->cfdModule->getOpenings()) {
         pressures.try_emplace(key, (T) 0.0);
         flowRates.try_emplace(key, (T) 0.0);
     }
@@ -266,7 +266,7 @@ void lbmSimulator<T>::prepareNsLattice (const T omega) {
     lattice->iniEquilibrium(getGeometry(), 1, rhoF, uF);
 
     // Set lattice dynamics and initial condition for in- and outlets
-    for (auto& [key, Opening] : this->moduleOpenings) {
+    for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         if (this->groundNodes.at(key)) {
             setInterpolatedVelocityBoundary(getLattice(), omega, getGeometry(), key+3);
         } else {
@@ -280,7 +280,7 @@ template<typename T>
 void lbmSimulator<T>::initPressureIntegralPlane() {
 
     // Initialize the integral fluxes for the in- and outlets
-    for (auto& [key, Opening] : this->moduleOpenings) {
+    for (auto& [key, Opening] : this->cfdModule->getOpenings() ) {
 
         T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
         T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
@@ -302,7 +302,7 @@ template<typename T>
 void lbmSimulator<T>::initFlowRateIntegralPlane() {
 
     // Initialize the integral fluxes for the in- and outlets
-    for (auto& [key, Opening] : this->moduleOpenings) {
+    for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
 
         T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
         T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
@@ -334,7 +334,7 @@ void lbmSimulator<T>::readGeometryStl (const T dx, const bool print) {
 
     T correction[2]= {0.0, 0.0};
 
-    stlReader = std::make_shared<olb::STLreader<T>>(this->stlFile, dx);
+    stlReader = std::make_shared<olb::STLreader<T>>(this->cfdModule->getStlFile(), dx);
     auto min = stlReader->getMesh().getMin();
     auto max = stlReader->getMesh().getMax();
 
@@ -400,7 +400,7 @@ void lbmSimulator<T>::readOpenings (const T dx) {
     stlShift[0] = this->cfdModule->getPosition()[0] - min[0];
     stlShift[1] = this->cfdModule->getPosition()[1] - min[1];
 
-    for (auto& [key, Opening] : this->moduleOpenings ) {
+    for (auto& [key, Opening] : this->cfdModule->getOpenings() ) {
         // The unit vector pointing to the extend (opposite origin) of the opening
         T x_origin = Opening.node->getPosition()[0] -stlShift[0] -0.5*extendMargin*dx;
         T y_origin = Opening.node->getPosition()[1] -stlShift[1] -0.5*Opening.width;
@@ -447,7 +447,7 @@ void lbmSimulator<T>::storeCfdResults (int iT) {
     int input[1] = { };
     T output[10];
     
-    for (auto& [key, Opening] : this->moduleOpenings) {
+    for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         if (this->groundNodes.at(key)) {
             meanPressures.at(key)->operator()(output, input);
             T newPressure =  output[0]/output[1];

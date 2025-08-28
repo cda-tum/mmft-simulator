@@ -53,16 +53,20 @@ void readChannels(json jsonString, arch::Network<T>& network) {
 template<typename T>
 void readModules(json jsonString, arch::Network<T>& network) {
     for (auto& module : jsonString["network"]["modules"]) {
-        if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
-            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
+        if (!module.contains("position") || !module.contains("size") || !module.contains("stlFile") || !module.contains("Openings")) {
+            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nstlFile\nOpenings");
         }
         std::vector<T> position = { module["position"][0], module["position"][1] };
         std::vector<T> size = { module["size"][0], module["size"][1] };
-        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
-        for (auto& nodeId : module["nodes"]) {
-            Nodes.try_emplace(nodeId, network.getNode(nodeId));
+        std::string stlFile = module["stlFile"];
+        std::unordered_map<int, arch::Opening<T>> Openings;
+        for (auto& opening : module["Openings"]) {
+            int nodeId = opening["node"];
+            std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
+            arch::Opening<T> opening_(network.getNode(nodeId), normal, opening["width"]);
+            Openings.try_emplace(nodeId, opening_);
         }
-        network.addCfdModule(position, size, std::move(Nodes));
+        network.addCfdModule(position, size, stlFile, std::move(Openings));
     }
 }
 
@@ -245,26 +249,17 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
         }
         for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
             std::string name = simulator["name"];
-            std::string stlFile = simulator["stlFile"];
             T charPhysLength = simulator["charPhysLength"];
             T charPhysVelocity = simulator["charPhysVelocity"];
             size_t resolution = simulator["resolution"];
             T epsilon = simulator["epsilon"];
             T tau = simulator["tau"];
             int moduleId = simulator["moduleId"];
-            std::unordered_map<int, arch::Opening<T>> Openings;
-            for (auto& opening : simulator["Openings"]) {
-                int nodeId = opening["node"];
-                std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
-                arch::Opening<T> opening_(network->getNode(nodeId), normal, opening["width"]);
-                Openings.try_emplace(nodeId, opening_);
-            }
 
             if(simulator["Type"] == "LBM")
             {
                 assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
-                /** TODO: More elegant solution for downcast */
-                auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), Openings, stlFile, resolution,
+                auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), resolution,
                                                             epsilon, tau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }

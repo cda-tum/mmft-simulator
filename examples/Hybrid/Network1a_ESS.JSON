@@ -121,7 +121,49 @@
         {
             "position": [1.75e-3, 0.75e-3],
             "size": [5e-4, 5e-4],
-            "nodes": [5, 7, 8, 9]
+            "stlFile": "../examples/STL/cross2.stl",
+            "Openings": [
+                {	
+                    "node": 5,
+                    "normal": {
+                        "x": 1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {	
+                    "node": 7,
+                    "normal": {
+                        "x": 0.0,
+                        "y": -1.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {	
+                    "node": 8,
+                    "normal": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                },
+                {	
+                    "node": 9,
+                    "normal": {
+                        "x": -1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "width": 1e-4,
+                    "height": 1e-4
+                }
+            ]
         }
     ]
 },
@@ -167,56 +209,13 @@
             {	
                 "Type": "ESS_LBM",
                 "name": "Paper1a-cross-0",
-                "stlFile": "../examples/STL/cross2.stl",
                 "charPhysLength": 1e-4,
                 "charPhysVelocity": 1e-1,
                 "alpha": 0.1,
                 "resolution": 20,
                 "epsilon": 1e-1,
                 "tau": 0.55,
-                "moduleId": 0,
-                "Openings": [
-                    {	
-                        "node": 5,
-                        "normal": {
-                            "x": 1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {	
-                        "node": 7,
-                        "normal": {
-                            "x": 0.0,
-                            "y": -1.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {	
-                        "node": 8,
-                        "normal": {
-                            "x": 0.0,
-                            "y": 1.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    },
-                    {	
-                        "node": 9,
-                        "normal": {
-                            "x": -1.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "width": 1e-4,
-                        "height": 1e-4
-                    }
-                ]
+                "moduleId": 0
             }
         ]
     }

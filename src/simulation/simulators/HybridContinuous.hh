@@ -21,9 +21,7 @@ void HybridContinuous<T>::setPoiseuilleResistanceModel() {
 }
 
 template<typename T>
-std::shared_ptr<lbmSimulator<T>> HybridContinuous<T>::addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, 
-    std::unordered_map<int, arch::Opening<T>> openings, std::string stlFile, /** TODO: Move to CfdModule */
-    std::string name)
+std::shared_ptr<lbmSimulator<T>> HybridContinuous<T>::addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, std::string name)
 {
     size_t resolutionDefault = 20;      // Some reasonable value
 
@@ -31,9 +29,7 @@ std::shared_ptr<lbmSimulator<T>> HybridContinuous<T>::addLbmSimulator(std::share
 }
 
 template<typename T>
-std::shared_ptr<lbmSimulator<T>> HybridContinuous<T>::addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module,
-    std::unordered_map<int, arch::Opening<T>> openings, std::string stlFile, /** TODO: Move to CfdModule */
-    size_t resolution, std::string name)
+std::shared_ptr<lbmSimulator<T>> HybridContinuous<T>::addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, size_t resolution, std::string name)
 {
     T epsilonDefault = 1e-1;                                        // Some reasonable value
     T tauDefault = 0.932;                                           // For quadratic accuracy
@@ -45,13 +41,12 @@ std::shared_ptr<lbmSimulator<T>> HybridContinuous<T>::addLbmSimulator(std::share
 
 template<typename T>
 std::shared_ptr<lbmSimulator<T>> HybridContinuous<T>::addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, 
-    std::unordered_map<int, arch::Opening<T>> openings, std::string stlFile, /** TODO: Move to CfdModule */
     size_t resolution, T epsilon, T tau, T charPhysLength, T charPhysVelocity, std::string name)
 {
     if (this->hasValidResistanceModel()) {
         // create Simulator
         auto id = CFDSimulator<T>::getSimulatorCounter();
-        auto addCfdSimulator = std::shared_ptr<lbmSimulator<T>>(new lbmSimulator<T>(id, std::move(name), stlFile, module, openings, resolution, charPhysLength, charPhysVelocity, epsilon, tau));
+        auto addCfdSimulator = std::shared_ptr<lbmSimulator<T>>(new lbmSimulator<T>(id, std::move(name), module, resolution, charPhysLength, charPhysVelocity, epsilon, tau));
 
         // add Simulator
         const auto& [it, inserted] = cfdSimulators.try_emplace(id, addCfdSimulator);

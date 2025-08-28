@@ -285,23 +285,14 @@ public:
      * @brief Adds a new module to the network.
      * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
      * @param[in] size Absolute size of the module in m.
-     * @param[in] nodes Map of nodes that are on the module boundary.
+     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
+     * @param[in] openings Map of openings corresponding to the nodes.
      * @return Pointer to the newly created module.
     */
     std::shared_ptr<CfdModule<T>> addCfdModule(std::vector<T> position,
                                             std::vector<T> size,
-                                            std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
-
-    /**
-     * @brief Adds a new module to the network.
-     * @param[in] position Absolute position of the module in the network w.r.t. bottom left corner.
-     * @param[in] size Absolute size of the module in m.
-     * @param[in] nodes Vector of node id's of nodes that are on the module boundary.
-     * @return Pointer to the newly created module.
-    */
-    std::shared_ptr<CfdModule<T>> addCfdModule(std::vector<T> position,
-                                            std::vector<T> size,
-                                            std::vector<int> nodes);
+                                            std::string stlFile,
+                                            std::unordered_map<int, Opening<T>> openings);
 
     /**
      * @brief Adds a new module to the network.

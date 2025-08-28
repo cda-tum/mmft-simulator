@@ -54,14 +54,9 @@ protected:
     std::string name;                           ///< Name of the simulator.
     std::string vtkFolder = "./tmp/";           ///< Folder in which vtk files will be saved.
     std::string vtkFile = ".";                  ///< File in which last file was saved.
-    bool initialized = false;                   ///< Is the simulator initialized.
-    /** TODO: Move STL file to CfdModule */
-    std::string stlFile;                        ///< The STL file of the CFD domain.
+    bool initialized = false;                   ///< Is the simulator initialized.    
 
     std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;        ///< A pointer to the module, upon which this simulator acts.
-    std::shared_ptr<arch::Network<T>> moduleNetwork = nullptr;      ///< Fully connected graph as network for the initial approximation.
-    /** TODO: Move moduleOpenings to CfdModule */
-    std::unordered_map<int, arch::Opening<T>> moduleOpenings;       ///< Map of openings. <nodeId, arch::Opening>
     std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver. <nodeId, bool>
     mmft::Scheme<T>* updateScheme = nullptr;                        ///< The update scheme for Abstract-CFD coupling
 
@@ -83,25 +78,19 @@ protected:
      * @brief Constructor of a CFDSimulator, which acts as a base definition for other simulators.
      * @param[in] id Id of the simulator.
      * @param[in] name The name of the simulator.
-     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] cfdModule Shared pointer to the module on which this solver acts.
-     * @param[in] openings Map of openings corresponding to the nodes.
      */
-    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::CfdModule<T>> cfdModule, 
-                std::unordered_map<int, arch::Opening<T>> openings);
+    CFDSimulator(int id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule);
 
     /**
      * @brief Constructor of a CFDSimulator, which acts as a base definition for other simulators.
      * @param[in] id Id of the simulator.
      * @param[in] name The name of the simulator.
-     * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] cfdModule Shared pointer to the module on which this solver acts.
-     * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] updateScheme Shared pointer to the update scheme for Abstract-CFD coupling.
      * @param[in] ResistanceModel The resistance model used for the simulation, necessary to set the initial condition.
      */
-    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::CfdModule<T>> cfdModule, 
-                std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme);
+    CFDSimulator(int id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule, std::shared_ptr<mmft::Scheme<T>> updateScheme);
 
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
@@ -218,12 +207,6 @@ public:
     [[nodiscard]] inline std::shared_ptr<arch::CfdModule<T>> getModule() const { return cfdModule; }
 
     /**
-     * @brief Get the fully connected graph of this module, that is used for the initial approximation.
-     * @return Network of the fully connected graph.
-    */
-    [[nodiscard]] inline std::shared_ptr<arch::Network<T>> getNetwork() const { return moduleNetwork;}
-
-    /**
      * @brief Get the ground nodes of the module.
      * @returns Ground nodes.
     */
@@ -234,12 +217,6 @@ public:
      * @returns Boolean for initialization.
     */
     [[nodiscard]] inline bool getInitialized() const { return initialized; }
-
-    /**
-     * @brief Get the openings of the module.
-     * @returns Module openings.
-     */
-    [[nodiscard]] inline const std::unordered_map<int, arch::Opening<T>>& getOpenings() const { return moduleOpenings; }
 
     /**
      * @brief Set the initialized status for this module.

@@ -313,7 +313,7 @@ void NodalAnalysis<T>::readCfdSimulators(const std::unordered_map<int, std::shar
     for (const auto& [key, cfdSimulator] : cfdSimulators) {
         // If module is not initialized (1st loop), loop over channels of fully connected graph
         if ( ! cfdSimulator->getInitialized() ) {
-            for (const auto& [key, channel] : cfdSimulator->getNetwork()->getChannels()) {
+            for (const auto& [key, channel] : cfdSimulator->getModule()->getNetwork()->getChannels()) {
                 auto nodeAMatrixId = channel->getNodeA();
                 auto nodeBMatrixId = channel->getNodeB();
                 const T conductance = 1. / channel->getResistance();
@@ -342,7 +342,7 @@ void NodalAnalysis<T>::readCfdSimulators(const std::unordered_map<int, std::shar
             for (const auto& [key, node] : cfdSimulator->getModule()->getNodes()) {
                 // Write the module's flowrates into vector i if the node is not a group's ground node
                 if (contains(conductingNodeIds, key)) {
-                    T flowRate = cfdSimulator->getFlowRates().at(key) * cfdSimulator->getOpenings().at(key).height;
+                    T flowRate = cfdSimulator->getFlowRates().at(key) * cfdSimulator->getModule()->getOpenings().at(key).height;
                     z(key) = -flowRate;
                 } 
                 // Write module's pressure into matrix B, C and vector e
@@ -384,7 +384,7 @@ void NodalAnalysis<T>::writeCfdSimulators(const std::unordered_map<int, std::sha
             // Communicate the flow rate to the module
             else if (contains(groundNodeIds, key)) {
                 T old_flowRate = old_flowrates.at(key) ;
-                T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getOpenings().at(key).width;
+                T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getModule()->getOpenings().at(key).width;
                 T set_flowRate = 0.0;
                 if (old_flowRate > 0 ) {
                     set_flowRate = old_flowRate + 5 * cfdSimulator.second->getAlpha(key) *  ( new_flowRate - old_flowRate );

@@ -26,9 +26,6 @@ TEST_F(Cube, deg0) {
     network->addNode(5e-5, 0.0);
     network->addNode(0.0, 5e-5);
 
-    // module
-    network->addCfdModule(std::vector<T>({-5e-5, -5e-5}), std::vector<T>({1e-4, 1e-4}), std::vector<int>({0, 1, 2, 3}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({1.0, 0.0}), 1e-4));
@@ -36,8 +33,11 @@ TEST_F(Cube, deg0) {
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
     Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.0, -1.0}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({-5e-5, -5e-5}), std::vector<T>({1e-4, 1e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube0", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube0", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -71,9 +71,6 @@ TEST_F(Cube, deg10) {
     network->addNode(4.92404e-5, 8.6824e-6);
     network->addNode(-8.6824e-6, 4.92404e-5);
 
-    // module
-    network->addCfdModule(std::vector<T>({-5.79228e-5, -5.79228e-5}), std::vector<T>({1.15846e-4, 1.15846e-4}), std::vector<int>({0, 1, 2, 3}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
@@ -81,8 +78,11 @@ TEST_F(Cube, deg10) {
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.984807753, -0.173648178}), 1e-4));
     Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.173648178, -0.984807753}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({-5.79228e-5, -5.79228e-5}), std::vector<T>({1.15846e-4, 1.15846e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube10", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube10", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -118,9 +118,6 @@ TEST_F(Cube, deg20) {
     network->addNode(4.698460e-05, 1.71010e-05);
     network->addNode(-1.71010e-05, 4.698460e-05);
 
-    // module
-    network->addCfdModule(std::vector<T>({-6.40856e-5, -6.40856e-5}), std::vector<T>({1.28171e-4, 1.28171e-4}), std::vector<int>({0, 1, 2, 3}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.9396929621, 0.342020143}), 1e-4));
@@ -128,8 +125,11 @@ TEST_F(Cube, deg20) {
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.9396929621, -0.342020143}), 1e-4));
     Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.342020143, -0.9396929621}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({-6.40856e-5, -6.40856e-5}), std::vector<T>({1.28171e-4, 1.28171e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube20", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube20", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -165,9 +165,6 @@ TEST_F(Cube, deg30) {
     network->addNode(4.330130e-05, 2.5e-05);
     network->addNode(-2.5e-05, 4.330130e-05);
 
-    // module
-    network->addCfdModule(std::vector<T>({-6.83013e-5, -6.83013e-5}), std::vector<T>({1.36603e-4, 1.36603e-4}), std::vector<int>({0, 1, 2, 3}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
@@ -175,8 +172,11 @@ TEST_F(Cube, deg30) {
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.866025404, -0.5}), 1e-4));
     Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.5, -0.866025404}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({-6.83013e-5, -6.83013e-5}), std::vector<T>({1.36603e-4, 1.36603e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube30", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube30", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -212,9 +212,6 @@ TEST_F(Cube, deg45) {
     network->addNode(3.535535e-05, 3.535535e-05);
     network->addNode(-3.535535e-05, 3.535535e-05);
 
-    // module
-    network->addCfdModule(std::vector<T>({-7.07107e-5, -7.07107e-5}), std::vector<T>({1.41421e-4, 1.41421e-4}), std::vector<int>({0, 1, 2, 3}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
@@ -222,8 +219,11 @@ TEST_F(Cube, deg45) {
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.707106781, -0.707106781}), 1e-4));
     Openings.try_emplace(3, arch::Opening<T>(network->getNode(3), std::vector<T>({0.707106781, -0.707106781}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({-7.07107e-5, -7.07107e-5}), std::vector<T>({1.41421e-4, 1.41421e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube45", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cube45", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -256,15 +256,15 @@ TEST_F(Cross, deg10) {
     // nodes
     network->addNode(3.79807e-6, 2.06588e-4);
 
-    // module
-    network->addCfdModule(std::vector<T>({-4.88436e-06, -4.88436e-06}), std::vector<T>({5.09769e-4, 5.09769e-4}), std::vector<int>({0}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({-4.88436e-06, -4.88436e-06}), std::vector<T>({5.09769e-4, 5.09769e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross10", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross10", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -290,15 +290,15 @@ TEST_F(Cross, deg20) {
     // nodes
     network->addNode(1.507681e-5, 1.64495e-4);
 
-    // module
-    network->addCfdModule(std::vector<T>({-2.02418e-06, -2.02418e-06}), std::vector<T>({5.04049e-4, 5.04049e-4}), std::vector<int>({0}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.93969261, 0.342020143}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({-2.02418e-06, -2.02418e-06}), std::vector<T>({5.04049e-4, 5.04049e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross20", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross20", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -324,15 +324,15 @@ TEST_F(Cross, deg30) {
     // nodes
     network->addNode(3.349362e-5, 1.25e-4);
 
-    // module
-    network->addCfdModule(std::vector<T>({8.49364e-06, 8.49364e-06}), std::vector<T>({4.83014e-4, 4.83014e-4}), std::vector<int>({0}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({8.49364e-06, 8.49364e-06}), std::vector<T>({4.83014e-4, 4.83014e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross30", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross30", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 
@@ -358,15 +358,15 @@ TEST_F(Cross, deg45) {
     // nodes
     network->addNode(7.3223e-5, 7.3223e-5);
 
-    // module
-    network->addCfdModule(std::vector<T>({3.78679e-05, 3.78679e-05}), std::vector<T>({4.24264e-4, 4.24264e-4}), std::vector<int>({0}));
-
     // openings
     std::unordered_map<int, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
 
+    // module
+    network->addCfdModule(std::vector<T>({3.78679e-05, 3.78679e-05}), std::vector<T>({4.24264e-4, 4.24264e-4}), stlFile, Openings);
+
     // simulator
-    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross45", stlFile, network->getCfdModule(0), Openings, resolution);
+    sim::lbmSimulator<T> s0 = this->createLbmGeometry("cross45", network->getCfdModule(0), resolution);
     this->readGeometryStl(s0, dx);
     this->readOpenings(s0, dx);
 

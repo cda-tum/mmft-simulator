@@ -145,9 +145,7 @@ public:
      * @note This is the cheapest definition for add an lbmSimulator, and many parameters, such as epsilon, tau and resolution
      * are defaulted.
     */
-    [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, 
-        std::unordered_map<int, arch::Opening<T>> openings, std::string stlFile, /** TODO: Move to CfdModule */
-        std::string name="");
+    [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, std::string name="");
 
     /**
      * @brief Create and add an LBM Simulator for a CFD Module to the Hybrid simulation
@@ -157,9 +155,7 @@ public:
      * @return A shared pointer to the created lbmSimulator instance
      * @note Besides the resolution, all other simulation parameters are defaulted.
     */
-    [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, 
-        std::unordered_map<int, arch::Opening<T>> openings, std::string stlFile, /** TODO: Move to CfdModule */
-        size_t resolution, std::string name="");
+    [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, size_t resolution, std::string name="");
 
     /**
      * @brief Create and add an LBM Simulator for a CFD Module to the Hybrid simulation
@@ -174,7 +170,6 @@ public:
      * @note No simulation parameters are defaulted in this function overload.
     */
     [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, 
-        std::unordered_map<int, arch::Opening<T>> openings, std::string stlFile, /** TODO: Move to CfdModule */
         size_t resolution, T epsilon, T tau, T charPhysLength, T charPhysVelocity, std::string name="");
 
     /**

@@ -410,15 +410,16 @@ PressurePump<T>* Network<T>::addPressurePump(int nodeAId, int nodeBId, T pressur
 template<typename T>
 std::shared_ptr<CfdModule<T>> Network<T>::addCfdModule(std::vector<T> position,
                                                     std::vector<T> size,
-                                                    std::unordered_map<int, std::shared_ptr<Node<T>>> nodes) 
+                                                    std::string stlFile,
+                                                    std::unordered_map<int, Opening<T>> openings) 
 {
     // create module
     auto id = modules.size();
-    auto addModule = std::make_shared<CfdModule<T>>(id, position, size, nodes);
+    auto addModule = std::make_shared<CfdModule<T>>(id, position, size, stlFile, openings);
 
     // add this module to the reach of each node
-    for (auto& [k, node] : nodes) {
-        auto [it, is_inserted] = modularReach.try_emplace(node->getId(), addModule);
+    for (auto& [k, opening] : openings) {
+        auto [it, is_inserted] = modularReach.try_emplace(opening.node->getId(), addModule);
         assert(is_inserted);
     }
 
@@ -428,34 +429,6 @@ std::shared_ptr<CfdModule<T>> Network<T>::addCfdModule(std::vector<T> position,
 
     return addModule;
 }
-
-template<typename T>
-std::shared_ptr<CfdModule<T>> Network<T>::addCfdModule(std::vector<T> position,
-                                                    std::vector<T> size,
-                                                    std::vector<int> nodeIds) 
-{
-    // create module
-    auto id = modules.size();
-    std::unordered_map<int, std::shared_ptr<Node<T>>> localNodes;
-    for (int nodeId : nodeIds) {
-        auto [it, is_inserted] = localNodes.try_emplace(nodeId, nodes.at(nodeId));
-        assert(is_inserted);
-    }
-    auto addModule = std::make_shared<CfdModule<T>>(id, position, size, localNodes);
-
-    // add this module to the reach of each node
-    for (auto& [k, node] : localNodes) {
-        auto [it, is_inserted] = modularReach.try_emplace(node->getId(), addModule);
-        assert(is_inserted);
-    }
-
-    // add module
-    auto [it, is_inserted] = modules.try_emplace(id, addModule);
-    assert(is_inserted);
-
-    return addModule;
-}
-
 
 template<typename T>
 bool Network<T>::hasNode(int nodeId_) const {
