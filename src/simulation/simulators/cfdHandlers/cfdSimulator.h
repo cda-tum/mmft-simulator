@@ -22,10 +22,22 @@ struct Opening;
 
 }
 
+namespace test::definitions {
+template<typename T>
+class GlobalTest;
+}
+
 namespace mmft {
 
 template<typename T>
 class Scheme;
+
+}
+
+namespace nodal {
+
+template<typename T>
+class NodalAnalysis;
 
 }
 
@@ -37,18 +49,35 @@ namespace sim {
 template<typename T>
 class CFDSimulator {
 protected:
-    int const id;                           ///< Id of the simulator.
-    std::string name;                       ///< Name of the simulator.
-    std::string vtkFolder = "./tmp/";       ///< Folder in which vtk files will be saved.
-    std::string vtkFile = ".";              ///< File in which last file was saved.
-    bool initialized = false;               ///< Is the simulator initialized.
-    std::string stlFile;                    ///< The STL file of the CFD domain.
+    inline static size_t simulatorCounter = 0;  ///< Global counter for amount of created CFD simulator objects.
+    size_t const id;                            ///< Id of the simulator.
+    std::string name;                           ///< Name of the simulator.
+    std::string vtkFolder = "./tmp/";           ///< Folder in which vtk files will be saved.
+    std::string vtkFile = ".";                  ///< File in which last file was saved.
+    bool initialized = false;                   ///< Is the simulator initialized.
+    /** TODO: Move STL file to CfdModule */
+    std::string stlFile;                        ///< The STL file of the CFD domain.
 
-    std::shared_ptr<arch::Module<T>> cfdModule;                     ///< A pointer to the module, upon which this simulator acts.
-    std::shared_ptr<arch::Network<T>> moduleNetwork;                ///< Fully connected graph as network for the initial approximation.
+    std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;        ///< A pointer to the module, upon which this simulator acts.
+    std::shared_ptr<arch::Network<T>> moduleNetwork = nullptr;      ///< Fully connected graph as network for the initial approximation.
+    /** TODO: Move moduleOpenings to CfdModule */
     std::unordered_map<int, arch::Opening<T>> moduleOpenings;       ///< Map of openings. <nodeId, arch::Opening>
     std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver. <nodeId, bool>
-    std::shared_ptr<mmft::Scheme<T>> updateScheme;                  ///< The update scheme for Abstract-CFD coupling
+    mmft::Scheme<T>* updateScheme = nullptr;                        ///< The update scheme for Abstract-CFD coupling
+
+    /**
+     * @brief A static member function that resets the CFD simulator object counter to zero.
+     * Used as a helper function to reset the static variable between tests.
+     * Is called in (friend) test::definitions::GlobalTest<T>::SetUp(), which overrides ::testing::Test.
+     */
+    static void resetSimulatorCounter() { simulatorCounter = 0; }
+
+    /**
+     * @brief A static member function that returns the amount of CFD simulator objects that have been created.
+     * Is used in (friend) HybridContinuous<T>::add(Lbm)Simulator() to create a LBM simulators object and add it to the simulation.
+     * @returns The number of created CFD simulator objects: simulatorCounter.
+     */
+    [[nodiscard]] static size_t getSimulatorCounter() { return simulatorCounter; }
 
     /**
      * @brief Constructor of a CFDSimulator, which acts as a base definition for other simulators.
@@ -57,10 +86,9 @@ protected:
      * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
      * @param[in] cfdModule Shared pointer to the module on which this solver acts.
      * @param[in] openings Map of openings corresponding to the nodes.
-     * @param[in] ResistanceModel The resistance model used for the simulation, necessary to set the initial condition.
      */
-    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
-                std::unordered_map<int, arch::Opening<T>> openings, const ResistanceModel<T>* ResistanceModel);
+    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::CfdModule<T>> cfdModule, 
+                std::unordered_map<int, arch::Opening<T>> openings);
 
     /**
      * @brief Constructor of a CFDSimulator, which acts as a base definition for other simulators.
@@ -72,8 +100,8 @@ protected:
      * @param[in] updateScheme Shared pointer to the update scheme for Abstract-CFD coupling.
      * @param[in] ResistanceModel The resistance model used for the simulation, necessary to set the initial condition.
      */
-    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> cfdModule, 
-                std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme, const ResistanceModel<T>* ResistanceModel);
+    CFDSimulator(int id, std::string name, std::string stlFile, std::shared_ptr<arch::CfdModule<T>> cfdModule, 
+                std::unordered_map<int, arch::Opening<T>> openings, std::shared_ptr<mmft::Scheme<T>> updateScheme);
 
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
@@ -83,86 +111,7 @@ protected:
         throw std::runtime_error("The function executeCoupling is undefined for this CFD simulator.");
     };
 
-public:
-    
-    virtual ~CFDSimulator() = default;
-
-    /**
-     * @brief Get id of the simulator.
-     * @returns id.
-    */
-    int getId() const;
-
-    /**
-     * @brief Get a shared ptr to the module, upon which this simulator acts.
-     * @return Network of the fully connected graph.
-    */
-    std::shared_ptr<arch::Module<T>> getModule() const;
-
-    /**
-     * @brief Get the fully connected graph of this module, that is used for the initial approximation.
-     * @return Network of the fully connected graph.
-    */
-    std::shared_ptr<arch::Network<T>> getNetwork() const;
-
-    /**
-     * @brief Get the ground nodes of the module.
-     * @returns Ground nodes.
-    */
-    std::unordered_map<int, bool> getGroundNodes();
-
-    /**
-     * @brief Set the nodes of the module that communicate the pressure to the abstract solver.
-     * @param[in] groundNodes Map of nodes.
-     */
-    void setGroundNodes(std::unordered_map<int, bool> groundNodes);
-
-    /**
-     * @brief Returns whether the module is initialized or not.
-     * @returns Boolean for initialization.
-    */
-    bool getInitialized() const;
-
-    /**
-     * @brief Get the openings of the module.
-     * @returns Module openings.
-     */
-    std::unordered_map<int, arch::Opening<T>> getOpenings() const;
-
-    /**
-     * @brief Set the initialized status for this module.
-     * @param[in] initialization Boolean for initialization status.
-    */
-    void setInitialized(bool initialization);
-
-    /**
-     * @brief Set the update scheme for Abstract-CFD coupling for this simulator.
-     */
-    void setUpdateScheme(const std::shared_ptr<mmft::Scheme<T>>& updateScheme);
-
-    /**
-     * @brief Set the path, where vtk output from the simulator should be stored.
-     * @param[in] vtkFolder A string containing the path to the vtk folder.
-     */
-    void setVtkFolder(std::string vtkFolder);
-
-    /**
-     * @brief Get the location of the last created vtk file.
-     * @returns vtkFile.
-     */
-    std::string getVtkFile();
-
-    /**
-     * @brief Get the relaxation factor for pressure update values, alpha.
-     * @returns alpha.
-    */
-    T getAlpha(int nodeId);
-
-    /**
-     * @brief Get the relaxation factor for flow rate update values, beta.
-     * @returns beta.
-    */
-    T getBeta(int nodeId);
+    void initialize(const ResistanceModel<T>* resistanceModel);
 
     /**
      * @brief Initialize an instance of the LBM solver for this simulator.
@@ -176,12 +125,6 @@ public:
     */
     virtual void solve() = 0;
 
-    /**
-     * @brief Returns whether the module has converged or not.
-     * @returns Boolean for module convergence.
-    */
-    virtual bool hasConverged() const = 0;
-
     /** TODO: Miscellaneous */
     virtual void storePressures(std::unordered_map<int, T> pressure) = 0;
 
@@ -189,7 +132,7 @@ public:
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
-    virtual std::unordered_map<int, T> getPressures() const = 0;
+    virtual const std::unordered_map<int, T>& getPressures() const = 0;
 
     /**
      * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
@@ -201,32 +144,19 @@ public:
      * @brief Get the flow rates at the boundary nodes.
      * @returns Flow rates in m^3/s.
      */
-    virtual std::unordered_map<int, T> getFlowRates() const = 0;
+    virtual const std::unordered_map<int, T>& getFlowRates() const = 0;
 
     /**
-     * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
-     * @param[in] concentrations Map of concentrations and node ids.
-     */
-    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) 
-    {
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-    }
-
-    /**
-     * @brief Get the concentrations at the boundary nodes.
-     * @returns Concentrations
-     */
-    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
-    { 
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-        return std::unordered_map<int, std::unordered_map<int, T>>(); 
-    }
-
-    /**
-     * @brief Set the boundary values on the lattice at the module nodes.
-     * @param[in] iT Iteration step.
+     * @brief Returns whether the module has converged or not.
+     * @returns Boolean for module convergence.
     */
-    virtual void setBoundaryValues(int iT) = 0;
+    virtual bool hasConverged() const = 0;
+
+    /**
+     * @brief Set the nodes of the module that communicate the pressure to the abstract solver.
+     * @param[in] groundNodes Map of nodes.
+     */
+    inline void setGroundNodes(std::unordered_map<int, bool> groundNodes) { this->groundNodes = groundNodes; }
 
     /**
      * @brief Prepare the LBM geometry of this simulator.
@@ -259,6 +189,112 @@ public:
     {
         throw std::runtime_error("The function adSolve is undefined for this CFD simulator.");
     }
+
+    /**
+     * @brief Returns whether the AD lattices have converged or not.
+     * @returns Boolean for AD convergence.
+    */
+    inline virtual bool hasAdConverged() const { return false; }
+
+    /**
+     * @brief Set the update scheme for Abstract-CFD coupling for this simulator.
+     */
+    inline void setUpdateScheme(mmft::Scheme<T>* updateScheme) { this->updateScheme = updateScheme; }
+
+public:
+    
+    virtual ~CFDSimulator() = default;
+
+    /**
+     * @brief Get id of the simulator.
+     * @returns id.
+    */
+    [[nodiscard]] inline int getId() const { return id; }
+
+    /**
+     * @brief Get a shared ptr to the module, upon which this simulator acts.
+     * @return Network of the fully connected graph.
+    */
+    [[nodiscard]] inline std::shared_ptr<arch::CfdModule<T>> getModule() const { return cfdModule; }
+
+    /**
+     * @brief Get the fully connected graph of this module, that is used for the initial approximation.
+     * @return Network of the fully connected graph.
+    */
+    [[nodiscard]] inline std::shared_ptr<arch::Network<T>> getNetwork() const { return moduleNetwork;}
+
+    /**
+     * @brief Get the ground nodes of the module.
+     * @returns Ground nodes.
+    */
+    [[nodiscard]] inline const std::unordered_map<int, bool>& getGroundNodes() { return groundNodes; }
+
+    /**
+     * @brief Returns whether the module is initialized or not.
+     * @returns Boolean for initialization.
+    */
+    [[nodiscard]] inline bool getInitialized() const { return initialized; }
+
+    /**
+     * @brief Get the openings of the module.
+     * @returns Module openings.
+     */
+    [[nodiscard]] inline const std::unordered_map<int, arch::Opening<T>>& getOpenings() const { return moduleOpenings; }
+
+    /**
+     * @brief Set the initialized status for this module.
+     * @param[in] initialization Boolean for initialization status.
+    */
+    inline void setInitialized(bool initialization) { this->initialized = initialization; }
+
+    /**
+     * @brief Set the path, where vtk output from the simulator should be stored.
+     * @param[in] vtkFolder A string containing the path to the vtk folder.
+     */
+    inline void setVtkFolder(std::string vtkFolder) { this->vtkFolder = vtkFolder; }
+
+    /**
+     * @brief Get the location of the last created vtk file.
+     * @returns vtkFile.
+     */
+    [[nodiscard]] inline const std::string& getVtkFile() const { return this->vtkFile; }
+
+    /**
+     * @brief Get the relaxation factor for pressure update values, alpha.
+     * @returns alpha.
+    */
+    [[nodiscard]] inline T getAlpha(int nodeId) const { return updateScheme->getAlpha(nodeId); }
+
+    /**
+     * @brief Get the relaxation factor for flow rate update values, beta.
+     * @returns beta.
+    */
+    [[nodiscard]] inline T getBeta(int nodeId) const {return updateScheme->getBeta(nodeId);}
+
+    /**
+     * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
+     * @param[in] concentrations Map of concentrations and node ids.
+     */
+    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) 
+    {
+        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Get the concentrations at the boundary nodes.
+     * @returns Concentrations
+     */
+    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
+    { 
+        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
+        return std::unordered_map<int, std::unordered_map<int, T>>(); 
+    }
+
+    /**
+     * @brief Set the boundary values on the lattice at the module nodes.
+     * @param[in] iT Iteration step.
+    */
+    virtual void setBoundaryValues(int iT) = 0;
 
     /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
@@ -318,13 +354,12 @@ public:
         throw std::runtime_error("The function storeCfdResults is undefined for this CFD simulator.");
     }
 
-    /**
-     * @brief Returns whether the AD lattices have converged or not.
-     * @returns Boolean for AD convergence.
-    */
-    virtual bool hasAdConverged() const { return false; }
-
-    friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
+    friend bool conductCFDSimulation<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
+    friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
+    friend bool conductADSimulation<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
+    friend class HybridContinuous<T>;
+    friend class nodal::NodalAnalysis<T>;
+    friend class test::definitions::GlobalTest<T>;
 
 };
 

@@ -58,9 +58,9 @@ private:
     void clear();
 
     // For hybrid simulations
-    void readCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
-    void writeCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
-    void initGroundNodes(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+    void readCfdSimulators(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+    void writeCfdSimulators(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+    void initGroundNodes(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
 
     // Helper functions
     bool contains( const std::unordered_set<int>& set, int key);
@@ -88,7 +88,7 @@ public:
      * @param[in] network Pointer to the network on which the nodal analysis is conducted. Results are stored in the network's nodes.
      * @param[in] cfdSimulators The cfd simulators for a hybrid simulation
      */
-    bool conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
+    bool conductNodalAnalysis(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators);
 
 };
 

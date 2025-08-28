@@ -24,11 +24,9 @@ class FlowRatePump;
 template<typename T>
 class Membrane;
 template<typename T>
-class lbmModule;
+class CfdModule;
 template<typename T>
 class essLbmModule;
-template<typename T>
-class Module;
 template<typename T>
 class Network;
 template<typename T>
@@ -94,10 +92,10 @@ private:
     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps;    ///< Map of ids and channel pointers to pressure pumps in the network.
     std::unordered_map<int, std::unique_ptr<Membrane<T>>> membranes;            ///< Map of ids and membrane pointer of all membranes in the network.
     std::unordered_map<int, std::unique_ptr<Tank<T>>> tanks;                    ///< Map of ids and tank pointer of all tanks in the network.
-    std::unordered_map<int, std::shared_ptr<Module<T>>> modules;                ///< Map of ids and module pointers to modules in the network.
+    std::unordered_map<int, std::shared_ptr<CfdModule<T>>> modules;             ///< Map of ids and module pointers to modules in the network.
     std::unordered_map<int, std::unique_ptr<Group<T>>> groups;                  ///< Map of ids and pointers to groups that form the (unconnected) 1D parts of the network
     std::unordered_map<int, std::unordered_map<int, RectangularChannel<T>*>> reach; ///< Set of nodes and corresponding channels (reach) at these nodes in the network.
-    std::unordered_map<int, std::shared_ptr<Module<T>>> modularReach;           ///< Set of nodes with corresponding module (or none) at these nodes in the network.
+    std::unordered_map<int, std::shared_ptr<CfdModule<T>>> modularReach;        ///< Set of nodes with corresponding module (or none) at these nodes in the network.
 
     int virtualNodes = 0;
 
@@ -113,7 +111,7 @@ private:
             std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
             std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
             std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
-            std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
+            std::unordered_map<int, std::unique_ptr<CfdModule<T>>> modules);
 
     /**
      * @brief Constructor of the Network
@@ -129,11 +127,11 @@ private:
     */
     Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
 
-    /**
-     * @brief Constructor of the Network from a JSON string
-     * @param json json string
-    */
-    Network(std::string jsonFile);
+    // /**
+    //  * @brief Constructor of the Network from a JSON string
+    //  * @param json json string
+    // */
+    // Network(std::string jsonFile);
 
     /**
      * @brief Constructor of a Network object.
@@ -169,7 +167,7 @@ public:
                                                     std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels,
                                                     std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePump,
                                                     std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePump,
-                                                    std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
+                                                    std::unordered_map<int, std::unique_ptr<CfdModule<T>>> modules);
 
     /**
      * @brief Factory function to create a Network object and returns a shared_ptr.
@@ -290,9 +288,9 @@ public:
      * @param[in] nodes Map of nodes that are on the module boundary.
      * @return Pointer to the newly created module.
     */
-    std::shared_ptr<Module<T>> addModule(std::vector<T> position,
-                                        std::vector<T> size,
-                                        std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
+    std::shared_ptr<CfdModule<T>> addCfdModule(std::vector<T> position,
+                                            std::vector<T> size,
+                                            std::unordered_map<int, std::shared_ptr<Node<T>>> nodes);
 
     /**
      * @brief Adds a new module to the network.
@@ -301,14 +299,14 @@ public:
      * @param[in] nodes Vector of node id's of nodes that are on the module boundary.
      * @return Pointer to the newly created module.
     */
-    std::shared_ptr<Module<T>> addModule(std::vector<T> position,
-                                        std::vector<T> size,
-                                        std::vector<int> nodes);
+    std::shared_ptr<CfdModule<T>> addCfdModule(std::vector<T> position,
+                                            std::vector<T> size,
+                                            std::vector<int> nodes);
 
     /**
      * @brief Adds a new module to the network.
     */
-    int addModule();
+    int addCfdModule();
 
     /**
      * @brief Checks if a node with the specified id exists in the network.
@@ -353,7 +351,7 @@ public:
      * @brief Set the modules of the network for a hybrid simulation.
      * @param[in] modules The modules that handle the CFD simulations.
     */
-    void setModules(std::unordered_map<int, std::unique_ptr<Module<T>>> modules);
+    void setModules(std::unordered_map<int, std::unique_ptr<CfdModule<T>>> modules);
 
     /**
      * @brief Checks and returns if a node is a sink.
@@ -520,13 +518,13 @@ public:
     /**
      * @brief Get a pointer to the module with the specidic id.
     */
-    std::shared_ptr<Module<T>> getModule(int moduleId) const;
+    std::shared_ptr<CfdModule<T>> getCfdModule(int moduleId) const;
 
     /**
      * @brief Get the modules of the network.
      * @returns Modules.
     */
-    const std::unordered_map<int, std::shared_ptr<Module<T>>>& getModules() const;
+    const std::unordered_map<int, std::shared_ptr<CfdModule<T>>>& getCfdModules() const;
 
     /**
      * @brief Get the groups in the network.

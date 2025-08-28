@@ -12,7 +12,15 @@ namespace arch {
 
 // Forward declared dependencies
 template<typename T>
-class Module;
+class CfdModule;
+
+}
+
+namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class HybridContinuous;
 
 }
 
@@ -23,17 +31,9 @@ namespace mmft{
  * given constant for all nodes.
  */
 template<typename T>
-class NaiveScheme : public Scheme<T> {
+class NaiveScheme final : public Scheme<T> {
 
-public:
-    /**
-     * @brief Constructor of the Naive Scheme with provided constants.
-     * @param[in] modules The map of modules with boundary nodes upon which this scheme acts.
-     * @param[in] alpha The relaxation value for the pressure value update.
-     * @param[in] beta The relaxation value of the flow rate value update.
-     * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
-     */
-    NaiveScheme(const std::unordered_map<int, std::shared_ptr<arch::Module<T>>>& modules, T alpha, T beta, int theta);
+private:
 
     /**
      * @brief Constructor of the Naive Scheme with provided constants.
@@ -42,7 +42,7 @@ public:
      * @param[in] beta The relaxation value of the flow rate value update.
      * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
      */
-    NaiveScheme(const std::shared_ptr<arch::Module<T>> module, T alpha, T beta, int theta);
+    NaiveScheme(const std::shared_ptr<arch::CfdModule<T>> module, T alpha, T beta, int theta);
 
     /**
      * @brief Constructor of the Naive Scheme with provided constants.
@@ -51,7 +51,7 @@ public:
      * @param[in] beta The relaxation value of the flow rate value update.
      * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
      */
-    NaiveScheme(const std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
+    NaiveScheme(const std::shared_ptr<arch::CfdModule<T>> module, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
 
     /**
      * @brief Constructor of the Naive Scheme with provided constants.
@@ -70,7 +70,17 @@ public:
      * @param[in] beta The relaxation value of the flow rate value update.
      * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
      */
-    NaiveScheme(std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, std::unordered_map<int, int> theta);
+    NaiveScheme(std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
+
+    /**
+     * @brief Returns whether this scheme is naive or not
+     * @returns true
+     * @note This function overrides Scheme::isNaive() which defaults to false
+     */
+    bool isNaive() const override { return true; }
+
+    // Friend class definition, because the Scheme constructors are private
+    friend class sim::HybridContinuous<T>;
 
 };
 

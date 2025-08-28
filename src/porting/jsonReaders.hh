@@ -62,7 +62,7 @@ void readModules(json jsonString, arch::Network<T>& network) {
         for (auto& nodeId : module["nodes"]) {
             Nodes.try_emplace(nodeId, network.getNode(nodeId));
         }
-        network.addModule(position, size, std::move(Nodes));
+        network.addCfdModule(position, size, std::move(Nodes));
     }
 }
 
@@ -248,7 +248,7 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             std::string stlFile = simulator["stlFile"];
             T charPhysLength = simulator["charPhysLength"];
             T charPhysVelocity = simulator["charPhysVelocity"];
-            T resolution = simulator["resolution"];
+            size_t resolution = simulator["resolution"];
             T epsilon = simulator["epsilon"];
             T tau = simulator["tau"];
             int moduleId = simulator["moduleId"];
@@ -262,8 +262,10 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
 
             if(simulator["Type"] == "LBM")
             {
-                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
-                                                            charPhysVelocity, resolution, epsilon, tau);
+                assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
+                /** TODO: More elegant solution for downcast */
+                auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), Openings, stlFile, resolution,
+                                                            epsilon, tau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }
             /** TODO: HybridMixingSimulation
@@ -275,7 +277,7 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
             //         species.try_emplace(specieId, speciePtr.get());
             //     }
-            //     auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+            //     auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
             //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
             //     simulator->setVtkFolder(vtkFolder);
             // }
@@ -290,14 +292,14 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             //     }
             //     std::string organStlFile = simulator["organStlFile"];
             //     int tissueId = simulator["tissue"];
-            //     auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+            //     auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getCfdModule(moduleId), species,
             //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
             //     simulator->setVtkFolder(vtkFolder);
             // }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
-                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getCfdModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
                 #else
@@ -335,11 +337,12 @@ void readUpdateScheme(json jsonString, sim::HybridContinuous<T>& simulation) {
                 for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
                     if (simulator.contains("alpha") && simulator.contains("beta") && simulator.contains("theta")) {
                         int moduleCounter = 0;
+                        auto lbmSimulator = simulation.getLbmSimulator(moduleCounter);
                         if (simulator["alpha"].is_number() && simulator["beta"].is_number()) {
                             T alpha = simulator["alpha"];
                             T beta = simulator["beta"];
                             int theta = simulator["theta"];
-                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                            simulation.setNaiveHybridScheme(lbmSimulator, alpha, beta, theta);
                         } else if (simulator["alpha"].is_array() && simulator["beta"].is_array()) {
                             int nodeCounter = 0;
                             std::unordered_map<int, T> alpha;
@@ -347,10 +350,10 @@ void readUpdateScheme(json jsonString, sim::HybridContinuous<T>& simulation) {
                             int theta = simulator["theta"];
                             for (auto& opening : simulator["Openings"]) {
                                 alpha.try_emplace(opening["node"], simulator["alpha"][nodeCounter]);
-                                alpha.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
+                                beta.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
                                 nodeCounter++;
                             }
-                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                            simulation.setNaiveHybridScheme(lbmSimulator, alpha, beta, theta);
                         }
                         moduleCounter++;
                     } else {

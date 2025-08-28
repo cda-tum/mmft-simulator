@@ -58,6 +58,20 @@ class ResistanceModel {
    * @return Resistance caused by the droplet in the channel in Pas/L.
    */
   virtual T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const = 0;
+
+  /**
+   * @brief Returns whether this resistance model is a 1D resistance model.
+   * @returns false
+   * @note Is overridden by ResistanceModel1D::is1dModel() which defaults to true.
+   */
+  virtual bool is1dModel() const { return false; }
+
+  /**
+   * @brief Returns whether this resistance model is a poiseuille resistance model.
+   * @returns false
+   * @note Is overridden by ResistanceModelPoiseuille::isPoiseuilleModel() which defaults to true.
+   */
+  virtual bool isPoiseuilleModel() const { return false; }
 };
 
 /**
@@ -97,6 +111,13 @@ class ResistanceModel1D final : public ResistanceModel<T> {
      */
     T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
 
+    /**
+     * @brief Returns whether this resistance model is a 1D resistance model.
+     * @returns true
+     * @note Overrides by ResistanceModel::is1dModel() which defaults to false.
+     */
+    bool is1dModel() const override { return true; }
+
 };
 
 /**
@@ -135,6 +156,13 @@ class ResistanceModelPoiseuille final : public ResistanceModel<T>{
      * @return Resistance caused by the droplet in the channel in Pas/L.
      */
     T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
+
+    /**
+     * @brief Returns whether this resistance model is a poiseuille resistance model.
+     * @returns true
+     * @note Overrides by ResistanceModel::isPoiseuilleModel() which defaults to false.
+     */
+    bool isPoiseuilleModel() const override { return true; }
 
 };
 

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <math.h>
 #include <memory>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -118,7 +119,7 @@ protected:
     /**
      * @brief Wrapper function that conducts the nodal analysis of the nodalAnalysis object.
      */
-    inline void conductNodalAnalysis() { nodalAnalysis->conductNodalAnalysis(); }
+    virtual std::optional<bool> conductNodalAnalysis() { nodalAnalysis->conductNodalAnalysis(); return std::nullopt; }
 
     /**
      * @brief Returns a reference to the nodalAnalysis shared_ptr.
@@ -217,12 +218,12 @@ public:
     /**
      * @brief Sets the resistance model for abstract simulation components to the 1D resistance model
      */
-    void set1DResistanceModel();
+    virtual void set1DResistanceModel();
 
     /**
      * @brief Sets the resistance model for abstract simulation components to the poiseuille resistance model
      */
-    void setPoiseuilleResistanceModel();
+    virtual void setPoiseuilleResistanceModel();
 
     /**
      * @brief Create fluid and add to the simulation.

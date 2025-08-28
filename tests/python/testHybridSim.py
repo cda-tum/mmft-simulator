@@ -114,7 +114,7 @@ def hybridContinuous():
     network.addChannel(n9, n10, 1e-4, 1e-4, ChannelType.normal)
 
     # Module
-    network.addModule("test", "../../../../examples/STL/cross.stl", [1.75e-3, 0.75e-3], [5e-4, 5e-4], [n5, n7, n8, n9], \
+    network.addCfdModule("test", "../../../../examples/STL/cross.stl", [1.75e-3, 0.75e-3], [5e-4, 5e-4], [n5, n7, n8, n9], \
                       [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], \
                         1e-4, 1e-1, 0.1, 20, 1e-1, 0.55)
 

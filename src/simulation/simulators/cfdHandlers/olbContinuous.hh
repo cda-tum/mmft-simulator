@@ -5,23 +5,35 @@ namespace sim{
 
 template<typename T>
 lbmSimulator<T>::lbmSimulator (
-    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
-    const ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_) : 
-        CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_), 
-        charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_), resolution(resolution_), 
+    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::CfdModule<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
+    size_t resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_) : 
+        CFDSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_), 
+        resolution(resolution_), charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_),  
         epsilon(epsilon_), relaxationTime(relaxationTime_)
 { 
+    if (name_ == "") {
+        this->name = std::move(getDefaultName(id_));
+    }
     this->cfdModule->setModuleTypeLbm();
 } 
 
 template<typename T>
 lbmSimulator<T>::lbmSimulator (
-    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
-    std::shared_ptr<mmft::Scheme<T>> updateScheme_, const ResistanceModel<T>* resistanceModel_, T charPhysLength_, T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_) : 
-        lbmSimulator(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, resolution_, epsilon_, relaxationTime_)
+    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::CfdModule<T>> cfdModule_, std::unordered_map<int, arch::Opening<T>> openings_, 
+    std::shared_ptr<mmft::Scheme<T>> updateScheme_, size_t resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_) : 
+        lbmSimulator(id_, name_, stlFile_, cfdModule_, openings_, resolution_, charPhysLength_, charPhysVelocity_, epsilon_, relaxationTime_)
 { 
+    if (name_ == "") {
+        this->name = std::move(getDefaultName(id_));
+    }
     this->updateScheme = updateScheme_;
+    this->cfdModule->setModuleTypeLbm();
 } 
+
+template<typename T>
+std::string lbmSimulator<T>::getDefaultName(int id) {
+    return std::string("olbContinuous-" + std::to_string(id));
+}
 
 template<typename T>
 void lbmSimulator<T>::lbmInit (T dynViscosity, T density) {
@@ -29,11 +41,19 @@ void lbmSimulator<T>::lbmInit (T dynViscosity, T density) {
     setOutputDir();
     initValueContainers();
     initNsConverter(dynViscosity, density);
-    initNsConvergeTracker();    
+    initNsConvergeTracker();
+    isInitialized = true;
 
     #ifdef VERBOSE
         std::cout << "[lbmSimulator] lbmInit " << this->name << "... OK" << std::endl;
     #endif
+}
+
+template<typename T>
+void lbmSimulator<T>::checkInitialized () {
+    if (!this->isInitialized) {
+        throw std::logic_error("The LBM simulator was not initialized correctly.");
+    }
 }
 
 template<typename T>
@@ -159,7 +179,8 @@ void lbmSimulator<T>::writeVelocityPpm (T min, T max, int imgResolution) {
 
 template<typename T>
 void lbmSimulator<T>::solve() {
-    int theta = this->updateScheme->getTheta(this->cfdModule->getId());
+    checkInitialized();
+    int theta = this->updateScheme->getTheta();
     this->setBoundaryValues(step);
     for (int iT = 0; iT < theta; ++iT){    
         writeVTK(step);       
@@ -180,6 +201,9 @@ void lbmSimulator<T>::setOutputDir () {
 
 template<typename T>
 void lbmSimulator<T>::initValueContainers () {
+    // Clear any artifact values
+    pressures.clear();
+    flowRates.clear();
 
     // Initialize pressure and flow rate value-containers
     for (auto& [key, node] : this->moduleOpenings) {
@@ -451,7 +475,7 @@ std::tuple<T, T> lbmSimulator<T>::getPressureBounds() {
 template<typename T>
 std::tuple<T, T> lbmSimulator<T>::getVelocityBounds() {
     olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(getLattice(), getConverter());
-    olb::SuperEuklidNorm2D<T, DESCRIPTOR> normVel( velocity );   
+    olb::SuperEuklidNorm2D<T, DESCRIPTOR> normVel( velocity );
     olb::SuperMin2D<T> minVelF( normVel, getGeometry(), 1);
     olb::SuperMax2D<T> maxVelF( normVel, getGeometry(), 1);
     int input[0];

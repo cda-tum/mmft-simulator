@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators) {
+    bool conductCFDSimulation(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators) {
 
         bool allConverge = true;
 
@@ -28,7 +28,7 @@ namespace sim {
     }
 
     template<typename T>
-    void coupleNsAdLattices(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators) {
+    void coupleNsAdLattices(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators) {
         
         // loop through modules and perform the coupling between the NS and AD lattices
         for (const auto& cfdSimulator : cfdSimulators) {
@@ -47,7 +47,7 @@ namespace sim {
     }
 
     template<typename T>
-    bool conductADSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators) {
+    bool conductADSimulation(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators) {
 
         bool allConverge = true;
 

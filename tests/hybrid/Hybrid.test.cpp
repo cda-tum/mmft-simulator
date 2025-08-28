@@ -51,7 +51,7 @@ TEST_F(Hybrid, Case1a) {
     nodes.try_emplace(8, network->getNode(8));
     nodes.try_emplace(9, network->getNode(9));
 
-    auto m0 = network->addModule(position, size, nodes);
+    auto m0 = network->addCfdModule(position, size, nodes);
 
     // define simulation
     sim::HybridContinuous<T> testSimulation(network);
@@ -69,7 +69,7 @@ TEST_F(Hybrid, Case1a) {
     std::string stlFile = "../examples/STL/cross.stl";
     T charPhysLength = 1e-4;
     T charPhysVelocity = 1e-1;
-    T resolution = 20;
+    size_t resolution = 20;
     T epsilon = 1e-1;
     T tau = 0.55;
     std::unordered_map<int, arch::Opening<T>> Openings;
@@ -78,7 +78,7 @@ TEST_F(Hybrid, Case1a) {
     Openings.try_emplace(8, arch::Opening<T>(network->getNode(8), std::vector<T>({0.0, 1.0}), 1e-4));
     Openings.try_emplace(9, arch::Opening<T>(network->getNode(9), std::vector<T>({-1.0, 0.0}), 1e-4));
 
-    testSimulation.addLbmSimulator(name, stlFile, network->getModule(m0->getId()), Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+    testSimulation.addLbmSimulator(network->getCfdModule(m0->getId()), Openings, stlFile, resolution, epsilon, tau, charPhysLength, charPhysVelocity, name);
     testSimulation.setNaiveHybridScheme(0.1, 0.5, 10);
     network->sortGroups();
 

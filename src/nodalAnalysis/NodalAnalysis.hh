@@ -8,7 +8,7 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     nNodes = network->getNodes().size() + network->getVirtualNodes();
 
     // loop through modules
-    for (const auto& [key, module] : network->getModules()) {
+    for (const auto& [key, module] : network->getCfdModules()) {
         // For now only LBM modules implemented.
         #ifndef USE_ESSLBM
         assert(module->getModuleType() == arch::ModuleType::LBM);
@@ -35,7 +35,7 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     }
     
     nPressurePumps = network->getPressurePumps().size() + groundNodeIds.size();
-    int nNodesAndPressurePumps = nNodes + nPressurePumps + network->getModules().size();
+    int nNodesAndPressurePumps = nNodes + nPressurePumps + network->getCfdModules().size();
 
     A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
     z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
@@ -89,7 +89,7 @@ void NodalAnalysis<T>::conductNodalAnalysis() {
 }
 
 template<typename T>
-bool NodalAnalysis<T>::conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+bool NodalAnalysis<T>::conductNodalAnalysis(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
     clear();
     readConductance();
     readCfdSimulators(cfdSimulators);
@@ -252,7 +252,7 @@ void NodalAnalysis<T>::initGroundNodes() {
 }
 
 template<typename T>
-void NodalAnalysis<T>::initGroundNodes(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+void NodalAnalysis<T>::initGroundNodes(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
     // Initialize the ground nodes of the groups
     for (const auto& [key, group] : network->getGroups()) {
         if (!group->initialized && !group->grounded) {
@@ -309,7 +309,7 @@ void NodalAnalysis<T>::initGroundNodes(std::unordered_map<int, std::unique_ptr<s
 }
 
 template<typename T>
-void NodalAnalysis<T>::readCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+void NodalAnalysis<T>::readCfdSimulators(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
     for (const auto& [key, cfdSimulator] : cfdSimulators) {
         // If module is not initialized (1st loop), loop over channels of fully connected graph
         if ( ! cfdSimulator->getInitialized() ) {
@@ -356,7 +356,7 @@ void NodalAnalysis<T>::readCfdSimulators(std::unordered_map<int, std::unique_ptr
 }
 
 template<typename T>
-void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+void NodalAnalysis<T>::writeCfdSimulators(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
 
     // Set the pressures and flow rates on the boundary nodes of the modules
     for (auto& cfdSimulator : cfdSimulators) {

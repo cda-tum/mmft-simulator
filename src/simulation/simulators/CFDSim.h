@@ -19,13 +19,13 @@ class CFDSimulator;
  * @returns A boolean for whether all simulators have converged, or not.
  */
 template<typename T>
-bool conductCFDSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
+bool conductCFDSimulation(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
 
 /**
  * @brief Conduct the coupling step between the AD lattice and the NS lattice for all simulators.
  */
 template<typename T>
-void coupleNsAdLattices(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
+void coupleNsAdLattices(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
 
 /**
  * @brief Conduct the AD simulation step (of theta iterations) for all CFD simulators on the simulation. 
@@ -33,6 +33,6 @@ void coupleNsAdLattices(const std::unordered_map<int, std::unique_ptr<CFDSimulat
  * @returns A boolean for whether all simulators have converged, or not.
  */
 template<typename T>
-bool conductADSimulation(const std::unordered_map<int, std::unique_ptr<CFDSimulator<T>>>& cfdSimulators);
+bool conductADSimulation(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
 
 }   // namespace sim

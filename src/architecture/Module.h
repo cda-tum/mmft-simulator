@@ -35,14 +35,14 @@ enum class ModuleType {
 */
 template<typename T>
 class Module {
-    protected:
+protected:
         int const id;                   ///< Id of the module.
         std::vector<T> pos;             ///< Position (x, y) of the lower left corner of the module.
         std::vector<T> size;            ///< Size (x, y) of the rectangular module.
         std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes;    ///< List of nodes that are placed on the boundary of the module.
         ModuleType moduleType = ModuleType::NORMAL;     ///< Type of module.
 
-    public:
+public:
     /**
      * @brief Constructor of the module.
      * @param[in] id Id of the module.
@@ -51,6 +51,16 @@ class Module {
      * @param[in] boundaryNodes Map of nodes that are on the boundary of the module.
     */
     Module(int id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes);
+
+    /**
+     * @brief Constructor of the module.
+     * @param[in] id Id of the module.
+     * @param[in] pos Absolute position of the module in _m_, from the bottom left corner of the microfluidic device.
+     * @param[in] size Size of the module in _m_.
+     * @param[in] boundaryNodes Map of nodes that are on the boundary of the module.
+     * @param[in] type The module type of this module.
+    */
+    Module(int id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes, ModuleType type);
 
     /**
      * @brief Get id of the module.
@@ -98,7 +108,33 @@ class Module {
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */
-    ModuleType getModuleType() const;
+    virtual ModuleType getModuleType() const;
+};
+
+/**
+ * @brief A class that specifies a CFD module. On this module, an LBM simulation using a OpenLB simulator can be conducted. 
+*/
+template<typename T>
+class CfdModule final : public Module<T> {
+
+public:
+
+    /**
+     * @brief Constructs a CFD module.
+     * @param[in] id Id of the module.
+     * @param[in] pos Absolute position of the module in _m_, from the bottom left corner of the microfluidic device.
+     * @param[in] size Size of the module in _m_.
+     * @param[in] boundaryNodes Map of nodes that are on the boundary of the module.
+     * @note The module type is defaulted to ModuleType::LBM
+    */
+    CfdModule(int id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes);
+
+    /**
+     * @brief Checks whether this CFD module has valid STL and Openings definitions.
+     * @throws invalid_argument if a definition is missing for STL and Openings.
+     */
+    void assertInitialized();
+
 };
 
 }   // namespace arch
