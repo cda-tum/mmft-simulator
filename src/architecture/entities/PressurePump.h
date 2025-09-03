@@ -17,12 +17,11 @@ class Node;
  * @brief Class to specify a pressure pump, which is a component of a chip.
  */
 template<typename T>
-class PressurePump : public virtual Edge<T> {
+class PressurePump final : public Edge<T> {
 private:
   T pressure;      ///< Pressure of pump in Pa.
   T flowRate = 0;  ///< Flow rate of pump in m^3/s.
 
-public:
   /**
    * @brief Constructor to create pressure pump.
    * @param[in] id Id of the pressure pump.
@@ -32,6 +31,7 @@ public:
    */
   PressurePump(int id, int nodeA, int nodeB, T pressure);
 
+public:
   /**
    * @brief Set pressure of the pump.
    * @param[in] pressure Pressure of the pump in Pa.

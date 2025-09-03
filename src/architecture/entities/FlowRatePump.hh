@@ -3,7 +3,7 @@
 namespace arch {
 
 template<typename T>
-FlowRatePump<T>::FlowRatePump(int id, int nodeA_, int nodeB_, T flowRate_) : 
+FlowRatePump<T>::FlowRatePump(size_t id, int nodeA_, int nodeB_, T flowRate_) : 
     Edge<T>(id, nodeA_, nodeB_), flowRate(flowRate_) { }
 
 template<typename T>

@@ -49,9 +49,9 @@ TEST_F(Tank, TwoTank) {
   auto node2 = network->addNode(0.0, cMembraneLength);
 
   // create channels
-  auto *c1 = network->addChannel(node0->getId(), node1->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // bone tumor tissue
-  [[maybe_unused]] auto *c2 = network->addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cConnectionLength, arch::ChannelType::NORMAL);
-  auto *c3 = network->addChannel(node2->getId(), groundSinkNode->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // cardiac tissue
+  auto *c1 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // bone tumor tissue
+  [[maybe_unused]] auto *c2 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cConnectionLength, arch::ChannelType::NORMAL);
+  auto *c3 = network->addRectangularChannel(node2->getId(), groundSinkNode->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // cardiac tissue
 
   // create membrane and organ
   auto *m4 = network->addMembraneToChannel(c1->getId(), mHeight, mWidth, poreRadius, porosity);

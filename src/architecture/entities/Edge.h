@@ -17,19 +17,21 @@ class Node;
  */
 template<typename T>
 class Edge {
-protected:
-  int const id;           ///< Id of the edge.
-  int nodeA;              ///< Node at one end of the edge.
-  int nodeB;              ///< Node at other end of the edge.
+private:
+  const size_t id;          ///< Id of the edge.
+  size_t nodeA;             ///< Node at one end of the edge.
+  size_t nodeB;             ///< Node at other end of the edge.
 
-public:
+protected:
   /**
    * @brief Constructor of the edge.
    * @param[in] id Id of the edge.
    * @param[in] nodeA Node at one end of the edge.
    * @param[in] nodeB Node at other end of the edge.
    */
-  Edge(int id, int nodeA, int nodeB);
+  Edge(size_t id, size_t nodeA, size_t nodeB);
+
+public:
 
   virtual ~Edge() = default;
 
@@ -37,7 +39,25 @@ public:
    * @brief Get id of the edge.
    * @return Id of the edge.
    */
-  int getId() const;
+  [[nodiscard]] inline size_t getId() const { return id; }
+
+  /**
+   * @brief Get pointer to node 0 (node at one end of the edge).
+   * @return Pointer to node 0 (node at one end of the edge).
+   */
+  [[nodiscard]] inline size_t getNodeAId() const { return nodeA; }
+
+  /**
+   * @brief Get pointer to node 1 (node at other end of the edge).
+   * @return Pointer to node 1 (node at other end of the edge).
+   */
+  [[nodiscard]] inline size_t getNodeBId() const { return nodeB; }
+
+  /**
+   * @brief Get the nodes at the ends of the channel.
+   * @returns Nodes at the ends of the channel.
+  */
+  [[nodiscard]] inline std::vector<size_t> getNodeIds() const { return std::vector<size_t> {nodeA, nodeB}; }
 
   /**
    * @brief Get pressure over the edge.
@@ -57,23 +77,6 @@ public:
    */
   virtual T getResistance() const = 0;
 
-  /**
-   * @brief Get pointer to node 0 (node at one end of the edge).
-   * @return Pointer to node 0 (node at one end of the edge).
-   */
-  int getNodeA() const;
-
-  /**
-   * @brief Get pointer to node 1 (node at other end of the edge).
-   * @return Pointer to node 1 (node at other end of the edge).
-   */
-  int getNodeB() const;
-
-  /**
-   * @brief Get the nodes at the ends of the channel.
-   * @returns Nodes at the ends of the channel.
-  */
-  std::vector<int> getNodes() const;
 };
 
 }  // namespace arch

@@ -17,12 +17,11 @@ class Node;
  * @brief Class to specify a flow rate pump, which is a component of a chip.
  */
 template<typename T>
-class FlowRatePump : public virtual Edge<T> {
+class FlowRatePump final : public Edge<T> {
 private:
     T flowRate;     ///< Volumetric flow rate of the pump in m^3/s.
     T pressure;     ///< Pressure of a channel in Pa.
 
-public:
     /**
      * @brief Constructor to create a flow rate pump.
      * @param[in] id Id of the flow rate pump.
@@ -30,8 +29,9 @@ public:
      * @param[in] nodeB Pointer to node at other end of the flow rate pump.
      * @param[in] flowRate Volumetric flow rate of the pump in m^3/s.
      */
-    FlowRatePump(int id, int nodeA, int nodeB, T flowRate);
+    FlowRatePump(size_t id, int nodeA, int nodeB, T flowRate);
 
+public:
     /**
      * @brief Set pressure of the pump.
      * @param[in] pressure Pressure of the pump in Pa.

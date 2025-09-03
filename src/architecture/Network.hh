@@ -4,21 +4,21 @@ namespace arch {
 
 template<typename T>
 Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
-                    std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
-                    std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
-                    std::unordered_map<int, std::unique_ptr<CfdModule<T>>> modules_) :
-                    nodes(nodes_), channels(channels_), flowRatePumps(flowRatePumps_),
-                    pressurePumps(pressurePumps_), modules(modules_) { }
+                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_,
+                    std::unordered_map<int, std::shared_ptr<FlowRatePump<T>>> flowRatePumps_,
+                    std::unordered_map<int, std::shared_ptr<PressurePump<T>>> pressurePumps_,
+                    std::unordered_map<int, std::shared_ptr<CfdModule<T>>> modules_) :
+                    nodes(std::move(nodes_)), channels(std::move(channels_)), flowRatePumps(std::move(flowRatePumps_)),
+                    pressurePumps(std::move(pressurePumps_)), modules(std::move(modules_)) { }
 
 template<typename T>
 Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_) :
-                    nodes(nodes_), channels(std::move(channels_)) { }
+                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_) :
+                    nodes(std::move(nodes_)), channels(std::move(channels_)) { }
 
 template<typename T>
 Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
-                    nodes(nodes_) {
+                    nodes(std::move(nodes_)) {
 
     // Generate all possible channels between the nodes for the fully connected graph
     std::vector<int> nodeIds;
@@ -31,8 +31,8 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
         for (size_t j = i+1; j < nodeIds.size(); ++j){
             std::shared_ptr<Node<T>> nA = nodes.at(nodeIds[i]);
             std::shared_ptr<Node<T>> nB = nodes.at(nodeIds[j]);
-            auto addChannel = std::make_unique<RectangularChannel<T>>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
-            auto [it, is_inserted] = channels.try_emplace(channel_counter, std::move(addChannel));
+            auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
+            auto [it, is_inserted] = channels.try_emplace(channel_counter, std::move(addRectangularChannel));
             assert(is_inserted);
             ++channel_counter;
         }
@@ -41,17 +41,17 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
 
 template<typename T>
 std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                                                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_,
-                                                    std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>> flowRatePumps_,
-                                                    std::unordered_map<int, std::unique_ptr<PressurePump<T>>> pressurePumps_,
-                                                    std::unordered_map<int, std::unique_ptr<CfdModule<T>>> modules_) 
+                                                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_,
+                                                    std::unordered_map<int, std::shared_ptr<FlowRatePump<T>>> flowRatePumps_,
+                                                    std::unordered_map<int, std::shared_ptr<PressurePump<T>>> pressurePumps_,
+                                                    std::unordered_map<int, std::shared_ptr<CfdModule<T>>> modules_) 
 {
     return std::shared_ptr<Network<T>>(new Network<T>(nodes_, channels_, flowRatePumps_, pressurePumps_, modules_));
 }
 
 template<typename T>
 std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                                                    std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>> channels_)
+                                                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_)
 {
     return std::shared_ptr<Network<T>>(new Network<T>(nodes_, channels_));
 }
@@ -67,121 +67,6 @@ std::shared_ptr<Network<T>> Network<T>::createNetwork()
 {
     return std::shared_ptr<Network<T>>(new Network<T>());
 }
-
-// template<typename T>
-// Network<T>::Network(std::string jsonFile) {
-//     std::ifstream f(jsonFile);
-//     json jsonString = json::parse(f);
-
-//     #ifdef VERBOSE
-//         std::cout << "Loading Nodes..." << std::endl;
-//     #endif
-
-//     for (auto& node : jsonString["Network"]["Nodes"]) {
-//         auto addNode = std::make_shared<Node<T>>(node["iD"], T(node["x"]), T(node["y"]));
-//         auto [it, is_inserted] = nodes.try_emplace(node["iD"], addNode);
-//         assert(is_inserted);
-//     }
-
-//     #ifdef VERBOSE
-//         std::cout << "Loaded Nodes... OK" << std::endl;
-
-//         std::cout << "Loading Channels..." << std::endl;
-//     #endif
-
-//     for (auto& channel : jsonString["Network"]["Channels"]) {
-//         std::unique_ptr<RectangularChannel<T>> addChannel = nullptr;
-//         if (channel.contains("pieces")) {
-//             std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments;
-//             std::vector<std::shared_ptr<Arc<T,2>>> arcs;
-//             for (auto& piece : channel["pieces"]) {
-//                 std::vector<T> start(2);
-//                 std::vector<T> end(2);
-//                 std::vector<T> center(2);
-//                 if (piece.contains("line_segment")) {
-//                     if (piece["line_segment"]["start"] == 0) {
-//                         start[0] = nodes.at(channel["nA"])->getPosition()[0];
-//                         start[1] = nodes.at(channel["nA"])->getPosition()[1];
-//                         end[0] = piece["line_segment"]["end"][0];
-//                         end[1] = piece["line_segment"]["end"][1];
-//                     } else if (piece["line_segment"]["end"] == 1) {
-//                         start[0] = piece["line_segment"]["start"][0];
-//                         start[1] = piece["line_segment"]["start"][1];
-//                         end[0] = nodes.at(channel["nB"])->getPosition()[0];
-//                         end[1] = nodes.at(channel["nB"])->getPosition()[1];
-//                     } else {
-//                         start[0] = piece["line_segment"]["start"][0];
-//                         start[1] = piece["line_segment"]["start"][1];
-//                         end[0] = piece["line_segment"]["end"][0];
-//                         end[1] = piece["line_segment"]["end"][1];
-//                     }
-//                     auto addLineSeg = std::make_shared<Line_segment<T,2>>(start, end);
-//                     line_segments.emplace_back(addLineSeg);
-//                 } else if (piece.contains("arc")) {
-//                     if (piece["arc"]["start"] == 0) {
-//                         start[0] = nodes.at(channel["nA"])->getPosition()[0];
-//                         start[1] = nodes.at(channel["nA"])->getPosition()[1];
-//                         end[0] = piece["arc"]["end"][0];
-//                         end[1] = piece["arc"]["end"][1];
-//                     } else if (piece["arc"]["end"] == 1) {
-//                         start[0] = piece["arc"]["start"][0];
-//                         start[1] = piece["arc"]["start"][1];
-//                         end[0] = nodes.at(channel["nB"])->getPosition()[0];
-//                         end[1] = nodes.at(channel["nB"])->getPosition()[1];
-//                     } else {
-//                         start[0] = piece["arc"]["start"][0];
-//                         start[1] = piece["arc"]["start"][1];
-//                         end[0] = piece["arc"]["end"][0];
-//                         end[1] = piece["arc"]["end"][1];
-//                     }
-//                     center[0] = piece["arc"]["center"][0];
-//                     center[1] = piece["arc"]["center"][1];
-//                     auto addArc = std::make_shared<Arc<T,2>> (piece["arc"]["right"], start, end, center);
-//                     arcs.emplace_back(addArc);
-//                 }
-//             }
-//             addChannel = std::make_unique<RectangularChannel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
-//                 line_segments, arcs, channel["width"], channel["height"]);
-//         } else {
-//             addChannel = std::make_unique<RectangularChannel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
-//                 channel["width"], channel["height"]);
-//         }
-//         auto [it, is_inserted] = channels.try_emplace(channel["iD"], std::move(addChannel));
-//         assert(is_inserted);
-//     }
-
-//     #ifdef VERBOSE
-//         std::cout << "Loaded Channels... OK" << std::endl;
-
-//         std::cout << "Loading Modules..." << std::endl;
-//     #endif
-//     for (auto& module : jsonString["Network"]["Modules"]) {
-//         std::unordered_map<int, std::shared_ptr<Node<T>>> Nodes;
-//         std::unordered_map<int, Opening<T>> Openings;
-//         for (auto& opening : module["Openings"]){
-//             T nodeId = opening["nodeId"];
-//             auto [nodeIt, node_is_inserted] = Nodes.try_emplace(nodeId, nodes.at(nodeId));
-//             assert(node_is_inserted);
-//             std::vector<T> normal = { opening["normalX"], opening["normalY"] };
-//             Opening<T> opening_(nodes.at(nodeId), normal, opening["width"]);
-//             auto [openingIt, opening_is_inserted] = Openings.try_emplace(nodeId, opening_);
-//             assert(opening_is_inserted);
-//         }
-//         std::vector<T> position = { module["posX"], module["posY"] };
-//         std::vector<T> size = { module["sizeX"], module["sizeY"] };
-//         auto addModule = std::make_shared<CfdModule<T>>( module["iD"], module["name"], module["stlFile"],
-//                                                         position, size, Nodes, Openings,
-//                                                         module["charPhysLength"], module["charPhysVelocity"],
-//                                                         module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
-//         auto [moduleIt, module_is_inserted] = modules.try_emplace(module["iD"], addModule);
-//         assert(module_is_inserted);
-//     }
-//     this->sortGroups();
-//     #ifdef VERBOSE
-//         std::cout << "Loaded Modules... OK" << std::endl;
-//     #endif
-// }
-
 
 template<typename T>
 void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules) {
@@ -256,93 +141,93 @@ std::shared_ptr<Node<T>> Network<T>::addNode(int nodeId, T x_, T y_, bool ground
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type) {
+RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type) {
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
     auto id = edgeCount();
-    auto addChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
+    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
 
-    addChannel->setChannelType(type);
+    addRectangularChannel->setChannelType(type);
 
     // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addChannel.get());
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addRectangularChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addRectangularChannel.get());
     assert(is_inserted1);
     assert(is_inserted2);
 
     // add channel
-    auto [it, is_inserted] = channels.try_emplace(id, std::move(addChannel));
+    auto [it, is_inserted] = channels.try_emplace(id, std::move(addRectangularChannel));
     assert(is_inserted);
     
     return channels.at(id).get();
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, int channelId) {
+RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, int channelId) {
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto addChannel = std::make_unique<RectangularChannel<T>>(channelId, nodeA, nodeB, width, height);
+    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(channelId, nodeA, nodeB, width, height);
 
     // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(channelId, addChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(channelId, addChannel.get());
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(channelId, addRectangularChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(channelId, addRectangularChannel.get());
     assert(is_inserted1);
     assert(is_inserted2);
 
-    addChannel->setChannelType(type);
+    addRectangularChannel->setChannelType(type);
 
     // add channel
-    auto [it, is_inserted] = channels.try_emplace(channelId, std::move(addChannel));
+    auto [it, is_inserted] = channels.try_emplace(channelId, std::move(addRectangularChannel));
     assert(is_inserted);
 
     return channels.at(channelId).get();
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type) {
+RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type) {
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
     auto id = edgeCount();
-    auto addChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
+    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
 
-    addChannel->setLength(length);
-    addChannel->setChannelType(type);
+    addRectangularChannel->setLength(length);
+    addRectangularChannel->setChannelType(type);
 
     // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addChannel.get());
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addRectangularChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addRectangularChannel.get());
     assert(is_inserted1);
     assert(is_inserted2);
 
     // add channel
-    auto [it, is_inserted] = channels.try_emplace(id, std::move(addChannel));
+    auto [it, is_inserted] = channels.try_emplace(id, std::move(addRectangularChannel));
     assert(is_inserted);
 
     return channels.at(id).get();
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addChannel(int nodeAId, int nodeBId, T resistance, ChannelType type) {
+RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T resistance, ChannelType type) {
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
     auto id = edgeCount();
-    auto addChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, 1.0, 1.0);
+    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, 1.0, 1.0);
 
-    addChannel->setResistance(resistance);
-    addChannel->setChannelType(type);
+    addRectangularChannel->setResistance(resistance);
+    addRectangularChannel->setChannelType(type);
 
     // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addChannel.get());
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addRectangularChannel.get());
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addRectangularChannel.get());
     assert(is_inserted1);
     assert(is_inserted2);
 
     // add channel
-    auto [it, is_inserted] = channels.try_emplace(id, std::move(addChannel));
+    auto [it, is_inserted] = channels.try_emplace(id, std::move(addRectangularChannel));
     assert(is_inserted);
 
     return channels.at(id).get();
@@ -892,3 +777,119 @@ T Network<T>::calculateNodeDistance(int nodeAId, int nodeBId) {
 }
 
 }   // namespace arch
+
+
+
+// template<typename T>
+// Network<T>::Network(std::string jsonFile) {
+//     std::ifstream f(jsonFile);
+//     json jsonString = json::parse(f);
+
+//     #ifdef VERBOSE
+//         std::cout << "Loading Nodes..." << std::endl;
+//     #endif
+
+//     for (auto& node : jsonString["Network"]["Nodes"]) {
+//         auto addNode = std::make_shared<Node<T>>(node["iD"], T(node["x"]), T(node["y"]));
+//         auto [it, is_inserted] = nodes.try_emplace(node["iD"], addNode);
+//         assert(is_inserted);
+//     }
+
+//     #ifdef VERBOSE
+//         std::cout << "Loaded Nodes... OK" << std::endl;
+
+//         std::cout << "Loading Channels..." << std::endl;
+//     #endif
+
+//     for (auto& channel : jsonString["Network"]["Channels"]) {
+//         std::unique_ptr<RectangularChannel<T>> addRectangularChannel = nullptr;
+//         if (channel.contains("pieces")) {
+//             std::vector<std::shared_ptr<Line_segment<T,2>>> line_segments;
+//             std::vector<std::shared_ptr<Arc<T,2>>> arcs;
+//             for (auto& piece : channel["pieces"]) {
+//                 std::vector<T> start(2);
+//                 std::vector<T> end(2);
+//                 std::vector<T> center(2);
+//                 if (piece.contains("line_segment")) {
+//                     if (piece["line_segment"]["start"] == 0) {
+//                         start[0] = nodes.at(channel["nA"])->getPosition()[0];
+//                         start[1] = nodes.at(channel["nA"])->getPosition()[1];
+//                         end[0] = piece["line_segment"]["end"][0];
+//                         end[1] = piece["line_segment"]["end"][1];
+//                     } else if (piece["line_segment"]["end"] == 1) {
+//                         start[0] = piece["line_segment"]["start"][0];
+//                         start[1] = piece["line_segment"]["start"][1];
+//                         end[0] = nodes.at(channel["nB"])->getPosition()[0];
+//                         end[1] = nodes.at(channel["nB"])->getPosition()[1];
+//                     } else {
+//                         start[0] = piece["line_segment"]["start"][0];
+//                         start[1] = piece["line_segment"]["start"][1];
+//                         end[0] = piece["line_segment"]["end"][0];
+//                         end[1] = piece["line_segment"]["end"][1];
+//                     }
+//                     auto addLineSeg = std::make_shared<Line_segment<T,2>>(start, end);
+//                     line_segments.emplace_back(addLineSeg);
+//                 } else if (piece.contains("arc")) {
+//                     if (piece["arc"]["start"] == 0) {
+//                         start[0] = nodes.at(channel["nA"])->getPosition()[0];
+//                         start[1] = nodes.at(channel["nA"])->getPosition()[1];
+//                         end[0] = piece["arc"]["end"][0];
+//                         end[1] = piece["arc"]["end"][1];
+//                     } else if (piece["arc"]["end"] == 1) {
+//                         start[0] = piece["arc"]["start"][0];
+//                         start[1] = piece["arc"]["start"][1];
+//                         end[0] = nodes.at(channel["nB"])->getPosition()[0];
+//                         end[1] = nodes.at(channel["nB"])->getPosition()[1];
+//                     } else {
+//                         start[0] = piece["arc"]["start"][0];
+//                         start[1] = piece["arc"]["start"][1];
+//                         end[0] = piece["arc"]["end"][0];
+//                         end[1] = piece["arc"]["end"][1];
+//                     }
+//                     center[0] = piece["arc"]["center"][0];
+//                     center[1] = piece["arc"]["center"][1];
+//                     auto addArc = std::make_shared<Arc<T,2>> (piece["arc"]["right"], start, end, center);
+//                     arcs.emplace_back(addArc);
+//                 }
+//             }
+//             addRectangularChannel = std::make_unique<RectangularChannel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
+//                 line_segments, arcs, channel["width"], channel["height"]);
+//         } else {
+//             addRectangularChannel = std::make_unique<RectangularChannel<T>>(channel["iD"], nodes.at(channel["nA"]), nodes.at(channel["nB"]),
+//                 channel["width"], channel["height"]);
+//         }
+//         auto [it, is_inserted] = channels.try_emplace(channel["iD"], std::move(addRectangularChannel));
+//         assert(is_inserted);
+//     }
+
+//     #ifdef VERBOSE
+//         std::cout << "Loaded Channels... OK" << std::endl;
+
+//         std::cout << "Loading Modules..." << std::endl;
+//     #endif
+//     for (auto& module : jsonString["Network"]["Modules"]) {
+//         std::unordered_map<int, std::shared_ptr<Node<T>>> Nodes;
+//         std::unordered_map<int, Opening<T>> Openings;
+//         for (auto& opening : module["Openings"]){
+//             T nodeId = opening["nodeId"];
+//             auto [nodeIt, node_is_inserted] = Nodes.try_emplace(nodeId, nodes.at(nodeId));
+//             assert(node_is_inserted);
+//             std::vector<T> normal = { opening["normalX"], opening["normalY"] };
+//             Opening<T> opening_(nodes.at(nodeId), normal, opening["width"]);
+//             auto [openingIt, opening_is_inserted] = Openings.try_emplace(nodeId, opening_);
+//             assert(opening_is_inserted);
+//         }
+//         std::vector<T> position = { module["posX"], module["posY"] };
+//         std::vector<T> size = { module["sizeX"], module["sizeY"] };
+//         auto addModule = std::make_shared<CfdModule<T>>( module["iD"], module["name"], module["stlFile"],
+//                                                         position, size, Nodes, Openings,
+//                                                         module["charPhysLength"], module["charPhysVelocity"],
+//                                                         module["alpha"], module["resolution"], module["epsilon"], module["tau"]);
+//         auto [moduleIt, module_is_inserted] = modules.try_emplace(module["iD"], addModule);
+//         assert(module_is_inserted);
+//     }
+//     this->sortGroups();
+//     #ifdef VERBOSE
+//         std::cout << "Loaded Modules... OK" << std::endl;
+//     #endif
+// }

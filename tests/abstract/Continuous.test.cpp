@@ -32,12 +32,12 @@ TEST_F(Continuous, allResultValues) {
     auto cHeight = 100e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network->addChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network->addChannel(node2->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network->addChannel(node3->getId(), node6->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c4 = network->addChannel(node4->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c5 = network->addChannel(node6->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c6 = network->addChannel(node5->getId(), node7->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node3->getId(), node6->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c4 = network->addRectangularChannel(node4->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c5 = network->addRectangularChannel(node6->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c6 = network->addRectangularChannel(node5->getId(), node7->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     sim::AbstractContinuous<T> testSimulation(network);
 
@@ -145,10 +145,10 @@ TEST_F(Continuous, triangleNetwork) {
     auto cHeight = 30e-6;
     auto cLength = 1000e-6;
 
-    auto c11 = network1->addChannel(node11->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c21 = network1->addChannel(node21->getId(), node01->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c12 = network2->addChannel(node22->getId(), node12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c22 = network2->addChannel(node02->getId(), node22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c11 = network1->addRectangularChannel(node11->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c21 = network1->addRectangularChannel(node21->getId(), node01->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c12 = network2->addRectangularChannel(node22->getId(), node12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c22 = network2->addRectangularChannel(node02->getId(), node22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
     // pressure pumps
     T pressure = 1000.0;
@@ -227,12 +227,12 @@ TEST_F(Continuous, Y_Network) {
     auto cHeight = 30e-6;
     auto cLength = 0; // automatically calculate channel length
 
-    auto c11 = network1->addChannel(node11->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c21 = network1->addChannel(node21->getId(), node31->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c31 = network1->addChannel(node21->getId(), node41->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c12 = network2->addChannel(node22->getId(), node12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c22 = network2->addChannel(node32->getId(), node22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c32 = network2->addChannel(node42->getId(), node22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c11 = network1->addRectangularChannel(node11->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c21 = network1->addRectangularChannel(node21->getId(), node31->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c31 = network1->addRectangularChannel(node21->getId(), node41->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c12 = network2->addRectangularChannel(node22->getId(), node12->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c22 = network2->addRectangularChannel(node32->getId(), node22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c32 = network2->addRectangularChannel(node42->getId(), node22->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     // pressure pumps
     T pressure = 1000.0;

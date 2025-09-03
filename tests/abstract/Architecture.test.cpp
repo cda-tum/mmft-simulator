@@ -21,10 +21,10 @@ TEST(Network, testNetwork1) {
     network->addFlowRatePump(node0->getId(), node3->getId(), 1.0);
 
     // channels
-    network->addChannel(node1->getId(), node2->getId(), 5.0, arch::ChannelType::NORMAL);
-    network->addChannel(node2->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
-    network->addChannel(node3->getId(), node4->getId(), 5.0, arch::ChannelType::NORMAL);
-    network->addChannel(node4->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node1->getId(), node2->getId(), 5.0, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node3->getId(), node4->getId(), 5.0, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node4->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
 
     EXPECT_THROW(network->getGroundIds(), std::invalid_argument);
 
@@ -65,10 +65,10 @@ TEST(Network, testNetwork2) {
     network->addFlowRatePump(node0->getId(), node2->getId(), 1.0);
 
     // channels
-    network->addChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
-    network->addChannel(node0->getId(), node2->getId(), 10, arch::ChannelType::NORMAL);
-    network->addChannel(node2->getId(), node3->getId(), 20, arch::ChannelType::NORMAL);
-    network->addChannel(node3->getId(), node4->getId(), 30, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node0->getId(), node2->getId(), 10, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node3->getId(), 20, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node3->getId(), node4->getId(), 30, arch::ChannelType::NORMAL);
 
     // compute network
     network->sortGroups();
@@ -104,9 +104,9 @@ TEST(Network, testNetwork3) {
     // flowRate pump (current source)
 
     // channels
-    network->addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
-    network->addChannel(node2->getId(), node3->getId(), 4, arch::ChannelType::NORMAL);
-    network->addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node3->getId(), 4, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
 
     // compute network
     network->sortGroups();
@@ -139,9 +139,9 @@ TEST(Network, testNetwork4) {
     network->addFlowRatePump(node1->getId(), node0->getId(), 20.0);
 
     // channels
-    network->addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
-    network->addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::NORMAL);
-    network->addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
 
     // compute network
     network->sortGroups();
@@ -173,9 +173,9 @@ TEST(Network, testNetwork5) {
     network->addFlowRatePump(node3->getId(), node0->getId(), 1.5);
 
     // channels
-    network->addChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
-    network->addChannel(node2->getId(), node3->getId(), 7, arch::ChannelType::NORMAL);
-    network->addChannel(node2->getId(), node0->getId(), 10, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node1->getId(), node2->getId(), 5, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node3->getId(), 7, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node0->getId(), 10, arch::ChannelType::NORMAL);
 
     // compute network
     network->sortGroups();
@@ -204,9 +204,9 @@ TEST(Network, networkArchitectureDefinition) {
     auto i0 = bionetwork->addFlowRatePump(node1->getId(), node0->getId(), 20.0);
 
     // channels
-    auto c1 = bionetwork->addChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
-    auto c2 = bionetwork->addChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::BYPASS);
-    auto c3 = bionetwork->addChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::CLOGGABLE);
+    auto c1 = bionetwork->addRectangularChannel(node0->getId(), node1->getId(), 2, arch::ChannelType::NORMAL);
+    auto c2 = bionetwork->addRectangularChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::BYPASS);
+    auto c3 = bionetwork->addRectangularChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::CLOGGABLE);
 
     EXPECT_EQ(v0->getNodeA(), node1->getId());
     EXPECT_EQ(v0->getNodeB(), node2->getId());

@@ -43,14 +43,15 @@ enum class ModuleType {
 */
 template<typename T>
 class Module {
-protected:
-        int const id;                   ///< Id of the module.
-        std::vector<T> pos;             ///< Position (x, y) of the lower left corner of the module.
-        std::vector<T> size;            ///< Size (x, y) of the rectangular module.
-        std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes;    ///< List of nodes that are placed on the boundary of the module.
-        ModuleType moduleType = ModuleType::NORMAL;     ///< Type of module.
+private:
+    const size_t id;                ///< Id of the module.
+    std::vector<T> pos;             ///< Position (x, y) of the lower left corner of the module.
+    std::vector<T> size;            ///< Size (x, y) of the rectangular module.
+    std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes;    ///< List of nodes that are placed on the boundary of the module.
+    ModuleType moduleType = ModuleType::NORMAL;     ///< Type of module.
 
-public:
+protected:
+
     /**
      * @brief Constructor of the module.
      * @param[in] id Id of the module.
@@ -58,7 +59,7 @@ public:
      * @param[in] size Size of the module in _m_.
      * @param[in] boundaryNodes Map of nodes that are on the boundary of the module.
     */
-    Module(int id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes);
+    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes);
 
     /**
      * @brief Constructor of the module.
@@ -68,7 +69,7 @@ public:
      * @param[in] boundaryNodes Map of nodes that are on the boundary of the module.
      * @param[in] type The module type of this module.
     */
-    Module(int id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes, ModuleType type);
+    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes, ModuleType type);
 
     /**
      * @brief Constructor of the module.
@@ -78,8 +79,9 @@ public:
      * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] type The module type of this module.
     */
-    Module(int id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, Opening<T>> openings, ModuleType type);
+    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, Opening<T>> openings, ModuleType type);
 
+public:
 
     /**
      * @brief Get id of the module.
@@ -142,8 +144,6 @@ private:
 
     bool isInitialized = false;
 
-public:
-
     /**
      * @brief Constructs a CFD module.
      * @param[in] id Id of the module.
@@ -153,7 +153,9 @@ public:
      * @param[in] openings Map of openings corresponding to the nodes.
      * @note The module type is defaulted to ModuleType::LBM
     */
-    CfdModule(int id, std::vector<T> pos, std::vector<T> size, std::string stlFile, std::unordered_map<int, Opening<T>> openings);
+    CfdModule(size_t id, std::vector<T> pos, std::vector<T> size, std::string stlFile, std::unordered_map<int, Opening<T>> openings);
+
+public:
 
     /**
      * @brief Complete the definition of the local network by setting the channel resistances of the virtual channels

@@ -26,9 +26,9 @@ TEST(Topology, case1) {
     auto cLength = 1000e-6;
     T flowRate = 3e-11;
     
-    auto c0 = network->addChannel(node0->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c1 = network->addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network->addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c0 = network->addRectangularChannel(node0->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
     c0->setPressure(flowRate);
     c1->setPressure(0.5*flowRate);
@@ -87,9 +87,9 @@ TEST(Topology, case2) {
     auto cLength = 1000e-6;
     T flowRate = 3e-11;
     
-    auto c0 = network->addChannel(node0->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c1 = network->addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network->addChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c0 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
     c0->setPressure(2*flowRate);
     c1->setPressure(flowRate);
@@ -150,10 +150,10 @@ TEST(Topology, case3) {
     auto cLength = 1000e-6;
     T flowRate = 3e-11;
     
-    auto c0 = network->addChannel(node0->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c1 = network->addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network->addChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network->addChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c0 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
   
     c0->setPressure(3*flowRate);
     c1->setPressure(0.5*flowRate);
@@ -227,10 +227,10 @@ TEST(Topology, case4) {
     auto cLength = 1000e-6;
     T flowRate = 3e-11;
     
-    auto c0 = network->addChannel(node0->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c1 = network->addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network->addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network->addChannel(node2->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c0 = network->addRectangularChannel(node0->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node2->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
     c0->setPressure(flowRate);
     c1->setPressure(flowRate);
@@ -299,10 +299,10 @@ TEST(Topology, case5) {
     auto cLength = 1000e-6;
     T flowRate = 3e-11;
     
-    auto c0 = network->addChannel(node0->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c1 = network->addChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network->addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network->addChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c0 = network->addRectangularChannel(node0->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
     c0->setPressure(flowRate);
     c1->setPressure(0.5*flowRate);
@@ -370,10 +370,10 @@ TEST(Topology, case6) {
     auto cLength = 1000e-6;
     T flowRate = 3e-11;
     
-    auto c0 = network->addChannel(node0->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c1 = network->addChannel(node3->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network->addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network->addChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c0 = network->addRectangularChannel(node0->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node3->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
     c0->setPressure(flowRate);
     c1->setPressure(0.5*flowRate);

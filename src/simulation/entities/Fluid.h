@@ -27,7 +27,7 @@ template<typename T>
 class Fluid {
   private:
     inline static int fluidCounter = 0;                     ///< Global counter for amount of created fluid objects.
-    size_t const id;                                  ///< Unique identifier of the fluid.
+    size_t const id;                                        ///< Unique identifier of the fluid.
     std::string name = "";                                  ///< Name of the fluid.
     T density = 1.0e3;                                      ///< Density of the continuous phase in [kg/m^3].
     T viscosity = 1.0e-3;                                   ///< Dynamic viscosity of the continuous phase in [Pa s].

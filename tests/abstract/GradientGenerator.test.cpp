@@ -71,29 +71,29 @@ TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   // create channels
   // inlets
   [[maybe_unused]]
-  auto *c2 = network->addChannel(node0->getId(), node3->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
+  auto *c2 = network->addRectangularChannel(node0->getId(), node3->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c3 = network->addChannel(node1->getId(), node5->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
+  auto *c3 = network->addRectangularChannel(node1->getId(), node5->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
   // connections
   [[maybe_unused]]
-  auto *c4 = network->addChannel(node3->getId(), node2->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c4 = network->addRectangularChannel(node3->getId(), node2->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c5 = network->addChannel(node3->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c5 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c6 = network->addChannel(node5->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c6 = network->addRectangularChannel(node5->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c7 = network->addChannel(node5->getId(), node6->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c7 = network->addRectangularChannel(node5->getId(), node6->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   // meanders
   [[maybe_unused]]
-  auto *c8 = network->addChannel(node2->getId(), node7->getId(), cHeight, cWidth, 0.003084956172616956, arch::ChannelType::NORMAL);
+  auto *c8 = network->addRectangularChannel(node2->getId(), node7->getId(), cHeight, cWidth, 0.003084956172616956, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c9 = network->addChannel(node4->getId(), node8->getId(), cHeight, cWidth, 0.004584956172616956, arch::ChannelType::NORMAL);
+  auto *c9 = network->addRectangularChannel(node4->getId(), node8->getId(), cHeight, cWidth, 0.004584956172616956, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c10 = network->addChannel(node6->getId(), node9->getId(), cHeight, cWidth, 0.003084956172616958, arch::ChannelType::NORMAL);
+  auto *c10 = network->addRectangularChannel(node6->getId(), node9->getId(), cHeight, cWidth, 0.003084956172616958, arch::ChannelType::NORMAL);
   // outlets
-  auto *c11 = network->addChannel(node7->getId(), sinkNode->getId(), cHeight, cWidth, outletLength, arch::ChannelType::NORMAL);
-  auto *c12 = network->addChannel(node8->getId(), sinkNode->getId(), cHeight, cWidth, outletLength, arch::ChannelType::NORMAL);
-  auto *c13 = network->addChannel(node9->getId(), sinkNode->getId(), cHeight, cWidth, outletLength, arch::ChannelType::NORMAL);
+  auto *c11 = network->addRectangularChannel(node7->getId(), sinkNode->getId(), cHeight, cWidth, outletLength, arch::ChannelType::NORMAL);
+  auto *c12 = network->addRectangularChannel(node8->getId(), sinkNode->getId(), cHeight, cWidth, outletLength, arch::ChannelType::NORMAL);
+  auto *c13 = network->addRectangularChannel(node9->getId(), sinkNode->getId(), cHeight, cWidth, outletLength, arch::ChannelType::NORMAL);
 
   // flowRate pump
   auto flowRate = 6e-10;
@@ -199,29 +199,29 @@ TEST_F(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Pape
   // create channels
   // inlets
   [[maybe_unused]]
-  auto *c2 = network->addChannel(node0->getId(), node3->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
+  auto *c2 = network->addRectangularChannel(node0->getId(), node3->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c3 = network->addChannel(node1->getId(), node5->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
+  auto *c3 = network->addRectangularChannel(node1->getId(), node5->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
   // connections
   [[maybe_unused]]
-  auto *c4 = network->addChannel(node3->getId(), node2->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c4 = network->addRectangularChannel(node3->getId(), node2->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c5 = network->addChannel(node3->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c5 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c6 = network->addChannel(node5->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c6 = network->addRectangularChannel(node5->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c7 = network->addChannel(node5->getId(), node6->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c7 = network->addRectangularChannel(node5->getId(), node6->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   // meanders
   [[maybe_unused]]
-  auto *c8 = network->addChannel(node2->getId(), node7->getId(), cHeight, cWidth, 0.04163712059499694, arch::ChannelType::NORMAL);
+  auto *c8 = network->addRectangularChannel(node2->getId(), node7->getId(), cHeight, cWidth, 0.04163712059499694, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c9 = network->addChannel(node4->getId(), node8->getId(), cHeight, cWidth, 0.055556211206648096, arch::ChannelType::NORMAL);
+  auto *c9 = network->addRectangularChannel(node4->getId(), node8->getId(), cHeight, cWidth, 0.055556211206648096, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c10 = network->addChannel(node6->getId(), node9->getId(), cHeight, cWidth, 0.055783776606846545, arch::ChannelType::NORMAL);
+  auto *c10 = network->addRectangularChannel(node6->getId(), node9->getId(), cHeight, cWidth, 0.055783776606846545, arch::ChannelType::NORMAL);
   // outlets
-  auto *c11 = network->addChannel(node7->getId(), sinkNode->getId(), cHeight, cWidth, 0.006899999999999999, arch::ChannelType::NORMAL);
-  auto *c12 = network->addChannel(node8->getId(), sinkNode->getId(), cHeight, cWidth, 0.0009, arch::ChannelType::NORMAL);
-  auto *c13 = network->addChannel(node9->getId(), sinkNode->getId(), cHeight, cWidth, 0.006899999999999999, arch::ChannelType::NORMAL);
+  auto *c11 = network->addRectangularChannel(node7->getId(), sinkNode->getId(), cHeight, cWidth, 0.006899999999999999, arch::ChannelType::NORMAL);
+  auto *c12 = network->addRectangularChannel(node8->getId(), sinkNode->getId(), cHeight, cWidth, 0.0009, arch::ChannelType::NORMAL);
+  auto *c13 = network->addRectangularChannel(node9->getId(), sinkNode->getId(), cHeight, cWidth, 0.006899999999999999, arch::ChannelType::NORMAL);
 
   // flowRate pumps
   auto flowRate = 5e-9 / 60;
@@ -343,81 +343,81 @@ TEST_F(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.6
   // create channels
   // inlets
   [[maybe_unused]]
-  auto *c2 = network->addChannel(node0->getId(), node3->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
+  auto *c2 = network->addRectangularChannel(node0->getId(), node3->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c3 = network->addChannel(node1->getId(), node5->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
+  auto *c3 = network->addRectangularChannel(node1->getId(), node5->getId(), cHeight, cWidth, inletLength, arch::ChannelType::NORMAL);
   // connections
   [[maybe_unused]]
-  auto *c4 = network->addChannel(node3->getId(), node2->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c4 = network->addRectangularChannel(node3->getId(), node2->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c5 = network->addChannel(node3->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c5 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c6 = network->addChannel(node5->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c6 = network->addRectangularChannel(node5->getId(), node4->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c7 = network->addChannel(node5->getId(), node6->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c7 = network->addRectangularChannel(node5->getId(), node6->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   // meanders
   [[maybe_unused]]
-  auto *c8 = network->addChannel(node2->getId(), node8->getId(), cHeight, cWidth, 0.0299671361633416, arch::ChannelType::NORMAL);
+  auto *c8 = network->addRectangularChannel(node2->getId(), node8->getId(), cHeight, cWidth, 0.0299671361633416, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c9 = network->addChannel(node4->getId(), node10->getId(), cHeight, cWidth, 0.044431241343332664, arch::ChannelType::NORMAL);
+  auto *c9 = network->addRectangularChannel(node4->getId(), node10->getId(), cHeight, cWidth, 0.044431241343332664, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c10 = network->addChannel(node6->getId(), node12->getId(), cHeight, cWidth, 0.03161589671051416, arch::ChannelType::NORMAL);
+  auto *c10 = network->addRectangularChannel(node6->getId(), node12->getId(), cHeight, cWidth, 0.03161589671051416, arch::ChannelType::NORMAL);
   // connections
   [[maybe_unused]]
-  auto *c11 = network->addChannel(node8->getId(), node7->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c11 = network->addRectangularChannel(node8->getId(), node7->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c12 = network->addChannel(node8->getId(), node9->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c12 = network->addRectangularChannel(node8->getId(), node9->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c13 = network->addChannel(node10->getId(), node9->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c13 = network->addRectangularChannel(node10->getId(), node9->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c14 = network->addChannel(node10->getId(), node11->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c14 = network->addRectangularChannel(node10->getId(), node11->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c15 = network->addChannel(node12->getId(), node11->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c15 = network->addRectangularChannel(node12->getId(), node11->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c16 = network->addChannel(node12->getId(), node13->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c16 = network->addRectangularChannel(node12->getId(), node13->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   // meanders
   [[maybe_unused]]
-  auto *c17 = network->addChannel(node7->getId(), node14->getId(), cHeight, cWidth, 0.03901274147675735, arch::ChannelType::NORMAL);
+  auto *c17 = network->addRectangularChannel(node7->getId(), node14->getId(), cHeight, cWidth, 0.03901274147675735, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c18 = network->addChannel(node9->getId(), node15->getId(), cHeight, cWidth, 0.12054175031249897, arch::ChannelType::NORMAL);
+  auto *c18 = network->addRectangularChannel(node9->getId(), node15->getId(), cHeight, cWidth, 0.12054175031249897, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c19 = network->addChannel(node11->getId(), node16->getId(), cHeight, cWidth, 0.047689442515671886, arch::ChannelType::NORMAL);
+  auto *c19 = network->addRectangularChannel(node11->getId(), node16->getId(), cHeight, cWidth, 0.047689442515671886, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c20 = network->addChannel(node13->getId(), node17->getId(), cHeight, cWidth, 0.051441945635952405, arch::ChannelType::NORMAL);
+  auto *c20 = network->addRectangularChannel(node13->getId(), node17->getId(), cHeight, cWidth, 0.051441945635952405, arch::ChannelType::NORMAL);
   // connections
   [[maybe_unused]]
-  auto *c21 = network->addChannel(node14->getId(), node18->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c21 = network->addRectangularChannel(node14->getId(), node18->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c22 = network->addChannel(node14->getId(), node19->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c22 = network->addRectangularChannel(node14->getId(), node19->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c23 = network->addChannel(node15->getId(), node19->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c23 = network->addRectangularChannel(node15->getId(), node19->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c24 = network->addChannel(node15->getId(), node20->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c24 = network->addRectangularChannel(node15->getId(), node20->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c25 = network->addChannel(node16->getId(), node20->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c25 = network->addRectangularChannel(node16->getId(), node20->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c26 = network->addChannel(node16->getId(), node21->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c26 = network->addRectangularChannel(node16->getId(), node21->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c27 = network->addChannel(node17->getId(), node21->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c27 = network->addRectangularChannel(node17->getId(), node21->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c28 = network->addChannel(node17->getId(), node22->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
+  auto *c28 = network->addRectangularChannel(node17->getId(), node22->getId(), cHeight, cWidth, connectionLength, arch::ChannelType::NORMAL);
   // meanders
   [[maybe_unused]]
-  auto *c29 = network->addChannel(node18->getId(), node23->getId(), cHeight, cWidth, 0.026532242716654282, arch::ChannelType::NORMAL);
+  auto *c29 = network->addRectangularChannel(node18->getId(), node23->getId(), cHeight, cWidth, 0.026532242716654282, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c30 = network->addChannel(node19->getId(), node24->getId(), cHeight, cWidth, 0.03333335815696055, arch::ChannelType::NORMAL);
+  auto *c30 = network->addRectangularChannel(node19->getId(), node24->getId(), cHeight, cWidth, 0.03333335815696055, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c31 = network->addChannel(node20->getId(), node25->getId(), cHeight, cWidth, 0.03948202927907311, arch::ChannelType::NORMAL);
+  auto *c31 = network->addRectangularChannel(node20->getId(), node25->getId(), cHeight, cWidth, 0.03948202927907311, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c32 = network->addChannel(node21->getId(), node26->getId(), cHeight, cWidth, 0.03355323373613861, arch::ChannelType::NORMAL);
+  auto *c32 = network->addRectangularChannel(node21->getId(), node26->getId(), cHeight, cWidth, 0.03355323373613861, arch::ChannelType::NORMAL);
   [[maybe_unused]]
-  auto *c33 = network->addChannel(node22->getId(), node27->getId(), cHeight, cWidth, 0.02498585157999049, arch::ChannelType::NORMAL);
+  auto *c33 = network->addRectangularChannel(node22->getId(), node27->getId(), cHeight, cWidth, 0.02498585157999049, arch::ChannelType::NORMAL);
   // outlets
-  auto *c34 = network->addChannel(node23->getId(), sinkNode->getId(), cHeight, cWidth, 0.013499999999999998, arch::ChannelType::NORMAL);
-  auto *c35 = network->addChannel(node24->getId(), sinkNode->getId(), cHeight, cWidth, 0.007499999999999999, arch::ChannelType::NORMAL);
-  auto *c36 = network->addChannel(node25->getId(), sinkNode->getId(), cHeight, cWidth, 0.0014999999999999998, arch::ChannelType::NORMAL);
-  auto *c37 = network->addChannel(node26->getId(), sinkNode->getId(), cHeight, cWidth, 0.007499999999999999, arch::ChannelType::NORMAL);
-  auto *c38 = network->addChannel(node27->getId(), sinkNode->getId(), cHeight, cWidth, 0.013499999999999998, arch::ChannelType::NORMAL);
+  auto *c34 = network->addRectangularChannel(node23->getId(), sinkNode->getId(), cHeight, cWidth, 0.013499999999999998, arch::ChannelType::NORMAL);
+  auto *c35 = network->addRectangularChannel(node24->getId(), sinkNode->getId(), cHeight, cWidth, 0.007499999999999999, arch::ChannelType::NORMAL);
+  auto *c36 = network->addRectangularChannel(node25->getId(), sinkNode->getId(), cHeight, cWidth, 0.0014999999999999998, arch::ChannelType::NORMAL);
+  auto *c37 = network->addRectangularChannel(node26->getId(), sinkNode->getId(), cHeight, cWidth, 0.007499999999999999, arch::ChannelType::NORMAL);
+  auto *c38 = network->addRectangularChannel(node27->getId(), sinkNode->getId(), cHeight, cWidth, 0.013499999999999998, arch::ChannelType::NORMAL);
 
   // flowRate pumps
   auto flowRate = 5e-9 / 60;
