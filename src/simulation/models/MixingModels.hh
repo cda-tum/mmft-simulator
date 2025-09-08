@@ -22,12 +22,12 @@ void MixingModel<T>::updateMinimalTimeStep(arch::Network<T>* network) {
             // contain any themselves; since the mixture positions in tank
             // and channel should match, this should not matter but is done
             // as a safety mechanism to make sure that no mixture is skipped
-            channel = network->getMembrane(edgeId)->getChannel();
+            channel = network->getMembrane(edgeId)->getChannel().get();
         } else if (!network->isChannel(edgeId)) {
             // ignore tanks (do not have a flowrate)
             continue;
         } else {
-            channel = network->getChannel(edgeId);
+            channel = network->getChannel(edgeId).get();
         }
         assert(channel);
         T channelVolume = channel->getVolume();
@@ -62,22 +62,22 @@ void MixingModel<T>::limitMinimalTimeStep(T minMinimalTimeStep, T maxMinimalTime
 }
 
 template<typename T>
-const std::deque<std::pair<int,T>>& MixingModel<T>::getMixturesInEdge(int channelId) const {
+const std::deque<std::pair<int,T>>& MixingModel<T>::getMixturesInEdge(size_t channelId) const {
     return mixturesInEdge.at(channelId);
 }
 
 template<typename T>
-const std::unordered_map<int, std::deque<std::pair<int,T>>>& MixingModel<T>::getMixturesInEdges() const {
+const std::unordered_map<size_t, std::deque<std::pair<int,T>>>& MixingModel<T>::getMixturesInEdges() const {
     return mixturesInEdge;
 }
 
 template<typename T>
-const std::unordered_map<int, int>& MixingModel<T>::getFilledEdges() const {
+const std::unordered_map<size_t, int>& MixingModel<T>::getFilledEdges() const {
     return filledEdges;
 }
 
 template<typename T>
-void MixingModel<T>::injectMixtureInEdge(int mixtureId, int channelId, T endPos) {
+void MixingModel<T>::injectMixtureInEdge(int mixtureId, size_t channelId, T endPos) {
     if (this->mixturesInEdge.count(channelId)) {
         this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, endPos));
     } else {
@@ -99,7 +99,7 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Ab
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId) ) {
             // Check if the channel flows into the node
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeBId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeAId() == nodeId)) {
                 T inflowVolume = std::abs(channel->getFlowRate());
                 auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
                 if (!inserted) {
@@ -135,8 +135,8 @@ void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::v
     // Add mixture injections
     for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
         int tmpMixtureIndex = tmpMixtures.size();
-        int nodeId = mixtureInjection->getInjectionChannel()->getFlowRate() >= 0.0 ? 
-                     mixtureInjection->getInjectionChannel()->getNodeB() : mixtureInjection->getInjectionChannel()->getNodeA();
+        size_t nodeId = mixtureInjection->getInjectionChannel()->getFlowRate() >= 0.0 ? 
+                     mixtureInjection->getInjectionChannel()->getNodeBId() : mixtureInjection->getInjectionChannel()->getNodeAId();
         tmpMixtures.push_back(Mixture<T>(*sim->getMixture(mixtureInjection->getMixtureId())));
         mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
     }
@@ -168,11 +168,11 @@ void InstantaneousMixingModel<T>::channelPropagation(arch::Network<T>* network) 
     for (auto& [nodeId, mixtureId] : mixtureOutflowAtNode) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
             // Find the nodeId that is across the channel
-            int oppositeNode;
-            if (channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) {
-                oppositeNode = channel->getNodeB();
-            } else if (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId) {
-                oppositeNode = channel->getNodeA();
+            size_t oppositeNode;
+            if (channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) {
+                oppositeNode = channel->getNodeBId();
+            } else if (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId) {
+                oppositeNode = channel->getNodeAId();
             } else {
                 continue;
             }
@@ -278,7 +278,7 @@ void InstantaneousMixingModel<T>::moveMixtures(T timeStep, arch::Network<T>* net
         // update positions of mixtures in channels
         for (auto& [channelId, channel] : network->getChannels()) {
             auto flowRate = channel->getFlowRate();
-            if ((flowRate > 0.0 && channel->getNodeB() == nodeId) || (flowRate < 0.0 && channel->getNodeA() == nodeId)) {
+            if ((flowRate > 0.0 && channel->getNodeBId() == nodeId) || (flowRate < 0.0 && channel->getNodeAId() == nodeId)) {
                 if (this->mixturesInEdge.count(channel->getId())){
                     for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
                         endPos = newEndPos(endPos, flowRate, channel->getVolume());
@@ -288,13 +288,13 @@ void InstantaneousMixingModel<T>::moveMixtures(T timeStep, arch::Network<T>* net
         }
         // update positions of mixtures in membranes & tanks
         for (auto& membrane : network->getMembranesAtNode(nodeId)) {
-            auto* tank = membrane->getTank();
-            auto* channel = membrane->getChannel();
+            auto* tank = membrane->getTank().get();
+            auto* channel = membrane->getChannel().get();
             // mixtures move through the tank at the same speed as through the connected channel
             // this is an abstraction to get time-accurate results
             // in reality, there is no flow rate in the tank
             auto flowRate = channel->getFlowRate();
-            if ((flowRate > 0.0 && channel->getNodeB() == nodeId) || (flowRate < 0.0 && channel->getNodeA() == nodeId)) {
+            if ((flowRate > 0.0 && channel->getNodeBId() == nodeId) || (flowRate < 0.0 && channel->getNodeAId() == nodeId)) {
                 if (this->mixturesInEdge.count(membrane->getId())) {
                     // each tank should have a membrane, but the membrane does not really have any mixtures
                     // inside; we update it anyway in order to mirror the mixtures in the tank for the
@@ -324,7 +324,7 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
         createMixture.insert_or_assign(nodeId, false);
         for (auto& [channelId, channel] : network->getChannels()) {
             // if node is outflow node of current channel
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeBId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeAId() == nodeId)) {
                 totalInflowCount++;
                 T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
                 auto [iterator, inserted] = totalInflowVolumeAtNode.try_emplace(nodeId, inflowVolume);
@@ -342,7 +342,7 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
                 }
             }
             // if node is inflow node to current channel
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId)) {
                 // if there is a permanent injection leading into current channel,
                 // add it as inflow to the node at start of the channel
                 if (this->permanentMixtureInjections.count(channel->getId())) {
@@ -362,13 +362,13 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
         }
         // membranes & tanks contribute to outflow at node only indirectly through the fluid concentration exchange with the connected channel
         for (auto& membrane : network->getMembranesAtNode(nodeId)) {
-            auto* tank = membrane->getTank();
-            auto* channel = membrane->getChannel();
+            auto* tank = membrane->getTank().get();
+            auto* channel = membrane->getChannel().get();
             // mixtures move through the tank at the same speed as through the connected channel
             // this is an abstraction to get time-accurate results; in reality, there is no flow rate in the tank
             auto flowRate = channel->getFlowRate();
             // if node is outflow node of current channel
-            if ((flowRate > 0.0 && channel->getNodeB() == nodeId) || (flowRate < 0.0 && channel->getNodeA() == nodeId)) {
+            if ((flowRate > 0.0 && channel->getNodeBId() == nodeId) || (flowRate < 0.0 && channel->getNodeAId() == nodeId)) {
                 if (this->mixturesInEdge.count(tank->getId())) {
                     for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(tank->getId())) {
                         // do not generate inflow, but mark as filled so that we know which
@@ -398,11 +398,11 @@ void InstantaneousMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>*
 }
 
 template<typename T>
-int InstantaneousMixingModel<T>::generateInflows(int nodeId, T timeStep, arch::Network<T>* network) {
+int InstantaneousMixingModel<T>::generateInflows(size_t nodeId, T timeStep, arch::Network<T>* network) {
     int mixtureInflowCount = 0;
     for (auto& [channelId, channel] : network->getChannels()) {
         T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
-        if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+        if ((channel->getFlowRate() > 0.0 && channel->getNodeBId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeAId() == nodeId)) {
             if (this->filledEdges.count(channelId)  && !network->getNode(nodeId)->getSink()) {
                 MixtureInFlow<T> mixtureInflow = {this->filledEdges.at(channelId), inflowVolume};
                 mixtureInflowAtNode[nodeId].push_back(mixtureInflow);
@@ -443,7 +443,7 @@ void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, AbstractMixing
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& channel : network->getChannelsAtNode(nodeId)) {
             // check if edge is an outflow edge to this node
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId)) {
                 if (mixtureOutflowAtNode.count(nodeId)) {
                     this->injectMixtureInEdge(mixtureOutflowAtNode.at(nodeId), channel->getId());
                 }
@@ -452,10 +452,10 @@ void InstantaneousMixingModel<T>::updateChannelInflow(T timeStep, AbstractMixing
 
         // membranes & tanks
         for (auto& membrane : network->getMembranesAtNode(nodeId)) {
-            auto* tank = membrane->getTank();
+            auto* tank = membrane->getTank().get();
             T channelFlowRate = membrane->getChannel()->getFlowRate();
             // if node is outflow node of tank channel
-            if ((channelFlowRate > 0.0 && tank->getNodeB() == nodeId) || (channelFlowRate < 0.0 && tank->getNodeA() == nodeId)) {
+            if ((channelFlowRate > 0.0 && tank->getNodeBId() == nodeId) || (channelFlowRate < 0.0 && tank->getNodeAId() == nodeId)) {
                 // since flow of mixtures is synchronized between channel and tank, check regular node outflow
                 // of parallel channel if tank recycling is necessary
                 if (mixtureOutflowAtNode.count(nodeId)) {
@@ -484,13 +484,13 @@ template<typename T>
 void InstantaneousMixingModel<T>::calculateMembraneExchange(T timeStep, AbstractMembrane<T>* sim, arch::Network<T>* network, const std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) {
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto membrane : network->getMembranesAtNode(nodeId)) {
-            auto* tank = membrane->getTank();
+            auto tank = membrane->getTank();
             // mixtures move through the tank at the same speed as through the connected channel
             // this is an abstraction to get time-accurate results
             // in reality, there is no flow rate in the tank
-            auto* channel = membrane->getChannel();
+            auto channel = network->getRectangularChannel(membrane->getChannel()->getId());
             auto channelFlowRate = channel->getFlowRate();
-            if ((channelFlowRate > 0.0 && tank->getNodeB() == nodeId) || (channelFlowRate < 0.0 && tank->getNodeA() == nodeId)) {
+            if ((channelFlowRate > 0.0 && tank->getNodeBId() == nodeId) || (channelFlowRate < 0.0 && tank->getNodeAId() == nodeId)) {
                 auto mixturesInChannelIt = this->mixturesInEdge.find(channel->getId());
                 auto mixturesInTankIt = this->mixturesInEdge.find(tank->getId());
                 auto numOfChannelMixtures = mixturesInChannelIt != this->mixturesInEdge.end() ? mixturesInChannelIt->second.size() : 0;
@@ -592,7 +592,7 @@ void InstantaneousMixingModel<T>::clean(arch::Network<T>* network) {
             remove_if_outflow(channel->getId());
         }
         for (auto& membrane : network->getMembranesAtNode(nodeId)) {
-            auto* tank = membrane->getTank();
+            auto* tank = membrane->getTank().get();
             remove_if_outflow(tank->getId());
             remove_if_outflow(membrane->getId());
         }
@@ -634,7 +634,7 @@ void DiffusionMixingModel<T>::updateNodeInflow(T timeStep, arch::Network<T>* net
     for (auto& [nodeId, node] : network->getNodes()) {
         for (auto& [channelId, channel] : network->getChannels()) {
             // If the channel flows into this node
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeBId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeAId() == nodeId)) {
                 T inflowVolume = std::abs(channel->getFlowRate()) * timeStep;
                 T movedDistance = inflowVolume / channel->getVolume();
                 if (this->mixturesInEdge.count(channel->getId())) {
@@ -666,40 +666,45 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
     for (auto& nodeId : mixingNodes) {
         // Perform topoology analysis at node, to know how the inflow sections and their relative order.
         topologyAnalysis(network, nodeId);
-        for (auto& [channelId, channel] : network->getChannels()) {
-            // If the channel flows out of this node
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
-                // Loop over all species in the incoming mixtures and add to set of present species
-                std::set<int> presentSpecies;
-                for (auto& section : outflowDistributions.at(channel->getId())) {
-                    if (this->filledEdges.count(section.channelId)) {
-                        for (auto& [specieId, pair] : mixtures.at(this->filledEdges.at(section.channelId))->getSpecieDistributions()) {
-                            if (presentSpecies.find(specieId) == presentSpecies.end()) {
-                                presentSpecies.emplace(specieId);
+        for (auto& [channelId, genericChannel] : network->getChannels()) {
+            if (genericChannel->isRectangular()) {
+                arch::RectangularChannel<T>* channel = network->getRectangularChannel(genericChannel->getId()).get();
+                // If the channel flows out of this node
+                if ((channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId)) {
+                    // Loop over all species in the incoming mixtures and add to set of present species
+                    std::set<int> presentSpecies;
+                    for (auto& section : outflowDistributions.at(channel->getId())) {
+                        if (this->filledEdges.count(section.channelId)) {
+                            for (auto& [specieId, pair] : mixtures.at(this->filledEdges.at(section.channelId))->getSpecieDistributions()) {
+                                if (presentSpecies.find(specieId) == presentSpecies.end()) {
+                                    presentSpecies.emplace(specieId);
+                                }
                             }
                         }
                     }
+                    // We should evaluate the final function of the mixture reaching the end of this channel
+                    std::unordered_map<size_t, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
+                    for (auto& specieId : presentSpecies) {
+                        T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                        std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
+                            channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
+                            pecletNr, outflowDistributions.at(channel->getId()), mixtures);
+                        newDistributions.try_emplace(specieId, analyticalResult);
+                    }
+                    //Create new DiffusiveMixture
+                    DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
+                    newMixture->setNonConstant();
+                    this->injectMixtureInEdge(newMixture->getId(), channelId);
+                } else {
+                    throw std::logic_error("Channel " + std::to_string(channel->getId()) + " is not rectangular. Cannot use DiffusionMixingModel." );
                 }
-                // We should evaluate the final function of the mixture reaching the end of this channel
-                std::unordered_map<size_t, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
-                for (auto& specieId : presentSpecies) {
-                    T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
-                    std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
-                        channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
-                        pecletNr, outflowDistributions.at(channel->getId()), mixtures);
-                    newDistributions.try_emplace(specieId, analyticalResult);
-                }
-                //Create new DiffusiveMixture
-                DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
-                newMixture->setNonConstant();
-                this->injectMixtureInEdge(newMixture->getId(), channelId);
             }
         }
     }
 } 
 
 template<typename T>
-void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int nodeId) {
+void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, size_t nodeId) {
     /**
      * 1. List all connecting angles with angle and inflow
      * 2. Order connected channels according to radial angle
@@ -720,19 +725,19 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
         std::vector<RadialPosition<T>> channelOrder;
         for (auto& [channelId, channel] : network->getChannels()) {
             bool inflow;
-            arch::Node<T>* nodeA = network->getNode(channel->getNodeA()).get();
-            arch::Node<T>* nodeB = network->getNode(channel->getNodeB()).get();
-            T dx = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[0]-nodeA->getPosition()[0] : nodeA->getPosition()[0]-nodeB->getPosition()[0];
-            T dy = ( nodeId == channel->getNodeA() ) ? nodeB->getPosition()[1]-nodeA->getPosition()[1] : nodeA->getPosition()[1]-nodeB->getPosition()[1];
+            arch::Node<T>* nodeA = network->getNode(channel->getNodeAId()).get();
+            arch::Node<T>* nodeB = network->getNode(channel->getNodeBId()).get();
+            T dx = ( nodeId == channel->getNodeAId() ) ? nodeB->getPosition()[0]-nodeA->getPosition()[0] : nodeA->getPosition()[0]-nodeB->getPosition()[0];
+            T dy = ( nodeId == channel->getNodeAId() ) ? nodeB->getPosition()[1]-nodeA->getPosition()[1] : nodeA->getPosition()[1]-nodeB->getPosition()[1];
             #ifdef DEBUG
             assert((dx*dx+dy*dy) > 1e-12);
             #endif
             T angle = atan2(dy,dx);
             angle = std::fmod(atan2(dy,dx)+2*M_PI,2*M_PI);
-            if ((channel->getFlowRate() > 0.0 && channel->getNodeB() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeA() == nodeId)) {
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeBId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeAId() == nodeId)) {
                 // Channel is inflow channel
                 inflow = true;
-            } else if ((channel->getFlowRate() > 0.0 && channel->getNodeA() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeB() == nodeId)) {
+            } else if ((channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId)) {
                 // Channel is outflow channel
                 inflow = false;
             } else {
@@ -791,7 +796,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             }
 
             std::vector<T> inflowCuts = {0.0};
-            std::vector<int> channelInIDs;
+            std::vector<size_t> channelInIDs;
             // Calculate inflow separations
             for (auto channelIn = concatenatedFlows[in].rbegin(); channelIn != concatenatedFlows[in].rend(); ++channelIn) {
                 T newCut = inflowCuts.back() + std::abs(network->getChannel(channelIn->channelId)->getFlowRate())/flowRateIn;
@@ -800,7 +805,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             }
 
             std::vector<T> outflowCuts = {0.0};
-            std::vector<int> channelOutIDs;
+            std::vector<size_t> channelOutIDs;
             for (auto& channelOut : concatenatedFlows[out]) {
                 T newCut = outflowCuts.back() + std::abs(network->getChannel(channelOut.channelId)->getFlowRate())/flowRateOut;
                 outflowCuts.push_back(std::min(newCut, (T) 1.0));
@@ -813,13 +818,17 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             T end = 0.0;
             for (auto& channelInId : channelInIDs) {
                 bool filled = false;
+                if (!network->getChannel(channelInId)->isRectangular()) {
+                    throw std::logic_error("Channel " + std::to_string(channelInId) + " is not rectangular. Cannot use DiffusionMixingModel." );
+                } 
+                arch::RectangularChannel<T>* channelIn = dynamic_cast<arch::RectangularChannel<T>*>(network->getChannel(channelInId).get());
                 while (!filled){
                     FlowSection<T> inFlowSection;
                     /** TODO: Miscellaneous */
                     if (inflowCuts[n_in+1] <= outflowCuts[n_out+1] + 1e-15) {   ///< 1e-16 to account for machine precision. TODO: improve algorithm
                         // The cut is caused on the inflow side
-                        T flowRate = (1.0 - start) * std::abs(network->getChannel(channelInId)->getFlowRate());
-                        inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate, network->getChannel(channelInId)->getWidth()};
+                        T flowRate = (1.0 - start) * std::abs(channelIn->getFlowRate());
+                        inFlowSection = FlowSection<T> {channelInId, start, 1.0, flowRate, channelIn->getWidth()};
                         if (outflowDistributions.count(channelOutIDs[n_out])) {
                             outflowDistributions.at(channelOutIDs[n_out]).push_back(inFlowSection);
                         } else {
@@ -835,8 +844,8 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
                     } else {
                         // The cut is caused on the outflow side
                         T flowRate = (outflowCuts[n_out + 1] - std::max(inflowCuts[n_in], outflowCuts[n_out]))*flowRateIn;
-                        end = start + flowRate / std::abs(network->getChannel(channelInId)->getFlowRate());
-                        inFlowSection = FlowSection<T> {channelInId, start, end, flowRate, network->getChannel(channelInId)->getWidth()};
+                        end = start + flowRate / std::abs(channelIn->getFlowRate());
+                        inFlowSection = FlowSection<T> {channelInId, start, end, flowRate, channelIn->getWidth()};
                         if (outflowDistributions.count(channelOutIDs[n_out])) {
                             outflowDistributions.at(channelOutIDs[n_out]).push_back(inFlowSection);
                         } else {
@@ -869,30 +878,30 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, int n
             if (flow.at(0).inFlow) {
                 T ratio = (std::abs(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()) - 0.5*std::abs(network->getChannel(flow.at(0).channelId)->getFlowRate())) 
                             / std::abs(network->getChannel(opposed.at(0).channelId)->getFlowRate());
-                FlowSection<T> flow1 {flow.at(0).channelId, 0.0, 0.5, 0.5*std::abs(network->getChannel(flow.at(0).channelId)->getFlowRate()), network->getChannel(flow.at(0).channelId)->getWidth()};
+                FlowSection<T> flow1 {flow.at(0).channelId, 0.0, 0.5, 0.5*std::abs(network->getChannel(flow.at(0).channelId)->getFlowRate()), network->getRectangularChannel(flow.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow1Vector = {flow1};
                 outflowDistributions.try_emplace(clockWise.at(0).channelId, newFlow1Vector);
-                FlowSection<T> flow2 {opposed.at(0).channelId, 0.0, ratio, ratio*std::abs(network->getChannel(opposed.at(0).channelId)->getFlowRate()), network->getChannel(opposed.at(0).channelId)->getWidth()};
+                FlowSection<T> flow2 {opposed.at(0).channelId, 0.0, ratio, ratio*std::abs(network->getChannel(opposed.at(0).channelId)->getFlowRate()), network->getRectangularChannel(opposed.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow2Vector = {flow2};
                 outflowDistributions.try_emplace(counterClockWise.at(0).channelId, newFlow2Vector);
-                FlowSection<T> flow3 {flow.at(0).channelId, 0.5, 1.0, 0.5*std::abs(network->getChannel(flow.at(0).channelId)->getFlowRate()), network->getChannel(flow.at(0).channelId)->getWidth()};
+                FlowSection<T> flow3 {flow.at(0).channelId, 0.5, 1.0, 0.5*std::abs(network->getChannel(flow.at(0).channelId)->getFlowRate()), network->getRectangularChannel(flow.at(0).channelId)->getWidth()};
                 outflowDistributions.at(counterClockWise.at(0).channelId).push_back(flow3);
-                FlowSection<T> flow4 {opposed.at(0).channelId, ratio, 1.0, (1.0 - ratio)*std::abs(network->getChannel(opposed.at(0).channelId)->getFlowRate()), network->getChannel(opposed.at(0).channelId)->getWidth()};
+                FlowSection<T> flow4 {opposed.at(0).channelId, ratio, 1.0, (1.0 - ratio)*std::abs(network->getChannel(opposed.at(0).channelId)->getFlowRate()), network->getRectangularChannel(opposed.at(0).channelId)->getWidth()};
                 outflowDistributions.at(clockWise.at(0).channelId).push_back(flow4);
             } else {
                 T ratio = std::abs(network->getChannel(clockWise.at(0).channelId)->getFlowRate()) / 
                             (std::abs(network->getChannel(clockWise.at(0).channelId)->getFlowRate()) + std::abs(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()));
                 T ratio1 = (ratio*std::abs(network->getChannel(flow.at(0).channelId)->getFlowRate()))/(std::abs(network->getChannel(clockWise.at(0).channelId)->getFlowRate()));
                 T ratio2 = ((1.0-ratio)*std::abs(network->getChannel(flow.at(0).channelId)->getFlowRate()))/(std::abs(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()));
-                FlowSection<T> flow1 {clockWise.at(0).channelId, 0.0, (1.0-ratio1), (1.0-ratio1)*std::abs(network->getChannel(clockWise.at(0).channelId)->getFlowRate()), network->getChannel(clockWise.at(0).channelId)->getWidth()};
+                FlowSection<T> flow1 {clockWise.at(0).channelId, 0.0, (1.0-ratio1), (1.0-ratio1)*std::abs(network->getChannel(clockWise.at(0).channelId)->getFlowRate()), network->getRectangularChannel(clockWise.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow1Vector = {flow1};
                 outflowDistributions.try_emplace(opposed.at(0).channelId, newFlow1Vector);
-                FlowSection<T> flow2 {counterClockWise.at(0).channelId, 0.0, ratio2, ratio2*std::abs(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()), network->getChannel(counterClockWise.at(0).channelId)->getWidth()};
+                FlowSection<T> flow2 {counterClockWise.at(0).channelId, 0.0, ratio2, ratio2*std::abs(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()), network->getRectangularChannel(counterClockWise.at(0).channelId)->getWidth()};
                 std::vector<FlowSection<T>> newFlow2Vector = {flow2};
                 outflowDistributions.try_emplace(flow.at(0).channelId, newFlow2Vector);
-                FlowSection<T> flow3 {clockWise.at(0).channelId, (1.0-ratio1), 1.0, ratio1*std::abs(network->getChannel(clockWise.at(0).channelId)->getFlowRate()), network->getChannel(clockWise.at(0).channelId)->getWidth()};
+                FlowSection<T> flow3 {clockWise.at(0).channelId, (1.0-ratio1), 1.0, ratio1*std::abs(network->getChannel(clockWise.at(0).channelId)->getFlowRate()), network->getRectangularChannel(clockWise.at(0).channelId)->getWidth()};
                 outflowDistributions.at(flow.at(0).channelId).push_back(flow3);
-                FlowSection<T> flow4 {counterClockWise.at(0).channelId, ratio2, 1.0, (1.0 - ratio2)*std::abs(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()), network->getChannel(counterClockWise.at(0).channelId)->getWidth()};
+                FlowSection<T> flow4 {counterClockWise.at(0).channelId, ratio2, 1.0, (1.0 - ratio2)*std::abs(network->getChannel(counterClockWise.at(0).channelId)->getFlowRate()), network->getRectangularChannel(counterClockWise.at(0).channelId)->getWidth()};
                 outflowDistributions.at(opposed.at(0).channelId).push_back(flow4);
             }
         } else {

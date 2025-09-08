@@ -50,24 +50,22 @@ class Specie;
 // Structure to define the mixture inflow into a node
 template<typename T>
 struct MixtureInFlow {
-
     int mixtureId;
     T inflowVolume;
-
 };
 
 template<typename T>
 struct RadialPosition {
     T radialAngle;
-    int channelId;
+    size_t channelId;
     bool inFlow;
 };
 
 template<typename T>
 struct FlowSection {
-    int channelId;  // Channel of this flow coming into the node
-    T sectionStart; // Start of the relevant section of this inflow (relative, 0.0-1.0)
-    T sectionEnd;   // End of the relevant section of this inflow (relative, 0.0-1.0)
+    size_t channelId;   // Channel of this flow coming into the node
+    T sectionStart;     // Start of the relevant section of this inflow (relative, 0.0-1.0)
+    T sectionEnd;       // End of the relevant section of this inflow (relative, 0.0-1.0)
     T flowRate;
     T width;
 };
@@ -91,10 +89,10 @@ template<typename T>
 class MixingModel {
 protected:
 
-    T minimalTimeStep = 0.0;                                                    ///< Required minimal timestep for a mixture to reach a node.
-    std::unordered_map<int, std::deque<std::pair<int,T>>> mixturesInEdge;       ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
-    std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled with a single mixture <EdgeID, MixtureID>
-    std::unordered_multimap<int, int> permanentMixtureInjections;               ///< Permanent mixture injections which are currently active, <ChannelID, MixtureIDs>
+    T minimalTimeStep = 0.0;                                                        ///< Required minimal timestep for a mixture to reach a node.
+    std::unordered_map<size_t, std::deque<std::pair<int,T>>> mixturesInEdge;        ///< Which mixture currently flows in which edge <EdgeID, <MixtureID, currPos>>>
+    std::unordered_map<size_t, int> filledEdges;                                    ///< Which edges are currently filled with a single mixture <EdgeID, MixtureID>
+    std::unordered_multimap<size_t, int> permanentMixtureInjections;                ///< Permanent mixture injections which are currently active, <ChannelID, MixtureIDs>
 
 public:
 
@@ -143,19 +141,19 @@ public:
      * @param[in] channelId The channel id.
      * @return A reference to the deque containing the mixtures and their location in the channel.
     */
-    const std::deque<std::pair<int,T>>& getMixturesInEdge(int channelId) const;
+    const std::deque<std::pair<int,T>>& getMixturesInEdge(size_t channelId) const;
 
     /**
      * @brief Retrieve all mixtures in all edges.
      * @return The unordered map of channel ids and deques containing the mixtures and their location per channel.
     */
-    const std::unordered_map<int, std::deque<std::pair<int,T>>>& getMixturesInEdges() const;
+    const std::unordered_map<size_t, std::deque<std::pair<int,T>>>& getMixturesInEdges() const;
 
     /**
      * @brief Retrieve the edges that are filled (one mixture has end position 1.0) and the mixture that is in the front of the channel.
      * @return The unordered map of channel ids and the mixture ids.
     */
-    const std::unordered_map<int, int>& getFilledEdges() const;
+    const std::unordered_map<size_t, int>& getFilledEdges() const;
 
     /**
      * @brief Insert a mixture at the back of the mixtures (deque) for a channel.
@@ -163,14 +161,14 @@ public:
      * @param[in] channelId Id of the channel.
      * @param[in] endPos Injection position of the mixture.
     */
-    void injectMixtureInEdge(int mixtureId, int channelId, T endPos = 0.0);
+    void injectMixtureInEdge(int mixtureId, size_t channelId, T endPos = 0.0);
 
     /**
      * @brief Add permanent mixture injection to current simulation run.
      * @param[in] mixtureId Id of the mixture that should be injected continuously from now on.
      * @param[in] channelId Id of the channel into which the injection is leading.
      */
-    void addPermanentMixtureInjection(int mixtureId, int channelId) { permanentMixtureInjections.insert({channelId, mixtureId}); }
+    void addPermanentMixtureInjection(int mixtureId, size_t channelId) { permanentMixtureInjections.insert({channelId, mixtureId}); }
 
     /**
      * @brief Update the position of all mixtures in the network and update the inflow into all nodes.
@@ -201,12 +199,12 @@ class InstantaneousMixingModel final : public MixingModel<T> {
 
 private:
 
-    std::unordered_map<int, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;     ///< Unordered map to track mixtures flowing into nodes <nodeId <mixtureId, inflowVolume>>
-    std::unordered_map<int, int> mixtureOutflowAtNode;                              ///< Unordered map to track mixtures flowing out of nodes <nodeId, mixtureId>.
-    std::unordered_map<int, T> totalInflowVolumeAtNode;                             ///< Unordered map to track the total volumetric flow entering a node.
-    std::unordered_map<int, bool> createMixture;                                    ///< Unordered map to track whether a new mixture is created at a node.
+    std::unordered_map<size_t, std::vector<MixtureInFlow<T>>> mixtureInflowAtNode;      ///< Unordered map to track mixtures flowing into nodes <nodeId <mixtureId, inflowVolume>>
+    std::unordered_map<size_t, int> mixtureOutflowAtNode;                               ///< Unordered map to track mixtures flowing out of nodes <nodeId, mixtureId>.
+    std::unordered_map<int, T> totalInflowVolumeAtNode;                                 ///< Unordered map to track the total volumetric flow entering a node.
+    std::unordered_map<int, bool> createMixture;                                        ///< Unordered map to track whether a new mixture is created at a node.
 
-    int generateInflows(int nodeId, T timeStep, arch::Network<T>* network);
+    int generateInflows(size_t nodeId, T timeStep, arch::Network<T>* network);
 
 public:
 
@@ -309,10 +307,10 @@ class DiffusionMixingModel final : public MixingModel<T> {
 
 private:
     int resolution = 10;
-    std::set<int> mixingNodes;
+    std::set<size_t> mixingNodes;
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
-    std::unordered_map<int, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
+    std::unordered_map<size_t, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
     void generateInflows();
 
 public:
@@ -338,7 +336,7 @@ public:
     */
     void generateInflows(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
 
-    void topologyAnalysis(arch::Network<T>* network, int nodeId);
+    void topologyAnalysis(arch::Network<T>* network, size_t nodeId);
 
     /**
      * @brief Propagate all the species through a network for a steady-state simulation

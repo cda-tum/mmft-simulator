@@ -159,7 +159,7 @@ namespace sim {
             std::cout << "[Simulation] Compute and set channel lengths..." << std::endl;
         #endif
         for (auto& [key, channel] : network->getChannels()) {
-            T calculatedLength = network->calculateNodeDistance(channel->getNodeA(), channel->getNodeB());
+            T calculatedLength = network->calculateNodeDistance(channel->getNodeAId(), channel->getNodeBId());
 
             if (channel->getLength() == 0) {
                 channel->setLength(calculatedLength);
@@ -173,9 +173,15 @@ namespace sim {
             std::cout << "[Simulation] Compute and set channel resistances..." << std::endl;
         #endif
         for (auto& [key, channel] : network->getChannels()) {
-            T resistance = resistanceModel->getChannelResistance(channel.get());
-            channel->setResistance(resistance);
-            channel->setDropletResistance(0.0);
+            if (channel->isRectangular()) {
+                T resistance = resistanceModel->getChannelResistance(dynamic_cast<arch::RectangularChannel<T>*>(channel.get()));
+                channel->setResistance(resistance);
+                channel->setDropletResistance(0.0);
+            } else if (channel->isCylindrical()) {
+                throw std::invalid_argument("Simulation::initialize: Cylindrical channels are not supported in this simulation.");
+            } else {
+                throw std::invalid_argument("Simulation::initialize: Channel " + std::to_string(channel->getId()) + " is not rectangular.");
+            }
         }
 
         nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network.get());

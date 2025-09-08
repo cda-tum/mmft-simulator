@@ -49,16 +49,16 @@ TEST_F(Tank, TwoTank) {
   auto node2 = network->addNode(0.0, cMembraneLength);
 
   // create channels
-  auto *c1 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // bone tumor tissue
-  [[maybe_unused]] auto *c2 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cConnectionLength, arch::ChannelType::NORMAL);
-  auto *c3 = network->addRectangularChannel(node2->getId(), groundSinkNode->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // cardiac tissue
+  auto c1 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // bone tumor tissue
+  [[maybe_unused]] auto c2 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cConnectionLength, arch::ChannelType::NORMAL);
+  auto c3 = network->addRectangularChannel(node2->getId(), groundSinkNode->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // cardiac tissue
 
   // create membrane and organ
-  auto *m4 = network->addMembraneToChannel(c1->getId(), mHeight, mWidth, poreRadius, porosity);
-  auto *o5 = network->addTankToMembrane(m4->getId(), oHeight, oWidth);
+  auto m4 = network->addMembraneToChannel(c1->getId(), mHeight, mWidth, poreRadius, porosity);
+  auto o5 = network->addTankToMembrane(m4->getId(), oHeight, oWidth);
 
-  auto *m6 = network->addMembraneToChannel(c3->getId(), mHeight, mWidth - pillarArea / cMembraneLength, poreRadius, porosity);
-  auto *o7 = network->addTankToMembrane(m6->getId(), oHeight, oWidth);
+  auto m6 = network->addMembraneToChannel(c3->getId(), mHeight, mWidth - pillarArea / cMembraneLength, poreRadius, porosity);
+  auto o7 = network->addTankToMembrane(m6->getId(), oHeight, oWidth);
 
   // define that node -1 is a sink
   network->setSink(groundSinkNode->getId());
@@ -68,7 +68,7 @@ TEST_F(Tank, TwoTank) {
   // flowRate pump
   constexpr auto flowRate = 5.5e-8; // 3.3mL/min
   // create flow-rate pump from ground node to node 0 with the given flow-rate
-  auto *pump0 = network->addFlowRatePump(node0->getId(), groundSinkNode->getId(), flowRate);
+  auto pump0 = network->addFlowRatePump(node0->getId(), groundSinkNode->getId(), flowRate);
 
   EXPECT_TRUE(network->isNetworkValid());
   network->sortGroups();

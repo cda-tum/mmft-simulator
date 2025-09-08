@@ -57,7 +57,19 @@ class ResistanceModel {
    * @param[in] volumeInsideChannel The volume inside the channel in m^3.
    * @return Resistance caused by the droplet in the channel in Pas/L.
    */
-  virtual T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const = 0;
+  virtual T getDropletResistance(arch::Channel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const;
+
+  /**
+   * @brief Retrieve the resistance caused by the specified droplet in the specified channel.
+   * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
+   * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
+   * @param[in] volumeInsideChannel The volume inside the channel in m^3.
+   * @return Resistance caused by the droplet in the channel in Pas/L.
+   */
+  virtual T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const 
+  {
+    return getDropletResistance(static_cast<arch::Channel<T> const* const>(channel), droplet, volumeInsideChannel);
+  }
 
   /**
    * @brief Returns whether this resistance model is a 1D resistance model.
@@ -109,6 +121,15 @@ class ResistanceModel1D final : public ResistanceModel<T> {
      * @param[in] volumeInsideChannel The volume inside the channel in m^3.
      * @return Resistance caused by the droplet in the channel in Pas/L.
      */
+    T getDropletResistance(arch::Channel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
+
+    /**
+     * @brief Retrieve the resistance caused by the specified droplet in the specified channel.
+     * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
+     * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
+     * @param[in] volumeInsideChannel The volume inside the channel in m^3.
+     * @return Resistance caused by the droplet in the channel in Pas/L.
+     */
     T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
 
     /**
@@ -147,15 +168,6 @@ class ResistanceModelPoiseuille final : public ResistanceModel<T>{
      * @return The a factor.
      */
     T computeFactorA(T width, T height) const override;
-
-    /**
-     * @brief Retrieve the resistance caused by the specified droplet in the specified channel.
-     * @param[in] channel Pointer to channel for which the droplet resistance should be calculated.
-     * @param[in] droplet Pointer to droplet that causes the droplet resistance in the channel.
-     * @param[in] volumeInsideChannel The volume inside the channel in m^3.
-     * @return Resistance caused by the droplet in the channel in Pas/L.
-     */
-    T getDropletResistance(arch::RectangularChannel<T> const* const channel, Droplet<T>* droplet, T volumeInsideChannel) const override;
 
     /**
      * @brief Returns whether this resistance model is a poiseuille resistance model.

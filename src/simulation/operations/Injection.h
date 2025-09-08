@@ -40,7 +40,7 @@ class Droplet;
 template<typename T>
 class DropletInjection final {
   private:
-    inline static int injectionCounter = 0;       ///< Global counter for amount of created dropletInjection objects.
+    inline static size_t injectionCounter = 0;       ///< Global counter for amount of created dropletInjection objects.
     const size_t id;                        ///< Unique identifier of an injection.
     DropletImplementation<T>* const droplet;      ///< Pointer to droplet to be injected.
     std::string name = "";                        ///< Name of the injection.
@@ -69,7 +69,7 @@ class DropletInjection final {
      * @param[in] channel Channel in which the droplet should be injected. The channel must be able to fully contain the droplet.
      * @param[in] injectionPosition Relative position (between 0.0 and 1.0) of the middle of the droplet in channel. Head and tail position must be in same channel.
      */
-    DropletInjection(size_t id, DropletImplementation<T>* droplet, T injectionTime, arch::RectangularChannel<T>* channel, T injectionPosition);
+    DropletInjection(size_t id, DropletImplementation<T>* droplet, T injectionTime, arch::Channel<T>* channel, T injectionPosition);
 
     /**
      * @brief Retrieve pointer to the droplet that should be injected.

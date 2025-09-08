@@ -282,11 +282,15 @@ void lbmSimulator<T>::initPressureIntegralPlane() {
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->cfdModule->getOpenings() ) {
 
+        if (key > std::numeric_limits<int>::max()) {
+            throw std::runtime_error("The number of openings in a module cannot exceed " + std::to_string(std::numeric_limits<int>::max()) + ".");
+        }
+
         T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
         T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
 
         std::vector<T> position = {posX, posY};
-        std::vector<int> materials = {1, key+3};
+        std::vector<int> materials = {1, int(key)+3};
 
         if (this->groundNodes.at(key)) {
             std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>> meanPressure;
@@ -304,11 +308,15 @@ void lbmSimulator<T>::initFlowRateIntegralPlane() {
     // Initialize the integral fluxes for the in- and outlets
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
 
+        if (key > std::numeric_limits<int>::max()) {
+            throw std::runtime_error("The number of openings in a module cannot exceed " + std::to_string(std::numeric_limits<int>::max()) + ".");
+        }
+
         T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
         T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
 
         std::vector<T> position = {posX, posY};
-        std::vector<int> materials = {1, key+3};
+        std::vector<int> materials = {1, int(key)+3};
 
         if (!this->groundNodes.at(key)) {
             std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;
@@ -415,16 +423,6 @@ void lbmSimulator<T>::readOpenings (const T dx) {
         
         this->geometry->rename(2, key+3, opening);
     }
-}
-
-template<typename T>
-void lbmSimulator<T>::storePressures(std::unordered_map<int, T> pressure_) {
-    this->pressures = pressure_;
-}
-
-template<typename T>
-void lbmSimulator<T>::storeFlowRates(std::unordered_map<int, T> flowRate_) {
-    this->flowRates = flowRate_;
 }
 
 template<typename T>

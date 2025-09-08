@@ -164,21 +164,21 @@ namespace sim {
             if (this->getNetwork()->isChannel(edgeId)) {
                 // Insert a permanent mixture into a channel
                 auto channel = this->getNetwork()->getChannel(edgeId);
-                auto result = permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel, injectionTime)));
+                auto result = permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
                 return result.first->second;
             } else if (this->getNetwork()->isPressurePump(edgeId)) {
                 // If the edge is a pressure pump, the permanent mixture is injected into channels connected to pump outlet
                 auto pump = this->getNetwork()->getPressurePump(edgeId);
-                int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+                int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
                 for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
-                    permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel, injectionTime)));
+                    permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
                 }
             } else if (this->getNetwork()->isFlowRatePump(edgeId)) {
                 // If the edge is a flow rate pump, the permanent mixture is injected into channels connected to pump outlet
                 auto pump = this->getNetwork()->getFlowRatePump(edgeId);
-                int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+                int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
                 for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
-                    permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel, injectionTime)));
+                    permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
                 }
             }
             return nullptr;
@@ -188,21 +188,21 @@ namespace sim {
         if (this->getNetwork()->isChannel(edgeId)) {
             // Insert a mixture into a channel_
             auto channel = this->getNetwork()->getChannel(edgeId);
-            auto result = mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel, injectionTime)));
+            auto result = mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             return result.first->second;
         } else if (this->getNetwork()->isPressurePump(edgeId)) {
             // If the edge is a pressure pump, the mixture is injected into channels connected to pump outlet
             auto pump = this->getNetwork()->getPressurePump(edgeId);
-            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
             for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
-                mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel, injectionTime)));
+                mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             }
         } else if (this->getNetwork()->isFlowRatePump(edgeId)) {
             // If the edge is a flow rate pump, the mixture is injected into channels connected to pump outlet
             auto pump = this->getNetwork()->getFlowRatePump(edgeId);
-            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeB() : pump->getNodeA());
+            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
             for (auto& channel : this->getNetwork()->getChannelsAtNode(nodeId)) {
-                mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel, injectionTime)));
+                mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             }
         }
         return nullptr;

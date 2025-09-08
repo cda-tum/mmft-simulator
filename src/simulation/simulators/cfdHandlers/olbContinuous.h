@@ -65,8 +65,8 @@ private:
     int step = 0;                           ///< Iteration step of this module.
     int stepIter = 1000;                    ///< Number of iterations for the value tracer.
     int maxIter = 1e7;                      ///< Maximum total iterations.
-    std::unordered_map<int, T> pressures;   ///< Vector of pressure values at module nodes.
-    std::unordered_map<int, T> flowRates;   ///< Vector of flowRate values at module nodes.
+    std::unordered_map<size_t, T> pressures;    ///< Vector of pressure values at module nodes.
+    std::unordered_map<size_t, T> flowRates;    ///< Vector of flowRate values at module nodes.
     
     bool isInitialized = false;             ///< Has lbmInit taken place?
     bool isConverged = false;               ///< Has the module converged?
@@ -79,11 +79,11 @@ private:
     std::shared_ptr<olb::SuperLattice<T, DESCRIPTOR>> lattice;      ///< The LBM lattice on the geometry.
     std::unique_ptr<olb::util::ValueTracer<T>> converge;            ///< Value tracer to track convergence.
 
-    std::unordered_map<int, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
-    std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>> densities;
+    std::unordered_map<size_t, std::shared_ptr<olb::Poiseuille2D<T>>> flowProfiles;
+    std::unordered_map<size_t, std::shared_ptr<olb::AnalyticalConst2D<T,T>>> densities;
     std::shared_ptr<const olb::UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR>> converter;      ///< Object that stores conversion factors from phyical to lattice parameters.
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;              ///< Map of fluxes at module nodes. 
-    std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;       ///< Map of mean pressure values at module nodes.
+    std::unordered_map<size_t, std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>>> fluxes;           ///< Map of fluxes at module nodes. 
+    std::unordered_map<size_t, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>> meanPressures;    ///< Map of mean pressure values at module nodes.
 
     [[nodiscard]] std::string getDefaultName(int id);
 
@@ -194,13 +194,13 @@ protected:
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
-    void storePressures(std::unordered_map<int, T> pressure);
+    inline void storePressures(std::unordered_map<size_t, T> pressure) { this->pressures = pressure; }
 
     /**
      * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
      * @param[in] flowRate Map of flow rates and node ids.
      */
-    void storeFlowRates(std::unordered_map<int, T> flowRate);
+    inline void storeFlowRates(std::unordered_map<size_t, T> flowRate) { this->flowRates = flowRate; }
 
     auto& readGeometry() const {
         return *geometry;
@@ -214,13 +214,13 @@ protected:
      * @brief Get the pressures at the boundary nodes.
      * @returns Pressures in Pa.
      */
-    [[nodiscard]] inline const std::unordered_map<int, T>& getPressures() const { return pressures; }
+    [[nodiscard]] inline const std::unordered_map<size_t, T>& getPressures() const { return pressures; }
 
     /**
      * @brief Get the flow rates at the boundary nodes.
      * @returns Flow rates in m^3/s.
      */
-    [[nodiscard]] inline const std::unordered_map<int, T>& getFlowRates() const { return flowRates; }
+    [[nodiscard]] inline const std::unordered_map<size_t, T>& getFlowRates() const { return flowRates; }
 
     /**
      * @brief Sets a new characteristic length for the simulator.

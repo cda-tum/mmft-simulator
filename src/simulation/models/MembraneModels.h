@@ -42,7 +42,7 @@ public:
      * @param area Area for which the resistance should be calculated in [m^3].
      * @return The resistance of this membrane to this mixture in [Pa].
      */
-    virtual T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const = 0;
+    virtual T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const = 0;
 
     /**
      * @brief Virtual default destructor for inheritance.
@@ -96,9 +96,9 @@ class MembraneModel0 final : public MembraneModel<T> {
 
     MembraneModel0();
 
-    [[nodiscard]] T getPoreResistance(arch::Membrane<T> const*  membrane, Mixture<T> const* mixture) const;
+    [[nodiscard]] T getPoreResistance(const std::shared_ptr<arch::Membrane<T>>&  membrane, Mixture<T> const* mixture) const;
     [[nodiscard]] T getPermeabilityParameter(const arch::Membrane<T>* membrane) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -121,10 +121,10 @@ class MembraneModel1 final : public MembraneModel<T> {
      */
     explicit MembraneModel1(T deviceAdjustment = 1.9);
 
-    [[nodiscard]] T getPoreExitResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPoreResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPoreDensityDependentResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreExitResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPoreResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPoreDensityDependentResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T area, T diffusionCoefficient) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -142,9 +142,9 @@ class MembraneModel2 final : public MembraneModel<T> {
      */
     MembraneModel2();
 
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T area, T freeDiffusionCoefficient) const;
-    [[nodiscard]] T getTransmembraneResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient, T area) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreDiscoveryResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T area, T freeDiffusionCoefficient) const;
+    [[nodiscard]] T getTransmembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient, T area) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -163,9 +163,9 @@ class MembraneModel3 final : public MembraneModel<T> {
      */
     MembraneModel3();
 
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient, T area) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreDiscoveryResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient, T area) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -183,9 +183,9 @@ class MembraneModel4 final : public MembraneModel<T> {
      */
     MembraneModel4();
 
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreDiscoveryResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -204,9 +204,9 @@ class MembraneModel5 final : public MembraneModel<T> {
      */
     MembraneModel5();
 
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreDiscoveryResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -227,7 +227,7 @@ class MembraneModel6 final : public MembraneModel<T> {
      */
     MembraneModel6();
 
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -245,9 +245,9 @@ class MembraneModel7 final : public MembraneModel<T> {
      */
     MembraneModel7();
 
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreDiscoveryResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T area, T diffusionCoefficient) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -266,9 +266,9 @@ class MembraneModel8 final : public MembraneModel<T> {
      */
     MembraneModel8();
 
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreDiscoveryResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T area, T diffusionCoefficient) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };
@@ -287,9 +287,9 @@ class MembraneModel9 final : public MembraneModel<T> {
      */
     MembraneModel9();
 
-    [[nodiscard]] T getPoreDiscoveryResistance(arch::Membrane<T> const* membrane, T diffusionCoefficient) const;
-    [[nodiscard]] T getPorePassageResistance(arch::Membrane<T> const* membrane, T area, T diffusionCoefficient) const;
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreDiscoveryResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T diffusionCoefficient) const;
+    [[nodiscard]] T getPorePassageResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, T area, T diffusionCoefficient) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
     friend class AbstractMembrane<T>;
 };

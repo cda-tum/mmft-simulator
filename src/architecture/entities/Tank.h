@@ -14,6 +14,8 @@ template<typename T>
 class Edge;
 template<typename T>
 class Node;
+template<typename T>
+class Network;
 
 /**
  * @brief Class to specify a tank, which is an edge component of a network and is attached to a membrane.
@@ -27,7 +29,6 @@ class Tank : public Edge<T> {
     T tankResistance = 0;     ///< Resistance of the membrane in Pa s/m^3.
     T pressureDifference = 0; ///< Pressure difference between nodeA and nodeB.
 
-  public:
     /**
      * @brief Constructor of a membrane.
      * @param[in] id Id of the membrane.
@@ -47,6 +48,8 @@ class Tank : public Edge<T> {
      * @param[in] resistance Resistance of the membrane in Pa s/m^3.
      */
     Tank(int id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T resistance);
+
+  public:
 
     /**
      * @brief Set dimensions of a membrane.
@@ -121,6 +124,9 @@ class Tank : public Edge<T> {
      * @returns Overall resistance in Pa s/m^3.
      */
     [[nodiscard]] T getResistance() const override;
+
+    // friend definitions
+    friend class Network<T>;
 };
 
 }  // namespace arch

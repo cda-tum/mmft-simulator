@@ -3,23 +3,22 @@
 namespace arch {
 
 template<typename T>
-Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_,
-                    std::unordered_map<int, std::shared_ptr<FlowRatePump<T>>> flowRatePumps_,
-                    std::unordered_map<int, std::shared_ptr<PressurePump<T>>> pressurePumps_,
-                    std::unordered_map<int, std::shared_ptr<CfdModule<T>>> modules_) :
+Network<T>::Network(std::unordered_map<size_t, std::shared_ptr<Node<T>>> nodes_,
+                    std::unordered_map<size_t, std::shared_ptr<Channel<T>>> channels_,
+                    std::unordered_map<size_t, std::shared_ptr<FlowRatePump<T>>> flowRatePumps_,
+                    std::unordered_map<size_t, std::shared_ptr<PressurePump<T>>> pressurePumps_,
+                    std::unordered_map<size_t, std::shared_ptr<CfdModule<T>>> modules_) :
                     nodes(std::move(nodes_)), channels(std::move(channels_)), flowRatePumps(std::move(flowRatePumps_)),
                     pressurePumps(std::move(pressurePumps_)), modules(std::move(modules_)) { }
 
 template<typename T>
-Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_) :
+Network<T>::Network(std::unordered_map<size_t, std::shared_ptr<Node<T>>> nodes_,
+                    std::unordered_map<size_t, std::shared_ptr<Channel<T>>> channels_) :
                     nodes(std::move(nodes_)), channels(std::move(channels_)) { }
 
 template<typename T>
-Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
+Network<T>::Network(std::unordered_map<size_t, std::shared_ptr<Node<T>>> nodes_) :
                     nodes(std::move(nodes_)) {
-
     // Generate all possible channels between the nodes for the fully connected graph
     std::vector<int> nodeIds;
     for (auto& [key, node] : nodes) {
@@ -31,7 +30,7 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
         for (size_t j = i+1; j < nodeIds.size(); ++j){
             std::shared_ptr<Node<T>> nA = nodes.at(nodeIds[i]);
             std::shared_ptr<Node<T>> nB = nodes.at(nodeIds[j]);
-            auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4);
+            auto addRectangularChannel = std::shared_ptr<RectangularChannel<T>>(new RectangularChannel<T>(channel_counter, nA, nB, (T) 1e-4, (T) 1e-4));
             auto [it, is_inserted] = channels.try_emplace(channel_counter, std::move(addRectangularChannel));
             assert(is_inserted);
             ++channel_counter;
@@ -40,46 +39,17 @@ Network<T>::Network(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_) :
 }
 
 template<typename T>
-std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                                                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_,
-                                                    std::unordered_map<int, std::shared_ptr<FlowRatePump<T>>> flowRatePumps_,
-                                                    std::unordered_map<int, std::shared_ptr<PressurePump<T>>> pressurePumps_,
-                                                    std::unordered_map<int, std::shared_ptr<CfdModule<T>>> modules_) 
-{
-    return std::shared_ptr<Network<T>>(new Network<T>(nodes_, channels_, flowRatePumps_, pressurePumps_, modules_));
-}
-
-template<typename T>
-std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_,
-                                                    std::unordered_map<int, std::shared_ptr<Channel<T>>> channels_)
-{
-    return std::shared_ptr<Network<T>>(new Network<T>(nodes_, channels_));
-}
-
-template<typename T>
-std::shared_ptr<Network<T>> Network<T>::createNetwork(std::unordered_map<int, std::shared_ptr<Node<T>>> nodes_)
-{
-    return std::shared_ptr<Network<T>>(new Network<T>(nodes_));
-}
-
-template<typename T>
-std::shared_ptr<Network<T>> Network<T>::createNetwork()
-{
-    return std::shared_ptr<Network<T>>(new Network<T>());
-}
-
-template<typename T>
-void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes, std::unordered_map<int, bool>& visitedChannels, std::unordered_map<int, bool>& visitedModules) {
+void Network<T>::visitNodes(size_t id, std::unordered_map<size_t, bool>& visitedNodes, std::unordered_map<size_t, bool>& visitedChannels, std::unordered_map<size_t, bool>& visitedModules) {
     const auto net = reach.at(id);
     visitedNodes.at(id) = true;
     for (auto [key, channel] : net) {
         if (!(channel->getChannelType() == ChannelType::CLOGGABLE)) {
             if (visitedChannels.at(channel->getId()) == false) {
                 visitedChannels.at(channel->getId()) = true;
-                if (channel->getNodeA() != id) {
-                    visitNodes(channel->getNodeA(), visitedNodes, visitedChannels, visitedModules);
+                if (channel->getNodeAId() != id) {
+                    visitNodes(channel->getNodeAId(), visitedNodes, visitedChannels, visitedModules);
                 } else {
-                    visitNodes(channel->getNodeB(), visitedNodes, visitedChannels, visitedModules);
+                    visitNodes(channel->getNodeBId(), visitedNodes, visitedChannels, visitedModules);
                 }
             }
         }
@@ -95,212 +65,287 @@ void Network<T>::visitNodes(int id, std::unordered_map<int, bool>& visitedNodes,
 }
 
 template<typename T>
-int Network<T>::edgeCount() const {
+size_t Network<T>::edgeCount() const {
     return channels.size() + flowRatePumps.size() + pressurePumps.size() + membranes.size() + tanks.size();
 }
 
 template<typename T>
 std::shared_ptr<Node<T>> Network<T>::addNode(T x_, T y_, bool ground_) {
     int nodeId = nodes.size();
-    auto result = nodes.insert({nodeId, std::make_shared<Node<T>>(nodeId, x_, y_, ground_)});
+
+    return addNode(nodeId, x_, y_, ground_);
+}
+
+template<typename T>
+std::shared_ptr<Node<T>> Network<T>::addNode(size_t nodeId, T x_, T y_, bool ground_) {
+    auto nodePtr = std::shared_ptr<Node<T>>(new Node<T>(nodeId, x_, y_, ground_));
+    auto result = nodes.insert({nodeId, nodePtr});
 
     if (result.second) {
         // insertion happened and we have to add an additional entry into the reach
-        reach.insert_or_assign(nodeId, std::unordered_map<int, RectangularChannel<T>*>{});
+        reach.insert_or_assign(nodeId, std::unordered_map<size_t, std::shared_ptr<Channel<T>>>{});
     } else {
         std::out_of_range(  "Could not add Node " + std::to_string(nodeId) + " at (" + std::to_string(x_) +
                             ", " + std::to_string(y_) + "). Nodes out of bounds.");
     }
 
     if (ground_) {
-        groundNodes.emplace(result.first->second);
+        groundNodes.emplace(nodePtr);
     }
 
-    // return raw pointer to the node
-    return result.first->second;
+    // return pointer to the node
+    return nodePtr;
 }
 
 template<typename T>
-std::shared_ptr<Node<T>> Network<T>::addNode(int nodeId, T x_, T y_, bool ground_) {
-    auto result = nodes.insert({nodeId, std::make_shared<Node<T>>(nodeId, x_, y_, ground_)});
-
-    if (result.second) {
-        // insertion happened and we have to add an additional entry into the reach
-        reach.insert_or_assign(nodeId, std::unordered_map<int, RectangularChannel<T>*>{});
+std::shared_ptr<Node<T>> Network<T>::getNode(size_t nodeId) const {
+    if (nodes.count(nodeId)) {
+        return nodes.at(nodeId);
     } else {
-        std::out_of_range(  "Could not add Node " + std::to_string(nodeId) + " at (" + std::to_string(x_) +
-                            ", " + std::to_string(y_) + "). Nodes out of bounds.");
+        throw std::invalid_argument("Network does not contain node " + std::to_string(nodeId) + ".");
+    }
+};
+
+template<typename T>
+std::set<size_t> Network<T>::getGroundNodeIds() const {
+    if (groundNodes.empty()) {
+        throw std::invalid_argument("Ground node not defined.");
     }
 
-    if (ground_) {
-        groundNodes.emplace(result.first->second);
+    std::set<size_t> groundIds;
+    for (auto groundNode : groundNodes) {
+        groundIds.insert(groundNode->getId());
     }
 
-    // return raw pointer to the node
-    return result.first->second;
+    return groundIds;
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type) {
-    // create channel
-    auto nodeA = nodes.at(nodeAId);
-    auto nodeB = nodes.at(nodeBId);
-    auto id = edgeCount();
-    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
-
-    addRectangularChannel->setChannelType(type);
-
-    // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addRectangularChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addRectangularChannel.get());
-    assert(is_inserted1);
-    assert(is_inserted2);
-
-    // add channel
-    auto [it, is_inserted] = channels.try_emplace(id, std::move(addRectangularChannel));
-    assert(is_inserted);
-    
-    return channels.at(id).get();
+void Network<T>::setSink(size_t nodeId_) {
+    nodes.at(nodeId_)->setSink(true);
+    sinks.emplace(nodes.at(nodeId_));
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T height, T width, ChannelType type, int channelId) {
-    // create channel
-    auto nodeA = nodes.at(nodeAId);
-    auto nodeB = nodes.at(nodeBId);
-    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(channelId, nodeA, nodeB, width, height);
-
-    // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(channelId, addRectangularChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(channelId, addRectangularChannel.get());
-    assert(is_inserted1);
-    assert(is_inserted2);
-
-    addRectangularChannel->setChannelType(type);
-
-    // add channel
-    auto [it, is_inserted] = channels.try_emplace(channelId, std::move(addRectangularChannel));
-    assert(is_inserted);
-
-    return channels.at(channelId).get();
+void Network<T>::setGround(size_t nodeId_) {
+    nodes.at(nodeId_)->setGround(true);
+    groundNodes.emplace(nodes.at(nodeId_));
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T height, T width, T length, ChannelType type) {
+T Network<T>::calculateNodeDistance(size_t nodeAId, size_t nodeBId) {
+    auto& nodeA = this->getNodes().at(nodeAId);
+    auto& nodeB = this->getNodes().at(nodeBId);
+    T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
+    T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
+    return sqrt(dx*dx + dy*dy);
+}
+
+template<typename T>
+void Network<T>::removeNode(const std::shared_ptr<Node<T>>& node) {
+    int nodeId = node->getId();
+    if (nodes.find(nodeId) != nodes.end()) {
+        // remove all edges connected to this node
+        removeEdgesFromNodeReach(nodeId);   // Remove all edges that aren't channels
+        for (auto& channel : reach.at(nodeId)) {
+            removeChannel(channel.second);
+        }
+
+        // remove node from connected module
+        for (auto& module : modularReach.at(nodeId)) {
+            module.second->removeNode(nodeId);
+        }
+
+        // remove the node from the reach map
+        reach.erase(nodeId);
+        modularReach.erase(nodeId);
+
+        // remove the node from the nodes map
+        sinks.erase(node);
+        groundNodes.erase(node);
+        nodes.erase(nodeId);
+    } else {
+        throw std::logic_error("Network does not contain node " + std::to_string(nodeId) + ".");
+    }
+
+}
+
+template<typename T>
+std::shared_ptr<RectangularChannel<T>> Network<T>::addRectangularChannel(size_t nodeAId, size_t nodeBId, T height, T width, T length, ChannelType type, size_t channelId) {
     // create channel
     auto nodeA = nodes.at(nodeAId);
     auto nodeB = nodes.at(nodeBId);
-    auto id = edgeCount();
-    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, width, height);
+    auto addRectangularChannel = std::shared_ptr<RectangularChannel<T>>(new RectangularChannel<T>(channelId, nodeA, nodeB, width, height));
 
     addRectangularChannel->setLength(length);
     addRectangularChannel->setChannelType(type);
 
     // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addRectangularChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addRectangularChannel.get());
+    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(channelId, addRectangularChannel);
+    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(channelId, addRectangularChannel);
     assert(is_inserted1);
     assert(is_inserted2);
 
     // add channel
-    auto [it, is_inserted] = channels.try_emplace(id, std::move(addRectangularChannel));
+    auto [it, is_inserted] = channels.try_emplace(channelId, addRectangularChannel);
     assert(is_inserted);
 
-    return channels.at(id).get();
+    return addRectangularChannel;
 }
 
 template<typename T>
-RectangularChannel<T>* Network<T>::addRectangularChannel(int nodeAId, int nodeBId, T resistance, ChannelType type) {
+std::shared_ptr<RectangularChannel<T>> Network<T>::addRectangularChannel(size_t nodeAId, size_t nodeBId, T height, T width, T length, ChannelType type) {
     // create channel
-    auto nodeA = nodes.at(nodeAId);
-    auto nodeB = nodes.at(nodeBId);
-    auto id = edgeCount();
-    auto addRectangularChannel = std::make_unique<RectangularChannel<T>>(id, nodeA, nodeB, 1.0, 1.0);
-
-    addRectangularChannel->setResistance(resistance);
-    addRectangularChannel->setChannelType(type);
-
-    // add to network as long as channel is still a valid pointer
-    auto [it1, is_inserted1] = reach.at(nodeAId).try_emplace(id, addRectangularChannel.get());
-    auto [it2, is_inserted2] = reach.at(nodeBId).try_emplace(id, addRectangularChannel.get());
-    assert(is_inserted1);
-    assert(is_inserted2);
-
-    // add channel
-    auto [it, is_inserted] = channels.try_emplace(id, std::move(addRectangularChannel));
-    assert(is_inserted);
-
-    return channels.at(id).get();
+    size_t id = edgeCount();
+    return addRectangularChannel(nodeAId, nodeBId, height, width, length, type, id);
 }
 
 template<typename T>
-Membrane<T>* Network<T>::addMembraneToChannel(int channelId, T height, T width, T poreRadius, T porosity) {
-    auto channel = getChannel(channelId);
-    auto id = edgeCount();
-    auto nodeA = this->getNode(channel->getNodeA());
-    auto nodeB = this->getNode(channel->getNodeB());
-    auto membrane = std::make_unique<Membrane<T>>(id, nodeA, nodeB, height,
-                                                  width, channel->getLength(),
-                                                  poreRadius, porosity);
-    membrane->setChannel(channel);
-
-    auto [it, is_inserted] = membranes.try_emplace(id, std::move(membrane));
-    assert(is_inserted);
-
-    return membranes.at(id).get();
+std::shared_ptr<RectangularChannel<T>> Network<T>::addRectangularChannel(size_t nodeAId, size_t nodeBId, T height, T width, ChannelType type) {
+    // create channel
+    size_t id = edgeCount();
+    T length = calculateNodeDistance(nodeAId, nodeBId);
+    return addRectangularChannel(nodeAId, nodeBId, height, width, length, type, id);
 }
 
 template<typename T>
-Tank<T>* Network<T>::addTankToMembrane(int membraneId, T height, T width) {
-    auto membrane = getMembrane(membraneId);
-    auto id = edgeCount();
-    auto nodeA = this->getNode(membrane->getNodeA());
-    auto nodeB = this->getNode(membrane->getNodeB());
-    auto tank = std::make_unique<Tank<T>>(id, nodeA, nodeB, height, width,
-                                            membrane->getLength());
-    membrane->setTank(tank.get());
-
-    auto [it, is_inserted] = tanks.try_emplace(id, std::move(tank));
-    assert(is_inserted);
-
-    return tanks.at(id).get();
+std::shared_ptr<RectangularChannel<T>> Network<T>::addRectangularChannel(size_t nodeAId, size_t nodeBId, T height, T width, ChannelType type, size_t channelId) {
+    // create channel
+    T length = calculateNodeDistance(nodeAId, nodeBId);
+    return addRectangularChannel(nodeAId, nodeBId, height, width, length, type, channelId);
 }
 
 template<typename T>
-FlowRatePump<T>* Network<T>::addFlowRatePump(int nodeAId, int nodeBId, T flowRate) {
+std::shared_ptr<RectangularChannel<T>> Network<T>::addRectangularChannel(size_t nodeAId, size_t nodeBId, T resistance, ChannelType type) {
+    // create channel
+    size_t id = edgeCount();
+    T length = calculateNodeDistance(nodeAId, nodeBId);
+    std::shared_ptr<RectangularChannel<T>> addChannel = addRectangularChannel(nodeAId, nodeBId, 1.0, 1.0, length, type, id);
+
+    // Set custom resistance
+    addChannel->setResistance(resistance);
+
+    return addChannel;
+}
+
+template<typename T>
+std::shared_ptr<RectangularChannel<T>> Network<T>::getRectangularChannel(size_t channelId) const {
+    if (channels.at(channelId)->isRectangular()) {
+        return std::dynamic_pointer_cast<RectangularChannel<T>>(channels.at(channelId));
+    } else {
+        throw std::bad_cast();
+    }
+}
+
+template<typename T>
+const std::vector<std::shared_ptr<Channel<T>>> Network<T>::getChannelsAtNode(size_t nodeId_) const {
+    try {
+        std::vector<std::shared_ptr<Channel<T>>> tmp;
+        for (auto& [key, channel] : reach.at(nodeId_)) {
+            tmp.push_back(channel);
+        }
+        return tmp;
+    } catch (const std::out_of_range& e) {
+        throw std::invalid_argument("Node with ID " + std::to_string(nodeId_) + " does not exist.");
+    }
+}
+
+template<typename T>
+void Network<T>::removeChannel(const std::shared_ptr<Channel<T>>& channel) {
+    int channelId = channel->getId();
+    if (channels.find(channelId) != channels.end()) {
+        // remove channel from reach of both nodes
+        reach.at(channel->getNodeAId()).erase(channelId);
+        reach.at(channel->getNodeBId()).erase(channelId);
+
+        // remove channel from channels map
+        channels.erase(channelId);
+    } else {
+        throw std::logic_error("Network does not contain channel " + std::to_string(channelId) + ".");
+    }
+}
+
+template<typename T>
+std::shared_ptr<FlowRatePump<T>> Network<T>::addFlowRatePump(size_t nodeAId, size_t nodeBId, T flowRate) {
     // create pump
     auto id = edgeCount();
-    auto addPump = std::make_unique<FlowRatePump<T>>(id, nodeAId, nodeBId, flowRate);
+    auto addPump = std::shared_ptr<FlowRatePump<T>>(new FlowRatePump<T>(id, nodeAId, nodeBId, flowRate));
 
     // add pump
-    auto [it, is_inserted] = flowRatePumps.try_emplace(id, std::move(addPump));
+    auto [it, is_inserted] = flowRatePumps.try_emplace(id, addPump);
     assert(is_inserted);
 
-    return flowRatePumps.at(id).get();
+    return addPump;
 }
 
 template<typename T>
-PressurePump<T>* Network<T>::addPressurePump(int nodeAId, int nodeBId, T pressure) {
+void Network<T>::setFlowRatePump(size_t channelId_, T flowRate_) {
+    int nodeAId = channels.at(channelId_).get()->getNodeAId();
+    int nodeBId = channels.at(channelId_).get()->getNodeBId();
+    auto newPump = std::shared_ptr<FlowRatePump<T>>(new FlowRatePump<T>(channelId_, nodeAId, nodeBId, flowRate_));
+    auto [it, is_inserted] = flowRatePumps.try_emplace(channelId_, std::move(newPump));
+    assert(is_inserted);
+    channels.erase(channelId_);
+    reach.at(nodeAId).erase(channelId_);
+    reach.at(nodeBId).erase(channelId_);
+}
+
+template<typename T>
+void Network<T>::removeFlowRatePump(const std::shared_ptr<FlowRatePump<T>>& pump) {
+    int pumpId = pump->getId();
+    if (flowRatePumps.find(pumpId) != flowRatePumps.end()) {
+        // remove pump from flow rate pumps map
+        flowRatePumps.erase(pumpId);
+    } else {
+        throw std::logic_error("Network does not contain flow rate pump " + std::to_string(pumpId) + ".");
+    }
+}
+
+template<typename T>
+std::shared_ptr<PressurePump<T>> Network<T>::addPressurePump(size_t nodeAId, size_t nodeBId, T pressure) {
     // create pump
     auto id = edgeCount();
-    auto addPump = std::make_unique<PressurePump<T>>(id, nodeAId, nodeBId, pressure);
+    auto addPump = std::shared_ptr<PressurePump<T>>(new PressurePump<T>(id, nodeAId, nodeBId, pressure));
 
     // add pump
-    auto [it, is_inserted] = pressurePumps.try_emplace(id, std::move(addPump));
+    auto [it, is_inserted] = pressurePumps.try_emplace(id, addPump);
     assert(is_inserted);
 
-    return pressurePumps.at(id).get();
+    return addPump;
+}
+
+template<typename T>
+void Network<T>::setPressurePump(size_t channelId_, T pressure_) {
+    int nodeAId = channels.at(channelId_).get()->getNodeAId();
+    int nodeBId = channels.at(channelId_).get()->getNodeBId();
+    auto newPump = std::shared_ptr<PressurePump<T>>(new PressurePump<T>(channelId_, nodeAId, nodeBId, pressure_));
+    auto [it, is_inserted] = pressurePumps.try_emplace(channelId_, std::move(newPump));
+    assert(is_inserted);
+    channels.erase(channelId_);
+    reach.at(nodeAId).erase(channelId_);
+    reach.at(nodeBId).erase(channelId_);
+}
+
+template<typename T>
+void Network<T>::removePressurePump(const std::shared_ptr<PressurePump<T>>& pump) {
+    int pumpId = pump->getId();
+    if (pressurePumps.find(pumpId) != pressurePumps.end()) {
+        // remove pump from pressure pumps map
+        pressurePumps.erase(pumpId);
+    } else {
+        throw std::logic_error("Network does not contain pressure pump " + std::to_string(pumpId) + ".");
+    }
 }
 
 template<typename T>
 std::shared_ptr<CfdModule<T>> Network<T>::addCfdModule(std::vector<T> position,
                                                     std::vector<T> size,
                                                     std::string stlFile,
-                                                    std::unordered_map<int, Opening<T>> openings) 
+                                                    std::unordered_map<size_t, Opening<T>> openings) 
 {
     // create module
     auto id = modules.size();
-    auto addModule = std::make_shared<CfdModule<T>>(id, position, size, stlFile, openings);
+    auto addModule = std::shared_ptr<CfdModule<T>>(new CfdModule<T>(id, position, size, stlFile, openings));
 
     // add this module to the reach of each node
     for (auto& [k, opening] : openings) {
@@ -316,246 +361,96 @@ std::shared_ptr<CfdModule<T>> Network<T>::addCfdModule(std::vector<T> position,
 }
 
 template<typename T>
-bool Network<T>::hasNode(int nodeId_) const {
-    return nodes.count(nodeId_);
-}
-
-template<typename T>
-void Network<T>::setSink(int nodeId_) {
-    nodes.at(nodeId_)->setSink(true);
-    sinks.emplace(nodes.at(nodeId_));
-}
-
-template<typename T>
-void Network<T>::setGround(int nodeId_) {
-    nodes.at(nodeId_)->setGround(true);
-    groundNodes.emplace(nodes.at(nodeId_));
-}
-
-template<typename T>
-void Network<T>::setVirtualNodes(int virtualNodes_) {
-    this->virtualNodes = virtualNodes_;
-}
-
-template<typename T>
-void Network<T>::setPressurePump(int channelId_, T pressure_) {
-    int nodeAId = channels.at(channelId_).get()->getNodeA();
-    int nodeBId = channels.at(channelId_).get()->getNodeB();
-    auto newPump = std::make_unique<PressurePump<T>>(channelId_, nodeAId, nodeBId, pressure_);
-    auto [it, is_inserted] = pressurePumps.try_emplace(channelId_, std::move(newPump));
-    assert(is_inserted);
-    channels.erase(channelId_);
-    reach.at(nodeAId).erase(channelId_);
-    reach.at(nodeBId).erase(channelId_);
-}
-
-template<typename T>
-void Network<T>::setFlowRatePump(int channelId_, T flowRate_) {
-    int nodeAId = channels.at(channelId_).get()->getNodeA();
-    int nodeBId = channels.at(channelId_).get()->getNodeB();
-    auto newPump = std::make_unique<FlowRatePump<T>>(channelId_, nodeAId, nodeBId, flowRate_);
-    auto [it, is_inserted] = flowRatePumps.try_emplace(channelId_, std::move(newPump));
-    assert(is_inserted);
-    channels.erase(channelId_);
-    reach.at(nodeAId).erase(channelId_);
-    reach.at(nodeBId).erase(channelId_);
-}
-
-template<typename T>
-void Network<T>::setModules(std::unordered_map<int, std::unique_ptr<CfdModule<T>>> modules_) {
-    this->modules = std::move(modules_);
-}
-
-template<typename T>
-bool Network<T>::isSink(int nodeId_) const {
-    return nodes.at(nodeId_)->getSink();
-}
-
-template<typename T>
-bool Network<T>::isGround(int nodeId_) const {
-    return nodes.at(nodeId_)->getGround();
-}
-
-template<typename T>
-bool Network<T>::isChannel(int edgeId_) const {
-    return channels.count(edgeId_);
-}
-
-template<typename T>
-bool Network<T>::isPressurePump(int edgeId_) const {
-    return pressurePumps.count(edgeId_);
-}
-
-template<typename T>
-bool Network<T>::isFlowRatePump(int edgeId_) const {
-    return flowRatePumps.count(edgeId_);
-}
-
-template<typename T>
-bool Network<T>::isTank(int edgeId_) const {
-    return tanks.count(edgeId_);
-}
-
-template<typename T>
-bool Network<T>::isMembrane(int edgeId_) const {
-    return membranes.count(edgeId_);
-}
-
-template<typename T>
-std::shared_ptr<Node<T>>& Network<T>::getNode(int nodeId) {
-    if (nodes.count(nodeId)) {
-        return nodes.at(nodeId);
+void Network<T>::removeModule(const std::shared_ptr<CfdModule<T>>& module_) {
+    int moduleId = module_->getId();
+    if (modules.find(moduleId) != modules.end()) {
+        // remove module from reach of all nodes
+        for (auto& [k, node] : module_->getNodes()) {
+            modularReach.erase(k);
+        }
+        // remove module from modules map
+        modules.erase(moduleId);
     } else {
-        throw std::invalid_argument("Network does not contain node " + std::to_string(nodeId) + ".");
+        throw std::logic_error("Network does not contain module " + std::to_string(moduleId) + ".");
     }
-};
-
-template<typename T>
-const std::unordered_map<int, std::shared_ptr<Node<T>>>& Network<T>::getNodes() const {
-    return nodes;
 }
 
 template<typename T>
-int Network<T>::getVirtualNodes() const {
-    return virtualNodes;
+std::shared_ptr<Membrane<T>> Network<T>::addMembraneToChannel(size_t channelId, T height, T width, T poreRadius, T porosity) {
+    auto channel = getChannel(channelId);
+    auto id = edgeCount();
+    auto nodeA = this->getNode(channel->getNodeAId());
+    auto nodeB = this->getNode(channel->getNodeBId());
+    auto membrane = std::shared_ptr<Membrane<T>>(new Membrane<T>(id, nodeA, nodeB, height,
+                                                                width, channel->getLength(), 
+                                                                poreRadius, porosity));
+    membrane->setChannel(channel);
+
+    auto [it, is_inserted] = membranes.try_emplace(id, membrane);
+    assert(is_inserted);
+
+    return membrane;
 }
 
 template<typename T>
-std::set<int> Network<T>::getGroundIds() const {
-    if (groundNodes.empty()) {
-        throw std::invalid_argument("Ground node not defined.");
-    }
-
-    std::set<int> groundIds;
-    for (auto groundNode : groundNodes) {
-        groundIds.insert(groundNode->getId());
-    }
-
-    return groundIds;
-}
-
-template<typename T>
-std::set<std::shared_ptr<Node<T>>> Network<T>::getGroundNodes() const {
-    return groundNodes;
-}
-
-template<typename T>
-RectangularChannel<T>* Network<T>::getChannel(int channelId_) const {
-    return channels.at(channelId_).get();
-}
-
-template<typename T>
-PressurePump<T>* Network<T>::getPressurePump(int pumpId_) const {
-    return pressurePumps.at(pumpId_).get();
-}
-
-template<typename T>
-FlowRatePump<T>* Network<T>::getFlowRatePump(int pumpId_) const {
-    return flowRatePumps.at(pumpId_).get();
-}
-
-template<typename T>
-Membrane<T>* Network<T>::getMembrane(int membraneId) {
+std::shared_ptr<Membrane<T>> Network<T>::getMembrane(size_t membraneId) {
     try {
-        return membranes.at(membraneId).get();
+        return membranes.at(membraneId);
     } catch (const std::out_of_range& e) {
         throw std::invalid_argument("Membrane with ID " + std::to_string(membraneId) + " does not exist.");
     }
 }
 
 template<typename T>
-Tank<T>* Network<T>::getTank(int tankId) {
-    return tanks.at(tankId).get();
-}
-
-template<typename T>
-const std::unordered_map<int, std::unique_ptr<RectangularChannel<T>>>& Network<T>::getChannels() const {
-    return channels;
-}
-
-template<typename T>
-const std::unordered_map<int, std::unique_ptr<Membrane<T>>>& Network<T>::getMembranes() const {
-    return membranes;
-}
-
-template<typename T>
-const std::unordered_map<int, std::unique_ptr<Tank<T>>>& Network<T>::getTanks() const {
-    return tanks;
-}
-
-template<typename T>
-const std::vector<RectangularChannel<T>*> Network<T>::getChannelsAtNode(int nodeId_) const {
-    try {
-        std::vector<RectangularChannel<T>*> tmp;
-        for (auto& [key, channel] : reach.at(nodeId_)) {
-            tmp.push_back(channel);
-        }
-        return tmp;
-    } catch (const std::out_of_range& e) {
-        throw std::invalid_argument("Node with ID " + std::to_string(nodeId_) + " does not exist.");
-    }
-}
-
-template<typename T>
-const std::unordered_map<int, std::unique_ptr<FlowRatePump<T>>>& Network<T>::getFlowRatePumps() const {
-    return flowRatePumps;
-}
-
-template<typename T>
-const std::unordered_map<int, std::unique_ptr<PressurePump<T>>>& Network<T>::getPressurePumps() const {
-    return pressurePumps;
-}
-
-template<typename T>
-Membrane<T>* Network<T>::getMembraneBetweenNodes(int nodeAId, int nodeBId) {
+std::shared_ptr<Membrane<T>> Network<T>::getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId) {
     for (auto& [key, membrane] : membranes) {
-        if (((membrane->getNodeA() == nodeAId) && (membrane->getNodeB() == nodeBId)) || ((membrane->getNodeA() == nodeBId) && (membrane->getNodeB() == nodeAId))) {
-            return membrane.get();
+        if (((membrane->getNodeAId() == nodeAId) && (membrane->getNodeBId() == nodeBId)) || ((membrane->getNodeAId() == nodeBId) && (membrane->getNodeBId() == nodeAId))) {
+            return membrane;
         }
     }
     throw std::invalid_argument("Membrane between node " + std::to_string(nodeAId) + " and node " + std::to_string(nodeBId) + " does not exist.");
 }
 
 template<typename T>
-std::vector<Membrane<T>*> Network<T>::getMembranesAtNode(int nodeId) {
-    std::vector<Membrane<T>*> membrane_vector;
+std::vector<std::shared_ptr<Membrane<T>>> Network<T>::getMembranesAtNode(size_t nodeId) {
+    std::vector<std::shared_ptr<Membrane<T>>> membrane_vector;
     for (auto& [key, membrane] : membranes) {
-        if ((membrane->getNodeA() == nodeId) || (membrane->getNodeB() == nodeId)) {
-            membrane_vector.push_back(membrane.get());
+        if ((membrane->getNodeAId() == nodeId) || (membrane->getNodeBId() == nodeId)) {
+            membrane_vector.push_back(membrane);
         }
     }
     return membrane_vector;
 }
 
 template<typename T>
-Tank<T>* Network<T>::getTankBetweenNodes(int nodeAId, int nodeBId) {
+std::shared_ptr<Tank<T>> Network<T>::addTankToMembrane(size_t membraneId, T height, T width) {
+    auto membrane = getMembrane(membraneId);
+    auto id = edgeCount();
+    auto nodeA = this->getNode(membrane->getNodeAId());
+    auto nodeB = this->getNode(membrane->getNodeBId());
+    auto tank = std::shared_ptr<Tank<T>>(new Tank<T>(id, nodeA, nodeB, height, 
+                                                    width, membrane->getLength()));
+    membrane->setTank(tank);
+
+    auto [it, is_inserted] = tanks.try_emplace(id, tank);
+    assert(is_inserted);
+
+    return tank;
+}
+
+template<typename T>
+std::shared_ptr<Tank<T>> Network<T>::getTankBetweenNodes(size_t nodeAId, size_t nodeBId) {
     for (auto& [key, tank] : tanks) {
-        if (((tank->getNodeA()->getId() == nodeAId) && (tank->getNodeB()->getId() == nodeBId)) || ((tank->getNodeA()->getId() == nodeBId) && (tank->getNodeB()->getId() == nodeAId))) {
-            return tank.get();
+        if (((tank->getNodeAId()->getId() == nodeAId) && (tank->getNodeBId()->getId() == nodeBId)) || ((tank->getNodeAId()->getId() == nodeBId) && (tank->getNodeBId()->getId() == nodeAId))) {
+            return tank;
         }
     }
     throw std::invalid_argument("Tank between node " + std::to_string(nodeAId) + " and node " + std::to_string(nodeBId) + " does not exist.");
 }
 
-
-template<typename T>
-std::shared_ptr<CfdModule<T>> Network<T>::getCfdModule(int moduleId) const {
-    return modules.at(moduleId);
-}
-
-template<typename T>
-const std::unordered_map<int, std::shared_ptr<CfdModule<T>>>& Network<T>::getCfdModules() const {
-    return modules;
-}
-
-template<typename T>
-const std::unordered_map<int, std::unique_ptr<Group<T>>>& Network<T>::getGroups() const {
-    return groups;
-}
-
 template<typename T>
 void Network<T>::sortGroups() {
-    std::vector<int> nodeVector;
+    std::vector<size_t> nodeVector;
     std::vector<Edge<T>*> edges;
     int groupId = 0;
     for (auto& [key, node] : nodes) {
@@ -573,23 +468,23 @@ void Network<T>::sortGroups() {
     }
     */
     while(!nodeVector.empty()){
-        std::queue<int> connectedNodes;
-        std::unordered_set<int> nodeIds;
-        std::unordered_set<int> edgeIds;
+        std::queue<size_t> connectedNodes;
+        std::unordered_set<size_t> nodeIds;
+        std::unordered_set<size_t> edgeIds;
         auto p = nodeIds.insert(nodeVector.front());
 
         if (p.second) {
             for (auto& edge : edges) {
-                if (edge->getNodeA() == nodeVector.front()) {
+                if (edge->getNodeAId() == nodeVector.front()) {
                     auto t = edgeIds.insert(edge->getId());
                     if (t.second) {
-                        connectedNodes.push(edge->getNodeB());
+                        connectedNodes.push(edge->getNodeBId());
                     }
                 }
-                if (edge->getNodeB() == nodeVector.front()) {
+                if (edge->getNodeBId() == nodeVector.front()) {
                     auto t = edgeIds.insert(edge->getId());
                     if (t.second) {
-                        connectedNodes.push(edge->getNodeA());
+                        connectedNodes.push(edge->getNodeAId());
                     }
                 }
             }
@@ -603,16 +498,16 @@ void Network<T>::sortGroups() {
             auto q = nodeIds.insert(connectedNodes.front());
             if (q.second) {
                 for (auto& edge : edges) {
-                    if (edge->getNodeA() == connectedNodes.front()) {
+                    if (edge->getNodeAId() == connectedNodes.front()) {
                         auto t = edgeIds.insert(edge->getId());
                         if (t.second) {
-                            connectedNodes.push(edge->getNodeB());
+                            connectedNodes.push(edge->getNodeBId());
                         }
                     }
-                    if (edge->getNodeB() == connectedNodes.front()) {
+                    if (edge->getNodeBId() == connectedNodes.front()) {
                         auto t = edgeIds.insert(edge->getId());
                         if (t.second) {
-                            connectedNodes.push(edge->getNodeA());
+                            connectedNodes.push(edge->getNodeAId());
                         }
                     }
                 }
@@ -635,11 +530,11 @@ void Network<T>::sortGroups() {
 template<typename T>
 bool Network<T>::isNetworkValid() {
     // checks if all nodes and channels are connected to ground (if channel network is one graph)
-    std::unordered_map<int, bool> visitedNodes;
-    std::unordered_map<int, bool> visitedEdges;
-    std::unordered_map<int, bool> visitedModules;
+    std::unordered_map<size_t, bool> visitedNodes;
+    std::unordered_map<size_t, bool> visitedEdges;
+    std::unordered_map<size_t, bool> visitedModules;
 
-    std::unordered_map<int, Edge<T>*> edges;
+    std::unordered_map<size_t, Edge<T>*> edges;
 
     for (auto& [key, channel] : channels) {
         edges.try_emplace(key, channel.get());
@@ -656,17 +551,16 @@ bool Network<T>::isNetworkValid() {
         throw std::invalid_argument("No nodes in network.");
     }
 
+    // Check if channels are valid
     for (auto const& [k, v] : channels) {
-        if (v->getLength() != 0 && v->getLength() < calculateNodeDistance(v->getNodeA(), v->getNodeB())) {
+        if (v->getLength() != 0 && v->getLength() < calculateNodeDistance(v->getNodeAId(), v->getNodeBId())) {
             // if length == 0 the simulation will initialize the channel length with the distance
             // between nodeA and nodeB of the channel
             throw std::invalid_argument("Channel " + std::to_string(k) + ": length is less than the node distance.");
         }
-        if (v->getHeight() <= 0) {
-            throw std::invalid_argument("Channel " + std::to_string(k) + ": height is <= 0.");
-        }
-        if (v->getWidth() <= 0) {
-            throw std::invalid_argument("Channel " + std::to_string(k) + ": width is <= 0.");
+        // Custom validity checks for each channel type
+        if (!v->isChannelValid()) {
+            throw std::invalid_argument("Channel " + std::to_string(k) + " is not valid.");
         }
     }
 
@@ -689,12 +583,12 @@ bool Network<T>::isNetworkValid() {
         const auto net = reach.at(k);
         int connections = net.size();
         for (auto const& [key, pump] : pressurePumps) {
-            if (pump->getNodeA() == k || pump->getNodeB() == k) {
+            if (pump->getNodeAId() == k || pump->getNodeBId() == k) {
                 connections += 1;
             }
         }
         for (auto const& [key, pump] : flowRatePumps) {
-            if (pump->getNodeA() == k || pump->getNodeB() == k) {
+            if (pump->getNodeAId() == k || pump->getNodeBId() == k) {
                 connections += 1;
             }
         }
@@ -750,8 +644,8 @@ void Network<T>::print() {
 
     for (auto const& [k, v] : channels) {
         printChannels.append("\t id: " + std::to_string(v->getId()) 
-                            + "\t nA: " + std::to_string(v->getNodeA())
-                            + "\t nB: " + std::to_string(v->getNodeB()) + "\n");
+                            + "\t nA: " + std::to_string(v->getNodeAId())
+                            + "\t nB: " + std::to_string(v->getNodeBId()) + "\n");
     }
 
     for (auto const& [k, v] : modules) {
@@ -765,15 +659,6 @@ void Network<T>::print() {
     std::cout << "Nodes: " << printNodes << "\n" << std::endl;
     std::cout << "Channels:\n" << printChannels << std::endl;
     std::cout << "Modules:\n" << printModules << std::endl;
-}
-
-template<typename T>
-T Network<T>::calculateNodeDistance(int nodeAId, int nodeBId) {
-    auto& nodeA = this->getNodes().at(nodeAId);
-    auto& nodeB = this->getNodes().at(nodeBId);
-    T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
-    T dy = nodeA->getPosition().at(1) - nodeB->getPosition().at(1);
-    return sqrt(dx*dx + dy*dy);
 }
 
 }   // namespace arch

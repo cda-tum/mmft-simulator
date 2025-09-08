@@ -26,7 +26,7 @@ TEST(Network, testNetwork1) {
     network->addRectangularChannel(node3->getId(), node4->getId(), 5.0, arch::ChannelType::NORMAL);
     network->addRectangularChannel(node4->getId(), node0->getId(), 10.0, arch::ChannelType::NORMAL);
 
-    EXPECT_THROW(network->getGroundIds(), std::invalid_argument);
+    EXPECT_THROW(network->getGroundNodeIds(), std::invalid_argument);
 
     network->setGround(node0->getId());
 
@@ -208,19 +208,19 @@ TEST(Network, networkArchitectureDefinition) {
     auto c2 = bionetwork->addRectangularChannel(node1->getId(), node2->getId(), 4, arch::ChannelType::BYPASS);
     auto c3 = bionetwork->addRectangularChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::CLOGGABLE);
 
-    EXPECT_EQ(v0->getNodeA(), node1->getId());
-    EXPECT_EQ(v0->getNodeB(), node2->getId());
+    EXPECT_EQ(v0->getNodeAId(), node1->getId());
+    EXPECT_EQ(v0->getNodeBId(), node2->getId());
     EXPECT_EQ(v0->getPressure(), 32.0);
-    EXPECT_EQ(i0->getNodeA(), node1->getId());
-    EXPECT_EQ(i0->getNodeB(), node0->getId());
+    EXPECT_EQ(i0->getNodeAId(), node1->getId());
+    EXPECT_EQ(i0->getNodeBId(), node0->getId());
     EXPECT_EQ(i0->getFlowRate(), 20.0);
-    EXPECT_EQ(c1->getNodeA(), node0->getId());
-    EXPECT_EQ(c1->getNodeB(), node1->getId());
+    EXPECT_EQ(c1->getNodeAId(), node0->getId());
+    EXPECT_EQ(c1->getNodeBId(), node1->getId());
     EXPECT_EQ(c1->getChannelType(), arch::ChannelType::NORMAL);
-    EXPECT_EQ(c2->getNodeA(), node1->getId());
-    EXPECT_EQ(c2->getNodeB(), node2->getId());
+    EXPECT_EQ(c2->getNodeAId(), node1->getId());
+    EXPECT_EQ(c2->getNodeBId(), node2->getId());
     EXPECT_EQ(c2->getChannelType(), arch::ChannelType::BYPASS);
-    EXPECT_EQ(c3->getNodeA(), node2->getId());
-    EXPECT_EQ(c3->getNodeB(), node0->getId());
+    EXPECT_EQ(c3->getNodeAId(), node2->getId());
+    EXPECT_EQ(c3->getNodeBId(), node0->getId());
     EXPECT_EQ(c3->getChannelType(), arch::ChannelType::CLOGGABLE);
 }

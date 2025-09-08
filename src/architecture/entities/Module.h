@@ -8,9 +8,12 @@
 #include <unordered_map>
 #include <vector>
 
-namespace arch {
+namespace sim {
 
 // Forward declared dependencies
+template<typename T>
+class CfdSimulator;
+
 template<typename T>
 class ResistanceModel;
 
@@ -47,7 +50,7 @@ private:
     const size_t id;                ///< Id of the module.
     std::vector<T> pos;             ///< Position (x, y) of the lower left corner of the module.
     std::vector<T> size;            ///< Size (x, y) of the rectangular module.
-    std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes;    ///< List of nodes that are placed on the boundary of the module.
+    std::unordered_map<size_t, std::shared_ptr<Node<T>>> boundaryNodes;    ///< List of nodes that are placed on the boundary of the module.
     ModuleType moduleType = ModuleType::NORMAL;     ///< Type of module.
 
 protected:
@@ -59,7 +62,7 @@ protected:
      * @param[in] size Size of the module in _m_.
      * @param[in] boundaryNodes Map of nodes that are on the boundary of the module.
     */
-    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes);
+    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<size_t, std::shared_ptr<Node<T>>> boundaryNodes);
 
     /**
      * @brief Constructor of the module.
@@ -69,7 +72,7 @@ protected:
      * @param[in] boundaryNodes Map of nodes that are on the boundary of the module.
      * @param[in] type The module type of this module.
     */
-    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes, ModuleType type);
+    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<size_t, std::shared_ptr<Node<T>>> boundaryNodes, ModuleType type);
 
     /**
      * @brief Constructor of the module.
@@ -79,7 +82,13 @@ protected:
      * @param[in] openings Map of openings corresponding to the nodes.
      * @param[in] type The module type of this module.
     */
-    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<int, Opening<T>> openings, ModuleType type);
+    Module(size_t id, std::vector<T> pos, std::vector<T> size, std::unordered_map<size_t, Opening<T>> openings, ModuleType type);
+
+    /**
+     * @brief Set the nodes on the boundary of the module.
+     * @param[in] boundaryNodes 
+    */
+    inline void setNodes(std::unordered_map<size_t, std::shared_ptr<Node<T>>> boundaryNodes) { this->boundaryNodes = boundaryNodes; }
 
 public:
 
@@ -87,59 +96,53 @@ public:
      * @brief Get id of the module.
      * @returns id.
     */
-    int getId() const;
+    [[nodiscard]] inline int getId() const { return id; }
 
     /**
      * @brief Get position of the module.
      * @returns Absolute position of the left bottom corner of the module, with respect to the left bottom corner of the device.
     */
-    std::vector<T> getPosition() const;
+    [[nodiscard]] inline const std::vector<T>& getPosition() const { return pos; }
 
     /**
      * @brief Get size of the module.
      * @returns Size of the module in m x m.
     */
-    std::vector<T> getSize() const;
-
-    /**
-     * @brief Set the nodes on the boundary of the module.
-     * @param[in] boundaryNodes 
-    */
-    void setNodes(std::unordered_map<int, std::shared_ptr<Node<T>>> boundaryNodes);
+    [[nodiscard]] inline const std::vector<T>& getSize() const { return size; }
 
     /**
      * @brief Get the nodes on the boundary of the module.
      * @returns Nodes on the boundary of the module.
     */
-    std::unordered_map<int, std::shared_ptr<Node<T>>> getNodes() const;
+    [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<Node<T>>>& getNodes() const { return boundaryNodes; }
 
     /**
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */
-    void setModuleTypeLbm();
+    inline void setModuleTypeLbm() { moduleType = ModuleType::LBM; }
 
     /**
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */
-    void setModuleTypeEssLbm();
+    inline void setModuleTypeEssLbm() { moduleType = ModuleType::ESS_LBM; }
 
     /**
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */
-    virtual ModuleType getModuleType() const;
+    [[nodiscard]] inline ModuleType getModuleType() const { return moduleType; }
 };
 
 /**
  * @brief A class that specifies a CFD module. On this module, an LBM simulation using a OpenLB simulator can be conducted. 
 */
 template<typename T>
-class CfdModule final : public Module<T> {
+class CfdModule final : virtual public Module<T> {
 private:
     std::string stlFile;                                    ///< The STL file of the CFD domain.
-    std::unordered_map<int, Opening<T>> moduleOpenings;     ///< Map of openings. <nodeId, arch::Opening>
+    std::unordered_map<size_t, Opening<T>> moduleOpenings;     ///< Map of openings. <nodeId, arch::Opening>
     std::shared_ptr<Network<T>> moduleNetwork = nullptr;    ///< Fully connected graph as network for the initial approximation.
 
     bool isInitialized = false;
@@ -153,9 +156,7 @@ private:
      * @param[in] openings Map of openings corresponding to the nodes.
      * @note The module type is defaulted to ModuleType::LBM
     */
-    CfdModule(size_t id, std::vector<T> pos, std::vector<T> size, std::string stlFile, std::unordered_map<int, Opening<T>> openings);
-
-public:
+    CfdModule(size_t id, std::vector<T> pos, std::vector<T> size, std::string stlFile, std::unordered_map<size_t, Opening<T>> openings);
 
     /**
      * @brief Complete the definition of the local network by setting the channel resistances of the virtual channels
@@ -163,6 +164,8 @@ public:
      * @param[in] resistanceModel The resistance model that is used in the simulator to obtain channel resistances.
      */
     void initialize(const sim::ResistanceModel<T>* resistanceModel);
+
+public:
 
     /**
      * @brief Checks whether this CFD module has valid STL and Openings definitions.
@@ -180,7 +183,7 @@ public:
      * @brief Get the openings of the module.
      * @returns Module openings.
      */
-    [[nodiscard]] inline const std::unordered_map<int, Opening<T>>& getOpenings() const { return moduleOpenings; }
+    [[nodiscard]] inline const std::unordered_map<size_t, Opening<T>>& getOpenings() const { return moduleOpenings; }
 
     /**
      * @brief Get the stl file of the module.
@@ -188,7 +191,9 @@ public:
      */
     [[nodiscard]] inline std::string getStlFile() const { return stlFile; }
 
-
+    // Friend definitions
+    friend class Network<T>;
+    friend class sim::CFDSimulator<T>;
 };
 
 }   // namespace arch

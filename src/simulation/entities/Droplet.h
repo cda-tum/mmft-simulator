@@ -26,7 +26,7 @@ template<typename T>
 class Node;
 
 template<typename T>
-class RectangularChannel;
+class Channel;
 
 }
 
@@ -87,7 +87,7 @@ class DropletBoundary {
      * @note The constructor is private for reasons of encapsulation. DropletBoundary<T> objects can 
      * only be created by friend classes.
      */
-    DropletBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
+    DropletBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
   public:
     /**
@@ -148,7 +148,7 @@ class DropletBoundary {
      * @brief Get the reference node of the boundary, which is the node that "touches" the droplet volume (i.e., if volumeTowardsNode0==true, then node0, otherwise node1)
      * @return Reference node of the boundary.
      */
-    [[nodiscard]] int getReferenceNode();
+    [[nodiscard]] size_t getReferenceNode();
 
     /**
      * @brief Get the opposite reference node of the boundary, which is the node that does not "touch" the droplet volume (i.e., if volumeTowardsNode0==true, then node1, otherwise node0)
@@ -160,7 +160,7 @@ class DropletBoundary {
      * @brief Get the opposite reference node of the boundary, which is the node that does not "touch" the droplet volume (i.e., if volumeTowardsNode0==true, then node1, otherwise node0)
      * @return Opposite reference node of the boundary.
      */
-    [[nodiscard]] int getOppositeReferenceNode();
+    [[nodiscard]] size_t getOppositeReferenceNode();
 
     /**
      * @brief Get the remaining volume between the boundary and the destination node, towards which the boundary is currently flowing.
@@ -230,14 +230,14 @@ struct DropletPosition {
 template<typename T>
 class Droplet {
   private:
-    const size_t id;                                          ///< Unique identifier of the droplet.
+    const size_t id;                                                ///< Unique identifier of the droplet.
     std::string name = "";                                          ///< Name of the droplet.
     T volume = 1e-11;                                               ///< Volume of the droplet in m^3.
     Fluid<T>* fluid = nullptr;                                      ///< Pointer to fluid of which the droplet consists of.
 
   protected:
     std::vector<std::unique_ptr<DropletBoundary<T>>> boundaries;    ///< Boundaries of the droplet.
-    std::vector<arch::RectangularChannel<T>*> channels;             ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
+    std::vector<arch::Channel<T>*> channels;                        ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
 
     /**
      * @brief Specify a droplet.
@@ -303,7 +303,7 @@ class Droplet {
      * @brief Get read-only references to all fully occupied channels.
      * @return const pointers to the fully occupied channels
      */
-    const std::vector<const arch::RectangularChannel<T>*> readFullyOccupiedChannels() const;
+    const std::vector<const arch::Channel<T>*> readFullyOccupiedChannels() const;
 
     virtual ~Droplet() = default;
 
@@ -385,7 +385,7 @@ class DropletImplementation : public Droplet<T> {
      * @brief Get all fully occupied channels
      * @return all fully occupied channels
      */
-    [[nodiscard]] inline const std::vector<arch::RectangularChannel<T>*>& getFullyOccupiedChannels() { return this->channels; }
+    [[nodiscard]] inline const std::vector<arch::Channel<T>*>& getFullyOccupiedChannels() { return this->channels; }
 
     /**
      * @brief Add a boundary to the boundary list of the droplet
@@ -394,13 +394,13 @@ class DropletImplementation : public Droplet<T> {
      * @param volumeTowardsNodeA Direction in which the droplet lies within the channel (in regards to node0)
      * @param state State the boundary is in
      */
-    void addBoundary(arch::RectangularChannel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
+    void addBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state);
 
     /**
      * @brief Add fully occupied channel to the fully occupied channel list.
      * @param channel New fully occupied channel.
      */
-    void addFullyOccupiedChannel(arch::RectangularChannel<T>* channel);
+    void addFullyOccupiedChannel(arch::Channel<T>* channel);
 
     /**
      * @brief Remove boundary from the boundary list.
@@ -412,7 +412,7 @@ class DropletImplementation : public Droplet<T> {
      * @brief Remove fully occupied channel from the fully occupied channel list.
      * @param channelId Id of the channel that should be removed.
      */
-    void removeFullyOccupiedChannel(int channelId);
+    void removeFullyOccupiedChannel(size_t channelId);
 
     /**
      * @brief Get a list of boundaries that are "connected" to the corresponding node
@@ -420,14 +420,14 @@ class DropletImplementation : public Droplet<T> {
      * @param doNotConsider boundary that should not be included in the list (helpful, during request for droplet merging)
      * @return List of connected boundaries
      */
-    [[nodiscard]] std::vector<DropletBoundary<T>*> getConnectedBoundaries(int nodeId, DropletBoundary<T>* doNotConsider = nullptr);
+    [[nodiscard]] std::vector<DropletBoundary<T>*> getConnectedBoundaries(size_t nodeId, DropletBoundary<T>* doNotConsider = nullptr);
 
     /**
      * @brief Get a list of fully occupied channels that are "connected" to the corresponding node 
      * @param nodeId Id of the node
      * @return List of connected fully occupied channels
      */
-    [[nodiscard]] std::vector<arch::RectangularChannel<T>*> getConnectedFullyOccupiedChannels(int nodeId);
+    [[nodiscard]] std::vector<arch::Channel<T>*> getConnectedFullyOccupiedChannels(size_t nodeId);
 
     /**
      * @brief Update the flow-rates of the droplet boundaries according to the flowRates inside the channels

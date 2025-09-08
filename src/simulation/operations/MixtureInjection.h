@@ -51,7 +51,7 @@ class MixtureInjection final {
     const size_t simHash;                                     ///< Hash of the simulation that created this mixture injection object.
     const size_t id;                                          ///< Unique identifier of an injection.
     Mixture<T>* const mixture;                                ///< Pointer to mixture to be injected.
-    arch::RectangularChannel<T>* injectionChannel = nullptr;  ///< Edge at which the fluid is injected.
+    arch::Channel<T>* injectionChannel = nullptr;             ///< Edge at which the fluid is injected.
     T injectionTime = 0.0;                                    ///< Time at which the injection should start in s elapsed since the start of the simulation.
     std::string name = "";                                    ///< Name of the injection.
     bool performed = false;                                   ///< Information if the change of the input mixture was already performed or not.
@@ -78,7 +78,7 @@ class MixtureInjection final {
      * @param[in] channel Channel into which the fluid is injected
      * @param[in] injectionTime Time at which the fluid injection should start, in s elapsed since the start of the simulation in s.
      */
-    MixtureInjection(size_t simulationHash, size_t id, Mixture<T>* mixtureId, arch::RectangularChannel<T>* channel, T injectionTime);
+    MixtureInjection(size_t simulationHash, size_t id, Mixture<T>* mixtureId, arch::Channel<T>* channel, T injectionTime);
 
     /**
      * @brief Update the state if the input mixture change was already performed or not.
@@ -130,13 +130,13 @@ class MixtureInjection final {
      * @brief Retrieve channel or pump at which the injection should take place.
      * @return Edge from which the injection should take place. 
      */
-    [[nodiscard]] const arch::RectangularChannel<T>* getInjectionChannel() const { return injectionChannel; }
+    [[nodiscard]] const arch::Channel<T>* getInjectionChannel() const { return injectionChannel; }
 
     /**
      * @brief Set the channel of the injection
      * @param[in] channel Channel of the injection
      */
-    inline void setInjectionChannel(arch::RectangularChannel<T>* channel) { this->injectionChannel = channel; }
+    inline void setInjectionChannel(arch::Channel<T>* channel) { this->injectionChannel = channel; }
 
     /**
      * @brief Retrieve identification of the mixture that should be injected.

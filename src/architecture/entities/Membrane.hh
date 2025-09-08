@@ -43,12 +43,12 @@ void Membrane<T>::setPorosity(T porosity_) {
 }
 
 template<typename T>
-void Membrane<T>::setChannel(RectangularChannel<T>* channel_) {
+void Membrane<T>::setChannel(std::shared_ptr<Channel<T>> channel_) {
     this->channel = channel_;
 }
 
 template<typename T>
-void Membrane<T>::setTank(Tank<T>* tank_) {
+void Membrane<T>::setTank(std::shared_ptr<Tank<T>> tank_) {
     this->tank = tank_;
 }
 
@@ -68,12 +68,12 @@ T Membrane<T>::getLength() const {
 }
 
 template<typename T>
-RectangularChannel<T>* Membrane<T>::getChannel() const {
+std::shared_ptr<Channel<T>> Membrane<T>::getChannel() const {
     return channel;
 }
 
 template<typename T>
-Tank<T>* Membrane<T>::getTank() const {
+std::shared_ptr<Tank<T>> Membrane<T>::getTank() const {
     return tank;
 }
 

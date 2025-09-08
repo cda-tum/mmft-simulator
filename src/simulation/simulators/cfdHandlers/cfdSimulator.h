@@ -57,7 +57,7 @@ protected:
     bool initialized = false;                   ///< Is the simulator initialized.    
 
     std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;        ///< A pointer to the module, upon which this simulator acts.
-    std::unordered_map<int, bool> groundNodes;                      ///< Map of nodes that communicate the pressure to the 1D solver. <nodeId, bool>
+    std::unordered_map<size_t, bool> groundNodes;                   ///< Map of nodes that communicate the pressure to the 1D solver. <nodeId, bool>
     mmft::Scheme<T>* updateScheme = nullptr;                        ///< The update scheme for Abstract-CFD coupling
 
     /**
@@ -115,25 +115,25 @@ protected:
     virtual void solve() = 0;
 
     /** TODO: Miscellaneous */
-    virtual void storePressures(std::unordered_map<int, T> pressure) = 0;
+    virtual void storePressures(std::unordered_map<size_t, T> pressure) = 0;
 
     /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
-    virtual const std::unordered_map<int, T>& getPressures() const = 0;
+    virtual const std::unordered_map<size_t, T>& getPressures() const = 0;
 
     /**
      * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
      * @param[in] flowRate Map of flow rates and node ids.
      */
-    virtual void storeFlowRates(std::unordered_map<int, T> flowRate) = 0;
+    virtual void storeFlowRates(std::unordered_map<size_t, T> flowRate) = 0;
 
     /**
      * @brief Get the flow rates at the boundary nodes.
      * @returns Flow rates in m^3/s.
      */
-    virtual const std::unordered_map<int, T>& getFlowRates() const = 0;
+    virtual const std::unordered_map<size_t, T>& getFlowRates() const = 0;
 
     /**
      * @brief Returns whether the module has converged or not.
@@ -145,7 +145,7 @@ protected:
      * @brief Set the nodes of the module that communicate the pressure to the abstract solver.
      * @param[in] groundNodes Map of nodes.
      */
-    inline void setGroundNodes(std::unordered_map<int, bool> groundNodes) { this->groundNodes = groundNodes; }
+    inline void setGroundNodes(std::unordered_map<size_t, bool> groundNodes) { this->groundNodes = groundNodes; }
 
     /**
      * @brief Prepare the LBM geometry of this simulator.
@@ -210,7 +210,7 @@ public:
      * @brief Get the ground nodes of the module.
      * @returns Ground nodes.
     */
-    [[nodiscard]] inline const std::unordered_map<int, bool>& getGroundNodes() { return groundNodes; }
+    [[nodiscard]] inline const std::unordered_map<size_t, bool>& getGroundNodes() { return groundNodes; }
 
     /**
      * @brief Returns whether the module is initialized or not.
@@ -240,13 +240,13 @@ public:
      * @brief Get the relaxation factor for pressure update values, alpha.
      * @returns alpha.
     */
-    [[nodiscard]] inline T getAlpha(int nodeId) const { return updateScheme->getAlpha(nodeId); }
+    [[nodiscard]] inline T getAlpha(size_t nodeId) const { return updateScheme->getAlpha(nodeId); }
 
     /**
      * @brief Get the relaxation factor for flow rate update values, beta.
      * @returns beta.
     */
-    [[nodiscard]] inline T getBeta(int nodeId) const {return updateScheme->getBeta(nodeId);}
+    [[nodiscard]] inline T getBeta(size_t nodeId) const {return updateScheme->getBeta(nodeId);}
 
     /**
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.

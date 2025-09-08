@@ -27,7 +27,7 @@ TEST_F(Cube, deg0) {
     network->addNode(0.0, 5e-5);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({1.0, 0.0}), 1e-4));
     Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({0.0, 1.0}), 1e-4));
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-1.0, 0.0}), 1e-4));
@@ -72,7 +72,7 @@ TEST_F(Cube, deg10) {
     network->addNode(-8.6824e-6, 4.92404e-5);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
     Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.173648178, 0.984807753}), 1e-4));
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.984807753, -0.173648178}), 1e-4));
@@ -119,7 +119,7 @@ TEST_F(Cube, deg20) {
     network->addNode(-1.71010e-05, 4.698460e-05);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.9396929621, 0.342020143}), 1e-4));
     Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.342020143, 0.9396929621}), 1e-4));
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.9396929621, -0.342020143}), 1e-4));
@@ -166,7 +166,7 @@ TEST_F(Cube, deg30) {
     network->addNode(-2.5e-05, 4.330130e-05);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
     Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.5, 0.866025404}), 1e-4));
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.866025404, -0.5}), 1e-4));
@@ -213,7 +213,7 @@ TEST_F(Cube, deg45) {
     network->addNode(-3.535535e-05, 3.535535e-05);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
     Openings.try_emplace(1, arch::Opening<T>(network->getNode(1), std::vector<T>({-0.707106781, 0.707106781}), 1e-4));
     Openings.try_emplace(2, arch::Opening<T>(network->getNode(2), std::vector<T>({-0.707106781, -0.707106781}), 1e-4));
@@ -257,7 +257,7 @@ TEST_F(Cross, deg10) {
     network->addNode(3.79807e-6, 2.06588e-4);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.984807753, 0.173648178}), 1e-4));
 
     // module
@@ -291,7 +291,7 @@ TEST_F(Cross, deg20) {
     network->addNode(1.507681e-5, 1.64495e-4);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.93969261, 0.342020143}), 1e-4));
 
     // module
@@ -325,7 +325,7 @@ TEST_F(Cross, deg30) {
     network->addNode(3.349362e-5, 1.25e-4);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.866025404, 0.5}), 1e-4));
 
     // module
@@ -359,7 +359,7 @@ TEST_F(Cross, deg45) {
     network->addNode(7.3223e-5, 7.3223e-5);
 
     // openings
-    std::unordered_map<int, arch::Opening<T>> Openings;
+    std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(0, arch::Opening<T>(network->getNode(0), std::vector<T>({0.707106781, 0.707106781}), 1e-4));
 
     // module

@@ -62,8 +62,8 @@ T Arc<T,DIM>::getLength() {
 //=====================================================================================
 
 template<typename T>
-Channel<T>::Channel(size_t id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_) : 
-Edge<T>(id_, nodeA_->getId(), nodeB_->getId()) { 
+Channel<T>::Channel(size_t id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, ChannelShape shape_) : 
+Edge<T>(id_, nodeA_->getId(), nodeB_->getId()), shape(shape_) { 
     std::unique_ptr<Line_segment<T,2>> line = std::make_unique<Line_segment<T,2>> (nodeA_->getPosition(), nodeB_->getPosition());
     this->length = line->getLength();
     line_segments.push_back(std::move(line));
@@ -71,9 +71,8 @@ Edge<T>(id_, nodeA_->getId(), nodeB_->getId()) {
 
 template<typename T>
 Channel<T>::Channel(size_t id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_,
-                    std::vector<Line_segment<T,2>*> line_segments_,
-                    std::vector<Arc<T,2>*> arcs_) :
-Edge<T>(id_, nodeA_->getId(), nodeB_->getId()) {
+                    std::vector<Line_segment<T,2>*> line_segments_, std::vector<Arc<T,2>*> arcs_, ChannelShape shape_) :
+Edge<T>(id_, nodeA_->getId(), nodeB_->getId()), shape(shape_) {
     for (auto& line : line_segments_) {
         this->length += line->getLength();
         std::unique_ptr<Line_segment<T,2>> uLine(line);
@@ -92,16 +91,28 @@ Edge<T>(id_, nodeA_->getId(), nodeB_->getId()) {
 
 template<typename T>
 RectangularChannel<T>::RectangularChannel(size_t id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, T width_, T height_) : 
-Channel<T>(id_, nodeA_, nodeB_), width(width_), height(height_) { 
-    this->area = width*height;
+Channel<T>(id_, nodeA_, nodeB_, ChannelShape::RECTANGULAR), width(width_), height(height_) { 
+    this->setArea(width*height);
 }
 
 template<typename T>
 RectangularChannel<T>::RectangularChannel(size_t id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, 
                     std::vector<Line_segment<T,2>*> line_segments_,
                     std::vector<Arc<T,2>*> arcs_, T width_, T height_) : 
-Channel<T>(id_, nodeA_, nodeB_, line_segments_, arcs_), width(width_), height(height_) { 
-    this->area = width*height;
+Channel<T>(id_, nodeA_, nodeB_, line_segments_, arcs_, ChannelShape::RECTANGULAR), width(width_), height(height_) { 
+    this->setArea(width*height);
+}
+
+template<typename T>
+bool RectangularChannel<T>::isChannelValid() const {
+    if (this->getHeight() <= 0) {
+        throw std::invalid_argument("Channel " + std::to_string(this->getId()) + ": height is <= 0.");
+    }
+    if (this->getWidth() <= 0) {
+        throw std::invalid_argument("Channel " + std::to_string(this->getId()) + ": width is <= 0.");
+    }
+
+    return true;
 }
 
 //=====================================================================================
@@ -111,13 +122,17 @@ Channel<T>(id_, nodeA_, nodeB_, line_segments_, arcs_), width(width_), height(he
 
 template<typename T>
 CylindricalChannel<T>::CylindricalChannel(size_t id_, int nodeA_, int nodeB_, T radius_) : 
-    Channel<T>(id_, nodeA_, nodeB_), radius(radius_) { 
-        this->shape = ChannelShape::CYLINDRICAL;
+    Channel<T>(id_, nodeA_, nodeB_, ChannelShape::CYLINDRICAL), radius(radius_) {
+        this->setArea(M_PI * radius * radius);
 }
 
 template<typename T>
-T CylindricalChannel<T>::getArea() const {
-    return M_PI * radius * radius;
+bool CylindricalChannel<T>::isChannelValid() const {
+    if (this->getRadius() <= 0) {
+        throw std::invalid_argument("Channel " + std::to_string(this->getId()) + ": radius is <= 0.");
+    }
+
+    return true;
 }
 
 }   // namespace arch

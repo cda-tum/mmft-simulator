@@ -129,7 +129,7 @@ public:
         this->membraneModel = std::unique_ptr<MembraneModel9<T>>(new MembraneModel9<T>());
     }
 
-    [[nodiscard]] T getMembraneResistance(arch::Membrane<T> const* membrane, const std::shared_ptr<Mixture<T>>& mixture, const std::shared_ptr<Specie<T>>& specie, T area) const {
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, const std::shared_ptr<Mixture<T>>& mixture, const std::shared_ptr<Specie<T>>& specie, T area) const {
         if (membraneModel == nullptr) {
             throw std::logic_error("Membrane model is not set.");
         }

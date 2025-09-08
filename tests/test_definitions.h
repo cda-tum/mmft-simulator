@@ -34,4 +34,12 @@ protected:
     size_t readVoxels(sim::lbmSimulator<T>& simulator, unsigned char m) { return simulator.readGeometry().getStatistics().getNvoxel(m); }
 };
 
+template<typename T>
+class TopologyTest : public GlobalTest<T> {
+protected:
+    void setChannelResistance(const std::shared_ptr<arch::Channel<T>> channel, T resistance) { channel->setResistance(resistance); }
+    
+    void setChannelPressure(const std::shared_ptr<arch::Channel<T>> channel, T pressure) { channel->setPressure(pressure); }
+};
+
 }

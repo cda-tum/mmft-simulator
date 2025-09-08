@@ -6,6 +6,14 @@
 
 #include <vector>
 
+namespace nodal {
+
+// Forward declared dependencies
+template<typename T>
+class NodalAnalysis;
+
+}
+
 namespace arch {
 
 /**
@@ -30,6 +38,12 @@ private:
     */
     Node(size_t id, T x, T y, bool ground=false);
 
+    /**
+     * @brief Set pressure level at the node.
+     * @param[in] pressure Pressure level at the node in Pa.
+     */
+    inline void setPressure(T pressure) { this->pressure = pressure; }
+
 public:
     /**
      * @brief Get id of the node.
@@ -48,12 +62,6 @@ public:
      * @returns Absolute position of the node
     */
     [[nodiscard]] inline std::vector<T> getPosition() const { return pos; }
-
-    /**
-     * @brief Set pressure level at the node.
-     * @param[in] pressure Pressure level at the node in Pa.
-     */
-    inline void setPressure(T pressure) { this->pressure = pressure; }
 
     /**
      * @brief Get pressure level at node.
@@ -85,6 +93,9 @@ public:
     */
     [[nodiscard]] inline bool getGround() { return this->ground; }
 
+    // friend definitions
+    friend class Network<T>;
+    friend class nodal::NodalAnalysis<T>;
 };
 
 }   // namespace arch

@@ -4,11 +4,12 @@ namespace porting {
 
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
-    int virtualNodes = 0;
+    size_t nodeId = 0;
+    size_t virtualNodes = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
         
         if (node.contains("virtual") && node["virtual"]) {
-            arch::Node<T>::incrementCounter();
+            nodeId++;
             virtualNodes++;
             continue;
         } else {
@@ -19,12 +20,13 @@ void readNodes(json jsonString, arch::Network<T>& network) {
             if(node.contains("ground")) {
                 ground = node["ground"];
             }
-            auto addedNode = network.addNode(T(node["x"]), T(node["y"]), ground);
+            auto addedNode = network.addNode(nodeId, T(node["x"]), T(node["y"]), ground);
             if(node.contains("sink")) {
                 if (node["sink"]) {
                     network.setSink(addedNode->getId());
                 }
             }
+            nodeId++;
         }
     }
     network.setVirtualNodes(virtualNodes);
@@ -32,7 +34,7 @@ void readNodes(json jsonString, arch::Network<T>& network) {
 
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
-    int channelId = 0;
+    size_t channelId = 0;
     for (auto& channel : jsonString["network"]["channels"]) {
         if (channel.contains("virtual") && channel["virtual"]) {
             channelId++;
@@ -57,9 +59,9 @@ void readModules(json jsonString, arch::Network<T>& network) {
         std::vector<T> position = { module["position"][0], module["position"][1] };
         std::vector<T> size = { module["size"][0], module["size"][1] };
         std::string stlFile = module["stlFile"];
-        std::unordered_map<int, arch::Opening<T>> Openings;
+        std::unordered_map<size_t, arch::Opening<T>> Openings;
         for (auto& opening : module["Openings"]) {
-            int nodeId = opening["node"];
+            size_t nodeId = opening["node"];
             std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
             arch::Opening<T> opening_(network.getNode(nodeId), normal, opening["width"]);
             Openings.try_emplace(nodeId, opening_);

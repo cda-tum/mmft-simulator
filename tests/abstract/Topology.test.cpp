@@ -2,7 +2,12 @@
 
 #include "gtest/gtest.h"
 
+#include "../test_helpers.h"
+#include "../test_definitions.h"
+
 using T = double;
+
+class Topology : public test::definitions::TopologyTest<T> { };
 
 /** Case 1:
  * 
@@ -10,7 +15,7 @@ using T = double;
  *  - 2 inflows
  *  - 1 outflow
 */
-TEST(Topology, case1) {
+TEST_F(Topology, case1) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -30,13 +35,13 @@ TEST(Topology, case1) {
     auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     
-    c0->setPressure(flowRate);
-    c1->setPressure(0.5*flowRate);
-    c2->setPressure(1.5*flowRate);
-
-    c0->setResistance(1);
-    c1->setResistance(1);
-    c2->setResistance(1);
+    this->setChannelPressure(c0, flowRate);
+    this->setChannelPressure(c1, 0.5*flowRate);
+    this->setChannelPressure(c2, 1.5*flowRate);
+    
+    this->setChannelResistance(c0, 1);
+    this->setChannelResistance(c1, 1);
+    this->setChannelResistance(c2, 1);
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
@@ -71,7 +76,7 @@ TEST(Topology, case1) {
  *  - 1 inflow
  *  - 2 outflows
 */
-TEST(Topology, case2) {
+TEST_F(Topology, case2) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -90,14 +95,14 @@ TEST(Topology, case2) {
     auto c0 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c2 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    
-    c0->setPressure(2*flowRate);
-    c1->setPressure(flowRate);
-    c2->setPressure(flowRate);
 
-    c0->setResistance(1);
-    c1->setResistance(1);
-    c2->setResistance(1);
+    this->setChannelPressure(c0, 2*flowRate);
+    this->setChannelPressure(c1, flowRate);
+    this->setChannelPressure(c2, flowRate);
+
+    this->setChannelResistance(c0, 1);
+    this->setChannelResistance(c1, 1);
+    this->setChannelResistance(c2, 1);
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
@@ -133,7 +138,7 @@ TEST(Topology, case2) {
  *  - 1 inflow
  *  - 3 outflows
 */
-TEST(Topology, case3) {
+TEST_F(Topology, case3) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -154,16 +159,16 @@ TEST(Topology, case3) {
     auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c2 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c3 = network->addRectangularChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  
-    c0->setPressure(3*flowRate);
-    c1->setPressure(0.5*flowRate);
-    c2->setPressure(1.5*flowRate);
-    c3->setPressure(flowRate);
 
-    c0->setResistance(1);
-    c1->setResistance(1);
-    c2->setResistance(1);
-    c3->setResistance(1);
+    this->setChannelPressure(c0, 3*flowRate);
+    this->setChannelPressure(c1, 0.5*flowRate);
+    this->setChannelPressure(c2, 1.5*flowRate);
+    this->setChannelPressure(c3, flowRate);
+
+    this->setChannelResistance(c0, 1);
+    this->setChannelResistance(c1, 1);
+    this->setChannelResistance(c2, 1);
+    this->setChannelResistance(c3, 1);
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
@@ -210,7 +215,7 @@ TEST(Topology, case3) {
  *  - 2 adjacent inflows
  *  - 2 adjacent outflow
 */
-TEST(Topology, case4) {
+TEST_F(Topology, case4) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -231,16 +236,16 @@ TEST(Topology, case4) {
     auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c3 = network->addRectangularChannel(node2->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    
-    c0->setPressure(flowRate);
-    c1->setPressure(flowRate);
-    c2->setPressure(0.5*flowRate);
-    c3->setPressure(1.5*flowRate);
 
-    c0->setResistance(1);
-    c1->setResistance(1);
-    c2->setResistance(1);
-    c3->setResistance(1);
+    this->setChannelPressure(c0, flowRate);
+    this->setChannelPressure(c1, flowRate);
+    this->setChannelPressure(c2, 0.5*flowRate);
+    this->setChannelPressure(c3, 1.5*flowRate);
+
+    this->setChannelResistance(c0, 1);
+    this->setChannelResistance(c1, 1);
+    this->setChannelResistance(c2, 1);
+    this->setChannelResistance(c3, 1);
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
@@ -282,7 +287,7 @@ TEST(Topology, case4) {
  *  - 3 inflows
  *  - 1 outflow
 */
-TEST(Topology, case5) {
+TEST_F(Topology, case5) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -303,16 +308,16 @@ TEST(Topology, case5) {
     auto c1 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c3 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    
-    c0->setPressure(flowRate);
-    c1->setPressure(0.5*flowRate);
-    c2->setPressure(1.5*flowRate);
-    c3->setPressure(3*flowRate);
 
-    c0->setResistance(1);
-    c1->setResistance(1);
-    c2->setResistance(1);
-    c3->setResistance(1);
+    this->setChannelPressure(c0, flowRate);
+    this->setChannelPressure(c1, 0.5*flowRate);
+    this->setChannelPressure(c2, 1.5*flowRate);
+    this->setChannelPressure(c3, 3*flowRate);
+
+    this->setChannelResistance(c0, 1);
+    this->setChannelResistance(c1, 1);
+    this->setChannelResistance(c2, 1);
+    this->setChannelResistance(c3, 1);
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
@@ -353,7 +358,7 @@ TEST(Topology, case5) {
  *  - 2 inflows opposed
  *  - 2 outflows opposed
 */
-TEST(Topology, case6) {    
+TEST_F(Topology, case6) {    
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -374,16 +379,16 @@ TEST(Topology, case6) {
     auto c1 = network->addRectangularChannel(node3->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
     auto c3 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    
-    c0->setPressure(flowRate);
-    c1->setPressure(0.5*flowRate);
-    c2->setPressure(1.5*flowRate);
-    c3->setPressure(2*flowRate);
 
-    c0->setResistance(1);
-    c1->setResistance(1);
-    c2->setResistance(1);
-    c3->setResistance(1);
+    this->setChannelPressure(c0, flowRate);
+    this->setChannelPressure(c1, 0.5*flowRate);
+    this->setChannelPressure(c2, 1.5*flowRate);
+    this->setChannelPressure(c3, 2*flowRate);
+
+    this->setChannelResistance(c0, 1);
+    this->setChannelResistance(c1, 1);
+    this->setChannelResistance(c2, 1);
+    this->setChannelResistance(c3, 1);
 
     // mixing model
     sim::DiffusionMixingModel<T> mixingModel;
