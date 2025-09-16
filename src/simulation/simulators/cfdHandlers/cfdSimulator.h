@@ -207,19 +207,19 @@ public:
     [[nodiscard]] inline std::shared_ptr<arch::CfdModule<T>> getModule() const { return cfdModule; }
 
     /**
-     * @brief Get the ground nodes of the module.
+     * @brief Returns whether boundary nodes communicate the pressure (true) or flow rates (false) to the 1D solver.
      * @returns Ground nodes.
     */
     [[nodiscard]] inline const std::unordered_map<size_t, bool>& getGroundNodes() { return groundNodes; }
 
     /**
-     * @brief Returns whether the module is initialized or not.
+     * @brief Returns whether the simulator is initialized or not.
      * @returns Boolean for initialization.
     */
     [[nodiscard]] inline bool getInitialized() const { return initialized; }
 
     /**
-     * @brief Set the initialized status for this module.
+     * @brief Set the initialized status for this simulator.
      * @param[in] initialization Boolean for initialization status.
     */
     inline void setInitialized(bool initialization) { this->initialized = initialization; }

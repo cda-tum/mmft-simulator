@@ -41,7 +41,7 @@ template<typename T>
 class DropletInjection final {
   private:
     inline static size_t injectionCounter = 0;       ///< Global counter for amount of created dropletInjection objects.
-    const size_t id;                        ///< Unique identifier of an injection.
+    const size_t id;                              ///< Unique identifier of an injection.
     DropletImplementation<T>* const droplet;      ///< Pointer to droplet to be injected.
     std::string name = "";                        ///< Name of the injection.
     T injectionTime = 0.0;                        ///< Time at which the injection should take place in s elapsed since the start of the simulation.

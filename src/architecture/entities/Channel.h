@@ -175,7 +175,7 @@ public:
     inline void setChannelType(ChannelType channelType) { this->type = channelType; }
 
     /**
-     * @brief Returns the shape of channel.
+     * @brief Returns the shape of channel cross-section.
      * @returns What shape the channel has.
      */
     [[nodiscard]] inline ChannelShape getChannelShape() const { return shape; }
@@ -217,7 +217,7 @@ public:
     [[nodiscard]] inline T getFlowRate() const override { return getPressure() / getResistance(); }
 
     /**
-     * @brief Returns area of a channel.
+     * @brief Returns area of a channel cross-section.
      * @returns Area in m^2.
      */
     [[nodiscard]] inline T getArea() const { return area; }

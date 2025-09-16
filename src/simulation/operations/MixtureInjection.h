@@ -94,6 +94,12 @@ class MixtureInjection final {
      */
     [[nodiscard]] inline const bool wasPerformed() { return performed; }
 
+    /**
+     * @brief Retrieve identification of the mixture that should be injected.
+     * @return MixtureId of the mixture to be injected.
+     */
+    [[nodiscard]] inline size_t getMixtureId() { return mixture->getId(); }
+
   public:
 
     /**
@@ -137,12 +143,6 @@ class MixtureInjection final {
      * @param[in] channel Channel of the injection
      */
     inline void setInjectionChannel(arch::Channel<T>* channel) { this->injectionChannel = channel; }
-
-    /**
-     * @brief Retrieve identification of the mixture that should be injected.
-     * @return MixtureId of the mixture to be injected.
-     */
-    [[nodiscard]] inline size_t getMixtureId() { return mixture->getId(); }
 
     // Friend classes that need access to private member functions
     friend class AbstractMixing<T>;

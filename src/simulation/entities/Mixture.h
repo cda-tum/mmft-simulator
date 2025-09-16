@@ -320,7 +320,7 @@ public:
 
     /**
      * @brief Get the viscosity of the mixture.
-     * @return Viscosity of the mixture in Pas.
+     * @return Viscosity of the mixture in Pa s.
      */
     [[nodiscard]] inline T getViscosity() const {return viscosity; }
 

@@ -361,7 +361,7 @@ std::shared_ptr<CfdModule<T>> Network<T>::addCfdModule(std::vector<T> position,
 }
 
 template<typename T>
-void Network<T>::removeModule(const std::shared_ptr<CfdModule<T>>& module_) {
+void Network<T>::removeModule(const std::shared_ptr<Module<T>>& module_) {
     int moduleId = module_->getId();
     if (modules.find(moduleId) != modules.end()) {
         // remove module from reach of all nodes

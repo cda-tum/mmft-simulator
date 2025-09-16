@@ -116,7 +116,7 @@ public:
     */
     [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<Node<T>>>& getNodes() const { return boundaryNodes; }
 
-    /**
+    /** TODO: Shouldn't this be hidden, and set by inherited object? (today)
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */

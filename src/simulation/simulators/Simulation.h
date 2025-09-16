@@ -278,7 +278,7 @@ public:
     virtual void removeFluid(const std::shared_ptr<Fluid<T>>& fluid);
 
     /**
-     * @brief Set the type of the simulation.
+     * @brief Get the fixture id.
      * @param[in] type
      */
     [[nodiscard]] inline int getFixtureId() const { return this->fixtureId; }

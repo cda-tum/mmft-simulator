@@ -650,7 +650,7 @@ public:
      * @param[in] module Pointer to the module that should be removed.
      * @throws logic_error if the module is not found in the network.
      */
-    void removeModule(const std::shared_ptr<CfdModule<T>>& module);
+    void removeModule(const std::shared_ptr<Module<T>>& module);
 
     //=====================================================================================
     //====================================== Membrane =====================================
