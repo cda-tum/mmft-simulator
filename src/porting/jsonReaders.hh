@@ -263,19 +263,16 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
                                                             epsilon, tau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }
-            /** TODO: HybridMixingSimulation
-             * Enable hybrid mixing simulation and uncomment code below
-             */
-            // else if (simulator["Type"] == "Mixing")
-            // {
-            //     std::unordered_map<int, sim::Specie<T>*> species;
-            //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
-            //         species.try_emplace(specieId, speciePtr.get());
-            //     }
-            //     auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
-            //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            //     simulator->setVtkFolder(vtkFolder);
-            // }
+            else if (simulator["Type"] == "Mixing")
+            {
+                std::unordered_map<int, sim::Specie<T>*> species;
+                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+                    species.try_emplace(specieId, speciePtr.get());
+                }
+                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
+                                                            Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+            }
             /** TODO: HybridOocSimulation
              * Enable hybrid OoC simulation and uncomment code below
              */

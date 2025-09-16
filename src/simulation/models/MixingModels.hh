@@ -140,27 +140,24 @@ void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::v
         tmpMixtures.push_back(Mixture<T>(*sim->getMixture(mixtureInjection->getMixtureId())));
         mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
     }
-    /** TODO: HybridMixingSimulation
-     * Enable hybrid mixing simulation and uncomment code below
-     */
     // Add CFD Simulator outflows
-    // for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
-    //     for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
-    //         // If the node is an outflow
-    //         if (cfdSimulator->getFlowRates().at(nodeId) < 0.0) {
-    //             int tmpMixtureIndex = tmpMixtures.size();
-    //             int tmpMixtureId = std::numeric_limits<int>::max();
-    //             std::unordered_map<int, Specie<T>*> species;
-    //             std::unordered_map<int, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
-    //             for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
-    //                 species.try_emplace(speciesId, sim->getSpecie(speciesId));
-    //             }
-    //             Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase());
-    //             tmpMixtures.push_back(tmpMixture);
-    //             mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
-    //         }
-    //     }
-    // }
+    for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
+        for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
+            // If the node is an outflow
+            if (cfdSimulator->getFlowRates().at(nodeId) < 0.0) {
+                int tmpMixtureIndex = tmpMixtures.size();
+                int tmpMixtureId = std::numeric_limits<int>::max();
+                std::unordered_map<int, Specie<T>*> species;
+                std::unordered_map<int, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
+                for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
+                    species.try_emplace(speciesId, sim->getSpecie(speciesId));
+                }
+                Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase());
+                tmpMixtures.push_back(tmpMixture);
+                mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
+            }
+        }
+    }
 }
 
 template<typename T>
@@ -240,23 +237,20 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std:
 
 template<typename T>
 void InstantaneousMixingModel<T>::storeConcentrations(AbstractMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
-    /** TODO: HybridMixingSimulation
-     * Enable hybrid mixing simulation and uncomment code below
-     */
-    // for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
-    //     std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
-    //     for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
-    //         // If the node is an inflow
-    //         if (cfdSimulator->getFlowRates().at(nodeId) > 0.0) {
-    //             if (mixtureOutflowAtNode.count(nodeId)) {
-    //                 for (auto& [specieId, specieConcentration] : tmpMixtures[mixtureOutflowAtNode.at(nodeId)].getSpecieConcentrations()) {
-    //                     concentrations.at(nodeId).at(specieId) = specieConcentration;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     cfdSimulator->storeConcentrations(concentrations);
-    // }
+    for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
+        std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
+        for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
+            // If the node is an inflow
+            if (cfdSimulator->getFlowRates().at(nodeId) > 0.0) {
+                if (mixtureOutflowAtNode.count(nodeId)) {
+                    for (auto& [specieId, specieConcentration] : tmpMixtures[mixtureOutflowAtNode.at(nodeId)].getSpecieConcentrations()) {
+                        concentrations.at(nodeId).at(specieId) = specieConcentration;
+                    }
+                }
+            }
+        }
+        cfdSimulator->storeConcentrations(concentrations);
+    }
 }
 
 template<typename T>

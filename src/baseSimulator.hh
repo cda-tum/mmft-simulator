@@ -25,8 +25,8 @@
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
 #include "simulation/simulators/cfdHandlers/olbContinuous.hh"
-// #include "simulation/simulators/cfdHandlers/olbMixing.h" //** TODO: HybridMixingSimulation */
-// #include "simulation/simulators/cfdHandlers/olbOoc.h"    //** TODO: HybridOocSimulation */
+#include "simulation/simulators/cfdHandlers/olbMixing.hh"
+// #include "simulation/simulators/cfdHandlers/olbOoc.hh"    //** TODO: HybridOocSimulation */
 
 
 #include "nodalAnalysis/NodalAnalysis.hh"

@@ -6,6 +6,7 @@ set(SOURCE_LIST
     AbstractMembrane.hh
     CFDSim.hh
     HybridContinuous.hh
+    HybridMixing.hh
 )
 
 set(HEADER_LIST
@@ -16,6 +17,7 @@ set(HEADER_LIST
     AbstractMembrane.h
     CFDSim.h
     HybridContinuous.h
+    HybridMixing.h
 )
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})

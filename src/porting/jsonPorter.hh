@@ -117,18 +117,15 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
             throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
-            /** TODO: HybridMixingSimulation
-             * Enable hybrid mixing simulation and uncomment code below
-             */
-            // readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
-            // readResistanceModel<T>(jsonString, *simPtr);
-            // readMixingModel<T>(jsonString, *simPtr);
-            // readSpecies<T>(jsonString, *simPtr);
-            // readMixtures<T>(jsonString, *simPtr);
-            // readMixtureInjections<T>(jsonString, *simPtr, activeFixture);
-            // readSimulators<T>(jsonString, *simPtr, network_);
-            // readUpdateScheme(jsonString, *simPtr);
-            // network_->sortGroups();
+            readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+            readResistanceModel<T>(jsonString, *simPtr);
+            readMixingModel<T>(jsonString, *simPtr);
+            readSpecies<T>(jsonString, *simPtr);
+            readMixtures<T>(jsonString, *simPtr);
+            readMixtureInjections<T>(jsonString, *simPtr, activeFixture);
+            readSimulators<T>(jsonString, *simPtr, network_);
+            readUpdateScheme(jsonString, *simPtr);
+            network_->sortGroups();
         } else if (platform == sim::Platform::Ooc) {
             throw std::invalid_argument("OoC simulations are currently not supported.");
             /** TODO: HybridOocSimulation
