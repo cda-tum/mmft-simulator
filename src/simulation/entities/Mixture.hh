@@ -50,7 +50,7 @@ void Mixture<T>::changeSpecieConcentration(int specieId, T concentrationChange) 
 }
 
 template<typename T>
-bool Mixture<T>::operator== (const Mixture<T>& t) {
+bool Mixture<T>::operator== (const Mixture<T>& t) const {
     if (species == t.species && 
         specieConcentrations == t.specieConcentrations && 
         viscosity == t.viscosity &&

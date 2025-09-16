@@ -317,7 +317,7 @@ public:
      * @brief Specifies a node as sink.
      * @param[in] node Pointer to the node that is a sink.
      */
-    void setSink(std::shared_ptr<Node<T>> node) const { setSink(node->getId()); }
+    void setSink(std::shared_ptr<Node<T>> node) { setSink(node->getId()); }
 
     /**
      * @brief Checks and returns if a node is a sink.
@@ -343,7 +343,7 @@ public:
      * @brief Sets a node as the ground node, i.e., this node has a pressure value of 0 and acts as a reference node for all other nodes.
      * @param[in] node Pointer to the node that should be the ground node of the network.
      */
-    void setGround(std::shared_ptr<Node<T>> node) const { setGround(node->getId()); }
+    void setGround(std::shared_ptr<Node<T>> node) { setGround(node->getId()); }
 
     /**
      * @brief Checks and returns if a node is a ground node.
@@ -362,12 +362,12 @@ public:
     /**
      * @brief Calculate the distance between the two given nodes
      */
-    [[nodiscard]] T calculateNodeDistance(size_t nodeAId, size_t nodeBId);
+    [[nodiscard]] T calculateNodeDistance(size_t nodeAId, size_t nodeBId) const;
 
     /**
      * @brief Calculate the distance between the two given nodes
      */
-    [[nodiscard]] T calculateNodeDistance(std::shared_ptr<Node<T>> nodeAId, std::shared_ptr<Node<T>> nodeBId) { return calculateNodeDistance(nodeAId->getId(), nodeBId->getId()); }
+    [[nodiscard]] T calculateNodeDistance(std::shared_ptr<Node<T>> nodeAId, std::shared_ptr<Node<T>> nodeBId) const { return calculateNodeDistance(nodeAId->getId(), nodeBId->getId()); }
 
     /**
      * @brief Removes a node from the network.
@@ -429,7 +429,7 @@ public:
      */
     [[maybe_unused]] std::shared_ptr<RectangularChannel<T>> addRectangularChannel(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB, T height, T width, T length, ChannelType type) 
     { 
-        addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, length, type); 
+        return addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, length, type); 
     }
 
     /**
@@ -454,7 +454,7 @@ public:
      */
     [[maybe_unused]] std::shared_ptr<RectangularChannel<T>> addRectangularChannel(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB, T height, T width, ChannelType type) 
     { 
-        addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, type); 
+        return addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, type); 
     }
 
     /**
@@ -477,7 +477,7 @@ public:
      */
     [[maybe_unused]] std::shared_ptr<RectangularChannel<T>> addRectangularChannel(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB, T resistance, ChannelType type) 
     { 
-        addRectangularChannel(nodeA->getId(), nodeB->getId(), resistance, type); 
+        return addRectangularChannel(nodeA->getId(), nodeB->getId(), resistance, type); 
     }
 
     /**
@@ -686,7 +686,7 @@ public:
      * @param membraneId Id of the membrane.
      * @return Pointer to the membrane with this id.
      */
-    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembrane(size_t membraneId);
+    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembrane(size_t membraneId) const;
     
     /**
      * @brief Get the membrane that is connected to both specified nodes.
@@ -694,7 +694,7 @@ public:
      * @param nodeBId Id of nodeB.
      * @return Pointer to the membrane that lies between these nodes.
      */
-    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId);
+    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId) const;
 
     /**
      * @brief Get the membrane that is connected to both specified nodes.
@@ -702,7 +702,7 @@ public:
      * @param nodeB Pointer to nodeB.
      * @return Pointer to the membrane that lies between these nodes.
      */
-    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) 
+    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) const
     {
         return getMembraneBetweenNodes(nodeA->getId(), nodeB->getId());
     }
@@ -718,14 +718,14 @@ public:
      * @param nodeId Id of the node.
      * @return Vector containing pointers to all membranes that are connected to this node.
      */
-    [[nodiscard]] std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(size_t nodeId);
+    [[nodiscard]] std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(size_t nodeId) const;
 
     /**
      * @brief Get vector of all membranes that are connected to the specified node.
      * @param node Pointer to the node.
      * @return Vector containing pointers to all membranes that are connected to this node.
      */
-    [[nodiscard]] inline std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(std::shared_ptr<Node<T>> node) 
+    [[nodiscard]] inline std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(std::shared_ptr<Node<T>> node) const
     { 
         return getMembranesAtNode(node->getId()); 
     }
@@ -771,7 +771,7 @@ public:
      * @param nodeBId Id of nodeB.
      * @return Pointer to the tank that lies between the two nodes.
      */
-    [[nodiscard]] std::shared_ptr<Tank<T>> getTankBetweenNodes(size_t nodeAId, size_t nodeBId);
+    [[nodiscard]] std::shared_ptr<Tank<T>> getTankBetweenNodes(size_t nodeAId, size_t nodeBId) const;
 
     /**
      * @brief Get the tank that lies between two nodes.
@@ -779,7 +779,7 @@ public:
      * @param nodeB Pointer to nodeB.
      * @return Pointer to the tank that lies between the two nodes.
      */
-    [[nodiscard]] inline std::shared_ptr<Tank<T>> getTankBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) 
+    [[nodiscard]] inline std::shared_ptr<Tank<T>> getTankBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) const
     {
         return getTankBetweenNodes(nodeA->getId(), nodeB->getId());
     }

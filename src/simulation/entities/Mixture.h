@@ -185,7 +185,7 @@ public:
     /**
      * @brief Overload == operator to check if mixtures are equal or not
      */
-    bool operator== (const Mixture<T>& t);
+    bool operator== (const Mixture<T>& t) const;
 
     /**
      * @brief Get the id of this mixture

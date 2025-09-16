@@ -90,6 +90,12 @@ protected:
     */
     inline void setNodes(std::unordered_map<size_t, std::shared_ptr<Node<T>>> boundaryNodes) { this->boundaryNodes = boundaryNodes; }
 
+    /**
+     * @brief Removes a node from the module.
+     * @param[in] nodeId Id of the node that should be removed.
+     */
+    virtual void removeNode(size_t nodeId) { boundaryNodes.erase(nodeId); }
+
 public:
 
     /**
@@ -164,6 +170,12 @@ private:
      * @param[in] resistanceModel The resistance model that is used in the simulator to obtain channel resistances.
      */
     void initialize(const sim::ResistanceModel<T>* resistanceModel);
+
+    /**
+     * @brief Removes a node and its opening from the CFD module.
+     * @param[in] nodeId Id of the node that should be removed.
+     */
+    void removeNode(size_t nodeId) override;
 
 public:
 

@@ -133,7 +133,7 @@ void Network<T>::setGround(size_t nodeId_) {
 }
 
 template<typename T>
-T Network<T>::calculateNodeDistance(size_t nodeAId, size_t nodeBId) {
+T Network<T>::calculateNodeDistance(size_t nodeAId, size_t nodeBId) const {
     auto& nodeA = this->getNodes().at(nodeAId);
     auto& nodeB = this->getNodes().at(nodeBId);
     T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
@@ -152,9 +152,7 @@ void Network<T>::removeNode(const std::shared_ptr<Node<T>>& node) {
         }
 
         // remove node from connected module
-        for (auto& module : modularReach.at(nodeId)) {
-            module.second->removeNode(nodeId);
-        }
+        modularReach.at(nodeId)->removeNode(nodeId);
 
         // remove the node from the reach map
         reach.erase(nodeId);
@@ -393,7 +391,7 @@ std::shared_ptr<Membrane<T>> Network<T>::addMembraneToChannel(size_t channelId, 
 }
 
 template<typename T>
-std::shared_ptr<Membrane<T>> Network<T>::getMembrane(size_t membraneId) {
+std::shared_ptr<Membrane<T>> Network<T>::getMembrane(size_t membraneId) const {
     try {
         return membranes.at(membraneId);
     } catch (const std::out_of_range& e) {
@@ -402,7 +400,7 @@ std::shared_ptr<Membrane<T>> Network<T>::getMembrane(size_t membraneId) {
 }
 
 template<typename T>
-std::shared_ptr<Membrane<T>> Network<T>::getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId) {
+std::shared_ptr<Membrane<T>> Network<T>::getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId) const {
     for (auto& [key, membrane] : membranes) {
         if (((membrane->getNodeAId() == nodeAId) && (membrane->getNodeBId() == nodeBId)) || ((membrane->getNodeAId() == nodeBId) && (membrane->getNodeBId() == nodeAId))) {
             return membrane;
@@ -412,7 +410,7 @@ std::shared_ptr<Membrane<T>> Network<T>::getMembraneBetweenNodes(size_t nodeAId,
 }
 
 template<typename T>
-std::vector<std::shared_ptr<Membrane<T>>> Network<T>::getMembranesAtNode(size_t nodeId) {
+std::vector<std::shared_ptr<Membrane<T>>> Network<T>::getMembranesAtNode(size_t nodeId) const {
     std::vector<std::shared_ptr<Membrane<T>>> membrane_vector;
     for (auto& [key, membrane] : membranes) {
         if ((membrane->getNodeAId() == nodeId) || (membrane->getNodeBId() == nodeId)) {
@@ -439,9 +437,9 @@ std::shared_ptr<Tank<T>> Network<T>::addTankToMembrane(size_t membraneId, T heig
 }
 
 template<typename T>
-std::shared_ptr<Tank<T>> Network<T>::getTankBetweenNodes(size_t nodeAId, size_t nodeBId) {
+std::shared_ptr<Tank<T>> Network<T>::getTankBetweenNodes(size_t nodeAId, size_t nodeBId) const {
     for (auto& [key, tank] : tanks) {
-        if (((tank->getNodeAId()->getId() == nodeAId) && (tank->getNodeBId()->getId() == nodeBId)) || ((tank->getNodeAId()->getId() == nodeBId) && (tank->getNodeBId()->getId() == nodeAId))) {
+        if (((tank->getNodeAId() == nodeAId) && (tank->getNodeBId() == nodeBId)) || ((tank->getNodeAId() == nodeBId) && (tank->getNodeBId()== nodeAId))) {
             return tank;
         }
     }
