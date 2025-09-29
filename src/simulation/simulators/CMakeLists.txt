@@ -23,3 +23,4 @@ target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(${TARGET_NAME} PUBLIC lbmLib)
 
 add_subdirectory(cfdHandlers)
+add_subdirectory(semantics)

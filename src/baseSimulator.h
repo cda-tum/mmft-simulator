@@ -21,6 +21,8 @@
 #include "simulation/models/MixingModels.h"
 #include "simulation/models/ResistanceModels.h"
 
+#include "simulation/simulators/semantics/ConcentrationSemantics.h"
+
 #include "simulation/simulators/Simulation.h"
 #include "simulation/simulators/AbstractContinuous.h"
 #include "simulation/simulators/AbstractDroplet.h"
