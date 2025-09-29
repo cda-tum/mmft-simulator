@@ -20,6 +20,9 @@ namespace sim {
 template<typename T>
 class AbstractMixing;
 
+template<typename T>
+class Mixture;
+
 /**
  * @brief Class to define a specie.
  */
@@ -61,6 +64,12 @@ class Specie {
      * @param[in] simHash Hash of the simulation that created this specie object.
      */
     void resetHash() noexcept { this->simHash = 0; }
+
+    /**
+     * @brief Returns the simulation hash of this specie.
+     * @returns The hash of the simulation that created the specie.
+     */
+    size_t getHash() const noexcept { return this->simHash; }
 
   public:
 
@@ -108,6 +117,7 @@ class Specie {
 
     // Friend class definitions
     friend class AbstractMixing<T>;
+    friend class Mixture<T>;
     friend class test::definitions::GlobalTest<T>;
 
 };

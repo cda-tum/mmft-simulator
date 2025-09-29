@@ -183,7 +183,7 @@ protected:
      * @param[in] specieId Id of the specie that should be removed.
      * @throws std::logic_error if the specie is not present in the simulation.
      */
-    void removeSpecie(int specieId);
+    void removeSpecie(size_t specieId);
 
     /**
      * @brief Remove mixture from the simulation.
@@ -191,14 +191,14 @@ protected:
      * @throws std::logic_error if the mixture is not present in the simulation.
      * @note If the mixture is present in the simulation, it is removed from the simulation.
      */
-    void removeMixture(int mixtureId);
+    void removeMixture(size_t mixtureId);
 
     /**
      * @brief Remove mixture injection from the simulation.
      * @param[in] injectionId Id of the mixture injection that should be removed.
      * @throws std::logic_error if the injection is not present in the simulation.
      */
-    void removeMixtureInjection(int mixtureInjectionId);
+    void removeMixtureInjection(size_t mixtureInjectionId);
 
 public:
     /**

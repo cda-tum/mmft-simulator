@@ -27,7 +27,7 @@ bool Mixture<T>::checkMutability() const {
 }
 
 template<typename T>
-bool Mixture<T>::checkHashes(Specie<T>* speciePtr) const {
+bool Mixture<T>::checkHashes(const Specie<T>* speciePtr) const {
     if (speciePtr->getHash() != simHash) {
         throw std::invalid_argument("Hash mismatch. Specie was removed from Simulation or created by other Simulation.");
     }
@@ -71,8 +71,8 @@ bool Mixture<T>::addSpecie(Specie<T>* speciePtr, T concentration) {
     checkHashes(speciePtr);
 
     // Checks passed, we can add the new specie
-    auto& result1 = species.try_emplace(key, speciePtr);
-    auto& result2 = specieConcentrations.try_emplace(key, concentration);
+    auto result1 = species.try_emplace(key, speciePtr);
+    auto result2 = specieConcentrations.try_emplace(key, concentration);
 
     return result1.second && result2.second; // Return true if both insertions were successful
 }
@@ -145,8 +145,8 @@ bool Mixture<T>::removeSpecie(Specie<T>* speciePtr) {
     if (species.find(key) == species.end()) {
         throw std::invalid_argument("Cannot set concentration for specie with id: " + std::to_string(speciePtr->getId()) + ". Specie not found.");
     }
-    auto& result1 = specieConcentrations.erase(key); 
-    auto& result2 = species.erase(key);
+    auto result1 = specieConcentrations.erase(key); 
+    auto result2 = species.erase(key);
 
     return (result1 > 0 && result2 > 0); // Return true if both removals were successful
 }

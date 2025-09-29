@@ -143,6 +143,13 @@ class Membrane : public Edge<T> {
     [[nodiscard]] std::shared_ptr<Channel<T>> getChannel() const;
 
     /**
+     * @brief Get pointer to the rectangular channel the membrane is connected to.
+     * @return Pointer to the rectangular channel the membrane is connected to.
+     * @throws logic_error if the stored channel is not of rectangular shape.
+     */
+    [[nodiscard]] std::shared_ptr<RectangularChannel<T>> getRectangularChannel() const;
+
+    /**
     * @brief Get pointer to the tank the membrane is connected to.
     * @return Pointer to the tank the membrane is connected to.
     */

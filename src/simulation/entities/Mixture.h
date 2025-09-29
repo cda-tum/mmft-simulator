@@ -152,7 +152,7 @@ protected:
      * @brief Checks whether the provided specie is created by the same Simulation object.
      * @throws invalid_argument if Specie's hash does not match the Mixture hash.
      */
-    bool checkHashes(Specie<T>* speciePtr) const;
+    bool checkHashes(const Specie<T>* speciePtr) const;
 
     /**
      * @brief Get the concentration of a specific specie in that mixture.

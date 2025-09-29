@@ -48,23 +48,26 @@ public:
     /** 
      * @brief Set the permeability membrane model to be used in the simulation.
      */
-    void setPermeabilityMembraneModel() {
-        this->membraneModel = std::unique_ptr<PermeabilityMembraneModel<T>>(new PermeabilityMembraneModel<T>());
-    }
+    // void setPermeabilityMembraneModel() {
+    //     this->membraneModel = std::unique_ptr<PermeabilityMembraneModel<T>>(new PermeabilityMembraneModel<T>());
+    // }
 
     /**
      * @brief Set the pore resistance membrane model to be used in the simulation.
      */
-    void setPoreResistanceMembraneModel() {
-        this->membraneModel = std::unique_ptr<PoreResistanceMembraneModel<T>>(new PoreResistanceMembraneModel<T>());
-    }
+    // void setPoreResistanceMembraneModel() {
+    //     this->membraneModel = std::unique_ptr<PoreResistanceMembraneModel<T>>(new PoreResistanceMembraneModel<T>());
+    // }
 
+    /** TODO: Miscellaneous
+     * Fix Specie/Mixture inconsistency
+     */
     /**
      * @brief Set the membrane model 0 to be used in the simulation.
      */
-    void setMembraneModel0() {
-        this->membraneModel = std::unique_ptr<MembraneModel0<T>>(new MembraneModel0<T>());
-    }
+    // void setMembraneModel0() {
+    //     this->membraneModel = std::unique_ptr<MembraneModel0<T>>(new MembraneModel0<T>());
+    // }
 
     /**
      * @brief Set the membrane model 1 to be used in the simulation.
@@ -83,7 +86,7 @@ public:
     /**
      * @brief Set the membrane model 3 to be used in the simulation.
      */
-    void setMebraneModel3() {
+    void setMembraneModel3() {
         this->membraneModel = std::unique_ptr<MembraneModel3<T>>(new MembraneModel3<T>());
     }
 

@@ -142,8 +142,8 @@ namespace sim {
     }
 
     template<typename T>
-    std::shared_ptr<DropletInjection<T>> AbstractDroplet<T>::addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::RectangularChannel<T>>& channel, T injectionPosition) {
-        addDropletInjection(droplet->getId(), injectionTime, channel->getId(), injectionPosition);
+    std::shared_ptr<DropletInjection<T>> AbstractDroplet<T>::addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::Channel<T>>& channel, T injectionPosition) {
+        return addDropletInjection(droplet->getId(), injectionTime, channel->getId(), injectionPosition);
     }
 
     template<typename T>

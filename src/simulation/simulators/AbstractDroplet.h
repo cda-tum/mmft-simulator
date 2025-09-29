@@ -198,7 +198,7 @@ public:
      * @param[in] injectionPosition Position inside the channel at which the droplet should be injected (relative to the channel length between 0.0 and 1.0).
      * @return Pointer to created injection.
      */
-    [[maybe_unused]] std::shared_ptr<DropletInjection<T>> addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::RectangularChannel<T>>& channel, T injectionPosition); 
+    [[maybe_unused]] std::shared_ptr<DropletInjection<T>> addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::Channel<T>>& channel, T injectionPosition); 
 
     /**
      * @brief Get injection
