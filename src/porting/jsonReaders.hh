@@ -265,12 +265,14 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             }
             else if (simulator["Type"] == "Mixing")
             {
+                assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
                 std::unordered_map<int, sim::Specie<T>*> species;
                 for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
                     species.try_emplace(specieId, speciePtr.get());
                 }
-                auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
-                                                            Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+                auto simulator = simulation.addLbmMixingSimulator();
+                // auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
+                                                            // Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
             }
             /** TODO: HybridOocSimulation

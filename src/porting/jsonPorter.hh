@@ -116,7 +116,9 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())));
             network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
-            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
+            simPtr = std::make_unique<sim::HybridMixing<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
             readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
             readResistanceModel<T>(jsonString, *simPtr);
             readMixingModel<T>(jsonString, *simPtr);

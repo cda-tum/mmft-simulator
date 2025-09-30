@@ -12,7 +12,7 @@ lbmSimulator<T>::lbmSimulator (
         epsilon(epsilon_), relaxationTime(relaxationTime_)
 { 
     if (name_ == "") {
-        this->name = std::move(getDefaultName(id_));
+        this->name = std::move(this->getDefaultName(id_));
     }
     this->cfdModule->setModuleTypeLbm();
 } 
@@ -24,7 +24,7 @@ lbmSimulator<T>::lbmSimulator (
         lbmSimulator(id_, name_, cfdModule_, resolution_, charPhysLength_, charPhysVelocity_, epsilon_, relaxationTime_)
 { 
     if (name_ == "") {
-        this->name = std::move(getDefaultName(id_));
+        this->name = std::move(this->getDefaultName(id_));
     }
     this->updateScheme = updateScheme_;
     this->cfdModule->setModuleTypeLbm();

@@ -141,7 +141,7 @@ void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::v
         mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
     }
     // Add CFD Simulator outflows
-    for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
+    for (auto& [key, cfdSimulator] : sim->readCFDMixingSimulators()) {
         for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
             // If the node is an outflow
             if (cfdSimulator->getFlowRates().at(nodeId) < 0.0) {
@@ -237,7 +237,7 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std:
 
 template<typename T>
 void InstantaneousMixingModel<T>::storeConcentrations(AbstractMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
-    for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
+    for (auto& [key, cfdSimulator] : sim->getCFDMixingSimulators()) {
         std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
         for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
             // If the node is an inflow

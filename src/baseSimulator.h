@@ -29,6 +29,7 @@
 #include "simulation/simulators/AbstractMixing.h"
 #include "simulation/simulators/AbstractMembrane.h"
 #include "simulation/simulators/HybridContinuous.h"
+#include "simulation/simulators/HybridMixing.h"
 
 #include "simulation/simulators/CFDSim.h"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.h"

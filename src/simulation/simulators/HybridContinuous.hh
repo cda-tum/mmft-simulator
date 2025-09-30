@@ -6,6 +6,9 @@ template<typename T>
 HybridContinuous<T>::HybridContinuous(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Hybrid, Platform::Continuous, network) { }
 
 template<typename T>
+HybridContinuous<T>::HybridContinuous(Platform platform, std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Hybrid, platform, network) { }
+
+template<typename T>
 void HybridContinuous<T>::set1DResistanceModel() {
     throw std::logic_error("Cannot set 1D resistance model for hybrid simulation.");
 }

@@ -23,6 +23,7 @@
 #include "simulation/simulators/AbstractMixing.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
+#include "simulation/simulators/HybridMixing.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"

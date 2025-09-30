@@ -48,9 +48,6 @@ template<typename T>
 class lbmSimulator;
 
 template<typename T>
-class lbmMixingSimulator;
-
-template<typename T>
 class lbmOocSimulator;
 
 template<typename T>
@@ -70,6 +67,14 @@ private:
     bool eventBasedWriting = false;
 
 protected:
+
+    /**
+     * @brief Constructor of the hybrid continuous simulator object
+     * @param[in] platform The platform of the derived simulator object
+     * @param[in] network Pointer to the network object, in which the simulation takes place
+     */
+    HybridContinuous(Platform platform, std::shared_ptr<arch::Network<T>> network);
+
     void assertInitialized() const override;
 
     void initialize() override;
@@ -89,16 +94,22 @@ protected:
 
     /**
      * @brief Get injection
+     * @return Reference to the unordered map of MixtureInjections
+     */
+    [[nodiscard]] inline std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& getCFDSimulators() { return cfdSimulators; }
+
+    /**
+     * @brief Get injection
      * @param simulatorId The id of the injection
      * @return Pointer to injection with the corresponding id.
      */
-    [[nodiscard]] inline const CFDSimulator<T>* getCFDSimulator(int simulatorId) const { return cfdSimulators.at(simulatorId).get(); }
+    [[nodiscard]] inline const CFDSimulator<T>* readCFDSimulator(int simulatorId) const { return cfdSimulators.at(simulatorId).get(); }
 
     /**
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    [[nodiscard]] inline const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& getCFDSimulators() const { return cfdSimulators; }
+    [[nodiscard]] inline const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& readCFDSimulators() const { return cfdSimulators; }
 
     /**
      * @brief Checks if the simulator has a valid resistance model for hybrid simulations.
@@ -106,6 +117,11 @@ protected:
      * @note So far, only a poiseuille resistance model is valid for the 2-dimensional CFD simulations.
      */
     [[nodiscard]] bool hasValidResistanceModel();
+
+    /** TODO:
+     * 
+     */
+    bool getWritePpm() { return writePpm; }
 
 public:
 
@@ -146,7 +162,7 @@ public:
      * @note This is the cheapest definition for add an lbmSimulator, and many parameters, such as epsilon, tau and resolution
      * are defaulted.
     */
-    [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, std::string name="");
+    [[maybe_unused]] virtual std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, std::string name="");
 
     /**
      * @brief Create and add an LBM Simulator for a CFD Module to the Hybrid simulation
@@ -156,7 +172,7 @@ public:
      * @return A shared pointer to the created lbmSimulator instance
      * @note Besides the resolution, all other simulation parameters are defaulted.
     */
-    [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, size_t resolution, std::string name="");
+    [[maybe_unused]] virtual std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, size_t resolution, std::string name="");
 
     /**
      * @brief Create and add an LBM Simulator for a CFD Module to the Hybrid simulation

@@ -5,27 +5,28 @@ namespace sim{
 
 template<typename T>
 lbmMixingSimulator<T>::lbmMixingSimulator (
-    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, Specie<T>*> species_,
-    std::unordered_map<int, arch::Opening<T>> openings_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, 
-    T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
-        lbmSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, resolution_, epsilon_, relaxationTime_), 
-        species(species_), adRelaxationTime(adRelaxationTime_)
-{   
-    std::cout << "Creating module and setting its type to lbm" << std::endl;
-    this->cfdModule->setModuleTypeLbm();
+    int id_, std::string name_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, Specie<T>*> species_,
+    T resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_, T adRelaxationTime_) :
+        lbmSimulator<T>(id_, name_, cfdModule_, resolution_, charPhysLength_, charPhysVelocity_, epsilon_, relaxationTime_),
+        species(species_), adRelaxationTime(adRelaxationTime_) 
+{ 
     fluxWall.try_emplace(int(0), &zeroFlux);
-} 
+}
 
 template<typename T>
 lbmMixingSimulator<T>::lbmMixingSimulator (
-    int id_, std::string name_, std::string stlFile_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, Specie<T>*> species_,
-    std::unordered_map<int, arch::Opening<T>> openings_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, ResistanceModel<T>* resistanceModel_, T charPhysLength_, 
-    T charPhysVelocity_, T resolution_, T epsilon_, T relaxationTime_, T adRelaxationTime_) : 
-        lbmMixingSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, updateScheme_, resistanceModel_, charPhysLength_, charPhysVelocity_, resolution_, epsilon_, 
-                            relaxationTime_, species_, adRelaxationTime_)
-{   
-    this->updateScheme = updateScheme_;
-} 
+    int id_, std::string name_, std::shared_ptr<arch::Module<T>> cfdModule_, std::unordered_map<int, Specie<T>*> species_,
+    std::shared_ptr<mmft::Scheme<T>> updateScheme_, T resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_, T adRelaxationTime_) :
+        lbmSimulator<T>(id_, name_, cfdModule_, updateScheme_, resolution_, charPhysLength_, charPhysVelocity_, epsilon_, relaxationTime_),
+        species(species_), adRelaxationTime(adRelaxationTime_) 
+{ 
+    fluxWall.try_emplace(int(0), &zeroFlux);
+}
+
+template<typename T>
+std::string lbmMixingSimulator<T>::getDefaultName(int id) {
+    return std::string("olbMixing-" + std::to_string(id));
+}
 
 template<typename T>
 void lbmMixingSimulator<T>::lbmInit (T dynViscosity, T density) {
@@ -36,6 +37,7 @@ void lbmMixingSimulator<T>::lbmInit (T dynViscosity, T density) {
     initAdConverters(density);
     this->initNsConvergeTracker();
     initAdConvergenceTracker();
+    this->setIsInitialized();
 
     #ifdef VERBOSE
         std::cout << "[lbmSimulator] lbmInit " << this->name << "... OK" << std::endl;

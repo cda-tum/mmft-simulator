@@ -236,6 +236,10 @@ protected:
      */
     void setCharPhysVelocity(T charPhysVelocity) { this->charPhysVelocity = charPhysVelocity; isInitialized = false; }
 
+    void setIsInitialized() { isInitialized = true; }
+
+    void unsetIsInitialized() { isInitialized = false; }
+
 public:
 
     /**

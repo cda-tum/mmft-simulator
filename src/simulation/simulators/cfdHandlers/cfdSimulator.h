@@ -335,6 +335,7 @@ public:
     friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
     friend bool conductADSimulation<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
     friend class HybridContinuous<T>;
+    friend class HybridMixing<T>;
     friend class nodal::NodalAnalysis<T>;
     friend class test::definitions::GlobalTest<T>;
 
