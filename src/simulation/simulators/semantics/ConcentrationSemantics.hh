@@ -3,6 +3,11 @@
 namespace sim {
 
 template<typename T>
+ConcentrationSemantics<T>::ConcentrationSemantics(Simulation<T>* simRef, size_t simHash) : simRef(simRef), simHash(simHash) { 
+    this->mixingModel = std::make_unique<InstantaneousMixingModel<T>>();
+}
+
+template<typename T>
 void ConcentrationSemantics<T>::setInstantaneousMixingModel() {
     if (!this->mixingModel->isInstantaneous()) {
         if (!mixtures.empty()) {
@@ -26,7 +31,7 @@ template<typename T>
 std::shared_ptr<Specie<T>> ConcentrationSemantics<T>::addSpecie(T diffusivity, T satConc) {
     size_t id = Specie<T>::getSpecieCounter();
     
-    auto result = species.insert_or_assign(id, std::shared_ptr<Specie<T>>(new Specie<T>(this->getHash(), id, diffusivity, satConc)));
+    auto result = species.insert_or_assign(id, std::shared_ptr<Specie<T>>(new Specie<T>(simHash, id, diffusivity, satConc)));
 
     return result.first->second;
 }
@@ -67,7 +72,7 @@ template<typename T>
 std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::addMixture(const std::vector<std::shared_ptr<Specie<T>>>& speciesVec, const std::vector<T>& concentrations) {
     size_t id = Mixture<T>::getMixtureCounter();
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase().get();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
     if (speciesVec.size() != concentrations.size()) {
         throw std::logic_error("Species and concentrations vectors must have the same size.");
@@ -83,7 +88,7 @@ std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::addMixture(const std::vec
         specieConcentrationsMap.try_emplace(speciesVec[i]->getId(), concentrations[i]);
     }
 
-    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(this->getHash(), id, speciesMap, specieConcentrationsMap, carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(simHash, id, speciesMap, specieConcentrationsMap, carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second;
@@ -93,7 +98,7 @@ template<typename T>
 std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::createMixture(std::unordered_map<size_t, T> specieConcentrations_) {
     size_t id = Mixture<T>::getMixtureCounter();
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase().get();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
     // Transform the vector of species and concentrations into an unordered_map
     std::unordered_map<size_t, Specie<T>*> speciesMap;
@@ -103,7 +108,7 @@ std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::createMixture(std::unorde
     }
 
     // Create non-mutable Mixture
-    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(this->getHash(), id, speciesMap, specieConcentrationsMap, carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(simHash, id, speciesMap, specieConcentrationsMap, carrierFluid)));
 
     return result.first->second;
 }
@@ -153,48 +158,48 @@ std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addMixtureInject
     if (isPermanent) {
         // Mixtures can only be injected into edges that are channels. Otherwise a nullptr is returned
         // If the edges are pumps, the mixture is injected into adjacent channels at the pump outflow.
-        if (networkRef->isChannel(edgeId)) {
+        if (simRef->getNetwork()->isChannel(edgeId)) {
             // Insert a permanent mixture into a channel
-            auto channel = networkRef->getChannel(edgeId);
-            auto result = permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
+            auto channel = simRef->getNetwork()->getChannel(edgeId);
+            auto result = permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             return result.first->second;
-        } else if (networkRef->isPressurePump(edgeId)) {
+        } else if (simRef->getNetwork()->isPressurePump(edgeId)) {
             // If the edge is a pressure pump, the permanent mixture is injected into channels connected to pump outlet
-            auto pump = networkRef->getPressurePump(edgeId);
+            auto pump = simRef->getNetwork()->getPressurePump(edgeId);
             int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
-            for (auto& channel : networkRef->getChannelsAtNode(nodeId)) {
-                permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
+            for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
+                permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             }
-        } else if (networkRef->isFlowRatePump(edgeId)) {
+        } else if (simRef->getNetwork()->isFlowRatePump(edgeId)) {
             // If the edge is a flow rate pump, the permanent mixture is injected into channels connected to pump outlet
-            auto pump = networkRef->getFlowRatePump(edgeId);
+            auto pump = simRef->getNetwork()->getFlowRatePump(edgeId);
             int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
-            for (auto& channel : networkRef->getChannelsAtNode(nodeId)) {
-                permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
+            for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
+                permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             }
         }
         return nullptr;
     }
     // Mixtures can only be injected into edges that are channels. Otherwise a nullptr is returned
     // If the edges are pumps, the mixture is injected into adjacent channels at the pump outflow.
-    if (networkRef->isChannel(edgeId)) {
+    if (simRef->getNetwork()->isChannel(edgeId)) {
         // Insert a mixture into a channel_
-        auto channel = networkRef->getChannel(edgeId);
-        auto result = mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
+        auto channel = simRef->getNetwork()->getChannel(edgeId);
+        auto result = mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
         return result.first->second;
-    } else if (networkRef->isPressurePump(edgeId)) {
+    } else if (simRef->getNetwork()->isPressurePump(edgeId)) {
         // If the edge is a pressure pump, the mixture is injected into channels connected to pump outlet
-        auto pump = networkRef->getPressurePump(edgeId);
+        auto pump = simRef->getNetwork()->getPressurePump(edgeId);
         int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
-        for (auto& channel : networkRef->getChannelsAtNode(nodeId)) {
-            mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
+        for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
+            mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
         }
-    } else if (networkRef->isFlowRatePump(edgeId)) {
+    } else if (simRef->getNetwork()->isFlowRatePump(edgeId)) {
         // If the edge is a flow rate pump, the mixture is injected into channels connected to pump outlet
-        auto pump = networkRef->getFlowRatePump(edgeId);
+        auto pump = simRef->getNetwork()->getFlowRatePump(edgeId);
         int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
-        for (auto& channel : networkRef->getChannelsAtNode(nodeId)) {
-            mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(this->getHash(), id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
+        for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
+            mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
         }
     }
     return nullptr;
@@ -280,9 +285,9 @@ Mixture<T>* ConcentrationSemantics<T>::addMixture(std::unordered_map<size_t, T> 
         species.try_emplace(specieId, getSpecie(specieId).get());
     }
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase().get();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
-    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(this->getHash(), id, species, std::move(specieConcentrations), carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(simHash, id, species, std::move(specieConcentrations), carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second.get();
@@ -292,9 +297,9 @@ template<typename T>
 Mixture<T>* ConcentrationSemantics<T>::addMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations) {
     size_t id = Mixture<T>::getMixtureCounter();
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase().get();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
-    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(this->getHash(), id, std::move(species), std::move(specieConcentrations), carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<Mixture<T>>(new Mixture<T>(simHash, id, std::move(species), std::move(specieConcentrations), carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second.get();
@@ -314,9 +319,9 @@ Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<si
         specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
     }
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase().get();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
-    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(this->getHash(), id, species, std::move(specieConcentrations), specieDistributions, carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(simHash, id, species, std::move(specieConcentrations), specieDistributions, carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second.get();
@@ -334,9 +339,9 @@ Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<si
         specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
     }
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase().get();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
-    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(this->getHash(), id, std::move(species), std::move(specieConcentrations), specieDistributions, carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(simHash, id, std::move(species), std::move(specieConcentrations), specieDistributions, carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second.get();
@@ -354,9 +359,9 @@ Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<si
         specieConcentrations.try_emplace(specieId, T(0));
     }
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase().get();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
-    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(this->getHash(), id, species, specieConcentrations, std::move(specieDistributions), carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(simHash, id, species, specieConcentrations, std::move(specieDistributions), carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second.get();
@@ -372,9 +377,9 @@ Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<si
         specieConcentrations.try_emplace(specieId, T(0));
     }
 
-    Fluid<T>* carrierFluid = this->getContinuousPhase();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase();
 
-    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(this->getHash(), id, std::move(species), specieConcentrations, std::move(specieDistributions), carrierFluid)));
+    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(simHash, id, std::move(species), specieConcentrations, std::move(specieDistributions), carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second.get();

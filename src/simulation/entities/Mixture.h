@@ -35,6 +35,9 @@ template<typename T>
 class AbstractMixing;
 
 template<typename T>
+class ConcentrationSemantics;
+
+template<typename T>
 class DiffusionMixingModel;
 
 template<typename T>
@@ -335,6 +338,7 @@ public:
 
     // Friend class definition
     friend class AbstractMixing<T>;
+    friend class ConcentrationSemantics<T>;
     friend class InstantaneousMixingModel<T>;
     friend class test::definitions::GlobalTest<T>;
 };
@@ -443,7 +447,7 @@ public:
     [[nodiscard]] inline int getResolution() { return this->resolution; }
 
     // Friend class definitions
-    friend class AbstractMixing<T>;
+    friend class ConcentrationSemantics<T>;
     friend class DiffusionMixingModel<T>;
 };
 

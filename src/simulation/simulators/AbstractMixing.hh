@@ -6,9 +6,7 @@ template<typename T>
 AbstractMixing<T>::AbstractMixing(std::shared_ptr<arch::Network<T>> network) : AbstractMixing<T>(Type::Abstract, Platform::Mixing, network) { }
 
 template<typename T>
-AbstractMixing<T>::AbstractMixing(Type type_, Platform platform_, std::shared_ptr<arch::Network<T>> network) : Simulation<T>(type_, platform_, network), ConcentrationSemantics(this->getNetwork()) {
-    this->mixingModel = std::make_unique<InstantaneousMixingModel<T>>();
-}
+AbstractMixing<T>::AbstractMixing(Type type_, Platform platform_, std::shared_ptr<arch::Network<T>> network) : Simulation<T>(type_, platform_, network), ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash()) { }
 
 template<typename T>
 void AbstractMixing<T>::assertInitialized() const {
@@ -31,7 +29,7 @@ std::vector<std::unique_ptr<Event<T>>> AbstractMixing<T>::computeMixingEvents() 
             events.push_back(std::make_unique<MixtureInjectionEvent<T>>(injectionTime - this->getTime(), *(injection.get()), this->getMixingModel()));
         }
     }
-    for (auto& [key, injection] : permanentMixtureInjections) {
+    for (auto& [key, injection] : this->getPermanentMixtureInjections()) {
         double injectionTime = injection->getInjectionTime();
         if (!injection->wasPerformed()) {
             events.push_back(std::make_unique<PermanentMixtureInjectionEvent<T>>(injectionTime - this->getTime(), *(injection.get()), this->getMixingModel()));
@@ -49,7 +47,7 @@ std::vector<std::unique_ptr<Event<T>>> AbstractMixing<T>::computeMixingEvents() 
 
 template<typename T>
 void AbstractMixing<T>::calculateNewMixtures(double timestep_) {
-    this->mixingModel->updateMixtures(timestep_, this->getNetwork().get(), this, this->mixtures);
+    this->getMixingModel()->updateMixtures(timestep_, this->getNetwork().get(), this, this->getMixtures());
 }
 
 template<typename T>
@@ -65,11 +63,11 @@ void AbstractMixing<T>::simulate() {
         }
 
         // Update and propagate the mixtures 
-        if (this->mixingModel->isInstantaneous()){
+        if (this->hasInstantaneousMixingModel()) {
             calculateNewMixtures(timestep);
-            this->mixingModel->updateMinimalTimeStep(this->getNetwork().get());
-        } else if (this->mixingModel->isDiffusive()) {
-            this->mixingModel->updateMinimalTimeStep(this->getNetwork().get());
+            this->getMixingModel()->updateMinimalTimeStep(this->getNetwork().get());
+        } else if (this->hasDiffusiveMixingModel()) {
+            this->getMixingModel()->updateMinimalTimeStep(this->getNetwork().get());
         }
         
         // store simulation results of current state
@@ -104,15 +102,15 @@ void AbstractMixing<T>::simulate() {
         this->getTime() += nextEvent->getTime();
         
         // Depending on the mixing model, the process looks different
-        if (this->mixingModel->isInstantaneous()){
+        if (this->hasInstantaneousMixingModel()) {
             // Instantaneous mixing model
-            auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->mixingModel.get());
+            auto* instantMixingModel = dynamic_cast<InstantaneousMixingModel<T>*>(this->getMixingModel());
             assert(instantMixingModel);
             instantMixingModel->moveMixtures(timestep, this->getNetwork().get());
             instantMixingModel->updateNodeInflow(timestep, this->getNetwork().get());
-        } else if (this->mixingModel->isDiffusive()) {
+        } else if (this->hasDiffusiveMixingModel()) {
             // Diffusive mixing model
-            this->mixingModel->updateMixtures(timestep, this->getNetwork().get(), this, this->getMixtures());
+            this->getMixingModel()->updateMixtures(timestep, this->getNetwork().get(), this, this->getMixtures());
         }
         
         nextEvent->performEvent();
@@ -147,14 +145,14 @@ void AbstractMixing<T>::saveState() {
     }
 
     // Add a mixture position for all filled edges
-    for (auto& [channelId, mixingId] : mixingModel->getFilledEdges()) {
+    for (auto& [channelId, mixingId] : this->getMixingModel()->getFilledEdges()) {
         std::deque<MixturePosition<T>> newDeque;
         MixturePosition<T> newMixturePosition(mixingId, channelId, 0.0, 1.0);
         newDeque.push_front(newMixturePosition);
         saveMixturePositions.try_emplace(channelId, newDeque);
     }
     // Add all mixture positions
-    for (auto& [channelId, deque] : mixingModel->getMixturesInEdges()) {
+    for (auto& [channelId, deque] : this->getMixingModel()->getMixturesInEdges()) {
         for (auto& pair : deque) {
             if (!saveMixturePositions.count(channelId)) {
                 std::deque<MixturePosition<T>> newDeque;
@@ -176,7 +174,7 @@ void AbstractMixing<T>::saveState() {
 template<typename T>
 void AbstractMixing<T>::saveMixtures() {
     std::unordered_map<int, Mixture<T>*> mixtures_ptr;
-    for (auto& [mixtureId, mixture] : this->mixtures) {
+    for (auto& [mixtureId, mixture] : this->getMixtures()) {
         mixtures_ptr.try_emplace(mixtureId, mixture.get());
     }
     this->getSimulationResults()->setMixtures(mixtures_ptr);   

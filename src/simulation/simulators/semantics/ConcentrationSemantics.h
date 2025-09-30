@@ -59,7 +59,8 @@ class ConcentrationSemantics {
 
 private:
 
-    std::shared_ptr<arch::Network<T>>& networkRef;
+    const Simulation<T>* simRef;                                                                    ///< Reference to the simulation that uses this semantics.
+    size_t simHash;                                                                                 ///< Hash of the simulation that created this semantics object.
     std::unique_ptr<MixingModel<T>> mixingModel = nullptr;                                          ///< The mixing model used for a mixing simulation.
     std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;                                 ///< Species specified for the simulation.
     std::unordered_map<size_t, std::shared_ptr<Mixture<T>>> mixtures;                               ///< Mixtures present in the simulation.
@@ -69,7 +70,7 @@ private:
 
 protected:
 
-    ConcentrationSemantics(std::shared_ptr<arch::Network<T>>& networkRef) : networkRef(networkRef) { }
+    ConcentrationSemantics(Simulation<T>* simRef, size_t simHash);
     
     virtual void assertInitialized() const;
 
@@ -147,7 +148,7 @@ protected:
      * @brief Get mixtures.
      * @return Reference to the unordered map of mixtures
      */
-    [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& getMixtures() const { return mixtures; }
+    [[nodiscard]] inline std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& getMixtures() { return mixtures; }
 
     /**
      * @brief Get mixture.

@@ -75,7 +75,7 @@ private:
 
     void saveState() override;                                           
 
-    std::optional<bool> conductNodalAnalysis() override { return this->getNodalAnalysis()->conductNodalAnalysis(cfdSimulators); }                                               
+    std::optional<bool> conductNodalAnalysis() override { return this->getNodalAnalysis()->conductNodalAnalysis(cfdSimulators); } 
 
     /**
      * @brief Adds a new simulator to the network.
