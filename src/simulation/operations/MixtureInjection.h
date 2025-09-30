@@ -33,6 +33,9 @@ template<typename T>
 class AbstractMixing;
 
 template<typename T>
+class ConcentrationSemantics;
+
+template<typename T>
 class Mixture;
 
 template<typename T>
@@ -146,6 +149,7 @@ class MixtureInjection final {
 
     // Friend classes that need access to private member functions
     friend class AbstractMixing<T>;
+    friend class ConcentrationSemantics<T>;
     friend class MixtureInjectionEvent<T>;
     friend class PermanentMixtureInjectionEvent<T>;
     friend class test::definitions::GlobalTest<T>;

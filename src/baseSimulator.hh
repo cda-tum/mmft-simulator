@@ -15,6 +15,8 @@
 #include "simulation/models/MixingModels.hh"
 #include "simulation/models/ResistanceModels.hh"
 
+#include "simulation/simulators/semantics/ConcentrationSemantics.hh"
+
 #include "simulation/simulators/Simulation.hh"
 #include "simulation/simulators/AbstractContinuous.hh"
 #include "simulation/simulators/AbstractDroplet.hh"
