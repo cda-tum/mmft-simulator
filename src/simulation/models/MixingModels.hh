@@ -91,7 +91,7 @@ template<typename T>
 InstantaneousMixingModel<T>::InstantaneousMixingModel() : MixingModel<T>() { }
 
 template<typename T>
-void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) {
+void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) {
 
     std::vector<Mixture<T>> tmpMixtures;
 
@@ -131,7 +131,7 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Ab
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
+void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     // Add mixture injections
     for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
         int tmpMixtureIndex = tmpMixtures.size();
@@ -141,7 +141,7 @@ void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::v
         mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
     }
     // Add CFD Simulator outflows
-    for (auto& [key, cfdSimulator] : sim->readCFDMixingSimulators()) {
+    for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
         for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
             // If the node is an outflow
             if (cfdSimulator->getFlowRates().at(nodeId) < 0.0) {
@@ -184,7 +184,7 @@ void InstantaneousMixingModel<T>::channelPropagation(arch::Network<T>* network) 
 }
 
 template<typename T>
-bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
+bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     bool updated = false;
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         bool createMixture = false;
@@ -236,8 +236,8 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std:
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::storeConcentrations(AbstractMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
-    for (auto& [key, cfdSimulator] : sim->getCFDMixingSimulators()) {
+void InstantaneousMixingModel<T>::storeConcentrations(HybridMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
+    for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
         std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
         for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
             // If the node is an inflow
@@ -905,7 +905,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, size_
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) {
+void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) {
     /** TODO: Miscellaneous */
 }
 
