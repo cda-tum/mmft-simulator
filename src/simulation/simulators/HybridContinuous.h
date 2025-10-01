@@ -53,6 +53,9 @@ class lbmOocSimulator;
 template<typename T>
 class essLbmSimulator;
 
+template<typename T>
+class InstantaneousMixingModel;
+
 /**
  * @brief Class that conducts a abstract continuous simulation
  */
@@ -255,6 +258,8 @@ public:
     void writeVelocityPpm(std::pair<T,T> bounds, int resolution=600) const;
 
     void simulate() override;
+
+    friend class InstantaneousMixingModel<T>;
 };
 
 }   // namespace sim

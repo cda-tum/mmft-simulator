@@ -263,33 +263,6 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
                                                             epsilon, tau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }
-            else if (simulator["Type"] == "Mixing")
-            {
-                assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
-                std::unordered_map<int, sim::Specie<T>*> species;
-                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
-                    species.try_emplace(specieId, speciePtr.get());
-                }
-                auto simulator = simulation.addLbmMixingSimulator();
-                // auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
-                                                            // Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-                simulator->setVtkFolder(vtkFolder);
-            }
-            /** TODO: HybridOocSimulation
-             * Enable hybrid OoC simulation and uncomment code below
-             */
-            // else if (simulator["Type"] == "Organ")
-            // {
-            //     std::unordered_map<int, sim::Specie<T>*> species;
-            //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
-            //         species.try_emplace(specieId, speciePtr.get());
-            //     }
-            //     std::string organStlFile = simulator["organStlFile"];
-            //     int tissueId = simulator["tissue"];
-            //     auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getCfdModule(moduleId), species,
-            //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            //     simulator->setVtkFolder(vtkFolder);
-            // }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
@@ -321,19 +294,31 @@ void readSimulators(json jsonString, sim::HybridMixing<T>& simulation, arch::Net
             size_t resolution = simulator["resolution"];
             T epsilon = simulator["epsilon"];
             T tau = simulator["tau"];
+            T adTau = simulator["adTau"];
             int moduleId = simulator["moduleId"];
 
             if (simulator["Type"] == "Mixing")
             {
                 assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
-                std::unordered_map<int, sim::Specie<T>*> species;
-                for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
-                    species.try_emplace(specieId, speciePtr.get());
-                }
                 auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), resolution,
-                                                            epsilon, tau, charPhysLength, charPhysVelocity, name);
+                                                            epsilon, tau, adTau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }
+            /** TODO: HybridOocSimulation
+             * Enable hybrid OoC simulation and uncomment code below
+             */
+            // else if (simulator["Type"] == "Organ")
+            // {
+            //     std::unordered_map<int, sim::Specie<T>*> species;
+            //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
+            //         species.try_emplace(specieId, speciePtr.get());
+            //     }
+            //     std::string organStlFile = simulator["organStlFile"];
+            //     int tissueId = simulator["tissue"];
+            //     auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getCfdModule(moduleId), species,
+            //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
+            //     simulator->setVtkFolder(vtkFolder);
+            // }
         }
 }
 

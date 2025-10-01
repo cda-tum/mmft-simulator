@@ -34,32 +34,17 @@ class HybridMixing : public HybridContinuous<T>, public ConcentrationSemantics<T
 private:
     void assertInitialized() const override;
 
-    void initialize() override;
+    /** TODO: HybridMixing */
+    // void initialize() override;
 
-    void saveState() override;
+    /** TODO: HybridMixing */
+    // void saveState() override;
 
 public:
     /**
      * @brief Constructor of the hybrid mixing simulator object
      */
     HybridMixing(std::shared_ptr<arch::Network<T>> network);
-
-// /**
-//  * @brief Adds a new simulator to the network.
-//  * @param[in] name Name of the simulator.
-//  * @param[in] stlFile Location of the stl file that gives the geometry of the domain.
-//  * @param[in] module Shared pointer to the module on which this solver acts.
-//  * @param[in] species Map of specieIds and speciePtrs of the species simulated in the AD fields of this simulator.
-//  * @param[in] openings Map of openings corresponding to the nodes.
-//  * @param[in] charPhysLength Characteristic physical length of this simulator.
-//  * @param[in] charPhysVelocity Characteristic physical velocity of this simulator.
-//  * @param[in] resolution Resolution of this simulator.
-//  * @param[in] epsilon Error tolerance for convergence criterion of this simulator.
-//  * @param[in] tau Relaxation time of this simulator (0.5 < tau < 2.0).
-//  * @return Pointer to the newly created simulator.
-// */
-// lbmMixingSimulator<T>* addLbmMixingSimulator(std::string name, std::string stlFile, std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, Specie<T>*> species,
-//                                         std::unordered_map<int, arch::Opening<T>> openings, T charPhysLength, T charPhysVelocity, T resolution, T epsilon, T tau);
 
     /**
      * @brief Create and add an LBM Simulator for a CFD Module to the Hybrid simulation
@@ -100,12 +85,12 @@ public:
      * @brief Get the global bounds of velocity magnitude values in the CFD simulators.
      * @return A tuple with the global bounds for velocity magnitude values <velMin, velMax>
      */
-    std::pair<T,T> getGlobalConcentrationBounds() const;
+    std::pair<T,T> getGlobalConcentrationBounds(size_t adKey) const;
 
     /**
      * @brief Write the velocity field in .ppm image format for all cfdSimulators
      */
-    void writeConcentrationPpm(std::pair<T,T> bounds, int resolution=600) const;
+    void writeConcentrationPpm(size_t adKey, std::pair<T,T> bounds, int resolution=600) const;
 
     void simulate() override;
 

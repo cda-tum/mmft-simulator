@@ -5,7 +5,7 @@ namespace sim{
 
 template<typename T>
 lbmSimulator<T>::lbmSimulator (
-    int id_, std::string name_, std::shared_ptr<arch::CfdModule<T>> cfdModule_,
+    size_t id_, std::string name_, std::shared_ptr<arch::CfdModule<T>> cfdModule_,
     size_t resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_) : 
         CFDSimulator<T>(id_, name_, cfdModule_), 
         resolution(resolution_), charPhysLength(charPhysLength_), charPhysVelocity(charPhysVelocity_),  
@@ -19,7 +19,7 @@ lbmSimulator<T>::lbmSimulator (
 
 template<typename T>
 lbmSimulator<T>::lbmSimulator (
-    int id_, std::string name_, std::shared_ptr<arch::CfdModule<T>> cfdModule_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, 
+    size_t id_, std::string name_, std::shared_ptr<arch::CfdModule<T>> cfdModule_, std::shared_ptr<mmft::Scheme<T>> updateScheme_, 
     size_t resolution_, T charPhysLength_, T charPhysVelocity_, T epsilon_, T relaxationTime_) : 
         lbmSimulator(id_, name_, cfdModule_, resolution_, charPhysLength_, charPhysVelocity_, epsilon_, relaxationTime_)
 { 
@@ -422,6 +422,17 @@ void lbmSimulator<T>::readOpenings (const T dx) {
         olb::IndicatorCuboid2D<T> opening(extendO, originO, Opening.radial);
         
         this->geometry->rename(2, key+3, opening);
+    }
+}
+
+template<typename T>
+int lbmSimulator<T>::getFlowDirection(size_t key) {
+    if (flowRates.at(key) > 0.0) {
+        return 1;
+    } else if (flowRates.at(key) < 0.0) {
+        return -1;
+    } else {
+        return 0;
     }
 }
 

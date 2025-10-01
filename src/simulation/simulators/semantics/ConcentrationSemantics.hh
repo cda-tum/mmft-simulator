@@ -37,6 +37,16 @@ std::shared_ptr<Specie<T>> ConcentrationSemantics<T>::addSpecie(T diffusivity, T
 }
 
 template<typename T>
+const std::unordered_map<size_t, const Specie<T>*> ConcentrationSemantics<T>::readSpecies() const {
+    std::unordered_map<size_t, const Specie<T>*> speciePtrs;
+    for (auto& [id, specie] : this->species) {
+        speciePtrs.try_emplace(id, specie.get());
+    }
+    return speciePtrs;
+}
+
+
+template<typename T>
 void ConcentrationSemantics<T>::removeSpecie(const std::shared_ptr<Specie<T>>& specie) {
     removeSpecie(specie->getId());
 }

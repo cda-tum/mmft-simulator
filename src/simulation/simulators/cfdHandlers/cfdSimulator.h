@@ -207,6 +207,13 @@ public:
     [[nodiscard]] inline std::shared_ptr<arch::CfdModule<T>> getModule() const { return cfdModule; }
 
     /**
+     * @brief Get the flow direction at a node.
+     * @param[in] key The id of the node for which the flow direction is requested.
+     * @returns The flow direction at the node: -1 for inflow, 1 for outflow, 0 for no flow.
+     */
+    virtual int getFlowDirection(size_t key) = 0;
+
+    /**
      * @brief Get the ground nodes of the module.
      * @returns Ground nodes.
     */
@@ -252,7 +259,7 @@ public:
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
      * @param[in] concentrations Map of concentrations and node ids.
      */
-    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) 
+    virtual void storeConcentrations(std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations) 
     {
         throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
     }
@@ -261,10 +268,10 @@ public:
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
-    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
+    virtual std::unordered_map<size_t, std::unordered_map<size_t, T>> getConcentrations() const 
     { 
         throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-        return std::unordered_map<int, std::unordered_map<int, T>>(); 
+        return std::unordered_map<size_t, std::unordered_map<size_t, T>>(); 
     }
 
     /**
@@ -305,6 +312,19 @@ public:
     }
 
     /**
+     * @brief Write the .ppm image file with the concentration results of the CFD simulation to file system.
+     * @param[in] speciesId The id of the species for which the concentration should be written.
+     * @param[in] min Minimal bound for colormap.
+     * @param[in] max Maximal bound for colormap.
+     * @param[in] imgResolution Resolution of the .ppm image.
+    */
+    virtual void writeConcentrationPpm (size_t speciesId, T min, T max, int imgResolution=600)
+    {
+        throw std::runtime_error("The function writeConcentrationPpm is undefined for this CFD simulator.");
+    }
+
+
+    /**
      * @brief Returns the local pressure bounds of this cfdSimulator 
      * @returns A tuple with the pressure bounds <pMin, pMax>
      */
@@ -320,6 +340,16 @@ public:
     virtual std::tuple<T, T> getVelocityBounds()
     {
         throw std::runtime_error("The function getVelocityBounds is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Returns the local velocity bounds of this cfdSimulator 
+     * @param[in] specieId The id of the species for which the concentration bounds should be returned.
+     * @returns A tuple with the velocity bounds <pMin, pMax>
+     */
+    virtual std::tuple<T, T> getConcentrationBounds(size_t specieId)
+    {
+        throw std::runtime_error("The function getConcentrationBounds is undefined for this CFD simulator.");
     }
 
     /**

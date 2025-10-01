@@ -48,34 +48,34 @@ using ADDynamics = olb::AdvectionDiffusionBGKdynamics<T,ADDESCRIPTOR>;
 using NoADDynamics = olb::NoDynamics<T,ADDESCRIPTOR>;
 
 private:
-    std::unordered_map<int, std::unordered_map<int, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
+    std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations;   ///< Vector of concentration values at module nodes. <nodeId, <speciId, conc>>
 
-    std::unordered_map<int, Specie<T>*> species;
+    std::unordered_map<size_t, const Specie<T>*> species;
 
     T adRelaxationTime;                         ///< Relaxation time (tau) for the OLB solver.
 
-    std::unordered_map<int, T> averageDensities;
-    std::unordered_map<int, bool> custConverges;
+    std::unordered_map<size_t, T> averageDensities;
+    std::unordered_map<size_t, bool> custConverges;
 
-    std::unordered_map<int, std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>>> adLattices;      ///< The LBM lattice on the geometry.
-    std::unordered_map<int, std::unique_ptr<olb::util::ValueTracer<T>>> adConverges;            ///< Value tracer to track convergence.
-    std::unordered_map<int, std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T, ADDESCRIPTOR>>> adConverters;      ///< Object that stores conversion factors from phyical to lattice parameters.
+    std::unordered_map<size_t, std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>>> adLattices;      ///< The LBM lattice on the geometry.
+    std::unordered_map<size_t, std::unique_ptr<olb::util::ValueTracer<T>>> adConverges;            ///< Value tracer to track convergence.
+    std::unordered_map<size_t, std::shared_ptr<const olb::AdeUnitConverterFromResolutionAndRelaxationTime<T, ADDESCRIPTOR>>> adConverters;      ///< Object that stores conversion factors from phyical to lattice parameters.
 
-    std::unordered_map<int, T*> fluxWall;
+    std::unordered_map<size_t, T*> fluxWall;
     T zeroFlux = 0.0;
 
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::AnalyticalConst2D<T,T>>>> concentrationProfiles;
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;       ///< Map of mean pressure values at module nodes.
+    std::unordered_map<size_t, std::unordered_map<size_t, std::shared_ptr<olb::AnalyticalConst2D<T,T>>>> concentrationProfiles;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::shared_ptr<olb::SuperPlaneIntegralFluxPressure2D<T>>>> meanConcentrations;       ///< Map of mean pressure values at module nodes.
 
-    [[nodiscard]] std::string getDefaultName(int id);
+    [[nodiscard]] std::string getDefaultName(size_t id);
 
 protected:
 
-    auto& getAdConverter(int key) {
+    auto& getAdConverter(size_t key) {
         return *adConverters.at(key);
     }
 
-    auto& getAdLattice(int key) {
+    auto& getAdLattice(size_t key) {
         return *adLattices.at(key);
     }
 
@@ -85,11 +85,11 @@ protected:
 
     void initAdConvergenceTracker();
 
-    void prepareAdLattice(const T omega, int speciesId);
+    void prepareAdLattice(const T omega, size_t speciesId);
 
-    void initConcentrationIntegralPlane(int adKey);
+    void initConcentrationIntegralPlane(size_t adKey);
 
-    void initAdLattice(int adKey);
+    void initAdLattice(size_t adKey);
 
     /**
      * @brief Define and prepare the coupling of the NS lattice with the AD lattices.
@@ -123,7 +123,7 @@ protected:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
      * @param[in] adRelaxationTime Relaxation time tau for the advection-diffusion LBM solver.
     */
-    lbmMixingSimulator(int id, std::string name, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, Specie<T>*> species,
+    lbmMixingSimulator(size_t id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule, std::unordered_map<size_t, const Specie<T>*> species,
         T resolution, T charPhysLenth, T charPhysVelocity, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 
     /**
@@ -141,7 +141,7 @@ protected:
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
      * @param[in] adRelaxationTime Relaxation time tau for the advection-diffusion LBM solver.
     */
-    lbmMixingSimulator(int id, std::string name, std::shared_ptr<arch::Module<T>> cfdModule, std::unordered_map<int, Specie<T>*> species,
+    lbmMixingSimulator(size_t id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule, std::unordered_map<size_t, const Specie<T>*> species,
         std::shared_ptr<mmft::Scheme<T>> updateScheme, T resolution, T charPhysLenth, T charPhysVelocity, T epsilon, T relaxationTime=0.932, T adRelaxationTime=0.932);
 
     /**
@@ -181,13 +181,13 @@ protected:
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
      * @param[in] concentrations Map of concentrations and node ids.
      */
-    void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) override;
+    void storeConcentrations(std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations) override;
 
     /**
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
-    std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const override;
+    std::unordered_map<size_t, std::unordered_map<size_t, T>> getConcentrations() const override;
 
     /**
      * @brief Returns whether the module has converged or not.
@@ -212,7 +212,7 @@ public:
     /**
      * TODO:
      */
-    [[nodiscard]] std::tuple<T, T> getConcentrationBounds();
+    [[nodiscard]] std::tuple<T, T> getConcentrationBounds(size_t adKey) override;
 
     /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
@@ -223,7 +223,7 @@ public:
     /**
      * TODO:
      */
-    void writeConcentrationPpm(T min, T max, int imgResolution);
+    void writeConcentrationPpm(size_t adKey, T min, T max, int imgResolution) override;
 
     friend class HybridMixing<T>;
 };

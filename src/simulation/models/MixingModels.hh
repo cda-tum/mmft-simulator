@@ -142,17 +142,17 @@ void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vec
     }
     // Add CFD Simulator outflows
     for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
-        for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
+        for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
             // If the node is an outflow
-            if (cfdSimulator->getFlowRates().at(nodeId) < 0.0) {
+            if (cfdSimulator->getFlowDirection(nodeId) < 0.0) {
                 int tmpMixtureIndex = tmpMixtures.size();
                 int tmpMixtureId = std::numeric_limits<int>::max();
-                std::unordered_map<int, Specie<T>*> species;
-                std::unordered_map<int, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
+                std::unordered_map<size_t, Specie<T>*> species;
+                std::unordered_map<size_t, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
                 for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
-                    species.try_emplace(speciesId, sim->getSpecie(speciesId));
+                    species.try_emplace(speciesId, sim->getSpecie(speciesId).get());
                 }
-                Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase());
+                Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase().get());
                 tmpMixtures.push_back(tmpMixture);
                 mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
             }
@@ -238,10 +238,10 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::v
 template<typename T>
 void InstantaneousMixingModel<T>::storeConcentrations(HybridMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
     for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
-        std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
-        for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
+        std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations = cfdSimulator->getConcentrations();
+        for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
             // If the node is an inflow
-            if (cfdSimulator->getFlowRates().at(nodeId) > 0.0) {
+            if (cfdSimulator->getFlowDirection(nodeId) > 0.0) {
                 if (mixtureOutflowAtNode.count(nodeId)) {
                     for (auto& [specieId, specieConcentration] : tmpMixtures[mixtureOutflowAtNode.at(nodeId)].getSpecieConcentrations()) {
                         concentrations.at(nodeId).at(specieId) = specieConcentration;

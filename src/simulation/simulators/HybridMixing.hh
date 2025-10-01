@@ -6,6 +6,13 @@ template<typename T>
 HybridMixing<T>::HybridMixing(std::shared_ptr<arch::Network<T>> network) : HybridContinuous<T>(Platform::Mixing, network), ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash()) { }
 
 template<typename T>
+void HybridMixing<T>::assertInitialized() const 
+{
+    HybridContinuous<T>::assertInitialized();
+    ConcentrationSemantics<T>::assertInitialized();
+}
+
+template<typename T>
 std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, std::string name)
 {
     size_t resolutionDefault = 20;      // Some reasonable value
@@ -32,7 +39,7 @@ std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_pt
     if (this->hasValidResistanceModel()) {
         // create Simulator
         auto id = CFDSimulator<T>::getSimulatorCounter();
-        auto addCfdSimulator = std::shared_ptr<lbmMixingSimulator<T>>(new lbmMixingSimulator<T>(id, std::move(name), module, this->getSpecies(), resolution, charPhysLength, charPhysVelocity, epsilon, tau, adTau));
+        auto addCfdSimulator = std::shared_ptr<lbmMixingSimulator<T>>(new lbmMixingSimulator<T>(id, std::move(name), module, this->readSpecies(), resolution, charPhysLength, charPhysVelocity, epsilon, tau, adTau));
 
         // add Simulator
         const auto& [it, inserted] = this->getCFDSimulators().try_emplace(id, addCfdSimulator);
@@ -49,17 +56,27 @@ std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_pt
 }
 
 template<typename T>
-std::pair<T,T> HybridMixing<T>::getGlobalConcentrationBounds() const {
-    /** TODO:
-     * 
-     */
+std::pair<T,T> HybridMixing<T>::getGlobalConcentrationBounds(size_t adKey) const {
+    T minP = std::numeric_limits<T>::max();
+    T maxP = 0.0;
+    for (auto& [key, simulator] : this->readCFDSimulators()) {
+        auto localBounds = simulator->getConcentrationBounds(adKey);
+        if (std::get<0>(localBounds) < minP) {
+            minP = std::get<0>(localBounds);
+        }
+        if (std::get<1>(localBounds) > maxP) {
+            maxP = std::get<1>(localBounds);
+        }
+    }
+    return std::pair<T,T> {minP, maxP};
 }
 
 template<typename T>
-void HybridMixing<T>::writeConcentrationPpm(std::pair<T,T> bounds, int resolution) const {
-    /** TODO:
-     * 
-     */
+void HybridMixing<T>::writeConcentrationPpm(size_t adKey, std::pair<T,T> bounds, int resolution) const {
+    for (auto& [key, simulator] : this->readCFDSimulators()) {
+        // 0.98 and 1.02 factors are there to account for artifical black pixels that might show
+        simulator->writeConcentrationPpm(adKey, 0.98*bounds.first, 1.02*bounds.second, resolution);
+    }
 }
 
 template<typename T>
@@ -96,10 +113,12 @@ void HybridMixing<T>::simulate() {
     if (this->getWritePpm()) {
         this->writePressurePpm(this->getGlobalPressureBounds());
         this->writeVelocityPpm(this->getGlobalVelocityBounds());
-        writeConcentrationPpm(getGlobalConcentrationBounds());
+        for (auto& [key, specie] : this->readSpecies()) {
+            this->writeConcentrationPpm(key, getGlobalConcentrationBounds(key));
+        }
     }
 
-    saveState();
+    this->saveState();
 
     // Couple the resulting CFD flow field to the AD fields
     coupleNsAdLattices(this->getCFDSimulators());
