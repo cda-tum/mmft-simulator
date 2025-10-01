@@ -39,6 +39,9 @@ template<typename T>
 class AbstractMembrane;
 
 template<typename T>
+class HybridMixing;
+
+template<typename T>
 class Fluid;
 
 template<typename T>
@@ -106,7 +109,7 @@ public:
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    virtual void propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) = 0;
+    virtual void propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) = 0;
 
     /**
      * @brief Returns the current minimal timestep.
@@ -270,14 +273,14 @@ public:
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    void propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) override;
+    void propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) override;
 
     /**
      * @brief From the mixtureInjections and CFD simulators, generate temporary mxtures that 
      * flow into the network at correspondingnode entry points.
      * @param[in] sim Pointer to the simulation.
      */
-    void initNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+    void initNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
     /**
      * @brief Propagate the mixtures through the corresponding channel entirely, without considering time steps
@@ -287,9 +290,9 @@ public:
     /**
      * @brief From the node's inflows, generate the node outflow
      */
-    bool updateNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+    bool updateNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
-    void storeConcentrations(AbstractMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
+    void storeConcentrations(HybridMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
 
     /**
      * @brief Print all mixtures and their positions in the network.
@@ -341,7 +344,7 @@ public:
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    void propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) override;
+    void propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) override;
     
     void printTopology();
 

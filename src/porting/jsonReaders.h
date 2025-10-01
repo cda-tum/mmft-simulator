@@ -98,7 +98,7 @@ template<typename T>
 void readDroplets (json jsonString, sim::AbstractDroplet<T>& simulation);
 
 template<typename T>
-void readSpecies (json jsonString, sim::AbstractMixing<T>& simulation);
+void readSpecies (json jsonString, sim::ConcentrationSemantics<T>& simulation);
 
 /** TODO: HybridOocSimulation
  * Uncomment code below for reading tissues
@@ -107,7 +107,7 @@ void readSpecies (json jsonString, sim::AbstractMixing<T>& simulation);
 // void readTissues (json jsonString, sim::Simulation<T>& simulation);
 
 template<typename T>
-void readMixtures (json jsonString, sim::AbstractMixing<T>& simulation);
+void readMixtures (json jsonString, sim::ConcentrationSemantics<T>& simulation);
 
 /**
  * @brief Construct and store the droplet injections in the simulation as defined by the json string
@@ -119,7 +119,7 @@ template<typename T>
 void readDropletInjections (json jsonString, sim::AbstractDroplet<T>& simulation, int activeFixture);
 
 template<typename T>
-void readMixtureInjections (json jsonString, sim::AbstractMixing<T>& simulation, int activeFixture);
+void readMixtureInjections (json jsonString, sim::ConcentrationSemantics<T>& simulation, int activeFixture);
 
 /**
  * @brief Set the boundary conditions of the simulation as defined by the json string
@@ -149,6 +149,15 @@ template<typename T>
 void readSimulators (json jsonString, sim::HybridContinuous<T>& simulation, arch::Network<T>* network);
 
 /**
+ * @brief Construct and stores the CFD modules simulators that are included in the network as defined by the json string
+ * @param[in] jsonString json string
+ * @param[in] simulation simulation object
+ * @param[in] network pointer to the network
+*/
+template<typename T>
+void readSimulators (json jsonString, sim::HybridMixing<T>& simulation, arch::Network<T>* network);
+
+/**
  * @brief Construct and stores the update scheme that is used for the Abstract-CFD coupling.
  * @param[in] jsonString json string
  * @param[in] simulation simulation object
@@ -174,7 +183,7 @@ template<typename T>
 void readResistanceModel (json jsonString, sim::Simulation<T>& simulation);
 
 template<typename T>
-void readMixingModel (json jsonString, sim::AbstractMixing<T>& simulation);
+void readMixingModel (json jsonString, sim::ConcentrationSemantics<T>& simulation);
 
 /**
  * @brief Returns the id of the active fixture as defined in the json string

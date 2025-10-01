@@ -3,7 +3,7 @@
 namespace sim {
 
 template<typename T>
-HybridMixing<T>::HybridMixing(std::shared_ptr<arch::Network<T>> network) : HybridContinuous<T>(Platform::Mixing, network) { }
+HybridMixing<T>::HybridMixing(std::shared_ptr<arch::Network<T>> network) : HybridContinuous<T>(Platform::Mixing, network), ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash()) { }
 
 template<typename T>
 std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, std::string name)
@@ -93,7 +93,7 @@ void HybridMixing<T>::simulate() {
         std::cout << "[Simulation] All pressures have converged." << std::endl; 
     #endif
 
-    if (this->getWritePpm) {
+    if (this->getWritePpm()) {
         this->writePressurePpm(this->getGlobalPressureBounds());
         this->writeVelocityPpm(this->getGlobalVelocityBounds());
         writeConcentrationPpm(getGlobalConcentrationBounds());
@@ -108,7 +108,7 @@ void HybridMixing<T>::simulate() {
     bool concentrationConverged = false;
     while (!concentrationConverged) {
         concentrationConverged = conductADSimulation(this->getCFDSimulators());
-        this->mixingModel->propagateSpecies(this->getNetwork(), this);
+        this->getMixingModel()->propagateSpecies(this->getNetwork().get(), this);
     }
 }
 

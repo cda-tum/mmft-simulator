@@ -30,7 +30,7 @@ class lbmMixingSimulator;
  * @brief Class that conducts a abstract mixing simulation
  */
 template<typename T>
-class HybridMixing : public HybridContinuous<T> {
+class HybridMixing : public HybridContinuous<T>, public ConcentrationSemantics<T> {
 private:
     void assertInitialized() const override;
 
