@@ -7,6 +7,7 @@ set(SOURCE_LIST
     CFDSim.hh
     HybridContinuous.hh
     HybridMixing.hh
+    CfdContinuous.hh
 )
 
 set(HEADER_LIST
@@ -18,6 +19,7 @@ set(HEADER_LIST
     CFDSim.h
     HybridContinuous.h
     HybridMixing.h
+    CfdContinuous.h
 )
 
 target_sources(${TARGET_NAME} PUBLIC ${SOURCE_LIST} ${HEADER_LIST})
