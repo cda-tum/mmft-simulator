@@ -327,7 +327,7 @@ More details about the implementation and the mechanisms behind the MMFT Simulat
 
 [[5]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
 
-[[6]](https://doi.org/10.1109/TCAD.2025.3549703) M. Takken, E. Emmerich, and R. Wille. An Abstract Simulator for Species Concentrations in Channel-Based Microfluidic Devices. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems (TCAD), 2025.
+[[6]](https://doi.org/10.1109/TCAD.2025.3549703) M. Takken, M. Emmerich, and R. Wille. An Abstract Simulator for Species Concentrations in Channel-Based Microfluidic Devices. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems (TCAD), 2025.
 
 [[7]](https://doi.org/10.1038/s41598-024-77741-8) M. Emmerich, F. Costamoling, and R. Wille. Modular and Extendable 1D-Simulator for Microfluidic Devices. Scientific Reports, 2024.
 
