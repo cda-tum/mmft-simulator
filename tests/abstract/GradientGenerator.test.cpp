@@ -107,7 +107,6 @@ TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   network->setSink(sinkNode->getId());
 
   EXPECT_TRUE(network->isNetworkValid());
-  network->sortGroups();
 
   // fluids
   auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3);
@@ -235,7 +234,6 @@ TEST_F(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Pape
   network->setSink(sinkNode->getId());
 
   EXPECT_TRUE(network->isNetworkValid());
-  network->sortGroups();
 
   // fluids
   auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3);
@@ -431,7 +429,6 @@ TEST_F(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.6
   network->setSink(sinkNode->getId());
 
   EXPECT_TRUE(network->isNetworkValid());
-  network->sortGroups();
 
   // fluids
   auto waterYellow = sim.addFluid(cContinuousPhaseViscosity, 1.56e3 /* molecular size: 9e-10*/);

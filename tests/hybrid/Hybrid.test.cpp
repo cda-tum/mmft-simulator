@@ -74,15 +74,12 @@ TEST_F(Hybrid, Case1a) {
 
     testSimulation.addLbmSimulator(network->getCfdModule(m0->getId()), resolution, epsilon, tau, charPhysLength, charPhysVelocity, name);
     testSimulation.setNaiveHybridScheme(0.1, 0.5, 10);
-    network->sortGroups();
 
     // pressure pump
     auto pressure = 1e3;
     network->setPressurePump(c0->getId(), pressure);
     network->setPressurePump(c1->getId(), pressure);
     network->setPressurePump(c2->getId(), pressure);
-
-    network->isNetworkValid();
     
     // Simulate
     testSimulation.simulate();
@@ -119,8 +116,6 @@ TEST_F(Hybrid, esstest) {
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<float>(file, network);
 
-    network->isNetworkValid();
-
     // Simulate
     testSimulation->simulate();
 
@@ -156,8 +151,6 @@ TEST_F(Hybrid, Case1aJSON) {
 
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<T>(file, network);
-
-    network->isNetworkValid();
     
     // Simulate
     testSimulation->simulate();
@@ -191,8 +184,6 @@ std::string file = "../examples/Hybrid/Network2a.JSON";
 
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<T>(file, network);
-    
-    network->isNetworkValid();
 
     // Simulate
     testSimulation->simulate();
@@ -227,8 +218,6 @@ TEST_F(Hybrid, testCase3a) {
 
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<T>(file, network);
-    
-    network->isNetworkValid();
 
     // Simulate
     testSimulation->simulate();
@@ -273,8 +262,6 @@ TEST_F(Hybrid, testCase4a) {
 
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<T>(file, network);
-    
-    network->isNetworkValid();
 
     // Simulate
     testSimulation->simulate();

@@ -18,10 +18,6 @@ TEST_F(InstantaneousMixing, Case1) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
@@ -90,10 +86,6 @@ TEST_F(InstantaneousMixing, Case2) {
 
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
-
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     sim->simulate();
@@ -226,10 +218,6 @@ TEST_F(InstantaneousMixing, Case3) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
@@ -301,10 +289,6 @@ TEST_F(InstantaneousMixing, Case4) {
 
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
-
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     sim->simulate();
@@ -438,10 +422,6 @@ TEST_F(InstantaneousMixing, Case5) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
@@ -479,10 +459,6 @@ TEST_F(InstantaneousMixing, Case6) {
 
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
-
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     sim->simulate();
@@ -530,10 +506,6 @@ TEST_F(InstantaneousMixing, Case7) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
@@ -571,10 +543,6 @@ TEST_F(InstantaneousMixing, Case8) {
 
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
-
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     sim->simulate();
@@ -637,10 +605,6 @@ TEST_F(InstantaneousMixing, Case9) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
@@ -697,10 +661,6 @@ TEST_F(InstantaneousMixing, Case10) {
 
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
-
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     sim->simulate();
@@ -771,10 +731,6 @@ TEST_F(InstantaneousMixing, Case11) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
@@ -815,10 +771,6 @@ TEST_F(InstantaneousMixing, Case12) {
 
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
-
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     sim->simulate();

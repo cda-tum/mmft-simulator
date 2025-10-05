@@ -364,7 +364,7 @@ public:
      * @brief Conduct the simulation.
      * @return The result of the simulation containing all intermediate simulation steps and calculated parameters.
      */
-    virtual void simulate() = 0;
+    virtual void simulate();
 
     /**
      * @brief Mandatory virtual destructor is set to default.

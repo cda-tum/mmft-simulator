@@ -79,15 +79,12 @@ int main(int argc, char const* argv []) {
     Openings.try_emplace(9, arch::Opening<T>(network.getNode(9), std::vector<T>({-1.0, 0.0}), 1e-4));
 
     testSimulation.addLbmSimulator(name, stlFile, network.getModule(m0->getId()), Openings, charPhysLength, charPhysVelocity, alpha, resolution, epsilon, tau);
-    network.sortGroups();
 
     // pressure pump
     auto pressure = 1e3;
     network.setPressurePump(c0->getId(), pressure);
     network.setPressurePump(c1->getId(), pressure);
     network.setPressurePump(c2->getId(), pressure);
-
-    network.isNetworkValid();
     
     // Simulate
     testSimulation.setNetwork(&network);

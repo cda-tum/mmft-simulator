@@ -71,7 +71,6 @@ TEST_F(Tank, TwoTank) {
   auto pump0 = network->addFlowRatePump(node0->getId(), groundSinkNode->getId(), flowRate);
 
   EXPECT_TRUE(network->isNetworkValid());
-  network->sortGroups();
 
   // fluids
   auto continuousPhaseFluid = sim.addFluid(cContinuousPhaseViscosity, 0.993e3 /*molecular size: 9e-10, diffusivity: 4.4e-10, saturation: 0.0*/);

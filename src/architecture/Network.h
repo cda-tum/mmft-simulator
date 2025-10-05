@@ -15,6 +15,13 @@
 
 using json = nlohmann::json;
 
+namespace test::definitions {
+// Forward declared dependencies
+template<typename T>
+class GlobalTest;
+
+}
+
 namespace porting { 
 
 // Forward declared dependencies
@@ -22,6 +29,22 @@ template<typename T>
 void readNodes (json jsonString, arch::Network<T>& network);
 template<typename T>
 void readChannels (json jsonString, arch::Network<T>& network);
+
+}
+
+namespace nodal {
+
+// Forward declared dependencies
+template<typename T>
+class NodalAnalysis;
+
+}
+
+namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Simulation;
 
 }
 
@@ -169,9 +192,45 @@ private:
     [[nodiscard]] size_t edgeCount() const;
 
     /**
-     * TODO: Today
+     * @brief Removes all edges from the network, that are connected to a specific node, but not channels and. hence, not in the reach of the node.
+     * @param[in] nodeId Id of the node for which the edges should be removed.
      */
     void removeEdgesFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all flow rate pumps from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the flow rate pumps should be removed.
+     */ 
+    void removeFlowRatePumpsFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all pressure pumps from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the pressure pumps should be removed.
+     */
+    void removePressurePumpsFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all membranes from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the membranes should be removed.
+     */
+    void removeMembranesFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all tanks from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the tanks should be removed.
+     */
+    void removeTanksFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Sorts the nodes and channels into detached abstract domain groups
+    */
+    void sortGroups();
+
+    /**
+     * @brief Get the groups in the network.
+     * @returns Groups
+    */
+    [[nodiscard]] inline const std::unordered_map<size_t, std::unique_ptr<Group<T>>>& getGroups() const { return groups; }
 
 public:
 
@@ -795,22 +854,6 @@ public:
     */
     [[nodiscard]] bool isTank(size_t edgeId) const { return tanks.find(edgeId) != tanks.end(); }
 
-
-    //=====================================================================================
-    //======================================== TODO =======================================
-    //=====================================================================================
-
-    /** TODO: Today
-     * @brief Get the groups in the network.
-     * @returns Groups
-    */
-    [[nodiscard]] inline const std::unordered_map<size_t, std::unique_ptr<Group<T>>>& getGroups() const { return groups; }
-
-    /** TODO: Today
-     * @brief Sorts the nodes and channels into detached abstract domain groups
-    */
-    void sortGroups();
-
     // Disable copy constructors
     Network<T>(const Network<T>& src) = delete;
     Network<T>(const Network<T>&& src) = delete;
@@ -823,6 +866,9 @@ public:
     ~Network<T>() = default;
 
     // friend definitions
+    friend class nodal::NodalAnalysis<T>;
+    friend class sim::Simulation<T>;
+    friend class test::definitions::GlobalTest<T>;
     friend void porting::readNodes<T>(json, arch::Network<T>&);
     friend void porting::readChannels<T>(json, arch::Network<T>&);
 };

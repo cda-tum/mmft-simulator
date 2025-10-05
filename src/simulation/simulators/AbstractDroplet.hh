@@ -365,6 +365,7 @@ namespace sim {
 
     template<typename T>
     void AbstractDroplet<T>::simulate() {
+        Simulation<T>::simulate();
         this->assertInitialized();              // perform initialization checks
         this->initialize();                     // initialize the simulation
         while (true) {
