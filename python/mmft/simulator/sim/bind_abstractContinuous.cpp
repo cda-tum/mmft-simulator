@@ -1,7 +1,6 @@
-/**
- * @file baseSimulator.h
- */
-#pragma once
+#include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
 
 #include "simulation/entities/Droplet.h"
 #include "simulation/entities/Fluid.h"
@@ -30,9 +29,6 @@
 
 #include "simulation/simulators/CFDSim.h"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.h"
-#include "simulation/simulators/cfdHandlers/olbContinuous.h"
-// #include "simulation/simulators/cfdHandlers/olbMixing.h" //** TODO: HybridMixingSimulation */
-// #include "simulation/simulators/cfdHandlers/olbOoc.h"    //** TODO: HybridOocSimulation */
 
 #include "nodalAnalysis/NodalAnalysis.h"
 
@@ -53,18 +49,23 @@
 
 #include "architecture/Network.h"
 
-//** TODO: HybridOocSimulation */
-// #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
-// #include "olbProcessors/saturatedFluxPostProcessor2D.h"
-// #include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
-
 #include "porting/jsonPorter.h"
 #include "porting/jsonReaders.h"
 #include "porting/jsonWriters.h"
 
 #include "result/Results.h"
 
-#ifdef USE_ESSLBM
-    #include "simulation/simulators/essContinuous.h"
-    #include "simulation/simulators/essMixing.h"
-#endif
+namespace py = pybind11;
+
+using T = double;
+
+void bind_abstractContinuous(py::module_& m) {
+
+	py::class_<sim::AbstractContinuous<T>, sim::Simulation<T>, py::smart_holder>(m, "AbstractContinuous")
+		.def(py::init<std::shared_ptr<arch::Network<T>>>())
+		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::shared_ptr<sim::AbstractContinuous<T>>(dynamic_cast<sim::AbstractContinuous<T>*>(tmpPtr.release()));
+			}));
+
+}

@@ -55,50 +55,28 @@
 
 #include "result/Results.h"
 
-#include <baseSimulator.hh>
-
-#include "bindings.hpp"
-
-#define STRINGIFY(x) #x
-#define MACRO_STRINGIFY(x) STRINGIFY(x)
+namespace py = pybind11;
 
 using T = double;
 
-namespace py = pybind11;
-using namespace pybind11::literals;
+void bind_abstractMembrane(py::module_& m) {
 
-PYBIND11_MODULE(pysimulator, m) {
-	m.doc() = "Python binding for the MMFT-Simulator.";
+	py::class_<sim::AbstractMembrane<T>, sim::Simulation<T>, py::smart_holder>(m, "AbstractMembrane")
+		.def(py::init<std::shared_ptr<arch::Network<T>>>())
+		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::shared_ptr<sim::AbstractMembrane<T>>(dynamic_cast<sim::AbstractMembrane<T>*>(tmpPtr.release()));
+			}))
+		.def("setMembraneModel0", &sim::AbstractMembrane<T>::setMembraneModel0, "Sets membrane model 0.")
+		.def("setMembraneModel1", &sim::AbstractMembrane<T>::setMembraneModel1, "Sets membrane model 1.")
+		.def("setMembraneModel2", &sim::AbstractMembrane<T>::setMembraneModel2, "Sets membrane model 2.")
+		.def("setMembraneModel3", &sim::AbstractMembrane<T>::setMembraneModel3, "Sets membrane model 3.")
+		.def("setMembraneModel4", &sim::AbstractMembrane<T>::setMembraneModel4, "Sets membrane model 4.")
+		.def("setMembraneModel5", &sim::AbstractMembrane<T>::setMembraneModel5, "Sets membrane model 5.")
+		.def("setMembraneModel6", &sim::AbstractMembrane<T>::setMembraneModel6, "Sets membrane model 6.")
+		.def("setMembraneModel7", &sim::AbstractMembrane<T>::setMembraneModel7, "Sets membrane model 7.")
+		.def("setMembraneModel8", &sim::AbstractMembrane<T>::setMembraneModel8, "Sets membrane model 8.")
+		.def("setMembraneModel9", &sim::AbstractMembrane<T>::setMembraneModel9, "Sets membrane model 9.")
+		.def("getMembraneResistance", &sim::AbstractMembrane<T>::getMembraneResistance, "Returns the membrane resistance.");
 
-	// Architecture bindings
-	bind_enums(m);
-	bind_opening(m);
-	bind_node(m);
-	bind_edge(m);
-	bind_channel(m);
-	bind_pumps(m);
-	bind_membrane(m);
-	bind_tank(m);
-	bind_module(m);
-	bind_network(m);
-
-	// Simulator bindings
-	bind_fluid(m);
-	bind_droplet(m);
-	bind_specie(m);
-	bind_mixture(m);
-	bind_injections(m);
-	bind_cfdSimulators(m);
-	bind_simulation(m);
-	bind_abstractContinuous(m);
-	bind_abstractDroplet(m);
-	bind_abstractMembrane(m);
-	bind_abstractMixing(m);
-	bind_hybridContinuous(m);
-		
-	#ifdef VERSION_INFO
-	m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-	#else
-	m.attr("__version__") = "dev";
-	#endif
 }

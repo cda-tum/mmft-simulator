@@ -121,7 +121,7 @@ class DropletInjection final {
      * @param[in] position Position of the injection
      * @note position should be between 0.0 and 1.0
      */
-    inline void setInjectionPosition(T position);
+    void setInjectionPosition(T position);
 
     /**
      * @brief Retrieve position at which the injection should take place.

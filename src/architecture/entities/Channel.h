@@ -45,6 +45,9 @@ template<typename T>
 class Node;
 
 template<typename T>
+class Network;
+
+template<typename T>
 class CfdModule;
 
 /**

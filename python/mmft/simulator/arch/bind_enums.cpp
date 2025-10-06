@@ -1,0 +1,35 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
+
+#include "architecture/entities/Channel.h"
+#include "architecture/entities/Module.h"
+#include "simulation/simulators/Simulation.h"
+#include "simulation/simulators/CFDSim.h"
+#include "simulation/simulators/HybridContinuous.h"
+#include "simulation/simulators/cfdHandlers/cfdSimulator.h"
+
+namespace py = pybind11;
+
+using T = double;
+
+void bind_enums(py::module_& m) {
+
+	py::enum_<arch::ChannelType>(m, "ChannelType")
+		.value("normal", arch::ChannelType::NORMAL)
+		.value("bypass", arch::ChannelType::BYPASS)
+		.value("cloggable", arch::ChannelType::CLOGGABLE);
+
+	py::enum_<arch::ModuleType>(m, "ModuleType")
+		.value("normal", arch::ModuleType::NORMAL)
+		.value("lbm", arch::ModuleType::LBM);
+
+	py::enum_<sim::Type>(m, "Type")
+		.value("abstract", sim::Type::Abstract)
+		.value("hybrid", sim::Type::Hybrid);
+
+	py::enum_<sim::Platform>(m, "Platform")
+		.value("continuous", sim::Platform::Continuous)
+		.value("bigDroplet", sim::Platform::BigDroplet);
+
+}

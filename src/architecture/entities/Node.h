@@ -16,6 +16,9 @@ class NodalAnalysis;
 
 namespace arch {
 
+template<typename T>
+class Network;
+
 /**
  * @brief Class to specify a node, which defines connections between components of a Network.
 */

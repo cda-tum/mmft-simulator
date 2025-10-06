@@ -12,7 +12,7 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
-class CfdSimulator;
+class CFDSimulator;
 
 template<typename T>
 class ResistanceModel;
@@ -30,6 +30,9 @@ namespace arch {
 // Forward declared dependencies
 template<typename T>
 class Node;
+
+template<typename T>
+class Network;
 
 template<typename T>
 struct Opening;

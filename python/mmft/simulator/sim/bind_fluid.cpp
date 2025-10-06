@@ -1,7 +1,6 @@
-/**
- * @file baseSimulator.h
- */
-#pragma once
+#include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
 
 #include "simulation/entities/Droplet.h"
 #include "simulation/entities/Fluid.h"
@@ -30,9 +29,6 @@
 
 #include "simulation/simulators/CFDSim.h"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.h"
-#include "simulation/simulators/cfdHandlers/olbContinuous.h"
-// #include "simulation/simulators/cfdHandlers/olbMixing.h" //** TODO: HybridMixingSimulation */
-// #include "simulation/simulators/cfdHandlers/olbOoc.h"    //** TODO: HybridOocSimulation */
 
 #include "nodalAnalysis/NodalAnalysis.h"
 
@@ -53,18 +49,25 @@
 
 #include "architecture/Network.h"
 
-//** TODO: HybridOocSimulation */
-// #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
-// #include "olbProcessors/saturatedFluxPostProcessor2D.h"
-// #include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
-
 #include "porting/jsonPorter.h"
 #include "porting/jsonReaders.h"
 #include "porting/jsonWriters.h"
 
 #include "result/Results.h"
 
-#ifdef USE_ESSLBM
-    #include "simulation/simulators/essContinuous.h"
-    #include "simulation/simulators/essMixing.h"
-#endif
+namespace py = pybind11;
+
+using T = double;
+
+void bind_fluid(py::module_& m) {
+
+	py::class_<sim::Fluid<T>, py::smart_holder>(m, "Fluid")
+		.def("getId", &sim::Fluid<T>::getId, "Returns the id of the fluid.")
+		.def("setName", &sim::Fluid<T>::setName, "Sets the name of the fluid.")
+		.def("getName", &sim::Fluid<T>::getName, "Returns the name of the fluid.")
+		.def("setViscosity", &sim::Fluid<T>::setViscosity, "Sets the viscosity of the fluid.")
+		.def("getViscosity", &sim::Fluid<T>::getViscosity, "Returns the viscosity of the fluid.")
+		.def("setDensity", &sim::Fluid<T>::setDensity, "Sets the density of the fluid.")
+		.def("getDensity", &sim::Fluid<T>::getDensity, "Returns the density of the fluid.");
+
+}
