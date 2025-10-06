@@ -17,6 +17,12 @@ class CfdSimulator;
 template<typename T>
 class ResistanceModel;
 
+template<typename T>
+class lbmSimulator;
+
+template<typename T>
+class essLbmSimulator;
+
 }
 
 namespace arch {
@@ -96,6 +102,16 @@ protected:
      */
     virtual void removeNode(size_t nodeId) { boundaryNodes.erase(nodeId); }
 
+    /**
+     * @brief Sets the type of the module to LBM.
+     */
+    inline void setModuleTypeLbm() { moduleType = ModuleType::LBM; }
+
+    /**
+     * @brief Returns the type of the module to ESS LBM.
+     */
+    inline void setModuleTypeEssLbm() { moduleType = ModuleType::ESS_LBM; }
+
 public:
 
     /**
@@ -122,23 +138,15 @@ public:
     */
     [[nodiscard]] inline const std::unordered_map<size_t, std::shared_ptr<Node<T>>>& getNodes() const { return boundaryNodes; }
 
-    /** TODO: Shouldn't this be hidden, and set by inherited object? (today)
-     * @brief Returns the type of the module.
-     * @returns What type the channel has.
-     */
-    inline void setModuleTypeLbm() { moduleType = ModuleType::LBM; }
-
-    /**
-     * @brief Returns the type of the module.
-     * @returns What type the channel has.
-     */
-    inline void setModuleTypeEssLbm() { moduleType = ModuleType::ESS_LBM; }
-
     /**
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */
     [[nodiscard]] inline ModuleType getModuleType() const { return moduleType; }
+
+    // Friend definitions
+    friend class sim::lbmSimulator<T>;
+    friend class sim::essLbmSimulator<T>;
 };
 
 /**

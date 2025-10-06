@@ -11,8 +11,6 @@ lbmMixingSimulator<T>::lbmMixingSimulator (
         lbmSimulator<T>(id_, name_, stlFile_, cfdModule_, openings_, resistanceModel_, charPhysLength_, charPhysVelocity_, resolution_, epsilon_, relaxationTime_), 
         species(species_), adRelaxationTime(adRelaxationTime_)
 {   
-    std::cout << "Creating module and setting its type to lbm" << std::endl;
-    this->cfdModule->setModuleTypeLbm();
     fluxWall.try_emplace(int(0), &zeroFlux);
 } 
 

@@ -153,6 +153,16 @@ protected:
     inline void setFluids(std::unordered_map<size_t, std::shared_ptr<Fluid<T>>> fluids) { this->fluids = std::move(fluids); }
 
     /**
+     * @brief Creates and adds a new fluid out of two existing fluids.
+     * @param fluid0Id Id of the first fluid.
+     * @param volume0 The volume of the first fluid.
+     * @param fluid1Id Id of the second fluid.
+     * @param volume1 The volume of the second fluid.
+     * @return Pointer to new fluid.
+     */
+    std::shared_ptr<Fluid<T>> addMixedFluid(int fluid0Id, T volume0, int fluid1Id, T volume1);
+
+    /**
      * @brief Get fluid.
      * @param[in] fluidId Id of the fluid
      * @return Pointer to fluid with the corresponding id
@@ -235,16 +245,6 @@ public:
 
     /**
      * @brief Creates and adds a new fluid out of two existing fluids.
-     * @param fluid0Id Id of the first fluid.
-     * @param volume0 The volume of the first fluid.
-     * @param fluid1Id Id of the second fluid.
-     * @param volume1 The volume of the second fluid.
-     * @return Pointer to new fluid.
-     */
-    std::shared_ptr<Fluid<T>> addMixedFluid(int fluid0Id, T volume0, int fluid1Id, T volume1);
-
-    /**
-     * @brief Creates and adds a new fluid out of two existing fluids.
      * @param fluid0 Pointer to the first fluid.
      * @param volume0 The volume of the first fluid.
      * @param fluid1 Pointer to the second fluid.
@@ -267,9 +267,6 @@ public:
      */
     [[nodiscard]] const std::unordered_map<size_t, const Fluid<T>*> readFluids() const;
 
-    /** TODO: Miscellaneous
-     * reset the simHash
-     */
     /**
      * @brief Removes a fluid from the simulation, based using the fluid ptr. 
      * @param[in] fluid Pointer to the fluid that is to be removed

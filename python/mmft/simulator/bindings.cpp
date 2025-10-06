@@ -131,7 +131,6 @@ PYBIND11_MODULE(pysimulator, m) {
 		.def("getPosition", &arch::Module<T>::getPosition, "Returns the position [x, y] of the bottom left corner w.r.t. the device [m].")
 		.def("getSize", &arch::Module<T>::getSize, "Returns the size [x, y] of the module [m].")
 		.def("getNodes", &arch::Module<T>::getNodes, "Returns a map of nodes that are on the module's edges.")
-		.def("setModuleTypeLbm", &arch::Module<T>::setModuleTypeLbm, "Set the type of the module to lbm simulator.")
 		.def("getModuleType", &arch::Module<T>::getModuleType, "Returns the type of the module.");
 
 	py::class_<arch::CfdModule<T>, arch::Module<T>, py::smart_holder>(m, "CfdModule")
@@ -285,29 +284,25 @@ PYBIND11_MODULE(pysimulator, m) {
 		.def("getId", &sim::Mixture<T>::getId, "Returns the id of the mixture.")
 		.def("getName", &sim::Mixture<T>::getName, "Returns the name of the mixture.")
 		.def("setName", &sim::Mixture<T>::setName, "Sets the name of the mixture.")
-		//.def("", &sim::Mixture<T>::, "") <- Shouldn't be able to own a raw pointer
-		.def("addSpecie", py::overload_cast<std::shared_ptr<sim::Specie<T>>&, T>(&sim::Mixture<T>::addSpecie), 
-			"Adds a specie with a given concentration to this mixture.")
-		// .def("", &sim::Mixture<T>::, "") <- Shouldn't be able to own a raw pointer
-		// .def("", &sim::Mixture<T>::, "") <- Shouldn't be able to own a raw pointer
-		.def("readSpecieConcentrations", &sim::Mixture<T>::readSpecieConcentrations, "Returns a read-only map of the specie concentrations.")
-		// .def("", &sim::Mixture<T>::, "") <- Shouldn't be able to own a raw pointer
+		.def("addSpecie", &sim::Mixture<T>::addSpecie, "Adds a specie with a given concentration to this mixture.")
+		.def("getSpecie", &sim::Mixture<T>::getSpecie, "Returns the specie with the given id from this mixture, together with the concentration.")
+		.def("getSpecies", &sim::Mixture<T>::getSpecie, "Returns the specie from this mixture, with the given id.")
+		.def("getSpecieConcentrations", &sim::Mixture<T>::getSpecieConcentrations, "Returns a map of the specie concentrations.")
 		.def("getConcentrationOfSpecie", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&>(&sim::Mixture<T>::getConcentrationOfSpecie, py::const_), 
-			"Returns the concentration of a specie [TODO].")
-		.def("getSpecieDistributions", py::overload_cast<>(&sim::Mixture<T>::getSpecieDistributions, py::const_), 
-			"Returns the concentration distribution of a species if it's not a constant value [TODO].")
-		// .def("", &sim::Mixture<T>::, "") <- Shouldn't be able to own a raw pointer
-		.def("setSpecieConcentration", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&, T>(&sim::Mixture<T>::setSpecieConcentration), "Sets the concentration of a specie [TODO].")
+			"Returns the concentration of a specie [g/m^3].")
+		.def("getSpecieDistributions", &sim::Mixture<T>::getSpecieDistributions, "Returns the concentration distributions of all species if it's not a constant value [g/m^3].")
+		.def("setSpecieConcentration", &sim::Mixture<T>::setSpecieConcentration, "Sets the concentration of a specie [g/m^3].")
 		.def("getSpecieCount", &sim::Mixture<T>::getSpecieCount, "Returns the number of species listed in the mixture.")
-		// .def("", &sim::Mixture<T>::, "") <- Shouldn't be able to own a raw pointer
-		.def("removeSpecie", py::overload_cast<std::shared_ptr<sim::Specie<T>>&>(&sim::Mixture<T>::removeSpecie), "Removes a specie from the mixture.")
+		.def("removeSpecie", &sim::Mixture<T>::removeSpecie, "Removes a specie from the mixture.")
 		.def("getDensity", &sim::Mixture<T>::getDensity, "Returns the density of the mixture [kg/m^3].")
 		.def("getViscosity", &sim::Mixture<T>::getViscosity, "Returns the viscosity of the mixture [Pa s].")
-		.def("getLargestMolecularSize", &sim::Mixture<T>::getLargestMolecularSize, "Returns the largest molecular size of the species in the mixture.");
+		.def("getLargestMolecularSize", &sim::Mixture<T>::getLargestMolecularSize, "Returns the largest molecular size of the species in the mixture [m^3].");
 
 	py::class_<sim::DiffusiveMixture<T>, sim::Mixture<T>, py::smart_holder>(m, "DiffusiveMixture")
 		.def("setResolution", &sim::DiffusiveMixture<T>::setResolution, "Sets the spectral resolution of the distribution function.")
-		.def("getResolution", &sim::DiffusiveMixture<T>::getResolution, "Returns the spectral resolution of the distribution function.");
+		.def("getResolution", &sim::DiffusiveMixture<T>::getResolution, "Returns the spectral resolution of the distribution function.")
+		.def("getDistributionOfSpecie",  py::overload_cast<const std::shared_ptr<sim::Specie<T>>&>(&sim::DiffusiveMixture<T>::getDistributionOfSpecie, py::const_), 
+			"Returns the concentration distribution of a species if it's not a constant value [g/m^3].");
 
 	py::class_<sim::DropletInjection<T>, py::smart_holder>(m, "DropletInjection")
 		.def("getId", &sim::DropletInjection<T>::getId, "Returns the id of the droplet injection.")
@@ -315,9 +310,10 @@ PYBIND11_MODULE(pysimulator, m) {
 		.def("setName", &sim::DropletInjection<T>::setName, "Sets the name of the droplet inkection.")
 		.def("getInjectionTime", &sim::DropletInjection<T>::getInjectionTime, "Returns the time at which the droplet is injected [s].")
 		.def("setInjectionTime", &sim::DropletInjection<T>::setInjectionTime, "Sets the time at which the droplet should be injected [s].")
-		// Encapsulation -> Why do we set and return the ChannelPosition object, and not just channel and position parameters?
-		.def("getInjectionPosition", &sim::DropletInjection<T>::getInjectionPosition, "Returns the channel and position at which the droplet is injected.")
-		.def("setInjectionPosition", &sim::DropletInjection<T>::setInjectionPosition, "Sets the channel and position at which the droplet is injected.");
+		.def("getInjectionPosition", &sim::DropletInjection<T>::getInjectionPosition, "Returns the relative channel position at which the droplet is injected [0.0-1.0].")
+		.def("setInjectionPosition", &sim::DropletInjection<T>::setInjectionPosition, "Sets the relative channel position at which the droplet is injected [0.0-1.0].")
+		.def("getInjectionChannel", &sim::DropletInjection<T>::getInjectionPosition, "Returns the channel into which the droplet is injected.")
+		.def("setInjectionChannel", &sim::DropletInjection<T>::setInjectionPosition, "Sets the channel into which the droplet is injected.");
 
 	py::class_<sim::MixtureInjection<T>, py::smart_holder>(m, "MixtureInjection")
 		.def("getId", &sim::MixtureInjection<T>::getId, "Returns the id of the mixture injection.")
@@ -332,21 +328,15 @@ PYBIND11_MODULE(pysimulator, m) {
 		.def("getId", &sim::CFDSimulator<T>::getId, "Returns the id of the CFD simulator.")
 		.def("getModule", &sim::CFDSimulator<T>::getModule, "Returns the module on which the simulator acts.")
 		.def("getGroundNodes", &sim::CFDSimulator<T>::getGroundNodes, "Returns whether boundary nodes communicate the pressure (true) or flow rates (false) to the 1D solver.")
-		// .def("getInitialized", &sim::CFDSimulator<T>::getInitialized, "Returns whether the simulator is initialized or not.")
-		// .def("setInitialized", &sim::CFDSimulator<T>::, "")
 		.def("setVtkFolder", &sim::CFDSimulator<T>::setVtkFolder, "Sets the folder in which the vtk output should be stored.")
 		.def("getVtkFile", &sim::CFDSimulator<T>::getVtkFile, "Returns the location where the last vtk file was created.")
 		.def("getAlpha", &sim::CFDSimulator<T>::getAlpha, "Returns the relaxation factor for pressure updates.")
 		.def("getBeta", &sim::CFDSimulator<T>::getBeta, "Returns the relaxation factor for flow rate updates.")
-		// .def("storeConcentrations", &sim::CFDSimulator<T>::, "")
-		// .def("getConcentrations", &sim::CFDSimulator<T>::, "")
-		// .def("setBoundaryValues", &sim::CFDSimulator<T>::, "")
 		.def("writeVtk", &sim::CFDSimulator<T>::writeVTK, "Write a vtk file with the current CFD simulation results.")
 		.def("writePressurePpm", &sim::CFDSimulator<T>::writePressurePpm, "Write the ppm image of the pressure results.")
 		.def("writeVelocityPpm", &sim::CFDSimulator<T>::writeVelocityPpm, "Write the ppm image of the velocity results.")
 		.def("getPressureBounds", &sim::CFDSimulator<T>::getPressureBounds, "Returns the pressre bounds of the simulator.")
 		.def("getVelocityBounds", &sim::CFDSimulator<T>::getVelocityBounds, "Returns the velocity bounds of the simulator.");
-		// .def("storeCfdResults", &sim::CFDSimulator<T>::, "");
 
 	py::class_<sim::lbmSimulator<T>, sim::CFDSimulator<T>, py::smart_holder>(m, "lbmSimulator")
 		.def("getCharPhysLength", &sim::lbmSimulator<T>::getCharPhysLength, "Returns the characteristic physical length of the lbm simulator.")
@@ -368,8 +358,6 @@ PYBIND11_MODULE(pysimulator, m) {
 		.def("set1DResistanceModel", &sim::Simulation<T>::set1DResistanceModel, "Sets the resistance model for abstract simulation to the 1D resistance model.")
 		.def("setPoiseuilleResistanceModel", &sim::Simulation<T>::setPoiseuilleResistanceModel, "Sets the resistance model for abstract simulation components to the poiseuille resistance model.")
 		.def("addFluid", &sim::Simulation<T>::addFluid, "Adds a fluid to the simulation.")
-		// .def("addMixedFluid", py::overload_cast<int, T, int, T>(&sim::Simulation<T>::addMixedFluid), 
-			// "Creates and adds a new fluid from two existing fluids.")
 		.def("addMixedFluid", py::overload_cast<const std::shared_ptr<sim::Fluid<T>>&, T, const std::shared_ptr<sim::Fluid<T>>&, T>(&sim::Simulation<T>::addMixedFluid), 
 			"Creates and adds a new fluid from two existing fluids.")
 		.def("getFluid", &sim::Simulation<T>::getFluid, "Returns the fluid for the given id.")
@@ -430,9 +418,7 @@ PYBIND11_MODULE(pysimulator, m) {
 				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
 				return std::shared_ptr<sim::AbstractMembrane<T>>(dynamic_cast<sim::AbstractMembrane<T>*>(tmpPtr.release()));
 			}))
-		// .def("setPermeabilityMembraneModel", &sim::AbstractMembrane<T>::setPermeabilityMembraneModel, "Sets the permeability membrane model.")
-		// .def("setPoreResistanceMembraneModel", &sim::AbstractMembrane<T>::setPoreResistanceMembraneModel, "Sets the pore resistance membrane model.")
-		// .def("setMembraneModel0", &sim::AbstractMembrane<T>::setMembraneModel0, "Sets membrane model 0.")
+		.def("setMembraneModel0", &sim::AbstractMembrane<T>::setMembraneModel0, "Sets membrane model 0.")
 		.def("setMembraneModel1", &sim::AbstractMembrane<T>::setMembraneModel1, "Sets membrane model 1.")
 		.def("setMembraneModel2", &sim::AbstractMembrane<T>::setMembraneModel2, "Sets membrane model 2.")
 		.def("setMembraneModel3", &sim::AbstractMembrane<T>::setMembraneModel3, "Sets membrane model 3.")

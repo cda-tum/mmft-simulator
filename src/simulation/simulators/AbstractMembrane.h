@@ -45,6 +45,9 @@ public:
      */
     AbstractMembrane(std::shared_ptr<arch::Network<T>> network);
 
+    /** TODO: HybridOocSimulation
+     * Check if a Permeability membrane model is relevant
+     */
     /** 
      * @brief Set the permeability membrane model to be used in the simulation.
      */
@@ -52,6 +55,9 @@ public:
     //     this->membraneModel = std::unique_ptr<PermeabilityMembraneModel<T>>(new PermeabilityMembraneModel<T>());
     // }
 
+    /** TODO: HybridOocSimulation
+     * Check if a PoreResistance membrane model is relevant
+     */
     /**
      * @brief Set the pore resistance membrane model to be used in the simulation.
      */
@@ -59,15 +65,12 @@ public:
     //     this->membraneModel = std::unique_ptr<PoreResistanceMembraneModel<T>>(new PoreResistanceMembraneModel<T>());
     // }
 
-    /** TODO: Miscellaneous
-     * Fix Specie/Mixture inconsistency
-     */
     /**
      * @brief Set the membrane model 0 to be used in the simulation.
      */
-    // void setMembraneModel0() {
-    //     this->membraneModel = std::unique_ptr<MembraneModel0<T>>(new MembraneModel0<T>());
-    // }
+    void setMembraneModel0() {
+        this->membraneModel = std::unique_ptr<MembraneModel0<T>>(new MembraneModel0<T>());
+    }
 
     /**
      * @brief Set the membrane model 1 to be used in the simulation.

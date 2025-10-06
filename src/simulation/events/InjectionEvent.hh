@@ -10,7 +10,7 @@ template<typename T>
 void DropletInjectionEvent<T>::performEvent() {
     // injection position of the droplet (center of the droplet)
     auto channelPosition = injection.getInjectionPosition();
-    auto channel = channelPosition.getChannel();
+    auto channel = injection.getInjectionChannel().get();
     auto droplet = injection.getDroplet();
 
     // for the injection the two boundaries (basically a head and a tail) of the droplet must lie inside the channel (the volume of the droplet must be small enough)
@@ -20,8 +20,8 @@ void DropletInjectionEvent<T>::performEvent() {
     T dropletLength = droplet->getVolume() / channel->getVolume();
 
     // compute position of the two boundaries
-    T position0 = (channelPosition.getPosition() - dropletLength / 2);  // is always the position which lies closer to 0
-    T position1 = (channelPosition.getPosition() + dropletLength / 2);  // is always the position which lies closer to 1
+    T position0 = (channelPosition - dropletLength / 2);  // is always the position which lies closer to 0
+    T position1 = (channelPosition + dropletLength / 2);  // is always the position which lies closer to 1
 
     // create corresponding boundaries
     // since boundary0 always lies closer to 0, the volume of this boundary points to node1

@@ -12,9 +12,9 @@ Droplet<T>::Droplet(size_t id, T volume, Fluid<T>* fluid) :
     id(id), volume(volume), fluid(fluid) { }
 
 template<typename T>
-void Droplet<T>::setFluid(Fluid<T>* fluid) {
+void Droplet<T>::setFluid(const std::shared_ptr<Fluid<T>>& fluid) {
     if(fluid) {
-        this->fluid = fluid;
+        this->fluid = fluid.get();
     } else{
         throw std::logic_error("Tried to set invalid fluid for droplet: nullPtr.");
     }

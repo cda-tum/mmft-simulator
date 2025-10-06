@@ -235,6 +235,10 @@ class Droplet {
     T volume = 1e-11;                                               ///< Volume of the droplet in m^3.
     Fluid<T>* fluid = nullptr;                                      ///< Pointer to fluid of which the droplet consists of.
 
+    /** TODO: Miscellaneous
+     * Add a simHash for integrity checks between fluids, droplets and mixtures.
+     */
+
   protected:
     std::vector<std::unique_ptr<DropletBoundary<T>>> boundaries;    ///< Boundaries of the droplet.
     std::vector<arch::Channel<T>*> channels;                        ///< Contains the channels, that are completely occupied by the droplet (can happen in short channels or with large droplets).
@@ -284,14 +288,12 @@ class Droplet {
      */
     [[nodiscard]] inline const Fluid<T>* readFluid() const { return fluid; }
 
-    /** TODO: Miscellaneous */
     /**
      * @brief Set the fluid of this droplet.
-     * TODO add SimHash to confirm this fluid belongs to same simulator
      * @param[in] fluid A pointer to the fluid that composes the droplet.
      * @throws a logic_error is the fluid pointer is a nullptr.
      */
-    void setFluid(Fluid<T>* fluid);
+    void setFluid(const std::shared_ptr<Fluid<T>>& fluid);
 
     /**
      * @brief A vector to read-only references of the droplet boundaries.

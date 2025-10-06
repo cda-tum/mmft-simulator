@@ -101,7 +101,7 @@ protected:
      * @param[in] specieConcentrations unordered map of specie id and corresponding concentration.
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations);
+    Mixture<T>* addMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations);
 
     /**
      * @brief Create mixture.
@@ -116,7 +116,7 @@ protected:
      * @param[in] specieConcentrations
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations);
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations);
 
     /**
      * @brief Create mixture.
@@ -179,7 +179,7 @@ protected:
 
     /**
      * @brief Remove specie from the simulator. If a mixture contains the specie, it is removed from the mixture as well.
-     * A mixture consisting of a single specie is removed from the simulation.
+     * A mixture consisting of a single specie that is removed, will be removed from the simulation as well.
      * @param[in] specieId Id of the specie that should be removed.
      * @throws std::logic_error if the specie is not present in the simulation.
      */

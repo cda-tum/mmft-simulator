@@ -51,6 +51,9 @@ public:
 
 };
 
+/** TODO: HybridOocSimulation
+ * Check if a Permeability membrane model is relevant
+ */
 // /**
 //  * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
 // */
@@ -67,6 +70,9 @@ public:
 //     friend class AbstractMembrane<T>;
 // };
 
+/** TODO: HybridOocSimulation
+ * Check if a PoreResistance membrane model is relevant
+ */
 // /**
 //  * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
 // */
@@ -84,27 +90,24 @@ public:
 
 // };
 
-/** TODO: Miscellaneous
- * Fix Specie/Mixture inconsistency
- */
 /**
  * @brief Class that defines the functionality of the 1D membrane resistance model.
  * Membrane Resistance Model 0
  * Based on Source: M. Ishahak, J. Hill, Q. Amin, L. Wubker, A. Hernandez, A. Mitrofanova, A. Sloan, A. Fornoni and A. Agarwal. "Modular Microphysiological System for Modeling of Biologic Barrier Function". In: Front. Bioeng. Biotechnol. 8:581163. (2020). doi: 10.3389/fbioe.2020.581163
  */
-// template<typename T>
-// class MembraneModel0 final : public MembraneModel<T> {
+template<typename T>
+class MembraneModel0 final : public MembraneModel<T> {
 
-//   private:
+  private:
 
-//     MembraneModel0();
+    MembraneModel0();
 
-//     [[nodiscard]] T getPoreResistance(const std::shared_ptr<arch::Membrane<T>>&  membrane, Mixture<T> const* mixture) const;
-//     [[nodiscard]] T getPermeabilityParameter(const arch::Membrane<T>* membrane) const;
-//     [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
+    [[nodiscard]] T getPoreResistance(const std::shared_ptr<arch::Membrane<T>>&  membrane, Mixture<T> const* mixture) const;
+    [[nodiscard]] T getPermeabilityParameter(const arch::Membrane<T>* membrane) const;
+    [[nodiscard]] T getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const override;
 
-//     friend class AbstractMembrane<T>;
-// };
+    friend class AbstractMembrane<T>;
+};
 
 /**
  * @brief Class that defines the functionality of the 1D membrane resistance model.

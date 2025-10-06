@@ -5,42 +5,37 @@ namespace sim {
 template<typename T>
 MembraneModel<T>::MembraneModel() { }
 
-//=========================================================================================
-//=============================  permeability Membrane  ===================================
-//=========================================================================================
-
+/** TODO: HybridOocSimulation
+ * Check if a Permeability membrane model is relevant
+ */
 // template<typename T>
 // PermeabilityMembraneModel<T>::PermeabilityMembraneModel() : MembraneModel<T>() { }
 
 
-//=========================================================================================
-//============================  poreResistance Membrane  ==================================
-//=========================================================================================
-
+/** TODO: HybridOocSimulation
+ * Check if a PoreResistance membrane model is relevant
+ */
 // template<typename T>
 // PoreResistanceMembraneModel<T>::PoreResistanceMembraneModel() : MembraneModel<T>() { }
 
-/** TODO: Miscellaneous
- * Fix Species and Mixture inconsistency
- */
 // Ishahak2020
-// template<typename T>
-// MembraneModel0<T>::MembraneModel0() = default;
+template<typename T>
+MembraneModel0<T>::MembraneModel0() = default;
 
-// template<typename T>
-// T MembraneModel0<T>::getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const {
-//     return getPoreResistance(membrane, specie) / (area * membrane->getPorosity());
-// }
+template<typename T>
+T MembraneModel0<T>::getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const {
+    return getPoreResistance(membrane, mixture) / (area * membrane->getPorosity());
+}
 
-// template<typename T>
-// T MembraneModel0<T>::getPermeabilityParameter(const arch::Membrane<T>* const membrane) const {
-//     return (M_PI * membrane->getPorosity() * pow(membrane->getPoreRadius(), 4)) / 8;
-// }
+template<typename T>
+T MembraneModel0<T>::getPermeabilityParameter(const arch::Membrane<T>* const membrane) const {
+    return (M_PI * membrane->getPorosity() * pow(membrane->getPoreRadius(), 4)) / 8;
+}
 
-// template<typename T>
-// T MembraneModel0<T>::getPoreResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture) const {
-//     return (8 * mixture->getViscosity() * membrane->getHeight()) / (M_PI * pow(membrane->getPoreRadius(), 4));
-// }
+template<typename T>
+T MembraneModel0<T>::getPoreResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture) const {
+    return (8 * mixture->getViscosity() * membrane->getHeight()) / (M_PI * pow(membrane->getPoreRadius(), 4));
+}
 
 // VanDersarl2011
 template<typename T>

@@ -40,12 +40,13 @@ class Droplet;
 template<typename T>
 class DropletInjection final {
   private:
-    inline static size_t injectionCounter = 0;       ///< Global counter for amount of created dropletInjection objects.
-    const size_t id;                              ///< Unique identifier of an injection.
-    DropletImplementation<T>* const droplet;      ///< Pointer to droplet to be injected.
-    std::string name = "";                        ///< Name of the injection.
-    T injectionTime = 0.0;                        ///< Time at which the injection should take place in s elapsed since the start of the simulation.
-    arch::ChannelPosition<T> injectionPosition;   ///< Position at which the droplet should be injected.
+    inline static size_t injectionCounter = 0;        ///< Global counter for amount of created dropletInjection objects.
+    const size_t id;                                  ///< Unique identifier of an injection.
+    DropletImplementation<T>* const droplet;          ///< Pointer to droplet to be injected.
+    std::string name = "";                            ///< Name of the injection.
+    T injectionTime = 0.0;                            ///< Time at which the injection should take place in s elapsed since the start of the simulation.
+    arch::ChannelPosition<T> injectionPosition;       ///< Position at which the droplet should be injected.
+    const sim::AbstractDroplet<T>* simRef = nullptr;  ///< Pointer to the simulation in which this injection takes place.
 
     /**
      * @brief A static member function that resets the dropletInjection object counter to zero.
@@ -69,7 +70,7 @@ class DropletInjection final {
      * @param[in] channel Channel in which the droplet should be injected. The channel must be able to fully contain the droplet.
      * @param[in] injectionPosition Relative position (between 0.0 and 1.0) of the middle of the droplet in channel. Head and tail position must be in same channel.
      */
-    DropletInjection(size_t id, DropletImplementation<T>* droplet, T injectionTime, arch::Channel<T>* channel, T injectionPosition);
+    DropletInjection(size_t id, DropletImplementation<T>* droplet, T injectionTime, arch::Channel<T>* channel, T injectionPosition, AbstractDroplet<T>* simRef);
 
     /**
      * @brief Retrieve pointer to the droplet that should be injected.
@@ -113,13 +114,26 @@ class DropletInjection final {
      * @brief Retrieve position at which the injection should take place.
      * @return Position at which the injection should take place. An injection can only take place in channels that are able to fully contain droplet.
      */
-    [[nodiscard]] const arch::ChannelPosition<T>& getInjectionPosition() const { return injectionPosition; }
+    [[nodiscard]] const T getInjectionPosition() const { return injectionPosition.getPosition(); }
+
+    /**
+     * @brief Set the position of the injection
+     * @param[in] position Position of the injection
+     * @note position should be between 0.0 and 1.0
+     */
+    inline void setInjectionPosition(T position);
+
+    /**
+     * @brief Retrieve position at which the injection should take place.
+     * @return Position at which the injection should take place. An injection can only take place in channels that are able to fully contain droplet.
+     */
+    [[nodiscard]] const std::shared_ptr<arch::Channel<T>> getInjectionChannel() const;
 
     /**
      * @brief Set the position of the injection
      * @param[in] position Position of the injection
      */
-    inline void setInjectionPosition(arch::ChannelPosition<T> position) { this->injectionPosition = std::move(position); }
+    inline void setInjectionChannel(const std::shared_ptr<arch::Channel<T>>& channel);
 
     // Friend classes that need access to private member functions
     friend class AbstractDroplet<T>; 

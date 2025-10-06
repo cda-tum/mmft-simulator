@@ -58,7 +58,7 @@ namespace sim {
                     if (mixture->getSpecieCount() == 1) {
                         removeMixture(mixtureId);
                     } else {
-                        mixture->removeSpecie(speciePtr);
+                        mixture->forceRemoveSpecie(speciePtr);
                     }
                 }
             } 
@@ -85,10 +85,10 @@ namespace sim {
             throw std::invalid_argument("At least one species must be present in a mixture.");
         }
         // Transform the vector of species and concentrations into an unordered_map
-        std::unordered_map<size_t, Specie<T>*> speciesMap;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciesMap;
         std::unordered_map<size_t, T> specieConcentrationsMap;
         for (size_t i = 0; i < speciesVec.size(); ++i) {
-            speciesMap.try_emplace(speciesVec[i]->getId(), speciesVec[i].get());
+            speciesMap.try_emplace(speciesVec[i]->getId(), speciesVec[i]);
             specieConcentrationsMap.try_emplace(speciesVec[i]->getId(), concentrations[i]);
         }
 
@@ -105,10 +105,10 @@ namespace sim {
         Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
         // Transform the vector of species and concentrations into an unordered_map
-        std::unordered_map<size_t, Specie<T>*> speciesMap;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciesMap;
         std::unordered_map<size_t, T> specieConcentrationsMap(std::move(specieConcentrations_));
         for (auto& [key, conc] : specieConcentrationsMap) {
-            speciesMap.try_emplace(key, species.at(key).get());
+            speciesMap.try_emplace(key, species.at(key));
         }
 
         // Create non-mutable Mixture
@@ -355,10 +355,10 @@ namespace sim {
     Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<size_t, T> specieConcentrations) {
         size_t id = Mixture<T>::getMixtureCounter();
 
-        std::unordered_map<size_t, Specie<T>*> species;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
 
         for (auto& [specieId, concentration] : specieConcentrations) {
-            species.try_emplace(specieId, getSpecie(specieId).get());
+            species.try_emplace(specieId, getSpecie(specieId));
         }
 
         Fluid<T>* carrierFluid = this->getContinuousPhase().get();
@@ -370,7 +370,7 @@ namespace sim {
     }
 
     template<typename T>
-    Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations) {
+    Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations) {
         size_t id = Mixture<T>::getMixtureCounter();
 
         Fluid<T>* carrierFluid = this->getContinuousPhase().get();
@@ -404,7 +404,7 @@ namespace sim {
     }
 
     template<typename T>
-    Mixture<T>* AbstractMixing<T>::addDiffusiveMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations) {
+    Mixture<T>* AbstractMixing<T>::addDiffusiveMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations) {
         size_t id = Mixture<T>::getMixtureCounter();
 
         std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
@@ -427,11 +427,11 @@ namespace sim {
     Mixture<T>* AbstractMixing<T>::addDiffusiveMixture(std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions) {
         size_t id = Mixture<T>::getMixtureCounter();
 
-        std::unordered_map<size_t, Specie<T>*> species;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
         std::unordered_map<size_t, T> specieConcentrations;
 
         for (auto& [specieId, distribution] : specieDistributions) {
-            species.try_emplace(specieId, getSpecie(specieId).get());
+            species.try_emplace(specieId, getSpecie(specieId));
             specieConcentrations.try_emplace(specieId, T(0));
         }
 

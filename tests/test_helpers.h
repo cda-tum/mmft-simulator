@@ -37,7 +37,7 @@ inline std::unordered_map<int, double> getAverageFluidConcentrationsInEdge(const
         auto position2 = mixturePosition.position2;
         auto mixtureLength = position2 - position1;
 
-        const auto& species = mixtures.at(mixtureId)->readSpecieConcentrations();
+        const auto& species = mixtures.at(mixtureId)->getSpecieConcentrations();
         for (const auto& [specieId, concentration]: species) {
             // percentage of channel filled with this mixture
             double newConcentration = concentration * mixtureLength;

@@ -110,16 +110,31 @@ protected:
     virtual void lbmInit(T dynViscosity, T density) = 0;
 
     /**
+     * @brief Returns whether the simulator is initialized or not.
+     * @returns Boolean for initialization.
+    */
+    [[nodiscard]] inline bool getInitialized() const { return initialized; }
+
+    /**
+     * @brief Set the initialized status for this simulator.
+     * @param[in] initialization Boolean for initialization status.
+    */
+    inline void setInitialized(bool initialization) { this->initialized = initialization; }
+
+    /**
      * @brief Conducts the collide and stream operations of the lattice.
     */
     virtual void solve() = 0;
 
-    /** TODO: Miscellaneous */
-    virtual void storePressures(std::unordered_map<size_t, T> pressure) = 0;
-
     /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
+     */
+    virtual void storePressures(std::unordered_map<size_t, T> pressure) = 0;
+
+    /**
+     * @brief Get the pressures at the boundary nodes.
+     * @returns Pressures in Pa.
      */
     virtual const std::unordered_map<size_t, T>& getPressures() const = 0;
 
@@ -134,6 +149,25 @@ protected:
      * @returns Flow rates in m^3/s.
      */
     virtual const std::unordered_map<size_t, T>& getFlowRates() const = 0;
+
+    /**
+     * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
+     * @param[in] concentrations Map of concentrations and node ids.
+     */
+    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) 
+    {
+        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Get the concentrations at the boundary nodes.
+     * @returns Concentrations
+     */
+    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
+    { 
+        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
+        return std::unordered_map<int, std::unordered_map<int, T>>(); 
+    }
 
     /**
      * @brief Returns whether the module has converged or not.
@@ -164,6 +198,12 @@ protected:
     }
 
     /**
+     * @brief Set the boundary values on the lattice at the module nodes.
+     * @param[in] iT Iteration step.
+    */
+    virtual void setBoundaryValues(int iT) = 0;
+
+    /**
      * @brief Conducts the collide and stream operations of the NS lattice.
     */
     virtual void nsSolve() 
@@ -177,6 +217,15 @@ protected:
     virtual void adSolve() 
     {
         throw std::runtime_error("The function adSolve is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
+     * @param[in] iT Iteration step.
+    */
+    virtual void storeCfdResults (int iT) 
+    {
+        throw std::runtime_error("The function storeCfdResults is undefined for this CFD simulator.");
     }
 
     /**
@@ -213,18 +262,6 @@ public:
     [[nodiscard]] inline const std::unordered_map<size_t, bool>& getGroundNodes() { return groundNodes; }
 
     /**
-     * @brief Returns whether the simulator is initialized or not.
-     * @returns Boolean for initialization.
-    */
-    [[nodiscard]] inline bool getInitialized() const { return initialized; }
-
-    /**
-     * @brief Set the initialized status for this simulator.
-     * @param[in] initialization Boolean for initialization status.
-    */
-    inline void setInitialized(bool initialization) { this->initialized = initialization; }
-
-    /**
      * @brief Set the path, where vtk output from the simulator should be stored.
      * @param[in] vtkFolder A string containing the path to the vtk folder.
      */
@@ -247,31 +284,6 @@ public:
      * @returns beta.
     */
     [[nodiscard]] inline T getBeta(size_t nodeId) const {return updateScheme->getBeta(nodeId);}
-
-    /**
-     * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
-     * @param[in] concentrations Map of concentrations and node ids.
-     */
-    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) 
-    {
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-    }
-
-    /**
-     * @brief Get the concentrations at the boundary nodes.
-     * @returns Concentrations
-     */
-    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
-    { 
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-        return std::unordered_map<int, std::unordered_map<int, T>>(); 
-    }
-
-    /**
-     * @brief Set the boundary values on the lattice at the module nodes.
-     * @param[in] iT Iteration step.
-    */
-    virtual void setBoundaryValues(int iT) = 0;
 
     /**
      * @brief Write the vtk file with results of the CFD simulation to file system.
@@ -320,15 +332,6 @@ public:
     virtual std::tuple<T, T> getVelocityBounds()
     {
         throw std::runtime_error("The function getVelocityBounds is undefined for this CFD simulator.");
-    }
-
-    /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    virtual void storeCfdResults (int iT) 
-    {
-        throw std::runtime_error("The function storeCfdResults is undefined for this CFD simulator.");
     }
 
     friend bool conductCFDSimulation<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
