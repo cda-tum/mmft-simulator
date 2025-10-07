@@ -136,14 +136,14 @@ namespace sim {
             throw std::invalid_argument("Injection of droplet " + droplet->getName() + " is not valid. Tail and head of the droplet must lie inside the channel " + std::to_string(channel->getId()) + ". Consider to set the injection position in the middle of the channel.");
         }
 
-        auto result = dropletInjections.try_emplace(id, std::shared_ptr<DropletInjection<T>>(new DropletInjection<T>(id, droplet, injectionTime, channel.get(), injectionPosition)));
+        auto result = dropletInjections.try_emplace(id, std::shared_ptr<DropletInjection<T>>(new DropletInjection<T>(id, droplet, injectionTime, channel.get(), injectionPosition, this)));
         if (result.second) { injectionMapInsertion(dropletId, id); }
         return result.first->second;
     }
 
     template<typename T>
-    std::shared_ptr<DropletInjection<T>> AbstractDroplet<T>::addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::RectangularChannel<T>>& channel, T injectionPosition) {
-        addDropletInjection(droplet->getId(), injectionTime, channel->getId(), injectionPosition);
+    std::shared_ptr<DropletInjection<T>> AbstractDroplet<T>::addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::Channel<T>>& channel, T injectionPosition) {
+        return addDropletInjection(droplet->getId(), injectionTime, channel->getId(), injectionPosition);
     }
 
     template<typename T>
@@ -170,7 +170,7 @@ namespace sim {
             // Check if droplets are pointing to the fluid that is to be removed
             if (droplet->readFluid()->getId() == fluid->getId()) {
                 // Set the droplet's fluid to default, i.e., continuous phase
-                droplet->setFluid(this->getContinuousPhase().get());
+                droplet->setFluid(this->getContinuousPhase());
             } 
         }
 
@@ -365,6 +365,7 @@ namespace sim {
 
     template<typename T>
     void AbstractDroplet<T>::simulate() {
+        Simulation<T>::simulate();
         this->assertInitialized();              // perform initialization checks
         this->initialize();                     // initialize the simulation
         while (true) {

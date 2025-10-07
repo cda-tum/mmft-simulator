@@ -49,10 +49,6 @@ TEST_F(Continuous, allResultValues) {
     // Set the resistance model
     testSimulation.set1DResistanceModel();
 
-    // check if chip is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     testSimulation.simulate();
 
@@ -88,9 +84,6 @@ TEST_F(Continuous, jsonDefinition) {
 
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<T>(file, network);
-   
-    network->sortGroups();
-    network->isNetworkValid();
 
     // Perform simulation and store results
     testSimulation->simulate();
@@ -165,12 +158,6 @@ TEST_F(Continuous, triangleNetwork) {
     // Set the resistance model
     testSimulation1.set1DResistanceModel();
     testSimulation2.set1DResistanceModel();
-
-    // check if chips are valid
-    network1->isNetworkValid();
-    network2->isNetworkValid();
-    network1->sortGroups();
-    network2->sortGroups();
 
     // simulate
     testSimulation1.simulate();
@@ -252,12 +239,6 @@ TEST_F(Continuous, Y_Network) {
     testSimulation1.set1DResistanceModel();
     testSimulation2.set1DResistanceModel();
 
-    // check if chips are valid
-    network1->isNetworkValid();
-    network2->isNetworkValid();
-    network1->sortGroups();
-    network2->sortGroups();
-
     // simulate
     testSimulation1.simulate();
     testSimulation2.simulate();
@@ -300,9 +281,6 @@ TEST_F(Continuous, Network2) {
 
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<T>(file, network);
-   
-    network->sortGroups();
-    network->isNetworkValid();
 
     // Perform simulation and store results
     testSimulation->simulate();

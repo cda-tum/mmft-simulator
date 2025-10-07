@@ -52,6 +52,12 @@ void CfdModule<T>::initialize(const sim::ResistanceModel<T>* resistanceModel_) {
 }
 
 template<typename T>
+void CfdModule<T>::removeNode(size_t nodeId) {
+    Module<T>::removeNode(nodeId);
+    moduleOpenings.erase(nodeId);
+}
+
+template<typename T>
 void CfdModule<T>::assertInitialized() {
     /**
      * TODO: Miscellaneous

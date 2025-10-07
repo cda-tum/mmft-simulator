@@ -8,7 +8,7 @@ namespace arch {
 
 // Forward declared dependencies
 template<typename T>
-class RectangularChannel;
+class Channel;
 
 /**
  * @brief Class to specify the boundary position of one end of a droplet.

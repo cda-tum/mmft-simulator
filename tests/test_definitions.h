@@ -18,6 +18,8 @@ protected:
         sim::MixtureInjection<T>::resetMixtureInjectionCounter();
         sim::CFDSimulator<T>::resetSimulatorCounter();
     }
+
+    void sortGroups(std::shared_ptr<arch::Network<T>>& network) { network->sortGroups();}
 };
 
 template<typename T>

@@ -53,10 +53,6 @@ int main(int argc, char const* argv []) {
     sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
     testSimulation.setResistanceModel(&resistanceModel);
 
-    // check if chip is valid
-    network.isNetworkValid();
-    network.sortGroups();
-
     // simulate
     testSimulation.simulate();
 

@@ -70,6 +70,66 @@ size_t Network<T>::edgeCount() const {
 }
 
 template<typename T>
+void Network<T>::removeEdgesFromNodeReach(size_t nodeId) {
+    removeFlowRatePumpsFromNodeReach(nodeId);
+    removePressurePumpsFromNodeReach(nodeId);
+    removeMembranesFromNodeReach(nodeId);
+    removeTanksFromNodeReach(nodeId);
+}
+
+template<typename T>
+void Network<T>::removeFlowRatePumpsFromNodeReach(size_t nodeId) {
+    // remove all flow rate pumps connected to this node
+    for (auto it = flowRatePumps.begin(); it != flowRatePumps.end(); ) {
+        auto pump = it->second;
+        if (pump->getNodeAId() == nodeId || pump->getNodeBId() == nodeId) {
+            it = flowRatePumps.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+template<typename T>
+void Network<T>::removePressurePumpsFromNodeReach(size_t nodeId) {
+    // remove all pressure pumps connected to this node
+    for (auto it = pressurePumps.begin(); it != pressurePumps.end(); ) {
+        auto pump = it->second;
+        if (pump->getNodeAId() == nodeId || pump->getNodeBId() == nodeId) {
+            it = pressurePumps.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+template<typename T>
+void Network<T>::removeMembranesFromNodeReach(size_t nodeId) {
+    // remove all membranes connected to this node
+    for (auto it = membranes.begin(); it != membranes.end(); ) {
+        auto membrane = it->second;
+        if (membrane->getNodeAId() == nodeId || membrane->getNodeBId() == nodeId) {
+            it = membranes.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+template<typename T>
+void Network<T>::removeTanksFromNodeReach(size_t nodeId) {
+    // remove all tanks connected to this node
+    for (auto it = tanks.begin(); it != tanks.end(); ) {
+        auto tank = it->second;
+        if (tank->getNodeAId() == nodeId || tank->getNodeBId() == nodeId) {
+            it = tanks.erase(it);
+        } else {    
+            ++it;
+        }
+    }
+}
+
+template<typename T>
 std::shared_ptr<Node<T>> Network<T>::addNode(T x_, T y_, bool ground_) {
     int nodeId = nodes.size();
 
@@ -133,7 +193,7 @@ void Network<T>::setGround(size_t nodeId_) {
 }
 
 template<typename T>
-T Network<T>::calculateNodeDistance(size_t nodeAId, size_t nodeBId) {
+T Network<T>::calculateNodeDistance(size_t nodeAId, size_t nodeBId) const {
     auto& nodeA = this->getNodes().at(nodeAId);
     auto& nodeB = this->getNodes().at(nodeBId);
     T dx = nodeA->getPosition().at(0) - nodeB->getPosition().at(0);
@@ -152,9 +212,7 @@ void Network<T>::removeNode(const std::shared_ptr<Node<T>>& node) {
         }
 
         // remove node from connected module
-        for (auto& module : modularReach.at(nodeId)) {
-            module.second->removeNode(nodeId);
-        }
+        modularReach.at(nodeId)->removeNode(nodeId);
 
         // remove the node from the reach map
         reach.erase(nodeId);
@@ -361,7 +419,7 @@ std::shared_ptr<CfdModule<T>> Network<T>::addCfdModule(std::vector<T> position,
 }
 
 template<typename T>
-void Network<T>::removeModule(const std::shared_ptr<CfdModule<T>>& module_) {
+void Network<T>::removeModule(const std::shared_ptr<Module<T>>& module_) {
     int moduleId = module_->getId();
     if (modules.find(moduleId) != modules.end()) {
         // remove module from reach of all nodes
@@ -393,7 +451,7 @@ std::shared_ptr<Membrane<T>> Network<T>::addMembraneToChannel(size_t channelId, 
 }
 
 template<typename T>
-std::shared_ptr<Membrane<T>> Network<T>::getMembrane(size_t membraneId) {
+std::shared_ptr<Membrane<T>> Network<T>::getMembrane(size_t membraneId) const {
     try {
         return membranes.at(membraneId);
     } catch (const std::out_of_range& e) {
@@ -402,7 +460,7 @@ std::shared_ptr<Membrane<T>> Network<T>::getMembrane(size_t membraneId) {
 }
 
 template<typename T>
-std::shared_ptr<Membrane<T>> Network<T>::getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId) {
+std::shared_ptr<Membrane<T>> Network<T>::getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId) const {
     for (auto& [key, membrane] : membranes) {
         if (((membrane->getNodeAId() == nodeAId) && (membrane->getNodeBId() == nodeBId)) || ((membrane->getNodeAId() == nodeBId) && (membrane->getNodeBId() == nodeAId))) {
             return membrane;
@@ -412,7 +470,7 @@ std::shared_ptr<Membrane<T>> Network<T>::getMembraneBetweenNodes(size_t nodeAId,
 }
 
 template<typename T>
-std::vector<std::shared_ptr<Membrane<T>>> Network<T>::getMembranesAtNode(size_t nodeId) {
+std::vector<std::shared_ptr<Membrane<T>>> Network<T>::getMembranesAtNode(size_t nodeId) const {
     std::vector<std::shared_ptr<Membrane<T>>> membrane_vector;
     for (auto& [key, membrane] : membranes) {
         if ((membrane->getNodeAId() == nodeId) || (membrane->getNodeBId() == nodeId)) {
@@ -439,9 +497,9 @@ std::shared_ptr<Tank<T>> Network<T>::addTankToMembrane(size_t membraneId, T heig
 }
 
 template<typename T>
-std::shared_ptr<Tank<T>> Network<T>::getTankBetweenNodes(size_t nodeAId, size_t nodeBId) {
+std::shared_ptr<Tank<T>> Network<T>::getTankBetweenNodes(size_t nodeAId, size_t nodeBId) const {
     for (auto& [key, tank] : tanks) {
-        if (((tank->getNodeAId()->getId() == nodeAId) && (tank->getNodeBId()->getId() == nodeBId)) || ((tank->getNodeAId()->getId() == nodeBId) && (tank->getNodeBId()->getId() == nodeAId))) {
+        if (((tank->getNodeAId() == nodeAId) && (tank->getNodeBId() == nodeBId)) || ((tank->getNodeAId() == nodeBId) && (tank->getNodeBId()== nodeAId))) {
             return tank;
         }
     }
@@ -450,6 +508,10 @@ std::shared_ptr<Tank<T>> Network<T>::getTankBetweenNodes(size_t nodeAId, size_t 
 
 template<typename T>
 void Network<T>::sortGroups() {
+    // clear existing groups
+    this->groups.clear();
+
+    // create a vector of all node ids and edges
     std::vector<size_t> nodeVector;
     std::vector<Edge<T>*> edges;
     int groupId = 0;
@@ -459,14 +521,14 @@ void Network<T>::sortGroups() {
     for (auto& [key, channel] : channels) {
         edges.emplace_back(channel.get());
     }
-    /*
     for (auto& [key, pump] : pressurePumps) {
         edges.emplace_back(pump.get());
     }
     for (auto& [key, pump] : flowRatePumps) {
         edges.emplace_back(pump.get());
     }
-    */
+
+    // while there are still nodes left, create groups of connected nodes
     while(!nodeVector.empty()){
         std::queue<size_t> connectedNodes;
         std::unordered_set<size_t> nodeIds;

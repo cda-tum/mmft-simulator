@@ -187,4 +187,11 @@ namespace sim {
         nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network.get());
     }
 
+    template<typename T>
+    void Simulation<T>::simulate() {
+        // Perform common simulation steps
+        network->sortGroups();             // Sort groups in the network
+        network->isNetworkValid();         // Check if the network is valid
+    }
+
 }   /// namespace sim

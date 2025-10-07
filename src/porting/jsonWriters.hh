@@ -118,7 +118,7 @@ auto writeMixtures (sim::AbstractMixing<T>* simulation) {
     for (size_t i=0; i<simMixtures.size(); ++i) {
         auto Mixture = ordered_json::object();
         auto& simMixture = simMixtures.at(i);
-        for(auto& [key, specie] : simMixture->readSpecies()) {
+        for(auto& [key, specie] : simMixture->getSpecies()) {
             Mixture["species"].push_back(specie->getId());
             Mixture["concentrations"].push_back(simMixture->getConcentrationOfSpecie(specie));
         }

@@ -45,6 +45,9 @@ template<typename T>
 class Node;
 
 template<typename T>
+class Network;
+
+template<typename T>
 class CfdModule;
 
 /**
@@ -112,8 +115,8 @@ private:
     T channelResistance = 0;                    ///< Resistance of a channel in Pas/L.
     T dropletResistance = 0;                    ///< Additional resistance of present droplets in the channel in Pas/L.
     
-    std::vector<std::unique_ptr<Line_segment<T,2>>> line_segments;      ///< Straight line segments in the channel.
-    std::vector<std::unique_ptr<Arc<T,2>>> arcs;                        ///< Arcs in the channel.
+    std::vector<Line_segment<T,2>> line_segments;      ///< Straight line segments in the channel.
+    std::vector<Arc<T,2>> arcs;                        ///< Arcs in the channel.
 
 protected:
     /**
@@ -125,7 +128,7 @@ protected:
      * @param[in] arcs The arcs of this channel.
     */
     Channel(size_t id, std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, 
-            std::vector<Line_segment<T,2>*> line_segments, std::vector<Arc<T,2>*> arcs,
+            std::vector<Line_segment<T,2>> line_segments, std::vector<Arc<T,2>> arcs,
             ChannelShape shape);
 
     /**
@@ -175,7 +178,7 @@ public:
     inline void setChannelType(ChannelType channelType) { this->type = channelType; }
 
     /**
-     * @brief Returns the shape of channel.
+     * @brief Returns the shape of channel cross-section.
      * @returns What shape the channel has.
      */
     [[nodiscard]] inline ChannelShape getChannelShape() const { return shape; }
@@ -217,7 +220,7 @@ public:
     [[nodiscard]] inline T getFlowRate() const override { return getPressure() / getResistance(); }
 
     /**
-     * @brief Returns area of a channel.
+     * @brief Returns area of a channel cross-section.
      * @returns Area in m^2.
      */
     [[nodiscard]] inline T getArea() const { return area; }

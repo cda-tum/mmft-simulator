@@ -1,10 +1,13 @@
 #include "../src/baseSimulator.h"
 
 #include "gtest/gtest.h"
+#include "../test_definitions.h"
 
 using T = double;
 
-TEST(Network, testNetwork1) {
+class Network : public test::definitions::GlobalTest<T> {};
+
+TEST_F(Network, testNetwork1) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     // nodes
@@ -31,7 +34,7 @@ TEST(Network, testNetwork1) {
     network->setGround(node0->getId());
 
     // compute network
-    network->sortGroups();
+    this->sortGroups(network);
     nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
@@ -46,7 +49,7 @@ TEST(Network, testNetwork1) {
     EXPECT_NEAR(v0->getFlowRate(), -0.2 / 3.0, errorTolerance);
 }
 
-TEST(Network, testNetwork2) {
+TEST_F(Network, testNetwork2) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     // nodes
@@ -71,7 +74,7 @@ TEST(Network, testNetwork2) {
     network->addRectangularChannel(node3->getId(), node4->getId(), 30, arch::ChannelType::NORMAL);
 
     // compute network
-    network->sortGroups();
+    this->sortGroups(network);
     nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
@@ -88,7 +91,7 @@ TEST(Network, testNetwork2) {
     EXPECT_NEAR(v1->getFlowRate(), 0.0, errorTolerance);
 }
 
-TEST(Network, testNetwork3) {
+TEST_F(Network, testNetwork3) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     // nodes
@@ -109,7 +112,7 @@ TEST(Network, testNetwork3) {
     network->addRectangularChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
 
     // compute network
-    network->sortGroups();
+    this->sortGroups(network);
     nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
@@ -124,7 +127,7 @@ TEST(Network, testNetwork3) {
     EXPECT_NEAR(v1->getFlowRate(), 1.0, errorTolerance);
 }
 
-TEST(Network, testNetwork4) {
+TEST_F(Network, testNetwork4) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     // nodes
@@ -144,7 +147,7 @@ TEST(Network, testNetwork4) {
     network->addRectangularChannel(node2->getId(), node0->getId(), 8, arch::ChannelType::NORMAL);
 
     // compute network
-    network->sortGroups();
+    this->sortGroups(network);
     nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
@@ -157,7 +160,7 @@ TEST(Network, testNetwork4) {
     EXPECT_NEAR(v0->getFlowRate(), -7.2, errorTolerance);
 }
 
-TEST(Network, testNetwork5) {
+TEST_F(Network, testNetwork5) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     // nodes
@@ -178,7 +181,7 @@ TEST(Network, testNetwork5) {
     network->addRectangularChannel(node2->getId(), node0->getId(), 10, arch::ChannelType::NORMAL);
 
     // compute network
-    network->sortGroups();
+    this->sortGroups(network);
     nodal::NodalAnalysis<T> nodalAnalysis(network.get());
     nodalAnalysis.conductNodalAnalysis();
 
@@ -190,7 +193,7 @@ TEST(Network, testNetwork5) {
     EXPECT_NEAR(node3->getPressure(), -35.5, errorTolerance);
 }
 
-TEST(Network, networkArchitectureDefinition) {
+TEST_F(Network, networkArchitectureDefinition) {
     // define network
     auto bionetwork = arch::Network<T>::createNetwork();
     auto node1 = bionetwork->addNode(0.0, 0.0, false);

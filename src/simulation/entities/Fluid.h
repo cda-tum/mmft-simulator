@@ -33,6 +33,10 @@ class Fluid {
     T viscosity = 1.0e-3;                                   ///< Dynamic viscosity of the continuous phase in [Pa s].
     T molecularSize { std::numeric_limits<T>::epsilon() };  ///< Molecular size in [m^3].
 
+    /** TODO: Miscellaneous
+     * Add a simHash for integrity checks between fluids, droplets and mixtures.
+     */
+
     /**
      * @brief A static member function that resets the fluid object counter to zero.
      * Used as a helper function to reset the static variable between tests.

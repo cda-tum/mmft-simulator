@@ -42,14 +42,14 @@ public:
   [[nodiscard]] inline size_t getId() const { return id; }
 
   /**
-   * @brief Get pointer to node 0 (node at one end of the edge).
-   * @return Pointer to node 0 (node at one end of the edge).
+   * @brief Get the id of node A(node at one end of the edge).
+   * @return Id of node A (node at one end of the edge).
    */
   [[nodiscard]] inline size_t getNodeAId() const { return nodeA; }
 
   /**
-   * @brief Get pointer to node 1 (node at other end of the edge).
-   * @return Pointer to node 1 (node at other end of the edge).
+   * @brief Get the id of node B (node at other end of the edge).
+   * @return Id of node B (node at other end of the edge).
    */
   [[nodiscard]] inline size_t getNodeBId() const { return nodeB; }
 

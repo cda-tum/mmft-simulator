@@ -305,8 +305,8 @@ public:
     [[nodiscard]] inline int getStepIter() const { return stepIter; }
 
     /**
-     * @brief Returns whether the module has converged or not.
-     * @returns Boolean for module convergence.
+     * @brief Returns whether the simulator has converged or not.
+     * @returns Boolean for simulator convergence.
     */
     [[nodiscard]] inline bool hasConverged() const { return converge->hasConverged(); }
 

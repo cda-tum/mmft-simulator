@@ -45,10 +45,11 @@ namespace sim {
     }
 
     template<typename T>
-    void AbstractMixing<T>::removeSpecie(int specieId) {
-        auto& it = species.find(specieId);
+    void AbstractMixing<T>::removeSpecie(size_t specieId) {
+        auto it = species.find(specieId);
         if (it != species.end()) {
-            it->second->resetHash();  // Reset the hash of the specie to avoid dangling references
+            auto speciePtr = it->second;
+            speciePtr->resetHash();  // Reset the hash of the specie to avoid dangling references
             // Remove the specie from the species map
             // and remove it from all mixtures that contain it.
             if (species.erase(specieId)) {
@@ -57,7 +58,7 @@ namespace sim {
                     if (mixture->getSpecieCount() == 1) {
                         removeMixture(mixtureId);
                     } else {
-                        mixture->removeSpecie(specieId);
+                        mixture->forceRemoveSpecie(speciePtr);
                     }
                 }
             } 
@@ -84,10 +85,10 @@ namespace sim {
             throw std::invalid_argument("At least one species must be present in a mixture.");
         }
         // Transform the vector of species and concentrations into an unordered_map
-        std::unordered_map<size_t, Specie<T>*> speciesMap;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciesMap;
         std::unordered_map<size_t, T> specieConcentrationsMap;
         for (size_t i = 0; i < speciesVec.size(); ++i) {
-            speciesMap.try_emplace(speciesVec[i]->getId(), speciesVec[i].get());
+            speciesMap.try_emplace(speciesVec[i]->getId(), speciesVec[i]);
             specieConcentrationsMap.try_emplace(speciesVec[i]->getId(), concentrations[i]);
         }
 
@@ -104,10 +105,10 @@ namespace sim {
         Fluid<T>* carrierFluid = this->getContinuousPhase().get();
 
         // Transform the vector of species and concentrations into an unordered_map
-        std::unordered_map<size_t, Specie<T>*> speciesMap;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciesMap;
         std::unordered_map<size_t, T> specieConcentrationsMap(std::move(specieConcentrations_));
         for (auto& [key, conc] : specieConcentrationsMap) {
-            speciesMap.try_emplace(key, species.at(key).get());
+            speciesMap.try_emplace(key, species.at(key));
         }
 
         // Create non-mutable Mixture
@@ -126,8 +127,8 @@ namespace sim {
     }
 
     template<typename T>
-    void AbstractMixing<T>::removeMixture(int mixtureId) {
-        auto& it = mixtures.find(mixtureId);
+    void AbstractMixing<T>::removeMixture(size_t mixtureId) {
+        auto it = mixtures.find(mixtureId);
         if (it != mixtures.end()) {
             it->second->resetHash();  // Reset the hash of the mixture to avoid dangling references
             if (mixtures.erase(mixtureId)) {
@@ -242,10 +243,10 @@ namespace sim {
     }
 
     template<typename T>
-    void AbstractMixing<T>::removeMixtureInjection(int mixtureInjectionId) {
+    void AbstractMixing<T>::removeMixtureInjection(size_t mixtureInjectionId) {
         // This function removes the injectionId from the injectionMap for the given mixtureId
         // If the injectionMap for the mixtureId becomes empty, it removes the mixtureId from the injectionMap
-        auto updateMap = [this, mixtureInjectionId](int mixtureId) {
+        auto updateMap = [this, mixtureInjectionId](size_t mixtureId) {
             injectionMap.at(mixtureId).erase(mixtureInjectionId);
             if (injectionMap.at(mixtureId).empty()) { injectionMap.erase(mixtureId); }
         };
@@ -276,6 +277,7 @@ namespace sim {
 
     template<typename T>
     void AbstractMixing<T>::simulate() {
+        Simulation<T>::simulate();
         this->assertInitialized();      // perform initialization checks
         this->initialize();             // initialize the simulation
         this->conductNodalAnalysis();   // compute nodal analysis
@@ -353,10 +355,10 @@ namespace sim {
     Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<size_t, T> specieConcentrations) {
         size_t id = Mixture<T>::getMixtureCounter();
 
-        std::unordered_map<size_t, Specie<T>*> species;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
 
         for (auto& [specieId, concentration] : specieConcentrations) {
-            species.try_emplace(specieId, getSpecie(specieId).get());
+            species.try_emplace(specieId, getSpecie(specieId));
         }
 
         Fluid<T>* carrierFluid = this->getContinuousPhase().get();
@@ -368,7 +370,7 @@ namespace sim {
     }
 
     template<typename T>
-    Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations) {
+    Mixture<T>* AbstractMixing<T>::addMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations) {
         size_t id = Mixture<T>::getMixtureCounter();
 
         Fluid<T>* carrierFluid = this->getContinuousPhase().get();
@@ -402,7 +404,7 @@ namespace sim {
     }
 
     template<typename T>
-    Mixture<T>* AbstractMixing<T>::addDiffusiveMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations) {
+    Mixture<T>* AbstractMixing<T>::addDiffusiveMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations) {
         size_t id = Mixture<T>::getMixtureCounter();
 
         std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
@@ -425,11 +427,11 @@ namespace sim {
     Mixture<T>* AbstractMixing<T>::addDiffusiveMixture(std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions) {
         size_t id = Mixture<T>::getMixtureCounter();
 
-        std::unordered_map<size_t, Specie<T>*> species;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
         std::unordered_map<size_t, T> specieConcentrations;
 
         for (auto& [specieId, distribution] : specieDistributions) {
-            species.try_emplace(specieId, getSpecie(specieId).get());
+            species.try_emplace(specieId, getSpecie(specieId));
             specieConcentrations.try_emplace(specieId, T(0));
         }
 
