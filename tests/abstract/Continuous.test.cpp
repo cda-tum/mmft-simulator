@@ -53,7 +53,7 @@ TEST_F(Continuous, allResultValues) {
     testSimulation.simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node0->getId()), 0.0, 5e-7);
     EXPECT_NEAR(result->getStates().at(0)->getPressures().at(node1->getId()), 1000.000000, 5e-7);
@@ -89,7 +89,7 @@ TEST_F(Continuous, jsonDefinition) {
     testSimulation->simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation->getResults();
     
     EXPECT_NEAR(result->getStates().at(0)->getPressures().at(0), 0.0, 5e-7);
     EXPECT_NEAR(result->getStates().at(0)->getPressures().at(1), 1000.000000, 5e-7);
@@ -164,8 +164,8 @@ TEST_F(Continuous, triangleNetwork) {
     testSimulation2.simulate();
 
     // results
-    const result::SimulationResult<T>* result1 = testSimulation1.getResults();
-    const result::SimulationResult<T>* result2 = testSimulation2.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result1 = testSimulation1.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result2 = testSimulation2.getResults();
 
     EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node01->getId()),
                 result2->getStates().at(0)->getPressures().at(node02->getId()), 1e-16);
@@ -244,8 +244,8 @@ TEST_F(Continuous, Y_Network) {
     testSimulation2.simulate();
 
     // results
-    const result::SimulationResult<T>* result1 = testSimulation1.getResults();
-    const result::SimulationResult<T>* result2 = testSimulation2.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result1 = testSimulation1.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result2 = testSimulation2.getResults();
 
     EXPECT_NEAR(result1->getStates().at(0)->getPressures().at(node01->getId()),
                 result2->getStates().at(0)->getPressures().at(node02->getId()), 1e-16);
@@ -286,7 +286,7 @@ TEST_F(Continuous, Network2) {
     testSimulation->simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation->getResults();
     
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(3), result->getStates().at(0)->getFlowRates().at(4), 5e-10);
     EXPECT_NEAR(result->getStates().at(0)->getFlowRates().at(4), result->getStates().at(0)->getFlowRates().at(5), 5e-10);

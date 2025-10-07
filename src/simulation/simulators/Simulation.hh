@@ -7,7 +7,7 @@ namespace sim {
         if (network_ == nullptr) {
             throw std::logic_error("Network cannot be null.");
         }
-        this->simulationResult = std::make_unique<result::SimulationResult<T>>();
+        this->simulationResult = std::shared_ptr<result::SimulationResult<T>>(new result::SimulationResult<T>());
     }
 
     template<typename T>

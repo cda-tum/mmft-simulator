@@ -22,7 +22,7 @@ TEST_F(InstantaneousMixing, Case1) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 1:
@@ -91,7 +91,7 @@ TEST_F(InstantaneousMixing, Case2) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 2:
@@ -222,7 +222,7 @@ TEST_F(InstantaneousMixing, Case3) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 3:
@@ -294,7 +294,7 @@ TEST_F(InstantaneousMixing, Case4) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 4:
@@ -426,7 +426,7 @@ TEST_F(InstantaneousMixing, Case5) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 5:
@@ -464,7 +464,7 @@ TEST_F(InstantaneousMixing, Case6) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 6:
@@ -510,7 +510,7 @@ TEST_F(InstantaneousMixing, Case7) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 7:
@@ -548,7 +548,7 @@ TEST_F(InstantaneousMixing, Case8) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 8:
@@ -609,7 +609,7 @@ TEST_F(InstantaneousMixing, Case9) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 9:
@@ -666,7 +666,7 @@ TEST_F(InstantaneousMixing, Case10) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 10:
@@ -735,7 +735,7 @@ TEST_F(InstantaneousMixing, Case11) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 11:
@@ -776,7 +776,7 @@ TEST_F(InstantaneousMixing, Case12) {
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 12:

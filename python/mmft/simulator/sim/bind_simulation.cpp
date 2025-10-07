@@ -85,8 +85,7 @@ void bind_simulation(py::module_& m) {
 		.def("setWriteInterval", &sim::Simulation<T>::setWriteInterval, "Set the iterations interval at which the stat is saved in the results.")
 		.def("getTMax", &sim::Simulation<T>::getTMax, "Returns the maximum allowed physical time. When reached the simulation ends.")
 		.def("setMaxEndTime", &sim::Simulation<T>::setMaxEndTime, "Set the maximal physical time after which the simulation ends.")
-		// TODO today
-		// .def("getResults", &sim::Simulation<T>::getResults, py::return_value_policy::reference, "Returns the results of the simulation.")
+		.def("getResults", &sim::Simulation<T>::getResults, "Returns the results of the simulation.")
 		.def("printResults", &sim::Simulation<T>::printResults, "Prints the results of the simulation to the console.")
 		.def("simulate", &sim::Simulation<T>::simulate, "Conducts the simulation.");
 

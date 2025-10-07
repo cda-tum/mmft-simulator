@@ -556,11 +556,7 @@ namespace sim {
 
     template<typename T>
     void AbstractMixing<T>::saveMixtures() {
-        std::unordered_map<int, Mixture<T>*> mixtures_ptr;
-        for (auto& [mixtureId, mixture] : this->mixtures) {
-            mixtures_ptr.try_emplace(mixtureId, mixture.get());
-        }
-        this->getSimulationResults()->setMixtures(mixtures_ptr);   
+        this->getSimulationResults()->setMixtures(this->mixtures);   
     }
 
 }   /// namespace sim

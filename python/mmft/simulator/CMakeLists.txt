@@ -28,6 +28,7 @@ if(NOT TARGET ${PYTHON_MODULE_NAME})
 		sim/bind_hybridContinuous.cpp
 		sim/bind_injections.cpp
 		sim/bind_mixture.cpp
+		sim/bind_results.cpp
 		sim/bind_simulation.cpp
 		sim/bind_specie.cpp
 		

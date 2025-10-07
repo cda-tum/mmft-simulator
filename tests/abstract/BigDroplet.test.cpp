@@ -64,7 +64,7 @@ TEST_F(BigDroplet, allResultValues) {
     testSimulation.simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getId(), pump->getId());
     EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getNodeAId(), node0->getId());
@@ -329,7 +329,7 @@ TEST_F(BigDroplet, inverseDirectionChannels) {
     testSimulation.simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -533,7 +533,7 @@ TEST_F(BigDroplet, mixedDirectionChannels) {
     testSimulation.simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -696,7 +696,7 @@ TEST_F(BigDroplet, jsonDefinition) {
     testSimulation->simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation->getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);

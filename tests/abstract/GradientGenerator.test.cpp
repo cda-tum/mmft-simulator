@@ -136,8 +136,8 @@ TEST_F(GradientGenerator, GradientGeneratorSmall) { // Result 50%
   porting::resultToJSON("GradientGeneratorSmall.json", &sim);
 
   auto const &result = *sim.getResults();
-  ASSERT_FALSE(result.states.empty());
-  int lastStateId = result.states.back()->id;
+  ASSERT_FALSE(result.getStates().empty());
+  int lastStateId = result.getStates().size() - 1;
 
   auto fluidConcentrations11 = test::helpers::getAverageFluidConcentrationsInEdge(result, lastStateId, c11->getId());
   ASSERT_NEAR(fluidConcentrations11.at(-1), // -1 is continuous phase concentration (waterYellow)
@@ -263,8 +263,8 @@ TEST_F(GradientGenerator, GradientGeneratorSmallDifferentPaper) { // Result Pape
   porting::resultToJSON("GradientGeneratorSmallDifferent.json", &sim);
 
   auto const &result = *sim.getResults();
-  ASSERT_FALSE(result.states.empty());
-  int lastStateId = result.states.back()->id;
+  ASSERT_FALSE(result.getStates().empty());
+  int lastStateId = result.getStates().size() - 1;
 
   auto fluidConcentrations11 = test::helpers::getAverageFluidConcentrationsInEdge(result, lastStateId, c11->getId());
   ASSERT_NEAR(fluidConcentrations11.at(-1), // -1 is continuous phase concentration (waterYellow)
@@ -458,8 +458,8 @@ TEST_F(GradientGenerator, GradientGeneratorUltraLargePaper) { // Paper 100%/88.6
   porting::resultToJSON("GradientGeneratorUltraLarge.json", &sim);
 
   auto const &result = *sim.getResults();
-  ASSERT_FALSE(result.states.empty());
-  int lastStateId = result.states.back()->id;
+  ASSERT_FALSE(result.getStates().empty());
+  int lastStateId = result.getStates().size() - 1;
 
   auto fluidConcentrations34 = test::helpers::getAverageFluidConcentrationsInEdge(result, lastStateId, c34->getId());
   EXPECT_NEAR(fluidConcentrations34.at(-1), // -1 is continuous phase concentration (waterYellow)

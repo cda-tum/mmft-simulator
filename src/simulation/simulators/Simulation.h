@@ -82,7 +82,7 @@ private:
     T dt = 0.01;
     T writeInterval = 0.1;
     T tMax = 100;
-    std::unique_ptr<result::SimulationResult<T>> simulationResult = nullptr;
+    std::shared_ptr<result::SimulationResult<T>> simulationResult = nullptr;
 
     // Disabled because no stable simulator uses tissues
     // std::unordered_map<int, std::shared_ptr<Tissue<T>>> tissues;                        ///< Tissues specified for the simulation.
@@ -350,7 +350,7 @@ public:
      * @brief Get the results of the simulation.
      * @return Pointer to the result of the simulation.
      */
-    [[nodiscard]] inline const result::SimulationResult<T>* getResults() const { return simulationResult.get(); }
+    [[nodiscard]] inline const std::shared_ptr<result::SimulationResult<T>> getResults() const { return simulationResult; }
 
     /**
      * @brief Print the results as pressure at the nodes and flow rates at the channels

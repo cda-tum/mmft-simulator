@@ -26,6 +26,7 @@ void bind_specie(py::module_& m);
 void bind_mixture(py::module_& m);
 void bind_injections(py::module_& m);
 void bind_simulation(py::module_& m);
+void bind_results(py::module_& m);
 void bind_abstractContinuous(py::module_& m);
 void bind_abstractDroplet(py::module_& m);
 void bind_abstractMembrane(py::module_& m);
