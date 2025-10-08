@@ -117,8 +117,7 @@ private:
     inline void setMutable() { this->isMutable = true; }
 
     /**
-     * @brief Set the simulation hash of this mixture.
-     * @param[in] simHash Hash of the simulation that created this mixture object.
+     * @brief Reset the simulation hash of this fluid upon removal of mixture.
      */
     void resetHash() noexcept { this->simHash = 0; }
 

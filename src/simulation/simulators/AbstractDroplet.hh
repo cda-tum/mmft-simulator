@@ -10,7 +10,7 @@ namespace sim {
         auto id = DropletImplementation<T>::getDropletCounter();
         auto fluid = this->getFluids().at(fluidId).get();
 
-        auto result = droplets.insert_or_assign(id, std::shared_ptr<DropletImplementation<T>>(new DropletImplementation<T>(id, volume, fluid)));
+        auto result = droplets.insert_or_assign(id, std::shared_ptr<DropletImplementation<T>>(new DropletImplementation<T>(id, this->getHash(), volume, fluid)));
 
         return result.first->second;
     }
@@ -94,6 +94,10 @@ namespace sim {
 
     template<typename T>
     void AbstractDroplet<T>::removeDroplet(int dropletId) {
+        if (droplets.find(dropletId) == droplets.end()) {
+            throw std::logic_error("Could not delete droplet with key " + std::to_string(dropletId) + ". Droplet not found.");
+        }
+        droplets.at(dropletId)->resetHash();
         if (droplets.erase(dropletId)) {
             // Remove all injections of this droplet
             auto it = injectionMap.find(dropletId);
@@ -104,7 +108,7 @@ namespace sim {
                 injectionMap.erase(it);
             }
         } else {
-            throw std::logic_error("Could not delete droplet with key " + std::to_string(dropletId) + ". Droplet not found.");
+            throw std::logic_error("Could not delete droplet with key " + std::to_string(dropletId) + ". Unknown error.");
         }
     }
 

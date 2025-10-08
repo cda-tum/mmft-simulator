@@ -16,7 +16,9 @@ Mixture<T>::Mixture(size_t simHash, size_t id, std::unordered_map<size_t, std::s
 
 template<typename T>
 Mixture<T>::Mixture(size_t simHash, size_t id, std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations, 
-    Fluid<T>* carrierFluid) : Mixture<T>(simHash, id, species, specieConcentrations, carrierFluid->getViscosity(), carrierFluid->getDensity()) { }
+    Fluid<T>* carrierFluid) : Mixture<T>(simHash, id, species, specieConcentrations, carrierFluid->getViscosity(), carrierFluid->getDensity()) { 
+        carrierFluid->checkHashes(simHash); // Ensure the fluid belongs to the same simulation
+    }
 
 template<typename T>
 bool Mixture<T>::checkMutability() const {
@@ -157,7 +159,9 @@ DiffusiveMixture<T>::DiffusiveMixture(size_t simHash, size_t id, std::unordered_
 template<typename T>
 DiffusiveMixture<T>::DiffusiveMixture(size_t simHash, size_t id, std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, T> specieConcentrations, 
     std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions, Fluid<T>* carrierFluid, int resolution) : 
-    Mixture<T>(simHash, id, species, specieConcentrations, carrierFluid), specieDistributions(specieDistributions), resolution(resolution) { }
+    Mixture<T>(simHash, id, species, specieConcentrations, carrierFluid), specieDistributions(specieDistributions), resolution(resolution) {
+        carrierFluid->checkHashes(simHash); // Ensure the fluid belongs to the same simulation
+    }
 
 template<typename T>
 std::function<T(T)> DiffusiveMixture<T>::getDistributionOfSpecie(size_t specieId) const {
