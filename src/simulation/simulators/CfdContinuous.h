@@ -5,6 +5,8 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <math.h>
 #include <memory>
 #include <optional>
@@ -12,6 +14,8 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+
+#include <architecture/pNetwork.h>
 
 namespace arch {
 
@@ -45,8 +49,14 @@ class lbmSimulator;
 template<typename T>
 class CfdContinuous : public Simulation<T> {
 private:
+    std::shared_ptr<stl::Network> network_stl = nullptr;
+    std::unique_ptr<stl::NetworkSTL> stlNetwork = nullptr;
+    std::string fName = "";
+    std::set<std::shared_ptr<arch::Node<T>>> danglingNodes;
+    int radialResolution = 25;
     T characteristicLength = 1e-4;                                                      ///< Standard value (1e-4) or smallest opening width / height.
     T characteristicVelocity = 0.1;                                                     ///< Standard value (0.1) or Largest expected average velocity in the system.
+    std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;                            ///< A pointer to the module, upon which this simulator acts.
     std::shared_ptr<CFDSimulator<T>> cfdSimulator;                                      ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
     bool writePpm = true;
 
@@ -64,7 +74,7 @@ protected:
      * @param[in] platform The platform of the derived simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
      */
-    CfdContinuous(Platform platform, std::shared_ptr<arch::Network<T>> network);
+    CfdContinuous(Platform platform, std::shared_ptr<arch::Network<T>> network, int radialResolution=25);
 
     /** TODO:
      * 
@@ -95,11 +105,11 @@ protected:
 
 public:
 
-    /** TODO:
-     * @brief Constructor of the CFD continuous simulator object
+    /**
+     * @brief Constructor of the CFD continuous simulator object using the network as basis for the STL definition.
      * @param[in] network Pointer to the network object, in which the simulation takes place
      */
-    CfdContinuous(std::shared_ptr<arch::Network<T>> network);
+    CfdContinuous(std::shared_ptr<arch::Network<T>> network, int radialResolution=25);
 
     /** TODO:
      * 
@@ -108,6 +118,14 @@ public:
                   std::vector<T> size,
                   std::string stlFile,
                   std::unordered_map<size_t, arch::Opening<T>> openings);
+
+    /**
+     * @brief Set the network for which the simulation should be conducted. Invoking this function will 
+     * automatically update the STL domain of the simulation.
+     * @param[in] network Network on which the simulation will be conducted.
+     * @note Setting a network is only possible for simulation objects that were created using a network.
+     */
+    void setNetwork(std::shared_ptr<arch::Network<T>> network) override;
 
     /** TODO:
      * @note Adding a BC is only possible for domains that have been constructed using a network.

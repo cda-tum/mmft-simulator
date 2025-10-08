@@ -213,7 +213,7 @@ public:
      * @brief Set the network for which the simulation should be conducted.
      * @param[in] network Network on which the simulation will be conducted.
      */
-    inline void setNetwork(std::shared_ptr<arch::Network<T>> network) { this->network = network; }
+    inline virtual void setNetwork(std::shared_ptr<arch::Network<T>> network) { this->network = network; }
 
     /**
      * @brief Sets the resistance model for abstract simulation components to the 1D resistance model
