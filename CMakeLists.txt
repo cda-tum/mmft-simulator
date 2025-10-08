@@ -40,7 +40,12 @@ FetchContent_Declare(
     GIT_REPOSITORY https://gitlab.com/openlb/release.git
     GIT_TAG 1.7.0
 )
-FetchContent_MakeAvailable(eigen googletest json lbm)
+FetchContent_Declare(
+    stl
+    GIT_REPOSITORY https://github.com/cda-tum/mmft-STL-generator
+    GIT_TAG v1.0
+)
+FetchContent_MakeAvailable(eigen googletest json lbm stl)
 
 option(USE_ESSLBM "USE_ESSLBM" OFF)
 if(USE_ESSLBM)
@@ -84,6 +89,7 @@ target_include_directories(
 # add library
 set(TARGET_NAME simLib)
 add_library(${TARGET_NAME})
+target_link_libraries(${TARGET_NAME} PUBLIC stlLib)
 
 # add sources
 add_subdirectory(src)
