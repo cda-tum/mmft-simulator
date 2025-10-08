@@ -2,7 +2,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "architecture/entities/Node.h"
+#include "architecture/entities/Node.hh"
 #include "architecture/definitions/ModuleOpening.h"
 
 namespace py = pybind11;

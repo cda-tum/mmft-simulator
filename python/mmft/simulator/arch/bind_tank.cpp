@@ -2,8 +2,8 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "architecture/entities/Edge.h"
-#include "architecture/entities/Tank.h"
+#include "architecture/entities/Edge.hh"
+#include "architecture/entities/Tank.hh"
 
 namespace py = pybind11;
 

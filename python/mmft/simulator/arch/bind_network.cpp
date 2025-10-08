@@ -2,16 +2,16 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "architecture/entities/Channel.h"
-#include "architecture/entities/Edge.h"
-#include "architecture/entities/FlowRatePump.h"
-#include "architecture/entities/Membrane.h"
-#include "architecture/entities/Module.h"
-#include "architecture/entities/Node.h"
-#include "architecture/entities/PressurePump.h"
-#include "architecture/entities/Tank.h"
+#include "architecture/entities/Channel.hh"
+#include "architecture/entities/Edge.hh"
+#include "architecture/entities/FlowRatePump.hh"
+#include "architecture/entities/Membrane.hh"
+#include "architecture/entities/Module.hh"
+#include "architecture/entities/Node.hh"
+#include "architecture/entities/PressurePump.hh"
+#include "architecture/entities/Tank.hh"
 #include "architecture/definitions/ModuleOpening.h"
-#include "architecture/Network.h"
+#include "architecture/Network.hh"
 
 namespace py = pybind11;
 
@@ -21,7 +21,6 @@ void bind_network(py::module_& m) {
 
 	py::class_<arch::Network<T>, py::smart_holder>(m, "Network")
 		.def("isNetworkValid", &arch::Network<T>::isNetworkValid, "Check if the current network is valid.")
-		.def("toJson", &arch::Network<T>::toJson, "Store the network object in a JSON file.")
 		.def("print", &arch::Network<T>::print, "Print the content of this network.")
 		// Nodes
 		.def("addNode", py::overload_cast<T, T, bool>(&arch::Network<T>::addNode), 

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <fstream>
 #include <memory>
 #include <queue>
@@ -292,9 +293,12 @@ public:
     bool isNetworkValid();
 
     /**
+     * TODO: Implement function to write network to JSON
+     */
+    /**
      * @brief Store the network object in a JSON file.
     */
-    void toJson(std::string jsonString) const;
+    // void toJson(std::string jsonString) const;
 
     /**
      * @brief Prints the contents of this network

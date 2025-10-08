@@ -2,12 +2,13 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "architecture/entities/Channel.h"
-#include "architecture/entities/Module.h"
-#include "simulation/simulators/Simulation.h"
-#include "simulation/simulators/CFDSim.h"
-#include "simulation/simulators/HybridContinuous.h"
-#include "simulation/simulators/cfdHandlers/cfdSimulator.h"
+#include "architecture/entities/Channel.hh"
+#include "architecture/entities/Module.hh"
+#include "simulation/models/ResistanceModels.hh"
+#include "simulation/simulators/Simulation.hh"
+#include "simulation/simulators/CFDSim.hh"
+#include "simulation/simulators/HybridContinuous.hh"
+#include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
 
 namespace py = pybind11;
 

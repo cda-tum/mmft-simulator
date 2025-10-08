@@ -2,11 +2,11 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "architecture/entities/Edge.h"
-#include "architecture/entities/Channel.h"
-#include "architecture/definitions/ChannelPosition.h"
-#include "simulation/entities/Droplet.h"
-#include "simulation/entities/Fluid.h"
+#include "architecture/entities/Edge.hh"
+#include "architecture/entities/Channel.hh"
+#include "architecture/definitions/ChannelPosition.hh"
+#include "simulation/entities/Droplet.hh"
+#include "simulation/entities/Fluid.hh"
 
 namespace py = pybind11;
 

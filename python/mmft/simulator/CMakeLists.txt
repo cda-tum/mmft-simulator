@@ -6,6 +6,9 @@ set(PYTHON_MODULE_NAME "pysimulator")
 if(NOT TARGET ${PYTHON_MODULE_NAME})
 	pybind11_add_module(${PYTHON_MODULE_NAME} 
 
+		# Bindings
+		bindings.cpp
+
 		# Architecture bindings
 		arch/bind_channel.cpp
 		arch/bind_edge.cpp
@@ -19,13 +22,8 @@ if(NOT TARGET ${PYTHON_MODULE_NAME})
 		arch/bind_tank.cpp
 
 		# Simulator bindings
-		sim/bind_abstractContinuous.cpp
-		sim/bind_abstractDroplet.cpp
-		sim/bind_abstractMembrane.cpp
-		sim/bind_abstractMixing.cpp
 		sim/bind_droplet.cpp
 		sim/bind_fluid.cpp
-		sim/bind_hybridContinuous.cpp
 		sim/bind_injections.cpp
 		sim/bind_mixture.cpp
 		sim/bind_results.cpp

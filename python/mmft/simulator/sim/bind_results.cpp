@@ -2,58 +2,54 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "simulation/entities/Droplet.h"
-#include "simulation/entities/Fluid.h"
-#include "simulation/entities/Mixture.h"
-#include "simulation/entities/Specie.h"
-#include "simulation/entities/Tissue.h"
+#include "architecture/entities/Channel.hh"
+#include "architecture/entities/Edge.hh"
+#include "architecture/entities/FlowRatePump.hh"
+#include "architecture/entities/Membrane.hh"
+#include "architecture/entities/Module.hh"
+#include "architecture/entities/Node.hh"
+#include "architecture/entities/PressurePump.h"
+#include "architecture/entities/Tank.hh"
 
-#include "simulation/events/BoundaryEvent.h"
-#include "simulation/events/Event.h"
-#include "simulation/events/InjectionEvent.h"
-#include "simulation/events/MergingEvent.h"
-
-#include "simulation/operations/Injection.h"
-#include "simulation/operations/MixtureInjection.h"
-
-#include "simulation/models/MembraneModels.h"
-#include "simulation/models/MixingModels.h"
-#include "simulation/models/ResistanceModels.h"
-
-#include "simulation/simulators/Simulation.h"
-#include "simulation/simulators/AbstractContinuous.h"
-#include "simulation/simulators/AbstractDroplet.h"
-#include "simulation/simulators/AbstractMixing.h"
-#include "simulation/simulators/AbstractMembrane.h"
-#include "simulation/simulators/HybridContinuous.h"
-
-#include "simulation/simulators/CFDSim.h"
-#include "simulation/simulators/cfdHandlers/cfdSimulator.h"
-
-#include "nodalAnalysis/NodalAnalysis.h"
-
-#include "hybridDynamics/Scheme.h"
-#include "hybridDynamics/Naive.h"
-
-#include "architecture/definitions/ChannelPosition.h"
+#include "architecture/definitions/ChannelPosition.hh"
 #include "architecture/definitions/ModuleOpening.h"
 
-#include "architecture/entities/Channel.h"
-#include "architecture/entities/Edge.h"
-#include "architecture/entities/FlowRatePump.h"
-#include "architecture/entities/Membrane.h"
-#include "architecture/entities/Module.h"
-#include "architecture/entities/Node.h"
-#include "architecture/entities/PressurePump.h"
-#include "architecture/entities/Tank.h"
+#include "architecture/Network.hh"
 
-#include "architecture/Network.h"
+#include "simulation/entities/Droplet.hh"
+#include "simulation/entities/Fluid.hh"
+#include "simulation/entities/Mixture.hh"
+#include "simulation/entities/Specie.hh"
+#include "simulation/entities/Tissue.hh"
 
-#include "porting/jsonPorter.h"
-#include "porting/jsonReaders.h"
-#include "porting/jsonWriters.h"
+#include "simulation/events/BoundaryEvent.hh"
+#include "simulation/events/Event.h"
+#include "simulation/events/InjectionEvent.hh"
+#include "simulation/events/MergingEvent.hh"
 
-#include "result/Results.h"
+#include "simulation/operations/Injection.hh"
+#include "simulation/operations/MixtureInjection.hh"
+
+#include "simulation/models/MembraneModels.hh"
+#include "simulation/models/MixingModels.hh"
+#include "simulation/models/ResistanceModels.hh"
+
+#include "simulation/simulators/Simulation.hh"
+#include "simulation/simulators/AbstractContinuous.hh"
+#include "simulation/simulators/AbstractDroplet.hh"
+#include "simulation/simulators/AbstractMixing.hh"
+#include "simulation/simulators/AbstractMembrane.hh"
+#include "simulation/simulators/HybridContinuous.hh"
+
+#include "simulation/simulators/CFDSim.hh"
+#include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
+
+#include "nodalAnalysis/NodalAnalysis.hh"
+
+#include "hybridDynamics/Scheme.hh"
+#include "hybridDynamics/Naive.hh"
+
+#include "result/Results.hh"
 
 namespace py = pybind11;
 
@@ -71,7 +67,6 @@ void bind_results(py::module_& m) {
 		.def("printState", &result::State<T>::printState, "Print the state.");
 
 	py::class_<result::SimulationResult<T>, py::smart_holder>(m, "SimulationResult")
-		.def("getFinalMixturePositions", &result::SimulationResult<T>::getFinalMixturePositions, "Returns the mixture positions at the end of the simulation.")
 		.def("getStates", &result::SimulationResult<T>::getStates, "Get the simulated states that were stored during simulation.")
 		.def("getLastState", &result::SimulationResult<T>::getLastState, "Get the last state.")
 		.def("getState", &result::SimulationResult<T>::getState, "Get state with given key.")

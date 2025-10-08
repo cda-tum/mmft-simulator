@@ -2,8 +2,8 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "architecture/entities/Channel.h"
-#include "architecture/entities/Edge.h"
+#include "architecture/entities/Channel.hh"
+#include "architecture/entities/Edge.hh"
 
 namespace py = pybind11;
 using T = double;

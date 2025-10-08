@@ -2,23 +2,23 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "simulation/entities/Droplet.h"
-#include "simulation/entities/Fluid.h"
-#include "simulation/entities/Mixture.h"
-#include "simulation/entities/Specie.h"
-#include "simulation/entities/Tissue.h"
+#include "architecture/entities/Edge.hh"
+#include "architecture/entities/Channel.hh"
+#include "architecture/definitions/ChannelPosition.hh"
 
-#include "simulation/events/BoundaryEvent.h"
+#include "simulation/entities/Droplet.hh"
+#include "simulation/entities/Fluid.hh"
+#include "simulation/entities/Mixture.hh"
+#include "simulation/entities/Specie.hh"
+#include "simulation/entities/Tissue.hh"
+
+#include "simulation/events/BoundaryEvent.hh"
 #include "simulation/events/Event.h"
-#include "simulation/events/InjectionEvent.h"
-#include "simulation/events/MergingEvent.h"
+#include "simulation/events/InjectionEvent.hh"
+#include "simulation/events/MergingEvent.hh"
 
-#include "simulation/operations/Injection.h"
-#include "simulation/operations/MixtureInjection.h"
-
-#include "architecture/entities/Edge.h"
-#include "architecture/entities/Channel.h"
-#include "architecture/definitions/ChannelPosition.h"
+#include "simulation/operations/Injection.hh"
+#include "simulation/operations/MixtureInjection.hh"
 
 namespace py = pybind11;
 

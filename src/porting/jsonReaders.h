@@ -28,6 +28,9 @@ namespace sim {
 enum class Platform;
 
 template<typename T>
+class CFDSimulator;
+
+template<typename T>
 class lbmSimulator;
 
 template<typename T>

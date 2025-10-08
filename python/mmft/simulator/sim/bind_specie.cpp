@@ -2,7 +2,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "simulation/entities/Specie.h"
+#include "simulation/entities/Specie.hh"
 
 namespace py = pybind11;
 

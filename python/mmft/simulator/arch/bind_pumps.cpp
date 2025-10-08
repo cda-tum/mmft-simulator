@@ -2,9 +2,9 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include "architecture/entities/Edge.h"
-#include "architecture/entities/FlowRatePump.h"
-#include "architecture/entities/PressurePump.h"
+#include "architecture/entities/Edge.hh"
+#include "architecture/entities/FlowRatePump.hh"
+#include "architecture/entities/PressurePump.hh"
 
 namespace py = pybind11;
 

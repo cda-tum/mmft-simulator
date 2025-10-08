@@ -223,12 +223,6 @@ private:
 
 public:
     /**
-     * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
-     */
-    [[nodiscard]] const std::unordered_map<int, T>& getFinalMixturePositions() const;
-
-    /**
      * @brief Get the simulated states that were stored during simulation.
      * @return Vector of states
      */
@@ -237,12 +231,12 @@ public:
     /**
      * TODO:
      */
-    [[nodiscard]] const std::shared_ptr<const State<T>>& getLastState() const;
+    [[nodiscard]] inline const std::shared_ptr<const State<T>>& getLastState() const { return states.back(); }
 
     /**
      * TODO:
      */
-    [[nodiscard]] const std::shared_ptr<const State<T>>& getState(size_t key) const;
+    [[nodiscard]] inline const std::shared_ptr<const State<T>>& getState(size_t key) const { return states.at(key); }
 
     /**
      * @brief Print all the states that were stored during simulation.
