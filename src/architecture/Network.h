@@ -145,6 +145,7 @@ private:
 
     int virtualNodes = 0;
 
+protected:
     /**
      * @brief Constructor of the Network
      * @param[in] nodes Nodes of the network.
@@ -309,7 +310,7 @@ public:
     //======================================  Nodes =======================================
     //=====================================================================================
 
-private:
+protected:
     /**
      * @brief Adds a new node to the network.
     */
@@ -442,7 +443,7 @@ public:
     //=====================================================================================
     //======================================  Channels ====================================
     //=====================================================================================
-private:
+protected:
     /**
      * @brief Adds a new channel to the chip.
      * @param[in] nodeAId Id of the node at one end of the channel.

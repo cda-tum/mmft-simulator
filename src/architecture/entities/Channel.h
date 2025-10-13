@@ -260,11 +260,12 @@ public:
 };
 
 template<typename T>
-class RectangularChannel final : public Channel<T> {
+class RectangularChannel : public Channel<T> {
 private:
     T width;                                        ///< Width of a channel in m.
     T height;                                       ///< Height of a channel in m.
 
+protected:
     /**
      * @brief Constructor of a channel with rectangular cross-section
      * @param[in] id Id of the channel.
@@ -337,10 +338,11 @@ public:
 };
 
 template<typename T>
-class CylindricalChannel final : public Channel<T> {
+class CylindricalChannel : public Channel<T> {
 private:
     T radius;                                       ///< Radius of a channel in m.
 
+protected:
     /**
      * @brief Constructor of a channel with circular cross-section             
      * @param[in] id Id of the channel.
