@@ -29,11 +29,11 @@ int main(int argc, char const* argv []) {
     std::unique_ptr<sim::Simulation<T>> testSimulation = porting::simulationFromJSON<T>(file, network);
 
     std::cout << "[Main] Simulation..." << std::endl;
-    // Perform simulation and store results
+    // Perform simulation and store result
     testSimulation->simulate();
 
     std::cout << "[Main] Results..." << std::endl;
-    // Print the results
+    // Print the result
     testSimulation->getResults()->printStates();
 
     #ifdef USE_ESSLBM
