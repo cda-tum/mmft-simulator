@@ -12,6 +12,7 @@
 #include "architecture/entities/Tank.hh"
 #include "architecture/definitions/ModuleOpening.h"
 #include "architecture/Network.hh"
+#include "porting/jsonPorter.h"
 
 namespace py = pybind11;
 
@@ -25,6 +26,8 @@ void bind_network(py::module_& m) {
 		// Nodes
 		.def("addNode", py::overload_cast<T, T, bool>(&arch::Network<T>::addNode), 
 			py::arg("x"), py::arg("y"), py::arg("ground")=false, "Add a new node to the network.")
+		.def("addNode", py::overload_cast<T, T, bool, bool>(&arch::Network<T>::addNode), 
+			py::arg("x"), py::arg("y"), py::arg("ground"), py::arg("sink"), "Add a new node to the network.")
 		.def("getNode", &arch::Network<T>::getNode, "Returns the node with the given id.")
 		.def("getNodes", &arch::Network<T>::getNodes, "Returns all nodes in the network.")
 		.def("getGroundNodes", &arch::Network<T>::getGroundNodes, "Returns the set of nodes that are ground nodes.")
@@ -70,13 +73,13 @@ void bind_network(py::module_& m) {
 		.def("isChannel", py::overload_cast<const std::shared_ptr<arch::Edge<T>>&>(&arch::Network<T>::isChannel, py::const_), "Returns true if the given edge is a channel.")
 		.def("removeChannel", &arch::Network<T>::removeChannel, "Remove the given channel from the network.")
 		// Pumps
-		.def("addFlowRatePump", &arch::Network<T>::addFlowRatePump, "Add a flow rate pump to the network.")
+		.def("addFlowRatePump", py::overload_cast<std::shared_ptr<arch::Node<T>>, std::shared_ptr<arch::Node<T>>, T>(&arch::Network<T>::addFlowRatePump), "Add a flow rate pump to the network.")
 		.def("getFlowRatePump", &arch::Network<T>::getFlowRatePump, "Returns the flow rate pump with the given id.")
 		.def("setFlowRatePump", &arch::Network<T>::setFlowRatePump, "Set the edge with the given id to be a flow rate pump.")
 		.def("isFlowRatePump", &arch::Network<T>::isFlowRatePump, "Returns true if the provided edge id is from a flow rate pump.")
 		.def("getFlowRatePumps", &arch::Network<T>::getFlowRatePumps, "Returns all flow rate pumps in the network.")
 		.def("removeFlowRatePump", &arch::Network<T>::removeFlowRatePump, "Removes the given flow rate pump from the network.")
-		.def("addPressurePump", &arch::Network<T>::addPressurePump, "Add a pressure pump to the network.")
+		.def("addPressurePump", py::overload_cast<std::shared_ptr<arch::Node<T>>, std::shared_ptr<arch::Node<T>>, T>(&arch::Network<T>::addPressurePump), "Add a pressure pump to the network.")
 		.def("getPressurePump", &arch::Network<T>::getPressurePump, "Returns the pressure pump with the given id.")
 		.def("setPressurePump", &arch::Network<T>::setPressurePump, "Set the edge with the given id to be a pressure pump.")
 		.def("isPressurePump", &arch::Network<T>::isPressurePump, "Returns true if the provided edge id is from a pressure pump.")
@@ -125,5 +128,6 @@ void bind_network(py::module_& m) {
                                             std::unordered_map<size_t, std::shared_ptr<arch::PressurePump<T>>>,
                                             std::unordered_map<size_t, std::shared_ptr<arch::CfdModule<T>>>>
 		(&arch::Network<T>::createNetwork), "Create a Network object.");
+	m.def("networkFromJSON", py::overload_cast<std::string>(&porting::networkFromJSON<T>), "Create a Network object from JSON definition.");
 
 }

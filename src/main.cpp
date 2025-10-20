@@ -36,9 +36,6 @@ int main(int argc, char const* argv []) {
     // Print the results
     testSimulation->getResults()->printStates();
 
-    //std::cout << "Write diffusive mixtures" << std::endl;
-    //testSimulation->getResults()->writeMixture(1);
-
     #ifdef USE_ESSLBM
     MPI_Finalize();
     #endif

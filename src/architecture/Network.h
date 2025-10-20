@@ -323,6 +323,11 @@ public:
     [[maybe_unused]] std::shared_ptr<Node<T>> addNode(T x, T y, bool ground=false);
 
     /**
+     * @brief Adds a new node to the network.
+    */
+    [[maybe_unused]] std::shared_ptr<Node<T>> addNode(T x, T y, bool ground, bool sink);
+
+    /**
      * @brief Get a pointer to the node with the specific id.
     */
     [[nodiscard]] std::shared_ptr<Node<T>> getNode(size_t nodeId) const;
@@ -611,6 +616,17 @@ public:
     [[maybe_unused]] std::shared_ptr<FlowRatePump<T>> addFlowRatePump(size_t nodeAId, size_t nodeBId, T flowRate);
 
     /**
+     * @brief Adds a new flow rate pump to the network.
+     * @param[in] nodeA Pointer to the node at one end of the flow rate pump.
+     * @param[in] nodeB Pointer to the node at the other end of the flow rate pump.
+     * @param[in] flowRate Volumetric flow rate of the pump in m^3/s.
+     * @return Pointer to the newly created flow rate pump.
+     */
+    [[maybe_unused]] inline std::shared_ptr<FlowRatePump<T>> addFlowRatePump(std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T flowRate) {
+        return addFlowRatePump(nodeA->getId(), nodeB->getId(), flowRate);   
+    }
+
+    /**
      * @brief Get a pointer to the flowrate pump with the specific id.
      * @param[in] pumpId Id of the flowrate pump.
      * @return Pointer to the flowrate pump with this id.
@@ -647,9 +663,20 @@ public:
      * @param[in] nodeAId Id of the node at one end of the pressure pump.
      * @param[in] nodeBId Id of the node at the other end of the pressure pump.
      * @param[in] pressure Pressure of the pump in Pas/L.
-     * @return Id of the newly created pressure pump.
+     * @return Pointer to the newly created pressure pump.
      */
     [[maybe_unused]] std::shared_ptr<PressurePump<T>> addPressurePump(size_t nodeAId, size_t nodeBId, T pressure);
+
+    /**
+     * @brief Adds a new pressure pump to the chip.
+     * @param[in] nodeA Pointer to the node at one end of the pressure pump.
+     * @param[in] nodeB Pointer to the node at the other end of the pressure pump.
+     * @param[in] pressure Pressure of the pump in Pas/L.
+     * @return Pointer to the newly created pressure pump.
+     */
+    [[maybe_unused]] inline std::shared_ptr<PressurePump<T>> addPressurePump(std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T pressure) {
+        return addPressurePump(nodeA->getId(), nodeB->getId(), pressure);    
+    }
 
     /**
      * @brief Get a pointer to the pressure pump with the specific id.

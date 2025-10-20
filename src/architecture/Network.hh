@@ -137,6 +137,16 @@ std::shared_ptr<Node<T>> Network<T>::addNode(T x_, T y_, bool ground_) {
 }
 
 template<typename T>
+std::shared_ptr<Node<T>> Network<T>::addNode(T x_, T y_, bool ground_, bool sink_) {
+    int nodeId = nodes.size();
+
+    auto addedNode = addNode(nodeId, x_, y_, ground_);
+    addedNode->setSink(true);
+
+    return addNode(nodeId, x_, y_, ground_);
+}
+
+template<typename T>
 std::shared_ptr<Node<T>> Network<T>::addNode(size_t nodeId, T x_, T y_, bool ground_) {
     auto nodePtr = std::shared_ptr<Node<T>>(new Node<T>(nodeId, x_, y_, ground_));
     auto result = nodes.insert({nodeId, nodePtr});
