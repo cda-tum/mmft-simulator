@@ -31,4 +31,5 @@ void bind_abstractContinuous(py::module_& m);
 void bind_abstractDroplet(py::module_& m);
 void bind_abstractMixing(py::module_& m);
 void bind_hybridContinuous(py::module_& m);
+void bind_porter(py::module_& m);
 void bind_results(py::module_& m);

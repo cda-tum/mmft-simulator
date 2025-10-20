@@ -12,7 +12,6 @@
 #include "architecture/entities/Tank.hh"
 #include "architecture/definitions/ModuleOpening.h"
 #include "architecture/Network.hh"
-#include "porting/jsonPorter.h"
 
 namespace py = pybind11;
 
@@ -128,6 +127,5 @@ void bind_network(py::module_& m) {
                                             std::unordered_map<size_t, std::shared_ptr<arch::PressurePump<T>>>,
                                             std::unordered_map<size_t, std::shared_ptr<arch::CfdModule<T>>>>
 		(&arch::Network<T>::createNetwork), "Create a Network object.");
-	m.def("networkFromJSON", py::overload_cast<std::string>(&porting::networkFromJSON<T>), "Create a Network object from JSON definition.");
 
 }

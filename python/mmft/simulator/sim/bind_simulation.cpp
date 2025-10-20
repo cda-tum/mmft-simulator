@@ -249,3 +249,7 @@ void bind_cfdSimulators(py::module_& m) {
 		.def("hasConverged", &sim::lbmSimulator<T>::hasConverged, "Returns whether the simulator has converged or not.");
 
 }
+
+void bind_porter(py::module_& m) {
+	m.def("networkFromJSON", py::overload_cast<std::string>(&porting::networkFromJSON<T>), "Create a Network object from JSON definition.");
+}
