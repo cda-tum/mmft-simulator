@@ -22,37 +22,7 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_), filledEdges(filledEdges_) { }
 
 template<typename T>
-const std::unordered_map<int, T>& State<T>::getPressures() const {
-    return pressures;
-}
-
-template<typename T>
-const std::unordered_map<int, T>& State<T>::getFlowRates() const {
-    return flowRates;
-}
-
-template<typename T>
-const std::unordered_map<int, std::string>& State<T>::getVtkFiles() const {
-    return vtkFiles;
-}
-
-template<typename T>
-std::unordered_map<int, sim::DropletPosition<T>>& State<T>::getDropletPositions() {
-    return dropletPositions;
-}
-
-template<typename T>
-std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& State<T>::getMixturePositions() {
-    return mixturePositions;
-}
-
-template<typename T>
-T State<T>::getTime() const {
-    return time;
-}
-
-template<typename T>
-const void State<T>::printState() {
+void State<T>::printState() const {
     std::cout << "\n";
     // print the current timestep
     std::cout << "[Result] Timestep: " << time << std::endl;
@@ -72,8 +42,8 @@ const void State<T>::printState() {
         for (auto& [key, dropletPosition] : dropletPositions) {
             std::cout << "\tBoundaries:\n";
             for ( auto& boundary : dropletPosition.boundaries ) {
-                std::cout << "\t\t channel " << boundary.getChannelPosition().getChannel()->getId() << "\t position "
-                    << boundary.getChannelPosition().getPosition() << std::endl;
+                std::cout << "\t\t channel " << boundary.readChannelPosition().getChannel()->getId() << "\t position "
+                    << boundary.readChannelPosition().getPosition() << std::endl;
             }
             std::cout << "\n";
             std::cout << "\tChannels:";
@@ -115,21 +85,21 @@ SimulationResult<T>::SimulationResult(  arch::Network<T>* network_,
 template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates) {
     int id = states.size();
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates);
+    std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, pressures, flowRates));
     states.push_back(std::move(newState));
 }
 
 template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::string> vtkFiles) {
     int id = states.size();
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, vtkFiles);
+    std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, pressures, flowRates, vtkFiles));
     states.push_back(std::move(newState));
 }
 
 template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, sim::DropletPosition<T>> dropletPositions) {
     int id = states.size();
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, dropletPositions);
+    std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, pressures, flowRates, dropletPositions));
     states.push_back(std::move(newState));
 }
 
@@ -143,44 +113,26 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
             filledEdges.try_emplace(channelId, deque.back().mixtureId);
         }
     }
-    std::unique_ptr<State<T>> newState = std::make_unique<State<T>>(id, time, pressures, flowRates, mixturePositions, filledEdges);
+    std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, pressures, flowRates, mixturePositions, filledEdges));
     states.push_back(std::move(newState));
 }
 
 template<typename T>
-const std::vector<std::unique_ptr<State<T>>>& SimulationResult<T>::getStates() const {
-    return states;
-}
-
-template<typename T>
-const void SimulationResult<T>::printStates() const {
+void SimulationResult<T>::printStates() const {
     for ( auto& state : states ) {
         state->printState();
     }
 }
 
 template<typename T>
-const void SimulationResult<T>::printLastState() const {
-    states.back()->printState();
+void SimulationResult<T>::setMixtures(std::unordered_map<size_t, std::shared_ptr<sim::Mixture<T>>> mixtures_) {
+    for (auto& [mixtureId, mixture] : mixtures_) {
+        mixtures.try_emplace(mixtureId, mixture);
+    }
 }
 
 template<typename T>
-const void SimulationResult<T>::printState(int key) const {
-    states.at(key)->printState();
-}
-
-template<typename T>
-const void SimulationResult<T>::setMixtures(std::unordered_map<int, sim::Mixture<T>*> mixtures_) {
-    mixtures = mixtures_;
-}
-
-template<typename T>
-const std::unordered_map<int, sim::Mixture<T>*>& SimulationResult<T>::getMixtures() const {
-    return mixtures;
-}
-
-template<typename T>
-const void SimulationResult<T>::printMixtures() {
+void SimulationResult<T>::printMixtures() {
 
     if (mixtures.empty()) {
         throw std::invalid_argument("There are no mixture results stored.");
@@ -196,7 +148,7 @@ const void SimulationResult<T>::printMixtures() {
 }
 
 template<typename T>
-const void SimulationResult<T>::writeMixture(int mixtureId) {
+void SimulationResult<T>::writeMixture(int mixtureId) {
     /** TODO: Miscellaneous
      * - CSV Writer here
      * - get a channel pointer

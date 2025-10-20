@@ -2,50 +2,53 @@
 
 #include "gtest/gtest.h"
 
-#include "test_helpers.h"
+#include "../test_helpers.h"
+#include "../test_definitions.h"
 
 using T = double;
 
-TEST(BigDroplet, allResultValues) {
+class BigDroplet : public test::definitions::GlobalTest<T> { };
+
+TEST_F(BigDroplet, allResultValues) {
 
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(1e-3, 0.0, false);
-    auto node3 = network.addNode(2e-3, 0.0, false);
-    auto node4 = network.addNode(2.5e-3, 0.86602540378e-3, false);
-    auto node5 = network.addNode(3e-3, 0.0, false);
-    auto node0 = network.addNode(4e-3, 0.0, false);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(1e-3, 0.0, false);
+    auto node3 = network->addNode(2e-3, 0.0, false);
+    auto node4 = network->addNode(2.5e-3, 0.86602540378e-3, false);
+    auto node5 = network->addNode(3e-3, 0.0, false);
+    auto node0 = network->addNode(4e-3, 0.0, false);
 
     // flowRate pump
     auto flowRate = 3e-11;
-    auto pump = network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    auto pump = network->addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 30e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network.addChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c4 = network.addChannel(node3->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c5 = network.addChannel(node4->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c6 = network.addChannel(node5->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c4 = network->addRectangularChannel(node3->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c5 = network->addRectangularChannel(node4->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c6 = network->addRectangularChannel(node5->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- sink ---
-    network.setSink(node0->getId());
+    network->setSink(node0->getId());
     //--- ground ---
-    network.setGround(node0->getId());
+    network->setGround(node0->getId());
 
     // define simulation
-    sim::AbstractDroplet<T> testSimulation(&network);
+    sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -54,78 +57,71 @@ TEST(BigDroplet, allResultValues) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
-   // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
-
-    // check if chip is valid
-    network.isNetworkValid();
-    network.sortGroups();
+    // Set the resistance model
+    testSimulation.set1DResistanceModel();
 
     // simulate
     testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
-    EXPECT_EQ(network.getFlowRatePumps().at(pump->getId())->getId(), pump->getId());
-    EXPECT_EQ(network.getFlowRatePumps().at(pump->getId())->getNodeA(), node0->getId());
-    EXPECT_EQ(network.getFlowRatePumps().at(pump->getId())->getNodeB(), node1->getId());
-    EXPECT_EQ(network.getFlowRatePumps().at(pump->getId())->getFlowRate(), flowRate);
+    EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getId(), pump->getId());
+    EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getNodeAId(), node0->getId());
+    EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getNodeBId(), node1->getId());
+    EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getFlowRate(), flowRate);
 
-    EXPECT_EQ(network.getChannels().at(c1->getId())->getId(), c1->getId());
-    EXPECT_EQ(network.getChannels().at(c1->getId())->getNodeA(), node1->getId());
-    EXPECT_EQ(network.getChannels().at(c1->getId())->getNodeB(), node2->getId());
-    EXPECT_EQ(network.getChannels().at(c1->getId())->getWidth(), cWidth);
-    EXPECT_EQ(network.getChannels().at(c1->getId())->getHeight(), cHeight);
-    EXPECT_NEAR(network.getChannels().at(c1->getId())->getLength(), cLength, 1e-16);
-    EXPECT_EQ(network.getChannels().at(c1->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    EXPECT_EQ(network.getChannels().at(c2->getId())->getId(), c2->getId());
-    EXPECT_EQ(network.getChannels().at(c2->getId())->getNodeA(), node2->getId());
-    EXPECT_EQ(network.getChannels().at(c2->getId())->getNodeB(), node3->getId());
-    EXPECT_EQ(network.getChannels().at(c2->getId())->getWidth(), cWidth);
-    EXPECT_EQ(network.getChannels().at(c2->getId())->getHeight(), cHeight);
-    EXPECT_NEAR(network.getChannels().at(c2->getId())->getLength(), cLength, 1e-16);
-    EXPECT_EQ(network.getChannels().at(c2->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    EXPECT_EQ(network.getChannels().at(c3->getId())->getId(), c3->getId());
-    EXPECT_EQ(network.getChannels().at(c3->getId())->getNodeA(), node3->getId());
-    EXPECT_EQ(network.getChannels().at(c3->getId())->getNodeB(), node4->getId());
-    EXPECT_EQ(network.getChannels().at(c3->getId())->getWidth(), cWidth);
-    EXPECT_EQ(network.getChannels().at(c3->getId())->getHeight(), cHeight);
-    EXPECT_NEAR(network.getChannels().at(c3->getId())->getLength(), cLength, 1e-12);
-    EXPECT_EQ(network.getChannels().at(c3->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    EXPECT_EQ(network.getChannels().at(c4->getId())->getId(), c4->getId());
-    EXPECT_EQ(network.getChannels().at(c4->getId())->getNodeA(), node3->getId());
-    EXPECT_EQ(network.getChannels().at(c4->getId())->getNodeB(), node5->getId());
-    EXPECT_EQ(network.getChannels().at(c4->getId())->getWidth(), cWidth);
-    EXPECT_EQ(network.getChannels().at(c4->getId())->getHeight(), cHeight);
-    EXPECT_NEAR(network.getChannels().at(c4->getId())->getLength(), cLength, 1e-16);
-    EXPECT_EQ(network.getChannels().at(c4->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    EXPECT_EQ(network.getChannels().at(c5->getId())->getId(), c5->getId());
-    EXPECT_EQ(network.getChannels().at(c5->getId())->getNodeA(), node4->getId());
-    EXPECT_EQ(network.getChannels().at(c5->getId())->getNodeB(), node5->getId());
-    EXPECT_EQ(network.getChannels().at(c5->getId())->getWidth(), cWidth);
-    EXPECT_EQ(network.getChannels().at(c5->getId())->getHeight(), cHeight);
-    EXPECT_NEAR(network.getChannels().at(c5->getId())->getLength(), cLength, 1e-12);
-    EXPECT_EQ(network.getChannels().at(c5->getId())->getChannelType(), arch::ChannelType::NORMAL);
-    EXPECT_EQ(network.getChannels().at(c6->getId())->getId(), c6->getId());
-    EXPECT_EQ(network.getChannels().at(c6->getId())->getNodeA(), node5->getId());
-    EXPECT_EQ(network.getChannels().at(c6->getId())->getNodeB(), node0->getId());
-    EXPECT_EQ(network.getChannels().at(c6->getId())->getWidth(), cWidth);
-    EXPECT_EQ(network.getChannels().at(c6->getId())->getHeight(), cHeight);
-    EXPECT_NEAR(network.getChannels().at(c6->getId())->getLength(), cLength, 1e-16);
-    EXPECT_EQ(network.getChannels().at(c6->getId())->getChannelType(), arch::ChannelType::NORMAL);
+    EXPECT_EQ(network->getChannel(c1->getId())->getId(), c1->getId());
+    EXPECT_EQ(network->getChannel(c1->getId())->getNodeAId(), node1->getId());
+    EXPECT_EQ(network->getChannel(c1->getId())->getNodeBId(), node2->getId());
+    EXPECT_EQ(network->getRectangularChannel(c1->getId())->getWidth(), cWidth);
+    EXPECT_EQ(network->getRectangularChannel(c1->getId())->getHeight(), cHeight);
+    EXPECT_NEAR(network->getChannel(c1->getId())->getLength(), cLength, 1e-16);
+    EXPECT_EQ(network->getChannel(c1->getId())->getChannelType(), arch::ChannelType::NORMAL);
+    EXPECT_EQ(network->getChannel(c2->getId())->getId(), c2->getId());
+    EXPECT_EQ(network->getChannel(c2->getId())->getNodeAId(), node2->getId());
+    EXPECT_EQ(network->getChannel(c2->getId())->getNodeBId(), node3->getId());
+    EXPECT_EQ(network->getRectangularChannel(c2->getId())->getWidth(), cWidth);
+    EXPECT_EQ(network->getRectangularChannel(c2->getId())->getHeight(), cHeight);
+    EXPECT_NEAR(network->getChannel(c2->getId())->getLength(), cLength, 1e-16);
+    EXPECT_EQ(network->getChannel(c2->getId())->getChannelType(), arch::ChannelType::NORMAL);
+    EXPECT_EQ(network->getChannel(c3->getId())->getId(), c3->getId());
+    EXPECT_EQ(network->getChannel(c3->getId())->getNodeAId(), node3->getId());
+    EXPECT_EQ(network->getChannel(c3->getId())->getNodeBId(), node4->getId());
+    EXPECT_EQ(network->getRectangularChannel(c3->getId())->getWidth(), cWidth);
+    EXPECT_EQ(network->getRectangularChannel(c3->getId())->getHeight(), cHeight);
+    EXPECT_NEAR(network->getChannel(c3->getId())->getLength(), cLength, 1e-12);
+    EXPECT_EQ(network->getChannel(c3->getId())->getChannelType(), arch::ChannelType::NORMAL);
+    EXPECT_EQ(network->getChannel(c4->getId())->getId(), c4->getId());
+    EXPECT_EQ(network->getChannel(c4->getId())->getNodeAId(), node3->getId());
+    EXPECT_EQ(network->getChannel(c4->getId())->getNodeBId(), node5->getId());
+    EXPECT_EQ(network->getRectangularChannel(c4->getId())->getWidth(), cWidth);
+    EXPECT_EQ(network->getRectangularChannel(c4->getId())->getHeight(), cHeight);
+    EXPECT_NEAR(network->getChannel(c4->getId())->getLength(), cLength, 1e-16);
+    EXPECT_EQ(network->getChannel(c4->getId())->getChannelType(), arch::ChannelType::NORMAL);
+    EXPECT_EQ(network->getChannel(c5->getId())->getId(), c5->getId());
+    EXPECT_EQ(network->getChannel(c5->getId())->getNodeAId(), node4->getId());
+    EXPECT_EQ(network->getChannel(c5->getId())->getNodeBId(), node5->getId());
+    EXPECT_EQ(network->getRectangularChannel(c5->getId())->getWidth(), cWidth);
+    EXPECT_EQ(network->getRectangularChannel(c5->getId())->getHeight(), cHeight);
+    EXPECT_NEAR(network->getChannel(c5->getId())->getLength(), cLength, 1e-12);
+    EXPECT_EQ(network->getChannel(c5->getId())->getChannelType(), arch::ChannelType::NORMAL);
+    EXPECT_EQ(network->getChannel(c6->getId())->getId(), c6->getId());
+    EXPECT_EQ(network->getChannel(c6->getId())->getNodeAId(), node5->getId());
+    EXPECT_EQ(network->getChannel(c6->getId())->getNodeBId(), node0->getId());
+    EXPECT_EQ(network->getRectangularChannel(c6->getId())->getWidth(), cWidth);
+    EXPECT_EQ(network->getRectangularChannel(c6->getId())->getHeight(), cHeight);
+    EXPECT_NEAR(network->getChannel(c6->getId())->getLength(), cLength, 1e-16);
+    EXPECT_EQ(network->getChannel(c6->getId())->getChannelType(), arch::ChannelType::NORMAL);
 
     EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getId(), fluid0->getId());
     EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getName(), "");
     EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getViscosity(), 1e-3);
     EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getDensity(), 1e3);
-    EXPECT_EQ(testSimulation.getFluid(fluid0->getId())->getConcentration(), 1.0);
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getId(), fluid1->getId());
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getName(), "");
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getViscosity(), 3e-3);
     EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getDensity(), 1e3);
-    EXPECT_EQ(testSimulation.getFluid(fluid1->getId())->getConcentration(), 1.0);
 
     EXPECT_EQ(testSimulation.getDroplet(droplet0->getId())->getId(), droplet0->getId());
     EXPECT_EQ(testSimulation.getDroplet(droplet0->getId())->getName(), "");
@@ -279,45 +275,45 @@ TEST(BigDroplet, allResultValues) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST(BigDroplet, inverseDirectionChannels) {
+TEST_F(BigDroplet, inverseDirectionChannels) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(1e-3, 0.0, false);
-    auto node3 = network.addNode(2e-3, 0.0, false);
-    auto node4 = network.addNode(2.5e-3, 0.86602540378e-3, false);
-    auto node5 = network.addNode(3e-3, 0.0, false);
-    auto node0 = network.addNode(4e-3, 0.0, false);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(1e-3, 0.0, false);
+    auto node3 = network->addNode(2e-3, 0.0, false);
+    auto node4 = network->addNode(2.5e-3, 0.86602540378e-3, false);
+    auto node5 = network->addNode(3e-3, 0.0, false);
+    auto node0 = network->addNode(4e-3, 0.0, false);
 
     // flowRate pump
     auto flowRate = 3e-11;
-    auto pump = network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    auto pump = network->addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 30e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network.addChannel(node2->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node3->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network.addChannel(node4->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c4 = network.addChannel(node5->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c5 = network.addChannel(node5->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c6 = network.addChannel(node0->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node2->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node3->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node4->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c4 = network->addRectangularChannel(node5->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c5 = network->addRectangularChannel(node5->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c6 = network->addRectangularChannel(node0->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- sink ---
-    network.setSink(node0->getId());
+    network->setSink(node0->getId());
     //--- ground ---
-    network.setGround(node0->getId());
+    network->setGround(node0->getId());
 
     // define simulation
-    sim::AbstractDroplet<T> testSimulation(&network);
+    sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -326,19 +322,14 @@ TEST(BigDroplet, inverseDirectionChannels) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
-    // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
-
-    // check if chip is valid
-    network.isNetworkValid();
-    network.sortGroups();
+    // Set the resistance model
+    testSimulation.set1DResistanceModel();
 
     // simulate
     testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -488,45 +479,45 @@ TEST(BigDroplet, inverseDirectionChannels) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST(BigDroplet, mixedDirectionChannels) {
+TEST_F(BigDroplet, mixedDirectionChannels) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(1e-3, 0.0, false);
-    auto node3 = network.addNode(2e-3, 0.0, false);
-    auto node4 = network.addNode(2.5e-3, 0.86602540378e-3, false);
-    auto node5 = network.addNode(3e-3, 0.0, false);
-    auto node0 = network.addNode(4e-3, 0.0, false);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(1e-3, 0.0, false);
+    auto node3 = network->addNode(2e-3, 0.0, false);
+    auto node4 = network->addNode(2.5e-3, 0.86602540378e-3, false);
+    auto node5 = network->addNode(3e-3, 0.0, false);
+    auto node0 = network->addNode(4e-3, 0.0, false);
 
     // flowRate pump
     auto flowRate = 3e-11;
-    auto pump = network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    auto pump = network->addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 30e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network.addChannel(node2->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c3 = network.addChannel(node4->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c4 = network.addChannel(node3->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c5 = network.addChannel(node5->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c6 = network.addChannel(node5->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node2->getId(), node1->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node4->getId(), node3->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c4 = network->addRectangularChannel(node3->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c5 = network->addRectangularChannel(node5->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c6 = network->addRectangularChannel(node5->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- sink ---
-    network.setSink(node0->getId());
+    network->setSink(node0->getId());
     //--- ground ---
-    network.setGround(node0->getId());
+    network->setGround(node0->getId());
 
     // define simulation
-    sim::AbstractDroplet<T> testSimulation(&network);
+    sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -535,19 +526,14 @@ TEST(BigDroplet, mixedDirectionChannels) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
-    // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
-
-    // check if chip is valid
-    network.isNetworkValid();
-    network.sortGroups();
+    // Set the resistance model
+    testSimulation.set1DResistanceModel();
 
     // simulate
     testSimulation.simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation.getSimulationResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -697,23 +683,20 @@ TEST(BigDroplet, mixedDirectionChannels) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST(BigDroplet, jsonDefinition) {
+TEST_F(BigDroplet, jsonDefinition) {
     std::string file = "../examples/Abstract/Droplet/Network1.JSON";
 
     // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(file);
+    auto network = porting::networkFromJSON<T>(file);
 
     // Load and set the simulation from a JSON file
-    auto testSimulation = porting::simulationFromJSON<T>(file, &network);
-   
-    network.sortGroups();
-    network.isNetworkValid();
+    auto testSimulation = porting::simulationFromJSON<T>(file, network);
 
     // Perform simulation and store results
     testSimulation->simulate();
 
     // results
-    result::SimulationResult<T>* result = testSimulation->getSimulationResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation->getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -863,36 +846,36 @@ TEST(BigDroplet, jsonDefinition) {
     EXPECT_EQ(testSimulation->getContinuousPhase()->getId(), 0);
 }
 
-TEST(BigDroplet, noSink1) {
+TEST_F(BigDroplet, noSink1) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(1e-3, 0.0, false);
-    auto node0 = network.addNode(2e-3, 0.0, false);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(1e-3, 0.0, false);
+    auto node0 = network->addNode(2e-3, 0.0, false);
     
     // flowRate pump
     auto flowRate = 3e-11;
-    network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    network->addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 30e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- ground ---
-    network.setGround(node0->getId());
+    network->setGround(node0->getId());
 
     // define simulation
-    sim::AbstractDroplet<T> testSimulation(&network);
+    sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -901,48 +884,43 @@ TEST(BigDroplet, noSink1) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
 
-    // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
-
-    // check if chip is valid
-    network.isNetworkValid();
-    network.sortGroups();
+    // Set the resistance model
+    testSimulation.set1DResistanceModel();
 
     // simulate
     testSimulation.simulate();
 }
 
-TEST(BigDroplet, noSink2) {
+TEST_F(BigDroplet, noSink2) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(1e-3, 0.0, false);
-    auto node0 = network.addNode(2e-3, 0.0, false);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(1e-3, 0.0, false);
+    auto node0 = network->addNode(2e-3, 0.0, false);
     
     // flowRate pump
     auto flowRate = 3e-11;
-    network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    network->addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 30e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    network.addChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    network->addRectangularChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- ground ---
-    network.setGround(node0->getId());
+    network->setGround(node0->getId());
 
     // define simulation
-    sim::AbstractDroplet<T> testSimulation(&network);
+    sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -951,48 +929,43 @@ TEST(BigDroplet, noSink2) {
     auto droplet0 = testSimulation.addDroplet(fluid1->getId(), dropletVolume);
     testSimulation.addDropletInjection(droplet0->getId(), 0.1, c1->getId(), 0.5);
 
-    // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
-
-    // check if chip is valid
-    network.isNetworkValid();
-    network.sortGroups();
+    // Set the resistance model
+    testSimulation.set1DResistanceModel();
 
     // simulate
     testSimulation.simulate();
 }
 
-TEST(BigDroplet, noSinkTwoDroplets) {
+TEST_F(BigDroplet, noSinkTwoDroplets) {
     // define network
-    arch::Network<T> network;
+    auto network = arch::Network<T>::createNetwork();
 
     // nodes
-    auto node1 = network.addNode(0.0, 0.0, false);
-    auto node2 = network.addNode(1e-3, 0.0, false);
-    auto node0 = network.addNode(2e-3, 0.0, false);
+    auto node1 = network->addNode(0.0, 0.0, false);
+    auto node2 = network->addNode(1e-3, 0.0, false);
+    auto node0 = network->addNode(2e-3, 0.0, false);
 
     // flowRate pump
     auto flowRate = 3e-11;
-    network.addFlowRatePump(node0->getId(), node1->getId(), flowRate);
+    network->addFlowRatePump(node0->getId(), node1->getId(), flowRate);
 
     // channels
     auto cWidth = 100e-6;
     auto cHeight = 30e-6;
     auto cLength = 1000e-6;
 
-    auto c1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-    auto c2 = network.addChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node0->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
 
     //--- ground ---
-    network.setGround(node0->getId());
+    network->setGround(node0->getId());
 
     // define simulation
-    sim::AbstractDroplet<T> testSimulation(&network);
+    sim::AbstractDroplet<T> testSimulation(network);
 
     // fluids
-    auto fluid0 = testSimulation.addFluid(1e-3, 1e3, 1.0);
-    auto fluid1 = testSimulation.addFluid(3e-3, 1e3, 1.0);
+    auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
+    auto fluid1 = testSimulation.addFluid(3e-3, 1e3);
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
@@ -1002,13 +975,8 @@ TEST(BigDroplet, noSinkTwoDroplets) {
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
     testSimulation.addDropletInjection(droplet0->getId(), 0.0, c2->getId(), 0.5);
 
-    // Define and set the resistance model
-    sim::ResistanceModel1D<T> resistanceModel = sim::ResistanceModel1D<T>(testSimulation.getContinuousPhase()->getViscosity());
-    testSimulation.setResistanceModel(&resistanceModel);
-
-    // check if chip is valid
-    network.isNetworkValid();
-    network.sortGroups();
+    // Set the resistance model
+    testSimulation.set1DResistanceModel();
 
     // simulate
     testSimulation.simulate();
@@ -1020,13 +988,13 @@ Gerold Fink et al. “Automatic Design of Droplet-Based Microfluidic Ring Networ
 IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 40.2 (2021),
 pp. 339–349. DOI: 10.1109/TCAD.2020.2997000 (cit. on pp. 27, 54, 55, 56, 57).
 */
-TEST(Droplet, RingNetworkE1) {
+TEST_F(BigDroplet, RingNetworkE1) {
   constexpr auto cContinuousPhaseViscosity = 1e-3;
   sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
-  arch::Network<T> network;
+  auto network = arch::Network<T>::createNetwork();
 
   // simulator last since it has non-owning references to other objects
-  sim::AbstractDroplet<T> sim(&network);
+  sim::AbstractDroplet<T> sim(network);
 
   // droplet length
   auto lDroplet = 150e-6;
@@ -1085,99 +1053,98 @@ TEST(Droplet, RingNetworkE1) {
 
   auto cLength = 500e-6;
 
-  auto groundNode = network.addNode(1e-10, 1e-10, true);
-  auto sinkNode = network.addNode(9e-8, 9e-8, true);
-  auto node0 = network.addNode(2e-10, 2e-10);
-  auto node1 = network.addNode(3e-10, 3e-10);
-  auto node2 = network.addNode(4e-10, 4e-10);
-  auto node3 = network.addNode(5e-10, 5e-10);
-  auto node4 = network.addNode(6e-10, 6e-10);
-  auto node21 = network.addNode(7e-10, 7e-10);
-  auto node22 = network.addNode(8e-10, 8e-10);
-  auto node23 = network.addNode(9e-10, 9e-10);
-  auto node24 = network.addNode(1e-9, 1e-9);
-  auto node31 = network.addNode(2e-9, 2e-9);
-  auto node32 = network.addNode(3e-9, 3e-9);
-  auto node33 = network.addNode(4e-9, 4e-9);
-  auto node34 = network.addNode(5e-9, 5e-9);
-  auto node41 = network.addNode(6e-9, 6e-9);
-  auto node42 = network.addNode(7e-9, 7e-9);
-  auto node43 = network.addNode(8e-9, 8e-9);
-  auto node44 = network.addNode(9e-9, 9e-9);
-  auto node51 = network.addNode(1e-8, 1e-8);
-  auto node52 = network.addNode(2e-8, 2e-8);
-  auto node53 = network.addNode(3e-8, 3e-8);
-  auto node54 = network.addNode(4e-8, 4e-8);
-  auto node61 = network.addNode(5e-8, 5e-8);
-  auto node62 = network.addNode(6e-8, 6e-8);
-  auto node63 = network.addNode(7e-8, 7e-8);
-  auto node64 = network.addNode(8e-8, 8e-8);
+  auto groundNode = network->addNode(1e-10, 1e-10, true);
+  auto sinkNode = network->addNode(9e-8, 9e-8, true);
+  auto node0 = network->addNode(2e-10, 2e-10);
+  auto node1 = network->addNode(3e-10, 3e-10);
+  auto node2 = network->addNode(4e-10, 4e-10);
+  auto node3 = network->addNode(5e-10, 5e-10);
+  auto node4 = network->addNode(6e-10, 6e-10);
+  auto node21 = network->addNode(7e-10, 7e-10);
+  auto node22 = network->addNode(8e-10, 8e-10);
+  auto node23 = network->addNode(9e-10, 9e-10);
+  auto node24 = network->addNode(1e-9, 1e-9);
+  auto node31 = network->addNode(2e-9, 2e-9);
+  auto node32 = network->addNode(3e-9, 3e-9);
+  auto node33 = network->addNode(4e-9, 4e-9);
+  auto node34 = network->addNode(5e-9, 5e-9);
+  auto node41 = network->addNode(6e-9, 6e-9);
+  auto node42 = network->addNode(7e-9, 7e-9);
+  auto node43 = network->addNode(8e-9, 8e-9);
+  auto node44 = network->addNode(9e-9, 9e-9);
+  auto node51 = network->addNode(1e-8, 1e-8);
+  auto node52 = network->addNode(2e-8, 2e-8);
+  auto node53 = network->addNode(3e-8, 3e-8);
+  auto node54 = network->addNode(4e-8, 4e-8);
+  auto node61 = network->addNode(5e-8, 5e-8);
+  auto node62 = network->addNode(6e-8, 6e-8);
+  auto node63 = network->addNode(7e-8, 7e-8);
+  auto node64 = network->addNode(8e-8, 8e-8);
 
-  auto *c1 = network.addChannel(node0->getId(), node1->getId(), cHeight, cWidth, iLength, arch::ChannelType::NORMAL);
+  auto c1 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, iLength, arch::ChannelType::NORMAL);
   // Node 1
-  [[maybe_unused]] auto *c2_n1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, lIn1N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n1 = network.addChannel(node1->getId(), node3->getId(), cHeight, cWidth, lIn2N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n1 = network.addChannel(node2->getId(), node4->getId(), cHeight, cWidth, lOut1N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n1 = network.addChannel(node3->getId(), node4->getId(), cHeight, cWidth, lOut2N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n1 = network.addChannel(node4->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n1 = network.addChannel(node2->getId(), node3->getId(), cHeight, bWidth, lByN1, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, lIn1N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n1 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, lIn2N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n1 = network->addRectangularChannel(node2->getId(), node4->getId(), cHeight, cWidth, lOut1N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n1 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, lOut2N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n1 = network->addRectangularChannel(node4->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n1 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, bWidth, lByN1, arch::ChannelType::BYPASS);
   // Node 2
-  [[maybe_unused]] auto *c2_n2 = network.addChannel(node21->getId(), node22->getId(), cHeight, cWidth, lIn1N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n2 = network.addChannel(node21->getId(), node23->getId(), cHeight, cWidth, lIn2N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n2 = network.addChannel(node22->getId(), node24->getId(), cHeight, cWidth, lOut1N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n2 = network.addChannel(node23->getId(), node24->getId(), cHeight, cWidth, lOut2N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n2 = network.addChannel(node24->getId(), node31->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n2 = network.addChannel(node22->getId(), node23->getId(), cHeight, bWidth, lByN2, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n2 = network->addRectangularChannel(node21->getId(), node22->getId(), cHeight, cWidth, lIn1N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n2 = network->addRectangularChannel(node21->getId(), node23->getId(), cHeight, cWidth, lIn2N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n2 = network->addRectangularChannel(node22->getId(), node24->getId(), cHeight, cWidth, lOut1N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n2 = network->addRectangularChannel(node23->getId(), node24->getId(), cHeight, cWidth, lOut2N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n2 = network->addRectangularChannel(node24->getId(), node31->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n2 = network->addRectangularChannel(node22->getId(), node23->getId(), cHeight, bWidth, lByN2, arch::ChannelType::BYPASS);
   // Node 3
-  [[maybe_unused]] auto *c2_n3 = network.addChannel(node31->getId(), node32->getId(), cHeight, cWidth, lIn1N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n3 = network.addChannel(node31->getId(), node33->getId(), cHeight, cWidth, lIn2N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n3 = network.addChannel(node32->getId(), node34->getId(), cHeight, cWidth, lOut1N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n3 = network.addChannel(node33->getId(), node34->getId(), cHeight, cWidth, lOut2N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n3 = network.addChannel(node34->getId(), node41->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n3 = network.addChannel(node32->getId(), node33->getId(), cHeight, bWidth, lByN3, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n3 = network->addRectangularChannel(node31->getId(), node32->getId(), cHeight, cWidth, lIn1N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n3 = network->addRectangularChannel(node31->getId(), node33->getId(), cHeight, cWidth, lIn2N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n3 = network->addRectangularChannel(node32->getId(), node34->getId(), cHeight, cWidth, lOut1N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n3 = network->addRectangularChannel(node33->getId(), node34->getId(), cHeight, cWidth, lOut2N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n3 = network->addRectangularChannel(node34->getId(), node41->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n3 = network->addRectangularChannel(node32->getId(), node33->getId(), cHeight, bWidth, lByN3, arch::ChannelType::BYPASS);
   // Node 4
-  [[maybe_unused]] auto *c2_n4 = network.addChannel(node41->getId(), node42->getId(), cHeight, cWidth, lIn1N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n4 = network.addChannel(node41->getId(), node43->getId(), cHeight, cWidth, lIn2N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n4 = network.addChannel(node42->getId(), node44->getId(), cHeight, cWidth, lOut1N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n4 = network.addChannel(node43->getId(), node44->getId(), cHeight, cWidth, lOut2N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n4 = network.addChannel(node44->getId(), node51->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n4 = network.addChannel(node42->getId(), node43->getId(), cHeight, bWidth, lByN4, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n4 = network->addRectangularChannel(node41->getId(), node42->getId(), cHeight, cWidth, lIn1N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n4 = network->addRectangularChannel(node41->getId(), node43->getId(), cHeight, cWidth, lIn2N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n4 = network->addRectangularChannel(node42->getId(), node44->getId(), cHeight, cWidth, lOut1N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n4 = network->addRectangularChannel(node43->getId(), node44->getId(), cHeight, cWidth, lOut2N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n4 = network->addRectangularChannel(node44->getId(), node51->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n4 = network->addRectangularChannel(node42->getId(), node43->getId(), cHeight, bWidth, lByN4, arch::ChannelType::BYPASS);
   // Node 5
-  [[maybe_unused]] auto *c2_n5 = network.addChannel(node51->getId(), node52->getId(), cHeight, cWidth, lIn1N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n5 = network.addChannel(node51->getId(), node53->getId(), cHeight, cWidth, lIn2N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n5 = network.addChannel(node52->getId(), node54->getId(), cHeight, cWidth, lOut1N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n5 = network.addChannel(node53->getId(), node54->getId(), cHeight, cWidth, lOut2N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n5 = network.addChannel(node54->getId(), node61->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n5 = network.addChannel(node52->getId(), node53->getId(), cHeight, bWidth, lByN5, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n5 = network->addRectangularChannel(node51->getId(), node52->getId(), cHeight, cWidth, lIn1N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n5 = network->addRectangularChannel(node51->getId(), node53->getId(), cHeight, cWidth, lIn2N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n5 = network->addRectangularChannel(node52->getId(), node54->getId(), cHeight, cWidth, lOut1N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n5 = network->addRectangularChannel(node53->getId(), node54->getId(), cHeight, cWidth, lOut2N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n5 = network->addRectangularChannel(node54->getId(), node61->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n5 = network->addRectangularChannel(node52->getId(), node53->getId(), cHeight, bWidth, lByN5, arch::ChannelType::BYPASS);
   // Node 6
-  [[maybe_unused]] auto *c2_n6 = network.addChannel(node61->getId(), node62->getId(), cHeight, cWidth, lIn1N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n6 = network.addChannel(node61->getId(), node63->getId(), cHeight, cWidth, lIn2N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n6 = network.addChannel(node62->getId(), node64->getId(), cHeight, cWidth, lOut1N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n6 = network.addChannel(node63->getId(), node64->getId(), cHeight, cWidth, lOut2N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n6 = network.addChannel(node64->getId(), sinkNode->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n6 = network.addChannel(node62->getId(), node63->getId(), cHeight, bWidth, lByN6, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n6 = network->addRectangularChannel(node61->getId(), node62->getId(), cHeight, cWidth, lIn1N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n6 = network->addRectangularChannel(node61->getId(), node63->getId(), cHeight, cWidth, lIn2N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n6 = network->addRectangularChannel(node62->getId(), node64->getId(), cHeight, cWidth, lOut1N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n6 = network->addRectangularChannel(node63->getId(), node64->getId(), cHeight, cWidth, lOut2N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n6 = network->addRectangularChannel(node64->getId(), sinkNode->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n6 = network->addRectangularChannel(node62->getId(), node63->getId(), cHeight, bWidth, lByN6, arch::ChannelType::BYPASS);
 
   // flowRate pump
   auto flowRate = 3e-11;
-  [[maybe_unused]] auto *pump = network.addFlowRatePump(groundNode->getId(), node0->getId(), flowRate);
+  [[maybe_unused]] auto pump = network->addFlowRatePump(groundNode->getId(), node0->getId(), flowRate);
 
   //--- sink ---
-  network.setSink(sinkNode->getId());
+  network->setSink(sinkNode->getId());
   //--- ground ---
-  network.setGround(groundNode->getId());
+  network->setGround(groundNode->getId());
 
-  EXPECT_TRUE(network.isNetworkValid());
-  network.sortGroups();
+  EXPECT_TRUE(network->isNetworkValid());
 
   // fluids
-  auto *fluid0 = sim.addFluid(1e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
-  auto *fluid1 = sim.addFluid(4e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
+  auto fluid0 = sim.addFluid(1e-3, 1e3 /*, molecular size: 9e-10*/);
+  auto fluid1 = sim.addFluid(4e-3, 1e3 /*, molecular size: 9e-10*/);
   //--- continuousPhase ---
   sim.setContinuousPhase(fluid0);
 
   // droplets
   auto dropletVolume = lDroplet * cWidth * cHeight;
-  auto *droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
+  auto droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
   sim.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
   // auto* droplet1 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet1->getId(), d_m1 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
@@ -1192,14 +1159,15 @@ TEST(Droplet, RingNetworkE1) {
   // auto* droplet6 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet6->getId(), d_m6 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
 
-  sim.setResistanceModel(&resistanceModel);
+  // Set the resistance model
+  sim.set1DResistanceModel();
 
-  EXPECT_TRUE(network.isNetworkValid());
+  EXPECT_TRUE(network->isNetworkValid());
 
   // simulate the microfluidic network
   sim.simulate();
 
-  auto &result = *sim.getSimulationResults();
+  auto const &result = *sim.getResults();
 
   const std::vector<int> expectedDropletHeaderPath = {0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35};
   const std::vector<int> expectedDropletPayloadPath = {0, 2, 4, 5, 8, 10, 11, 14, 16, 17, 20, 22, 23, 26, 28, 29, 32, 34, 35};
@@ -1239,46 +1207,46 @@ Gerold Fink et al. “Automatic Design of Droplet-Based Microfluidic Ring Networ
 IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 40.2 (2021),
 pp. 339–349. DOI: 10.1109/TCAD.2020.2997000 (cit. on pp. 27, 54, 55, 56, 57).
 */
-TEST(Droplet, RingNetworkE2) {
+TEST_F(BigDroplet, RingNetworkE2) {
   constexpr auto cContinuousPhaseViscosity = 1e-3;
   sim::InstantaneousMixingModel<T> mixingModel;
   sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
-  arch::Network<T> network;
+  auto network = arch::Network<T>::createNetwork();
 
   // simulator last since it has non-owning references to other objects
-  sim::AbstractDroplet<T> sim(&network);
+  sim::AbstractDroplet<T> sim(network);
 
-  auto groundNode = network.addNode(1e-10, 1e-10, true);
-  auto sinkNode = network.addNode(9e-8, 9e-8, true);
-  auto node0 = network.addNode(2e-10, 2e-10);
-  auto node1 = network.addNode(3e-10, 3e-10);
-  auto node2 = network.addNode(4e-10, 4e-10);
-  auto node3 = network.addNode(5e-10, 5e-10);
-  auto node4 = network.addNode(6e-10, 6e-10);
-  auto node21 = network.addNode(7e-10, 7e-10);
-  auto node22 = network.addNode(8e-10, 8e-10);
-  auto node23 = network.addNode(9e-10, 9e-10);
-  auto node24 = network.addNode(1e-9, 1e-9);
-  auto node31 = network.addNode(2e-9, 2e-9);
-  auto node32 = network.addNode(3e-9, 3e-9);
-  auto node33 = network.addNode(4e-9, 4e-9);
-  auto node34 = network.addNode(5e-9, 5e-9);
-  auto node41 = network.addNode(6e-9, 6e-9);
-  auto node42 = network.addNode(7e-9, 7e-9);
-  auto node43 = network.addNode(8e-9, 8e-9);
-  auto node44 = network.addNode(9e-9, 9e-9);
-  auto node51 = network.addNode(1e-8, 1e-8);
-  auto node52 = network.addNode(2e-8, 2e-8);
-  auto node53 = network.addNode(3e-8, 3e-8);
-  auto node54 = network.addNode(4e-8, 4e-8);
-  auto node61 = network.addNode(5e-8, 5e-8);
-  auto node62 = network.addNode(6e-8, 6e-8);
-  auto node63 = network.addNode(7e-8, 7e-8);
-  auto node64 = network.addNode(8e-8, 8e-8);
+  auto groundNode = network->addNode(1e-10, 1e-10, true);
+  auto sinkNode = network->addNode(9e-8, 9e-8, true);
+  auto node0 = network->addNode(2e-10, 2e-10);
+  auto node1 = network->addNode(3e-10, 3e-10);
+  auto node2 = network->addNode(4e-10, 4e-10);
+  auto node3 = network->addNode(5e-10, 5e-10);
+  auto node4 = network->addNode(6e-10, 6e-10);
+  auto node21 = network->addNode(7e-10, 7e-10);
+  auto node22 = network->addNode(8e-10, 8e-10);
+  auto node23 = network->addNode(9e-10, 9e-10);
+  auto node24 = network->addNode(1e-9, 1e-9);
+  auto node31 = network->addNode(2e-9, 2e-9);
+  auto node32 = network->addNode(3e-9, 3e-9);
+  auto node33 = network->addNode(4e-9, 4e-9);
+  auto node34 = network->addNode(5e-9, 5e-9);
+  auto node41 = network->addNode(6e-9, 6e-9);
+  auto node42 = network->addNode(7e-9, 7e-9);
+  auto node43 = network->addNode(8e-9, 8e-9);
+  auto node44 = network->addNode(9e-9, 9e-9);
+  auto node51 = network->addNode(1e-8, 1e-8);
+  auto node52 = network->addNode(2e-8, 2e-8);
+  auto node53 = network->addNode(3e-8, 3e-8);
+  auto node54 = network->addNode(4e-8, 4e-8);
+  auto node61 = network->addNode(5e-8, 5e-8);
+  auto node62 = network->addNode(6e-8, 6e-8);
+  auto node63 = network->addNode(7e-8, 7e-8);
+  auto node64 = network->addNode(8e-8, 8e-8);
 
   // flowRate pump
   auto flowRate = 3e-11;
-  [[maybe_unused]] auto pump = network.addFlowRatePump(groundNode->getId(), node0->getId(), flowRate);
+  [[maybe_unused]] auto pump = network->addFlowRatePump(groundNode->getId(), node0->getId(), flowRate);
 
   // droplet length
   auto lDroplet = 150e-6;
@@ -1335,67 +1303,66 @@ TEST(Droplet, RingNetworkE2) {
 
   auto cLength = 500e-6;
 
-  auto *c1 = network.addChannel(node0->getId(), node1->getId(), cHeight, cWidth, iLength, arch::ChannelType::NORMAL);
+  auto c1 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, iLength, arch::ChannelType::NORMAL);
   // Node 1
-  [[maybe_unused]] auto *c2_n1 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, lIn1N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n1 = network.addChannel(node1->getId(), node3->getId(), cHeight, cWidth, lIn2N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n1 = network.addChannel(node2->getId(), node4->getId(), cHeight, cWidth, lOut1N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n1 = network.addChannel(node3->getId(), node4->getId(), cHeight, cWidth, lOut2N1, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n1 = network.addChannel(node4->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n1 = network.addChannel(node2->getId(), node3->getId(), cHeight, bWidth, lByN1, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n1 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, lIn1N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n1 = network->addRectangularChannel(node1->getId(), node3->getId(), cHeight, cWidth, lIn2N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n1 = network->addRectangularChannel(node2->getId(), node4->getId(), cHeight, cWidth, lOut1N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n1 = network->addRectangularChannel(node3->getId(), node4->getId(), cHeight, cWidth, lOut2N1, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n1 = network->addRectangularChannel(node4->getId(), node21->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n1 = network->addRectangularChannel(node2->getId(), node3->getId(), cHeight, bWidth, lByN1, arch::ChannelType::BYPASS);
   // Node 2
-  [[maybe_unused]] auto *c2_n2 = network.addChannel(node21->getId(), node22->getId(), cHeight, cWidth, lIn1N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n2 = network.addChannel(node21->getId(), node23->getId(), cHeight, cWidth, lIn2N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n2 = network.addChannel(node22->getId(), node24->getId(), cHeight, cWidth, lOut1N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n2 = network.addChannel(node23->getId(), node24->getId(), cHeight, cWidth, lOut2N2, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n2 = network.addChannel(node24->getId(), node31->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n2 = network.addChannel(node22->getId(), node23->getId(), cHeight, bWidth, lByN2, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n2 = network->addRectangularChannel(node21->getId(), node22->getId(), cHeight, cWidth, lIn1N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n2 = network->addRectangularChannel(node21->getId(), node23->getId(), cHeight, cWidth, lIn2N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n2 = network->addRectangularChannel(node22->getId(), node24->getId(), cHeight, cWidth, lOut1N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n2 = network->addRectangularChannel(node23->getId(), node24->getId(), cHeight, cWidth, lOut2N2, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n2 = network->addRectangularChannel(node24->getId(), node31->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n2 = network->addRectangularChannel(node22->getId(), node23->getId(), cHeight, bWidth, lByN2, arch::ChannelType::BYPASS);
   // Node 3
-  [[maybe_unused]] auto *c2_n3 = network.addChannel(node31->getId(), node32->getId(), cHeight, cWidth, lIn1N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n3 = network.addChannel(node31->getId(), node33->getId(), cHeight, cWidth, lIn2N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n3 = network.addChannel(node32->getId(), node34->getId(), cHeight, cWidth, lOut1N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n3 = network.addChannel(node33->getId(), node34->getId(), cHeight, cWidth, lOut2N3, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n3 = network.addChannel(node34->getId(), node41->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n3 = network.addChannel(node32->getId(), node33->getId(), cHeight, bWidth, lByN3, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n3 = network->addRectangularChannel(node31->getId(), node32->getId(), cHeight, cWidth, lIn1N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n3 = network->addRectangularChannel(node31->getId(), node33->getId(), cHeight, cWidth, lIn2N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n3 = network->addRectangularChannel(node32->getId(), node34->getId(), cHeight, cWidth, lOut1N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n3 = network->addRectangularChannel(node33->getId(), node34->getId(), cHeight, cWidth, lOut2N3, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n3 = network->addRectangularChannel(node34->getId(), node41->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n3 = network->addRectangularChannel(node32->getId(), node33->getId(), cHeight, bWidth, lByN3, arch::ChannelType::BYPASS);
   // Node 4
-  [[maybe_unused]] auto *c2_n4 = network.addChannel(node41->getId(), node42->getId(), cHeight, cWidth, lIn1N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n4 = network.addChannel(node41->getId(), node43->getId(), cHeight, cWidth, lIn2N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n4 = network.addChannel(node42->getId(), node44->getId(), cHeight, cWidth, lOut1N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n4 = network.addChannel(node43->getId(), node44->getId(), cHeight, cWidth, lOut2N4, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n4 = network.addChannel(node44->getId(), node51->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n4 = network.addChannel(node42->getId(), node43->getId(), cHeight, bWidth, lByN4, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n4 = network->addRectangularChannel(node41->getId(), node42->getId(), cHeight, cWidth, lIn1N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n4 = network->addRectangularChannel(node41->getId(), node43->getId(), cHeight, cWidth, lIn2N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n4 = network->addRectangularChannel(node42->getId(), node44->getId(), cHeight, cWidth, lOut1N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n4 = network->addRectangularChannel(node43->getId(), node44->getId(), cHeight, cWidth, lOut2N4, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n4 = network->addRectangularChannel(node44->getId(), node51->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n4 = network->addRectangularChannel(node42->getId(), node43->getId(), cHeight, bWidth, lByN4, arch::ChannelType::BYPASS);
   // Node 5
-  [[maybe_unused]] auto *c2_n5 = network.addChannel(node51->getId(), node52->getId(), cHeight, cWidth, lIn1N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n5 = network.addChannel(node51->getId(), node53->getId(), cHeight, cWidth, lIn2N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n5 = network.addChannel(node52->getId(), node54->getId(), cHeight, cWidth, lOut1N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n5 = network.addChannel(node53->getId(), node54->getId(), cHeight, cWidth, lOut2N5, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n5 = network.addChannel(node54->getId(), node61->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n5 = network.addChannel(node52->getId(), node53->getId(), cHeight, bWidth, lByN5, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n5 = network->addRectangularChannel(node51->getId(), node52->getId(), cHeight, cWidth, lIn1N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n5 = network->addRectangularChannel(node51->getId(), node53->getId(), cHeight, cWidth, lIn2N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n5 = network->addRectangularChannel(node52->getId(), node54->getId(), cHeight, cWidth, lOut1N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n5 = network->addRectangularChannel(node53->getId(), node54->getId(), cHeight, cWidth, lOut2N5, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n5 = network->addRectangularChannel(node54->getId(), node61->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n5 = network->addRectangularChannel(node52->getId(), node53->getId(), cHeight, bWidth, lByN5, arch::ChannelType::BYPASS);
   // Node 6
-  [[maybe_unused]] auto *c2_n6 = network.addChannel(node61->getId(), node62->getId(), cHeight, cWidth, lIn1N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c3_n6 = network.addChannel(node61->getId(), node63->getId(), cHeight, cWidth, lIn2N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c4_n6 = network.addChannel(node62->getId(), node64->getId(), cHeight, cWidth, lOut1N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c5_n6 = network.addChannel(node63->getId(), node64->getId(), cHeight, cWidth, lOut2N6, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c6_n6 = network.addChannel(node64->getId(), sinkNode->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
-  [[maybe_unused]] auto *c7_n6 = network.addChannel(node62->getId(), node63->getId(), cHeight, bWidth, lByN6, arch::ChannelType::BYPASS);
+  [[maybe_unused]] auto c2_n6 = network->addRectangularChannel(node61->getId(), node62->getId(), cHeight, cWidth, lIn1N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c3_n6 = network->addRectangularChannel(node61->getId(), node63->getId(), cHeight, cWidth, lIn2N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c4_n6 = network->addRectangularChannel(node62->getId(), node64->getId(), cHeight, cWidth, lOut1N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c5_n6 = network->addRectangularChannel(node63->getId(), node64->getId(), cHeight, cWidth, lOut2N6, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c6_n6 = network->addRectangularChannel(node64->getId(), sinkNode->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+  [[maybe_unused]] auto c7_n6 = network->addRectangularChannel(node62->getId(), node63->getId(), cHeight, bWidth, lByN6, arch::ChannelType::BYPASS);
 
   //--- sink ---
-  network.setSink(sinkNode->getId());
+  network->setSink(sinkNode->getId());
   //--- ground ---
-  network.setGround(groundNode->getId());
+  network->setGround(groundNode->getId());
 
-  EXPECT_TRUE(network.isNetworkValid());
-  network.sortGroups();
+  EXPECT_TRUE(network->isNetworkValid());
 
   // fluids
-  auto *fluid0 = sim.addFluid(1e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
-  auto *fluid1 = sim.addFluid(4e-3, 1e3, 1.0 /*, molecular size: 9e-10*/);
+  auto fluid0 = sim.addFluid(1e-3, 1e3 /*, molecular size: 9e-10*/);
+  auto fluid1 = sim.addFluid(4e-3, 1e3 /*, molecular size: 9e-10*/);
   //--- continuousPhase ---
   sim.setContinuousPhase(fluid0);
 
   // droplets
   auto dropletVolume = lDroplet * cWidth * cHeight;
-  auto *droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
+  auto droplet0 = sim.addDroplet(fluid1->getId(), dropletVolume);
   sim.addDropletInjection(droplet0->getId(), 0.0, c1->getId(), 0.5);
   // auto* droplet1 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet1->getId(), d_m1 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
@@ -1406,14 +1373,15 @@ TEST(Droplet, RingNetworkE2) {
   // auto* droplet4 = sim.addDroplet(fluid1->getId(), dropletVolume);
   // sim.addDropletInjection(droplet4->getId(), d_m4 * flowRate / cWidth * cHeight, c1->getId(), 0.5);
 
-  sim.setResistanceModel(&resistanceModel);
+  // Set the resistance model
+  sim.set1DResistanceModel();
 
-  EXPECT_TRUE(network.isNetworkValid());
+  EXPECT_TRUE(network->isNetworkValid());
 
   // simulate the microfluidic network
   sim.simulate();
 
-  auto &result = *sim.getSimulationResults();
+  auto const &result = *sim.getResults();
 
   const std::vector<int> expectedDropletHeaderPath = {1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36};
   const std::vector<int> expectedDropletPayloadPath = {1, 3, 5, 6, 8, 10, 12, 15, 17, 18, 21, 23, 24, 26, 28, 30, 33, 35, 36};
@@ -1444,3 +1412,15 @@ TEST(Droplet, RingNetworkE2) {
   // check_path(droplet3Path, expectedDropletHeaderPath);
   // check_path(droplet4Path, expectedDropletHeaderPath);
 }
+
+/**
+ * Test ideas:
+ * 
+ * Droplets consisting of a fluid that gets deleted are defaulted to continuous phase. Or should have been removed.
+ * 
+ * A removed droplet means that its dropletInjections are also removed.
+ * 
+ * Does a simulation still work after the droplets are removed?
+ * 
+ * I can still adapt a removed droplet, but doesn't affect simulation result. Same goes with injection.
+ */

@@ -4,7 +4,7 @@
 namespace sim {
 
 template<typename T>
-BoundaryHeadEvent<T>::BoundaryHeadEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
+BoundaryHeadEvent<T>::BoundaryHeadEvent(T time, DropletImplementation<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
     Event<T>(time, 1), droplet(droplet), boundary(boundary), network(network) { }
 
 template<typename T>
@@ -13,7 +13,7 @@ void BoundaryHeadEvent<T>::performEvent() {
     auto boundaryChannel = boundary.getChannelPosition().getChannel();
 
     // get correct node (is the opposite node of the boundary reference node inside the channel)
-    int node = boundary.isVolumeTowardsNodeA() ? boundaryChannel->getNodeB() : boundaryChannel->getNodeA();
+    size_t node = boundary.isVolumeTowardsNodeA() ? boundaryChannel->getNodeBId() : boundaryChannel->getNodeAId();
 
     // if this node is a sink then remove the whole droplet from the network
     if ((network.isSink(node))) {
@@ -22,19 +22,19 @@ void BoundaryHeadEvent<T>::performEvent() {
     }
 
     // get next channels
-    std::vector<arch::RectangularChannel<T>*> nextChannels = network.getChannelsAtNode(node);
+    auto nextChannels = network.getChannelsAtNode(node);
 
     // choose branch with the highest instantaneous flow rate
     T maxFlowRate;
-    arch::RectangularChannel<T>* nextChannel = nullptr;
-    for (auto* channel : nextChannels) {
+    arch::Channel<T>* nextChannel = nullptr;
+    for (auto channel : nextChannels) {
         // do not consider the boundary channel and only consider Normal channels
-        if (channel == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {
+        if (channel.get() == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {
             continue;
         }
 
         // get the correct direction of the flow rate, where a positive flow rate means an outflow (away from the droplet center)
-        T flowRate = channel->getNodeA() == node ? channel->getFlowRate() : -(channel->getFlowRate());
+        T flowRate = channel->getNodeAId() == node ? channel->getFlowRate() : -(channel->getFlowRate());
 
         // only consider channels with a positive flow rate
         if (flowRate <= 0) {
@@ -44,7 +44,7 @@ void BoundaryHeadEvent<T>::performEvent() {
         // find maximal flow rate
         if (nextChannel == nullptr || flowRate > maxFlowRate) {
             maxFlowRate = flowRate;
-            nextChannel = channel;
+            nextChannel = channel.get();
         }
     }
 
@@ -60,8 +60,8 @@ void BoundaryHeadEvent<T>::performEvent() {
     }
 
     // get new position (is either 0.0 or 1.0, depending on if node0 or node1 of the nextChannel is the referenceNode)
-    T channelPosition = nextChannel->getNodeA() == node ? 0.0 : 1.0;
-    bool volumeTowardsNodeA = nextChannel->getNodeA() == node;
+    T channelPosition = nextChannel->getNodeAId() == node ? 0.0 : 1.0;
+    bool volumeTowardsNodeA = nextChannel->getNodeAId() == node;
 
     // set new channel, position, direction of volume, and state of the boundary
     boundary.getChannelPosition().setChannel(nextChannel);
@@ -76,7 +76,7 @@ void BoundaryHeadEvent<T>::print() {
 }
 
 template<typename T>
-BoundaryTailEvent<T>::BoundaryTailEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
+BoundaryTailEvent<T>::BoundaryTailEvent(T time, DropletImplementation<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network) : 
     Event<T>(time, 1), droplet(droplet), boundary(boundary), network(network) { }
 
 template<typename T>
@@ -96,8 +96,8 @@ void BoundaryTailEvent<T>::performEvent() {
         auto nextChannel = boundaries.size() == 1 ? boundaries[0]->getChannelPosition().getChannel() : fullyOccupiedChannels[0];
 
         // get new position (is either 0.0 or 1.0, depending on if node0 or node1 of the nextChannel is the referenceNode)
-        T channelPosition = nextChannel->getNodeA() == referenceNode ? 0.0 : 1.0;
-        bool volumeTowardsNodeA = nextChannel->getNodeA() != referenceNode;
+        T channelPosition = nextChannel->getNodeAId() == referenceNode ? 0.0 : 1.0;
+        bool volumeTowardsNodeA = nextChannel->getNodeAId() != referenceNode;
 
         // set new channel, position, direction of volume, and state of the boundary
         boundary.getChannelPosition().setChannel(nextChannel);

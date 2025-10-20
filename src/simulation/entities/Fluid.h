@@ -1,0 +1,142 @@
+/**
+ * @file Fluid.h
+ */
+
+#pragma once
+
+#include <string>
+#include <vector>
+
+namespace test::definitions {
+// Forward declared dependencies
+template<typename T>
+class GlobalTest;
+
+}
+
+namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Simulation;
+
+template<typename T>
+class Droplet;
+
+template<typename T>
+class Mixture;
+
+template<typename T>
+class DiffusiveMixture;
+
+
+/**
+ * @brief Class to define the fluid parameters of a droplet or the continuous phase.
+ */
+template<typename T>
+class Fluid {
+  private:
+    inline static int fluidCounter = 0;                     ///< Global counter for amount of created fluid objects.
+    size_t const id;                                        ///< Unique identifier of the fluid.
+    size_t simHash = 0;                                     ///< Hash of the simulation that created this fluid object.
+    std::string name = "";                                  ///< Name of the fluid.
+    T density = 1.0e3;                                      ///< Density of the continuous phase in [kg/m^3].
+    T viscosity = 1.0e-3;                                   ///< Dynamic viscosity of the continuous phase in [Pa s].
+    T molecularSize { std::numeric_limits<T>::epsilon() };  ///< Molecular size in [m^3].
+
+    /**
+     * @brief A static member function that resets the fluid object counter to zero.
+     * Used as a helper function to reset the static variable between tests.
+     * Is called in (friend) test::definitions::GlobalTest<T>::SetUp(), which overrides ::testing::Test.
+     */
+    static void resetFluidCounter() { fluidCounter = 0; }
+
+    /**
+     * @brief A static member function that returns the amount of fluid objects that have been created.
+     * Is used in (friend) Simulation<T>::addFluid() to create a fluid object and add it to the simulation.
+     * @returns The number of created fluid objects: fluidCounter.
+     */
+    static size_t getFluidCounter() { return fluidCounter; }
+
+    /**
+     * @brief Constructs a fluid.
+     * @param[in] id Unique identifier of the fluid.
+     * @param[in] density Density of the fluid in [kg/m^3].
+     * @param[in] viscosity Viscosity of the fluid in [Pa s].
+     */
+    Fluid(size_t id, size_t simHash, T density, T viscosity);
+
+    /**
+     * @brief Constructs a fluid.
+     * @param[in] id Unique identifier of the fluid.
+     * @param[in] density Density of the fluid in kg/m^3.
+     * @param[in] viscosity Viscosity of the fluid in [Pa s].
+     * @param[in] name Name of the fluid.
+     */
+    Fluid(size_t id, size_t simHash, T density, T viscosity, std::string name);
+
+    /**
+     * @brief Reset the simulation hash of this fluid upon removal of fluid.
+     */
+    void resetHash() noexcept { this->simHash = 0; }
+
+    /**
+     * @brief Check if the simulation hash of this fluid matches the provided hash.
+     * @param simHash Hash of the simulation to check against.
+     * @returns true if the hashes match, false otherwise.
+     */
+    bool checkHashes(size_t simHash) const;
+
+  public:
+
+    /**
+     * @brief Retrieve the unique identifier of the fluid.
+     * @return Unique identifier of the fluid.
+     */
+    [[nodiscard]] inline size_t getId() const { return id; }
+
+    /**
+     * @brief Set name of fluid.
+     * @param[in] name Name of the fluid.
+     */
+    void setName(std::string name);
+
+    /**
+     * @brief Retrieve name of the fluid.
+     * @return The name of the fluid.
+     */
+    [[nodiscard]] inline std::string getName() const { return name; }
+
+    /**
+     * @brief Set the fluid viscosity.
+     * @param[in] viscosity The new viscosity value of this fluid in [Pa s].
+     */
+    inline void setViscosity(T viscosity) { this->viscosity = viscosity; }
+
+    /**
+     * @brief Retrieve viscosity of the fluid.
+     * @return The viscosity of the fluid in [Pa s].
+     */
+    [[nodiscard]] inline T getViscosity() const { return viscosity; }
+
+    /**
+     * @brief Set the fluid density.
+     * @param[in] density The new density value of this fluid in [kg/m^3].
+     */
+    inline void setDensity(T density) { this->density = density; }
+
+    /**
+     * @brief Retrieve density of the fluid.
+     * @return Density of the fluid in [kg/m^3].
+     */
+    [[nodiscard]] inline T getDensity() const { return density; }
+
+    // Friend class definition, because the Fluid constructors are private
+    friend class Simulation<T>;
+    friend class Droplet<T>;
+    friend class Mixture<T>;
+    friend class DiffusiveMixture<T>;
+    friend class test::definitions::GlobalTest<T>;
+};
+
+}  // namespace sim

@@ -20,12 +20,12 @@ def abstractContinuous():
     network.addPressurePump(n0, n1, 1e3)
     network.addPressurePump(n0, n2, 1e3)
     network.addPressurePump(n0, n3, 1e3)
-    network.addChannel(n1, n4, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n2, n5, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n3, n6, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n4, n5, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n6, n5, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n5, n7, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n1, n4, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n2, n5, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n3, n6, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n4, n5, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n6, n5, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n5, n7, 1e-4, 1e-4, ChannelType.normal)
 
     network.sort()
     network.valid()
@@ -57,12 +57,12 @@ def abstractDroplet():
     n5 = network.addNode(4e-3, 0.0, True, True)
 
     # Channels
-    c0 = network.addChannel(n0, n1, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n1, n2, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n2, n3, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n2, n4, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n3, n4, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n4, n5, 1e-4, 3e-5, ChannelType.normal)
+    c0 = network.addRectangularChannel(n0, n1, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n1, n2, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n2, n3, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n2, n4, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n3, n4, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n4, n5, 1e-4, 3e-5, ChannelType.normal)
     network.addFlowRatePump(n5, n0, 3e-11)
 
     network.sort()
@@ -103,18 +103,18 @@ def hybridContinuous():
     n10 = network.addNode(3e-3, 1e-3, True)
 
     # Channels
-    network.addChannel(n0, n1, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n0, n2, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n0, n3, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n1, n4, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n2, n5, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n3, n6, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n4, n7, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n6, n8, 1e-4, 1e-4, ChannelType.normal)
-    network.addChannel(n9, n10, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n0, n1, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n0, n2, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n0, n3, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n1, n4, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n2, n5, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n3, n6, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n4, n7, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n6, n8, 1e-4, 1e-4, ChannelType.normal)
+    network.addRectangularChannel(n9, n10, 1e-4, 1e-4, ChannelType.normal)
 
     # Module
-    network.addModule("test", "../../../../examples/STL/cross.stl", [1.75e-3, 0.75e-3], [5e-4, 5e-4], [n5, n7, n8, n9], \
+    network.addCfdModule("test", "../../../../examples/STL/cross.stl", [1.75e-3, 0.75e-3], [5e-4, 5e-4], [n5, n7, n8, n9], \
                       [[1.0, 0.0], [0.0, -1.0], [0.0, 1.0], [-1.0, 0.0]], [1e-4, 1e-4, 1e-4, 1e-4], \
                         1e-4, 1e-1, 0.1, 20, 1e-1, 0.55)
 

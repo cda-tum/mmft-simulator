@@ -12,7 +12,7 @@ namespace arch {
 
 // Forward declared dependencies
 template<typename T>
-class Module;
+class CfdModule;
 
 }
 
@@ -25,19 +25,18 @@ namespace mmft{
  */
 template<typename T>
 class Scheme {
-
-protected:
+private:
 
     std::unordered_map<int, T> alpha;       // relaxation value for pressure value updates on the Abstract-CFD interface nodes <nodeId, alpha>
-    std::unordered_map<int, T> beta;        // relaxation value for pressure value flow rate on the Abstract-CFD interface nodes <nodeId, alpha>
-    std::unordered_map<int, int> theta;     // Amount of LBM collide and stream iterations between update steps <moduleId, theta>
+    std::unordered_map<int, T> beta;        // relaxation value for pressure value flow rate on the Abstract-CFD interface nodes <nodeId, beta>
+    int theta;                              // Amount of LBM collide and stream iterations between update steps
+
+protected:
 
     /**
      * @brief Default constructor of a Scheme.
      */
     Scheme();
-
-    virtual ~Scheme() = default;
 
     /**
      * @brief Constructor of a Scheme with the required maps. The ids of the nodes and modules are passed in the maps.
@@ -45,7 +44,7 @@ protected:
      * @param[in] beta The relaxation value of the flow rate value update.
      * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
      */
-    Scheme(std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, std::unordered_map<int, int> theta);
+    Scheme(std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
 
     /**
      * @brief Constructor of a Scheme with provided constants. The constants are set for all provided modules (and, hence, nodes).
@@ -54,7 +53,7 @@ protected:
      * @param[in] beta The relaxation value of the flow rate value update.
      * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
      */
-    Scheme(const std::unordered_map<int, std::shared_ptr<arch::Module<T>>>& modules, T alpha, T beta, int theta);
+    Scheme(const std::shared_ptr<arch::CfdModule<T>> module, T alpha, T beta, int theta);
 
     /**
      * @brief Constructor of a Scheme with provided constants. The constants are set for all provided modules (and, hence, nodes).
@@ -63,16 +62,7 @@ protected:
      * @param[in] beta The relaxation value of the flow rate value update.
      * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
      */
-    Scheme(const std::shared_ptr<arch::Module<T>> module, T alpha, T beta, int theta);
-
-    /**
-     * @brief Constructor of a Scheme with provided constants. The constants are set for all provided modules (and, hence, nodes).
-     * @param[in] modules The map of modules with boundary nodes upon which this scheme acts.
-     * @param[in] alpha The relaxation value for the pressure value update.
-     * @param[in] beta The relaxation value of the flow rate value update.
-     * @param[in] theta The amount of LBM stream and collide cycles between updates for a module.
-     */
-    Scheme(const std::shared_ptr<arch::Module<T>> module, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
+    Scheme(const std::shared_ptr<arch::CfdModule<T>> module, std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
 
 public:
 
@@ -120,18 +110,21 @@ public:
      */
     void setTheta(int theta);
 
-    /**
-     * @brief Sets the number of LBM iterations between update steps for module with moduleId to the provided value.
-     * @param[in] module The id of the module that is to be updated.
+    /** 
+     * @brief Sets the update parameters for all nodes for this scheme.
+     * @param[in] alpha The alpha update value.
+     * @param[in] beta The beta update value.
      * @param[in] theta The number of LBM iterations between update steps.
      */
-    void setTheta(int moduleId, int theta);
+    void setParameters(T alpha, T beta, int theta);
 
-    /**
-     * @brief Sets the number of LBM iterations between update steps for all modules to the provided value.
-     * @param[in] beta The map of number of LBM iterations and moduleIds. <moduleId, theta>
+    /** 
+     * @brief Sets the update parameters for all nodes for this scheme, with the given node-value mapping.
+     * @param[in] alpha The <nodeId, alpha update value> mapping.
+     * @param[in] beta The <nodeId, beta update value> mapping.
+     * @param[in] theta The number of LBM iterations between update steps.
      */
-    void setTheta(std::unordered_map<int, int> theta);
+    void setParameters(std::unordered_map<int, T> alpha, std::unordered_map<int, T> beta, int theta);
 
     /**
      * @brief Returns the relaxation value for pressure updates for node with nodeId.
@@ -164,13 +157,16 @@ public:
      * @param[in] moduleId The module for which theta is returned.
      * @returns theta.
      */
-    int getTheta(int moduleId) const;
+    int getTheta() const;
 
     /**
-     * @brief Returns the number of LBM iterations between update steps for all modules.
-     * @returns Map of theta values. <moduleId, theta>
+     * @brief Returns whether this scheme is naive or not
+     * @returns false
+     * @note This function is overriden by NaiveScheme::isNaive() which defaults to true
      */
-    const std::unordered_map<int, int>& getTheta() const;
+    virtual bool isNaive() const { return false; }
+
+    virtual ~Scheme() = default;
 
 };
 

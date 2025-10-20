@@ -28,6 +28,9 @@ namespace sim {
 enum class Platform;
 
 template<typename T>
+class CFDSimulator;
+
+template<typename T>
 class lbmSimulator;
 
 template<typename T>
@@ -181,6 +184,6 @@ void readMixingModel (json jsonString, sim::AbstractMixing<T>& simulation);
  * @returns The id of the active fixture
 */
 template<typename T>
-unsigned int readActiveFixture (json jsonString);
+size_t readActiveFixture (json jsonString);
 
 }   // namespace porting

@@ -45,7 +45,7 @@ namespace porting {
  * @return The json string containing the result
 */
 template<typename T>
-auto writePressures (result::State<T>* state);
+auto writePressures (const result::State<T>* state);
 
 /**
  * @brief Write the flow rates in the channels of a network at a state (timestamp) of the simulation
@@ -53,7 +53,7 @@ auto writePressures (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeChannels (arch::Network<T>* network, result::State<T>* state);
+auto writeChannels (const arch::Network<T>* network, const result::State<T>* state);
 
 /**
  * @brief Write the location of the vtk results of a module at a state (timestamp) of the simulation
@@ -61,7 +61,7 @@ auto writeChannels (arch::Network<T>* network, result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeModules (result::State<T>* state);
+auto writeModules (const result::State<T>* state);
 
 /**
  * @brief Write the droplet positions at a state (timestamp) of the simulation
@@ -70,7 +70,7 @@ auto writeModules (result::State<T>* state);
  * @return The json string containing the result
 */
 template<typename T>
-auto writeDroplets (result::State<T>* state, sim::AbstractDroplet<T>* simulation);
+auto writeDroplets (const result::State<T>* state, const sim::AbstractDroplet<T>* simulation);
 
 /**
  * @brief Write set of fluids of the simulation
@@ -78,10 +78,13 @@ auto writeDroplets (result::State<T>* state, sim::AbstractDroplet<T>* simulation
  * @return The json string containing the result
 */
 template<typename T>
-auto writeFluids (sim::Simulation<T>* simulation);
+auto writeFluids (const sim::Simulation<T>* simulation);
 
 template<typename T>
-auto writeMixtures (sim::AbstractMixing<T>* simulation);
+auto writeMixtures (const sim::AbstractMixing<T>* simulation);
+
+template<typename T>
+auto writeMixtures (json& jsonString, const result::State<T>* state, const sim::AbstractMixing<T>* simulation);
 
 /**
  * @brief Return the simulation type of the simulation
@@ -89,7 +92,7 @@ auto writeMixtures (sim::AbstractMixing<T>* simulation);
  * @return String of the simulation type
 */
 template<typename T>
-std::string writeSimType (sim::Simulation<T>* simulation);
+std::string writeSimType (const sim::Simulation<T>* simulation);
 
 /**
  * @brief Return the platform of the simulation
@@ -97,6 +100,6 @@ std::string writeSimType (sim::Simulation<T>* simulation);
  * @return String of the platform
 */
 template<typename T>
-std::string writeSimPlatform (sim::Simulation<T>* simulation);
+std::string writeSimPlatform (const sim::Simulation<T>* simulation);
 
 }   // namespace porting

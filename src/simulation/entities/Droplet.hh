@@ -1,0 +1,410 @@
+#include "Droplet.h"
+
+namespace sim {
+
+template<typename T>
+DropletPosition<T>::DropletPosition() { }
+
+///-----------------------------Droplet------------------------------------///
+
+template<typename T>
+Droplet<T>::Droplet(size_t id, size_t simHash, T volume, Fluid<T>* fluid) : 
+    id(id), simHash(simHash), volume(volume), fluid(fluid) { }
+
+template<typename T>
+void Droplet<T>::setFluid(const std::shared_ptr<Fluid<T>>& fluid) {
+    if(fluid) {
+        if (fluid->checkHashes(this->simHash) == false) {
+            throw std::logic_error("Tried to set invalid fluid for droplet: fluid does not belong to the same simulation.");
+        }
+        this->fluid = fluid.get();
+    } else{
+        throw std::logic_error("Tried to set invalid fluid for droplet: nullPtr.");
+    }
+}
+
+template<typename T>
+const std::vector<const DropletBoundary<T>*> Droplet<T>::readBoundaries() const {
+    std::vector<const DropletBoundary<T>*> boundaryPtrs;
+    for (auto& boundary : this->boundaries) {
+        boundaryPtrs.push_back(boundary.get());
+    }
+    return boundaryPtrs;
+}
+
+template<typename T>
+const std::vector<const arch::Channel<T>*> Droplet<T>::readFullyOccupiedChannels() const {
+    std::vector<const arch::Channel<T>*> channelPtrs;
+    for (auto& channel : this->channels) {
+        channelPtrs.push_back(channel);
+    }
+    return channelPtrs;
+}
+
+
+template<typename T>
+DropletImplementation<T>::DropletImplementation(size_t id, size_t simHash, T volume, Fluid<T>* fluid) 
+    : Droplet<T>(id, simHash, volume, fluid) { ++dropletCounter; }
+
+template<typename T>
+void DropletImplementation<T>::setDropletState(DropletState dropletState) {
+    this->dropletState = dropletState;
+}
+
+template<typename T>
+DropletState DropletImplementation<T>::getDropletState() const {
+    return dropletState;
+}
+
+template<typename T>
+void DropletImplementation<T>::addDropletResistance(const ResistanceModel<T>& model) {
+    // check if droplet is in a single channel
+    if (isInsideSingleChannel()) {
+        auto channel = this->boundaries[0]->getChannelPosition().getChannel();
+        // volumeInsideChannel = volumeChannel - (volumeBoundary0 - volumeChannel) - (volumeBoundary1 - volumeChannel) = volumeBoundary0 + volumeBoundary1 - volumeChannel
+        T volumeInsideChannel = this->boundaries[0]->getVolume() + this->boundaries[1]->getVolume() - channel->getVolume();
+        channel->addDropletResistance(model.getDropletResistance(channel, this, volumeInsideChannel));
+    } else {
+        // loop through boundaries
+        for (auto& boundary : this->boundaries) {
+            auto channel = boundary->getChannelPosition().getChannel();
+            channel->addDropletResistance(model.getDropletResistance(channel, this, boundary->getVolume()));
+        }
+
+        // loop through fully occupied channels (if present)
+        for (auto& channel : this->channels) {
+            channel->addDropletResistance(model.getDropletResistance(channel, this, channel->getVolume()));
+        }
+    }
+}
+
+template<typename T>
+bool DropletImplementation<T>::isAtBifurcation() {
+    /** TODO: AbstractDropletSimulation
+     * maybe refine the definition, so it is only true if no channel branches of within the droplet range (then needs a chip reference as input)
+     * right now it is true if the droplet is not in a single channel
+     */
+    return !isInsideSingleChannel();
+}
+
+template<typename T>
+bool DropletImplementation<T>::isInsideSingleChannel() {
+    // is inside a single channel when only two boundaries are present and they are in the same channel
+    return this->channels.size() == 0 && this->boundaries.size() == 2 && this->boundaries[0]->getChannelPosition().getChannel() == this->boundaries[1]->getChannelPosition().getChannel();
+}
+
+template<typename T>
+void DropletImplementation<T>::addBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) { 
+    this->boundaries.push_back(std::unique_ptr<DropletBoundary<T>>(new DropletBoundary<T>(channel, position, volumeTowardsNodeA, state)));
+}
+
+template<typename T>
+void DropletImplementation<T>::addFullyOccupiedChannel(arch::Channel<T>* channel) {
+    this->channels.push_back(channel);
+}
+
+template<typename T>
+void DropletImplementation<T>::removeBoundary(DropletBoundary<T>& boundaryReference) {
+    /** TODO: Miscellaneous
+     * remove more than one boundary at once (remove_if)
+     */
+    for (size_t i = 0; i < this->boundaries.size(); i++) {
+        if (this->boundaries[i].get() == &boundaryReference) {
+            this->boundaries.erase(this->boundaries.begin() + i);
+            break;
+        }
+    }
+}
+
+template<typename T>
+void DropletImplementation<T>::removeFullyOccupiedChannel(size_t channelId) {
+    for (size_t i = 0; i < this->channels.size(); i++) {
+        if (this->channels[i]->getId() == channelId) {
+            this->channels.erase(this->channels.begin() + i);
+            break;
+        }
+    }
+}
+
+template<typename T>
+std::vector<DropletBoundary<T>*> DropletImplementation<T>::getConnectedBoundaries(size_t nodeId, DropletBoundary<T>* doNotConsider) {
+    std::vector<DropletBoundary<T>*> connectedBoundaries;
+    for (auto& boundary : this->boundaries) {
+        // do not consider boundary
+        if (boundary.get() == doNotConsider) {
+            continue;
+        }
+
+        if (boundary->getReferenceNode() == nodeId) {
+            connectedBoundaries.push_back(boundary.get());
+        }
+    }
+
+    return connectedBoundaries;
+}
+
+template<typename T>
+std::vector<arch::Channel<T>*> DropletImplementation<T>::getConnectedFullyOccupiedChannels(size_t nodeId) {
+    std::vector<arch::Channel<T>*> connectedChannels;
+    for (auto& channel : this->channels) {
+        if (nodeId == channel->getNodeAId() || nodeId == channel->getNodeBId()) {
+            connectedChannels.push_back(channel);
+        }
+    }
+
+    return connectedChannels;
+}
+
+template<typename T>
+void DropletImplementation<T>::updateBoundaries(const arch::Network<T>& network) {
+    // compute the average flow rates of all boundaries, since the inflow does not necessarily have to match the outflow (qInput != qOutput)
+    // in order to avoid an unwanted increase/decrease of the droplet volume an average flow rate is computed
+    // the actual flow rate of a boundary is then determined accordingly to the ratios of the different flowRates inside the channels
+
+    // determine the state of the droplet
+    T qInflow = 0;
+    T qOutflow = 0;
+    std::vector<DropletBoundary<T>*> outflowBoundaries;
+    std::vector<DropletBoundary<T>*> inflowBoundaries;
+
+    // loop through boundaries
+    for (auto& boundary : this->boundaries) {
+        // a boundary can stop at a bifurcation, e.g., when all flow rates of the connected channels have an inflow (point to the center of the boundary), or when only a bypass channel is present
+        // when this happens it usually goes into a WaitOutflow state where the flow rate of the boundary becomes zero
+        // here we have to check again, if this state still holds, or if the boundary can flow normally again
+        boundary->updateWaitState(network);
+
+        // if the boundary is still in a Wait state, then do not add it to the computation of the inflow/outflow
+        if (boundary->isInWaitState()) {
+            continue;
+        }
+
+        // this flow rate is already oriented in such a way, that a negative value indicates an inflow and a positive value an outflow
+        // inflow => boundary moves towards the droplet center
+        // outflow => boundary moves away from the droplet center
+        T flowRate = boundary->getChannelFlowRate();
+
+        if (flowRate < 0) {
+            // inflow occurs
+            inflowBoundaries.push_back(boundary.get());
+            qInflow += -flowRate;  // only the absolute value of qInflow is important, hence, the minus sign
+        } else if (flowRate > 0) {
+            // outflow occurs
+            outflowBoundaries.push_back(boundary.get());
+            qOutflow += flowRate;
+        } else {
+            // flow rate is zero and, thus, does not contribute to the in/outflow
+        }
+    }
+
+    if (inflowBoundaries.size() == 0 && outflowBoundaries.size() != 0) {
+        // only outflow and no inflow occurs
+        // this scenario is not supported yet and just stops the movement of all boundaries of this droplet
+        // possible solution would be to split the droplet, or that slower boundaries get dragged along faster ones
+
+        // just print a warning
+        std::cout << "WARNING: All boundaries of droplet (id=" << this->getId() << ") move away from the center of the droplet. Droplet volume conservation cannot be guaranteed, hence the droplet movement is stopped." << std::endl;
+
+        for (auto boundary : outflowBoundaries) {
+            boundary->setFlowRate(0);
+        }
+    } else if (inflowBoundaries.size() != 0 && outflowBoundaries.size() == 0) {
+        // only inflow and no outflow occurs
+        // this scenario is not supported yet and just stops the movement of all boundaries of this droplet
+
+        // just print a warning
+        std::cout << "WARNING: All boundaries of droplet (id=" << this->getId() << ") move towards the center of the droplet. Droplet volume conservation cannot be guaranteed, hence the droplet movement is stopped." << std::endl;
+
+        for (auto boundary : inflowBoundaries) {
+            boundary->setFlowRate(0);
+        }
+    } else if (inflowBoundaries.size() != 0 && outflowBoundaries.size() != 0) {
+        // outflow and inflow occurs
+
+        // determine the average flow rate (important, when inflow and outflow are not the same for example due to a bypass channel)
+        auto qAverage = (qInflow + qOutflow) / 2;
+
+        // outflow boundaries
+        for (auto boundary : outflowBoundaries) {
+            //consider the slipFactor (droplet is faster than the continuous phase)
+            boundary->setFlowRate(slipFactor * qAverage * boundary->getChannelFlowRate() / qOutflow);
+        }
+
+        // inflow boundaries
+        for (auto boundary : inflowBoundaries) {
+            //consider the slipFactor (droplet is faster than the continuous phase)
+            boundary->setFlowRate(slipFactor * qAverage * boundary->getChannelFlowRate() / qInflow);
+        }
+    } else {
+        // should not happen
+        std::invalid_argument("This error should not occurr.");
+    }
+}
+
+///--------------------------DropletBoundary------------------------------------///
+
+template<typename T>
+DropletBoundary<T>::DropletBoundary(arch::Channel<T>* channel, T position, bool volumeTowardsNodeA, BoundaryState state) : 
+    channelPosition(channel, position), volumeTowardsNodeA(volumeTowardsNodeA), state(state) { }
+
+template<typename T>
+arch::Node<T>* DropletBoundary<T>::getReferenceNode(arch::Network<T>* network) {
+    if (volumeTowardsNodeA) {
+        return network->getNode(channelPosition.getChannel()->getNodeAId()).get();
+    } else {
+        return network->getNode(channelPosition.getChannel()->getNodeBId()).get();
+    }
+}
+
+template<typename T>
+size_t DropletBoundary<T>::getReferenceNode() {
+    if (volumeTowardsNodeA) {
+        return channelPosition.getChannel()->getNodeAId();
+    } else {
+        return channelPosition.getChannel()->getNodeBId();
+    }
+}
+
+template<typename T>
+arch::Node<T>* DropletBoundary<T>::getOppositeReferenceNode(arch::Network<T>* network) {
+    if (volumeTowardsNodeA) {
+        return network->getNode(channelPosition.getChannel()->getNodeBId()).get();
+    } else {
+        return network->getNode(channelPosition.getChannel()->getNodeAId()).get();
+    }
+}
+
+template<typename T>
+size_t DropletBoundary<T>::getOppositeReferenceNode() {
+    if (volumeTowardsNodeA) {
+        return channelPosition.getChannel()->getNodeBId();
+    } else {
+        return channelPosition.getChannel()->getNodeAId();
+    }
+}
+
+template<typename T>
+T DropletBoundary<T>::getRemainingVolume() {
+    T volume = 0;
+
+    if (flowRate < 0) {
+        // boundary moves towards the droplet center
+        if (volumeTowardsNodeA) {
+            volume = channelPosition.getVolumeA();
+        } else {
+            volume = channelPosition.getVolumeB();
+        }
+    } else if (flowRate > 0) {
+        // boundary moves away from the droplet center
+        if (volumeTowardsNodeA) {
+            volume = channelPosition.getVolumeB();
+        } else {
+            volume = channelPosition.getVolumeA();
+        }
+    }
+
+    return volume;
+};
+
+template<typename T>
+T DropletBoundary<T>::getVolume() {
+    if (volumeTowardsNodeA) {
+        return channelPosition.getVolumeA();
+    } else {
+        return channelPosition.getVolumeB();
+    }
+}
+
+template<typename T>
+T DropletBoundary<T>::getChannelFlowRate() {
+    T flowRate = channelPosition.getChannel()->getFlowRate();
+    if (volumeTowardsNodeA) {
+        return flowRate;
+    } else {
+        return -flowRate;
+    }
+}
+
+template<typename T>
+T DropletBoundary<T>::getTime() {
+    T time = 0;
+
+    if (flowRate < 0) {
+        time = getRemainingVolume() / -flowRate;
+    } else if (flowRate > 0) {
+        time = getRemainingVolume() / flowRate;
+    }
+
+    return time;
+}
+
+template<typename T>
+void DropletBoundary<T>::moveBoundary(T timeStep) {
+    // check in which direction the volume goes
+    if (volumeTowardsNodeA) {
+        // positive flow rate indicates an outflow (movement towards node1) and, thus, the position inside the channel must increase
+        // negative flow rate indicates an inflow (movement towards node0) and, thus, the position inside the channel must decrease
+        channelPosition.addToPosition(flowRate * timeStep);
+    } else {
+        // positive flow rate indicates an outflow (movement towards node0) and, thus, the position inside the channel must decrease
+        // negative flow rate indicates an inflow (movement towards node1) and, thus, the position inside the channel must increase
+        channelPosition.addToPosition(-flowRate * timeStep);
+    }
+}
+
+template<typename T>
+void DropletBoundary<T>::updateWaitState(arch::Network<T> const& network) {
+    if (state == BoundaryState::WAIT_INFLOW) {
+        // in this scenario the boundary is in a Wait state while an inflow occurred (movement to the droplet center)
+        // in this implementation this does not happen, because the boundary gets immediately deleted when it would reach this state (was not the case in a previous concept)
+        // however, it is here for consistency and possible future implementations
+
+        // get oriented channel flow rate
+        T channelFlowRate = getChannelFlowRate();
+
+        // check if the flow rate is not an inflow anymore (>0)
+        // this indicates that the flow rate has changed since the last state and that the state should be Normal again
+        if (channelFlowRate > 0) {
+            state = BoundaryState::NORMAL;
+        }
+    } else if (state == BoundaryState::WAIT_OUTFLOW) {
+        // in this scenario the boundary is in a Wait state while an outflow occurred (movement away from the droplet center)
+        // this scenario happens at the "end" of a channel when a boundary wants to switch to another channel
+        // it indicates that the boundary could not move any further, because no channel was available that matches the criteria when a boundary switches channels (e.g., only a bypass channel was available or no flow rate of the other channels had an outflow)
+        // hence, it must be checked if the actual flow rate inside the channel has changed, or if there are now channels available that matches the criteria
+
+        // get oriented channel flow rate
+        T channelFlowRate = getChannelFlowRate();
+
+        // check if the flow rate is not an outflow anymore (<0)
+        // this indicates that the flow rate has changed since the last state and that the state should be Normal again (the boundary would move in the other direction again)
+        if (channelFlowRate < 0) {
+            state = BoundaryState::NORMAL;
+            return;
+        }
+
+        // if the flow rate did not change, then check for valid channels
+        auto boundaryChannel = channelPosition.getChannel();
+        size_t nodeId = isVolumeTowardsNodeA() ? boundaryChannel->getNodeBId() : boundaryChannel->getNodeAId();
+        for (auto& channel : network.getChannelsAtNode(nodeId)) {
+            // do not consider boundary channel or channel that is not a Normal one
+            if (channel.get() == boundaryChannel || channel->getChannelType() != arch::ChannelType::NORMAL) {
+                continue;
+            }
+
+            // check if a channel exists with an outflow (flow rate goes away from the node)
+            T flowRate = (nodeId == channel->getNodeAId() ? channel->getFlowRate() : -channel->getFlowRate());
+            if (flowRate > 0) {
+                state = BoundaryState::NORMAL;
+                return;
+            }
+        }
+    }
+}
+
+template<typename T>
+bool DropletBoundary<T>::isInWaitState() {
+    return state == BoundaryState::WAIT_INFLOW || state == BoundaryState::WAIT_OUTFLOW;
+}
+
+}  // namespace sim

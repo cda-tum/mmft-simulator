@@ -4,8 +4,8 @@ namespace porting {
 
 template<typename T>
 void readNodes(json jsonString, arch::Network<T>& network) {
-    int nodeId = 0;
-    int virtualNodes = 0;
+    size_t nodeId = 0;
+    size_t virtualNodes = 0;
     for (auto& node : jsonString["network"]["nodes"]) {
         
         if (node.contains("virtual") && node["virtual"]) {
@@ -34,7 +34,7 @@ void readNodes(json jsonString, arch::Network<T>& network) {
 
 template<typename T>
 void readChannels(json jsonString, arch::Network<T>& network) {
-    int channelId = 0;
+    size_t channelId = 0;
     for (auto& channel : jsonString["network"]["channels"]) {
         if (channel.contains("virtual") && channel["virtual"]) {
             channelId++;
@@ -44,7 +44,7 @@ void readChannels(json jsonString, arch::Network<T>& network) {
                 throw std::invalid_argument("Channel is ill-defined. Please define:\nnode1\nnode2\nheight\nwidth");
             }
             arch::ChannelType type = arch::ChannelType::NORMAL;
-            network.addChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
+            network.addRectangularChannel(channel["node1"], channel["node2"], channel["height"], channel["width"], type, channelId);
             channelId++;
         }
     }
@@ -53,16 +53,20 @@ void readChannels(json jsonString, arch::Network<T>& network) {
 template<typename T>
 void readModules(json jsonString, arch::Network<T>& network) {
     for (auto& module : jsonString["network"]["modules"]) {
-        if (!module.contains("position") || !module.contains("size") || !module.contains("nodes")) {
-            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nnodes");
+        if (!module.contains("position") || !module.contains("size") || !module.contains("stlFile") || !module.contains("Openings")) {
+            throw std::invalid_argument("Module is ill-defined. Please define:\nposition\nsize\nstlFile\nOpenings");
         }
         std::vector<T> position = { module["position"][0], module["position"][1] };
         std::vector<T> size = { module["size"][0], module["size"][1] };
-        std::unordered_map<int, std::shared_ptr<arch::Node<T>>> Nodes;
-        for (auto& nodeId : module["nodes"]) {
-            Nodes.try_emplace(nodeId, network.getNode(nodeId));
+        std::string stlFile = module["stlFile"];
+        std::unordered_map<size_t, arch::Opening<T>> Openings;
+        for (auto& opening : module["Openings"]) {
+            size_t nodeId = opening["node"];
+            std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
+            arch::Opening<T> opening_(network.getNode(nodeId), normal, opening["width"]);
+            Openings.try_emplace(nodeId, opening_);
         }
-        network.addModule(position, size, std::move(Nodes));
+        network.addCfdModule(position, size, stlFile, std::move(Openings));
     }
 }
 
@@ -110,11 +114,10 @@ void readFluids(json jsonString, sim::Simulation<T>& simulation) {
         throw std::invalid_argument("No fluids are defined. Please define at least 1 fluid.");
     }
     for (auto& fluid : jsonString["simulation"]["fluids"]) {
-        if (fluid.contains("density") && fluid.contains("viscosity") && fluid.contains("concentration") && fluid.contains("name")) {
+        if (fluid.contains("density") && fluid.contains("viscosity") && fluid.contains("name")) {
             T density = fluid["density"];
             T viscosity = fluid["viscosity"];
-            T concentration = fluid["concentration"];
-            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density, concentration);
+            sim::Fluid<T>* addedFluid = simulation.addFluid(viscosity, density).get();
             std::string name = fluid["name"];
             addedFluid->setName(name);
         } else {
@@ -183,22 +186,16 @@ void readMixtures(json jsonString, sim::AbstractMixing<T>& simulation) {
     for (auto& mixture : jsonString["simulation"]["mixtures"]) {
         if (mixture.contains("species") && mixture.contains("concentrations")) {
             if (mixture["species"].size() == mixture["concentrations"].size()) {
-                int counter = 0;
-                std::unordered_map<int, sim::Specie<T>*> species;
-                std::unordered_map<int, T> concentrations;
+                std::vector<std::shared_ptr<sim::Specie<T>>> species;
+                std::vector<T> concentrations;
                 for (auto& specie : mixture["species"]) {
                     auto specie_ptr = simulation.getSpecie(specie);
-                    species.try_emplace(specie, specie_ptr);
-                    concentrations.try_emplace(specie, mixture["concentrations"][counter]);
-                    counter++;
+                    species.push_back(specie_ptr);
                 }
-                if (simulation.getMixingModel()->isInstantaneous()) {
-                    simulation.addMixture(species, concentrations);
-                } else if (simulation.getMixingModel()->isDiffusive()) {
-                    simulation.addDiffusiveMixture(species, concentrations);
-                } else {
-                    throw std::invalid_argument("Please define a mixing model before adding mixtures.");
+                for (auto& conc : mixture["concentrations"]) {
+                    concentrations.push_back(conc);
                 }
+                simulation.addMixture(species, concentrations);
             } else {
                 throw std::invalid_argument("Wrongly defined mixture. Please provide as many concentrations as species.");
             }
@@ -252,25 +249,18 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
         }
         for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
             std::string name = simulator["name"];
-            std::string stlFile = simulator["stlFile"];
             T charPhysLength = simulator["charPhysLength"];
             T charPhysVelocity = simulator["charPhysVelocity"];
-            T resolution = simulator["resolution"];
+            size_t resolution = simulator["resolution"];
             T epsilon = simulator["epsilon"];
             T tau = simulator["tau"];
             int moduleId = simulator["moduleId"];
-            std::unordered_map<int, arch::Opening<T>> Openings;
-            for (auto& opening : simulator["Openings"]) {
-                int nodeId = opening["node"];
-                std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
-                arch::Opening<T> opening_(network->getNode(nodeId), normal, opening["width"]);
-                Openings.try_emplace(nodeId, opening_);
-            }
 
             if(simulator["Type"] == "LBM")
             {
-                auto simulator = simulation.addLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
-                                                            charPhysVelocity, resolution, epsilon, tau);
+                assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
+                auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), resolution,
+                                                                epsilon, tau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }
             /** TODO: HybridMixingSimulation
@@ -282,7 +272,7 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
             //         species.try_emplace(specieId, speciePtr.get());
             //     }
-            //     auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getModule(moduleId), species,
+            //     auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
             //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
             //     simulator->setVtkFolder(vtkFolder);
             // }
@@ -297,14 +287,14 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             //     }
             //     std::string organStlFile = simulator["organStlFile"];
             //     int tissueId = simulator["tissue"];
-            //     auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getModule(moduleId), species,
+            //     auto simulator = simulation.addLbmOocSimulator(name, stlFile, tissueId, organStlFile, network->getCfdModule(moduleId), species,
             //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
             //     simulator->setVtkFolder(vtkFolder);
             // }
             else if(simulator["Type"] == "ESS_LBM")
             {
                 #ifdef USE_ESSLBM
-                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getModule(moduleId), Openings, charPhysLength, 
+                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getCfdModule(moduleId), Openings, charPhysLength, 
                                                             charPhysVelocity, resolution, epsilon, tau);
                 simulator->setVtkFolder(vtkFolder);
                 #else
@@ -342,11 +332,12 @@ void readUpdateScheme(json jsonString, sim::HybridContinuous<T>& simulation) {
                 for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
                     if (simulator.contains("alpha") && simulator.contains("beta") && simulator.contains("theta")) {
                         int moduleCounter = 0;
+                        auto lbmSimulator = simulation.getLbmSimulator(moduleCounter);
                         if (simulator["alpha"].is_number() && simulator["beta"].is_number()) {
                             T alpha = simulator["alpha"];
                             T beta = simulator["beta"];
                             int theta = simulator["theta"];
-                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                            simulation.setNaiveHybridScheme(lbmSimulator, alpha, beta, theta);
                         } else if (simulator["alpha"].is_array() && simulator["beta"].is_array()) {
                             int nodeCounter = 0;
                             std::unordered_map<int, T> alpha;
@@ -354,10 +345,10 @@ void readUpdateScheme(json jsonString, sim::HybridContinuous<T>& simulation) {
                             int theta = simulator["theta"];
                             for (auto& opening : simulator["Openings"]) {
                                 alpha.try_emplace(opening["node"], simulator["alpha"][nodeCounter]);
-                                alpha.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
+                                beta.try_emplace(opening["node"], simulator["beta"][nodeCounter]);
                                 nodeCounter++;
                             }
-                            simulation.setNaiveHybridScheme(moduleCounter, alpha, beta, theta);
+                            simulation.setNaiveHybridScheme(lbmSimulator, alpha, beta, theta);
                         }
                         moduleCounter++;
                     } else {
@@ -418,41 +409,37 @@ void readPumps(json jsonString, arch::Network<T>* network) {
 
 template<typename T>
 void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
-    sim::ResistanceModel<T>* resistanceModel; 
     if (jsonString["simulation"].contains("resistanceModel")) {
         if (jsonString["simulation"]["resistanceModel"] == "Rectangular") {
-            resistanceModel = new sim::ResistanceModel1D<T>(simulation.getContinuousPhase()->getViscosity());
+            simulation.set1DResistanceModel();
         } else if (jsonString["simulation"]["resistanceModel"] == "Poiseuille") {
-            resistanceModel = new sim::ResistanceModelPoiseuille<T>(simulation.getContinuousPhase()->getViscosity());
+            simulation.setPoiseuilleResistanceModel();
         } else {
             throw std::invalid_argument("Invalid resistance model. Options are:\nRectangular\nPoiseuille");
         }
     } else {
         throw std::invalid_argument("No resistance model defined.");
     }
-    simulation.setResistanceModel(resistanceModel);
 }
 
 template<typename T>
 void readMixingModel(json jsonString, sim::AbstractMixing<T>& simulation) {
-    sim::MixingModel<T>* mixingModel;
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
-            mixingModel = new sim::InstantaneousMixingModel<T>();
+            simulation.setInstantaneousMixingModel();
         } else if (jsonString["simulation"]["mixingModel"] == "Diffusion") {
-            mixingModel = new sim::DiffusionMixingModel<T>();
+            simulation.setDiffusiveMixingModel();
         } else {
             throw std::invalid_argument("Invalid mixing model. Options are:\nInstantaneous\nDiffusion");
         }
     } else {
         throw std::invalid_argument("No mixing model defined.");
     }
-    simulation.setMixingModel(mixingModel);
 }
 
 template<typename T>
-unsigned int readActiveFixture(json jsonString) {
-    unsigned int activeFixture = 0;
+size_t readActiveFixture(json jsonString) {
+    size_t activeFixture = 0;
     if (jsonString["simulation"].contains("activeFixture")) {
         activeFixture = jsonString["simulation"]["activeFixture"];
         if (!jsonString["simulation"].contains("fixtures") || jsonString["simulation"]["fixtures"].size()-1 < activeFixture) {

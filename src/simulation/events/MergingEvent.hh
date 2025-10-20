@@ -3,12 +3,12 @@
 namespace sim {
 
 template<typename T>
-MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, AbstractDroplet<T>& simulation) : 
+MergeBifurcationEvent<T>::MergeBifurcationEvent(T time, DropletImplementation<T>& droplet0, DropletImplementation<T>& droplet1, DropletBoundary<T>& boundary0, AbstractDroplet<T>& simulation) : 
     Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), simulation(simulation) { }
 
 template<typename T>
 void MergeBifurcationEvent<T>::performEvent() {
-    auto newDroplet = simulation.mergeDroplets(droplet0.getId(), droplet1.getId());
+    auto newDroplet = simulation.addMergedDropletImplementation(droplet0, droplet1);
 
     // add boundaries from droplet0
     for (auto& boundary : droplet0.getBoundaries()) {
@@ -53,12 +53,12 @@ void MergeBifurcationEvent<T>::print() {
 }
 
 template<typename T>
-MergeChannelEvent<T>::MergeChannelEvent(T time, Droplet<T>& droplet0, Droplet<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, AbstractDroplet<T>& simulation) : 
+MergeChannelEvent<T>::MergeChannelEvent(T time, DropletImplementation<T>& droplet0, DropletImplementation<T>& droplet1, DropletBoundary<T>& boundary0, DropletBoundary<T>& boundary1, AbstractDroplet<T>& simulation) : 
     Event<T>(time, 0), droplet0(droplet0), droplet1(droplet1), boundary0(boundary0), boundary1(boundary1), simulation(simulation) {}
 
 template<typename T>
 void MergeChannelEvent<T>::performEvent() {
-    auto newDroplet = simulation.mergeDroplets(droplet0.getId(), droplet1.getId());
+    auto newDroplet = simulation.addMergedDropletImplementation(droplet0, droplet1);
 
     // add boundaries from droplet0
     for (auto& boundary : droplet0.getBoundaries()) {

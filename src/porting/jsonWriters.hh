@@ -3,7 +3,7 @@
 namespace porting {
 
 template<typename T>
-auto writePressures(result::State<T>* state) {
+auto writePressures(const result::State<T>* state) {
     auto nodes = ordered_json::array();
     auto const& pressures = state->getPressures();
     for (auto& [key, pressure] : pressures) {
@@ -13,7 +13,7 @@ auto writePressures(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeChannels(arch::Network<T>* network, result::State<T>* state) {
+auto writeChannels(const arch::Network<T>* network, const result::State<T>* state) {
     auto channels_json = ordered_json::array();
 
     auto const& flowRates = state->getFlowRates();
@@ -28,7 +28,7 @@ auto writeChannels(arch::Network<T>* network, result::State<T>* state) {
 
     // since edge ids should be continuous, iterate over number of total edges;
     // not all edges necessarily have a flowrate (membranes, tanks) or a mixturePosition
-    for (long unsigned int i = 0; i < edgeCount; ++i) {
+    for (size_t i = 0; i < edgeCount; ++i) {
         auto channel = ordered_json::object();
         if (flowRates.count(i)) {
             channel["flowRate"] = flowRates.at(i);
@@ -49,7 +49,7 @@ auto writeChannels(arch::Network<T>* network, result::State<T>* state) {
 }
 
 template<typename T>
-auto writeModules(result::State<T>* state) {      
+auto writeModules(const result::State<T>* state) {      
     auto modules = ordered_json::array();
     auto const& vtkFiles = state->getVtkFiles();
     for (auto& [key, vtkFile] : vtkFiles) {
@@ -62,7 +62,7 @@ auto writeModules(result::State<T>* state) {
 }
 
 template<typename T>
-auto writeDroplets(result::State<T>* state, sim::AbstractDroplet<T>* simulation) {      
+auto writeDroplets(const result::State<T>* state, const sim::AbstractDroplet<T>* simulation) {      
     auto BigDroplets = ordered_json::array();
     for (auto& [key, dropletPosition] : state->getDropletPositions()) {
         //dropletPosition
@@ -70,7 +70,7 @@ auto writeDroplets(result::State<T>* state, sim::AbstractDroplet<T>* simulation)
 
         //state
         BigDroplet["id"] = key;
-        BigDroplet["fluid"] = simulation->getDroplet(key)->getFluid()->getId();
+        BigDroplet["fluid"] = simulation->getDroplet(key)->readFluid()->getId();
         BigDroplet["volume"] = simulation->getDroplet(key)->getVolume();
 
         //boundaries
@@ -79,8 +79,8 @@ auto writeDroplets(result::State<T>* state, sim::AbstractDroplet<T>* simulation)
             BigDroplet["boundaries"].push_back({
                 {"volumeTowards1", boundary.isVolumeTowardsNodeA()},
                 {"position", {
-                    {"channel", boundary.getChannelPosition().getChannel()->getId()},
-                    {"position", boundary.getChannelPosition().getPosition()}}
+                    {"channel", boundary.readChannelPosition().getChannel()->getId()},
+                    {"position", boundary.readChannelPosition().getPosition()}}
                 }
             });
         }
@@ -96,15 +96,14 @@ auto writeDroplets(result::State<T>* state, sim::AbstractDroplet<T>* simulation)
 }
 
 template<typename T>
-auto writeFluids(sim::Simulation<T>* simulation) {      
+auto writeFluids(const sim::Simulation<T>* simulation) {      
     auto Fluids = ordered_json::array();
-    auto const& simFluids = simulation->getFluids();
-    for (long unsigned int i=0; i<simFluids.size(); ++i) {
+    auto const& simFluids = simulation->readFluids();
+    for (size_t i=0; i<simFluids.size(); ++i) {
         auto Fluid = ordered_json::object();
         auto& simFluid = simFluids.at(i);
         Fluid["id"] = simFluid->getId();
         Fluid["name"] = simFluid->getName();
-        Fluid["concentration"] = simFluid->getConcentration();
         Fluid["density"] = simFluid->getDensity();
         Fluid["viscosity"] = simFluid->getViscosity();
         Fluids.push_back(Fluid);
@@ -113,15 +112,15 @@ auto writeFluids(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-auto writeMixtures (sim::AbstractMixing<T>* simulation) {
+auto writeMixtures (const sim::AbstractMixing<T>* simulation) {
     auto Mixtures = ordered_json::array();
-    auto const& simMixtures = simulation->getMixtures();
-    for (long unsigned int i=0; i<simMixtures.size(); ++i) {
+    auto const& simMixtures = simulation->readMixtures();
+    for (size_t i=0; i<simMixtures.size(); ++i) {
         auto Mixture = ordered_json::object();
         auto& simMixture = simMixtures.at(i);
         for(auto& [key, specie] : simMixture->getSpecies()) {
             Mixture["species"].push_back(specie->getId());
-            Mixture["concentrations"].push_back(simMixture->getConcentrationOfSpecie(specie->getId()));
+            Mixture["concentrations"].push_back(simMixture->getConcentrationOfSpecie(specie));
         }
         Mixtures.push_back(Mixture);
     }
@@ -129,7 +128,7 @@ auto writeMixtures (sim::AbstractMixing<T>* simulation) {
 }
 
 template<typename T>
-std::string writeSimType(sim::Simulation<T>* simulation) {      
+std::string writeSimType(const sim::Simulation<T>* simulation) {      
     if(simulation->getType() == sim::Type::Hybrid) {
         return("Hybrid");
     } else if (simulation->getType() == sim::Type::CFD) {
@@ -139,7 +138,7 @@ std::string writeSimType(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-std::string writeSimPlatform(sim::Simulation<T>* simulation) {      
+std::string writeSimPlatform(const sim::Simulation<T>* simulation) {      
     if(simulation->getPlatform() == sim::Platform::BigDroplet) {
         return("BigDroplet");
     } else if (simulation->getPlatform() == sim::Platform::Mixing) {
@@ -149,7 +148,7 @@ std::string writeSimPlatform(sim::Simulation<T>* simulation) {
 }
 
 template<typename T>
-void writeMixtures (json& jsonString, result::State<T>* state, sim::AbstractMixing<T>* simulation) {
+void writeMixtures (json& jsonString, const result::State<T>* state, const sim::AbstractMixing<T>* simulation) {
     auto mixturePositions = json::array();
     for (auto& [key, mixturePosition] : state->getMixturePositions()) {
         // mixture object

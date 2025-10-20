@@ -19,7 +19,7 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
-class Droplet;
+class DropletImplementation;
 
 template<typename T>
 class DropletBoundary;
@@ -33,7 +33,7 @@ class Event;
 template<typename T>
 class BoundaryHeadEvent : public Event<T> {
   private:
-    Droplet<T>& droplet;                ///< Droplet for which the event should take place.
+    DropletImplementation<T>& droplet;  ///< Droplet for which the event should take place.
     DropletBoundary<T>& boundary;       ///< Boundary of the droplet that is effected by the event.
     const arch::Network<T>& network;    ///< Microfluidic biochip that is simulated.
 
@@ -45,7 +45,7 @@ class BoundaryHeadEvent : public Event<T> {
      * @param boundary Boundary that is effected by the event.
      * @param chip Microfluidic biochip.
      */
-    BoundaryHeadEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network);
+    BoundaryHeadEvent(T time, DropletImplementation<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network);
 
     /**
      * @brief Perform the boundary head event.
@@ -64,9 +64,9 @@ class BoundaryHeadEvent : public Event<T> {
 template<typename T>
 class BoundaryTailEvent : public Event<T> {
   private:
-    Droplet<T>& droplet;              ///< Droplet for which the event should take place.
-    DropletBoundary<T>& boundary;     ///< Boundary of the droplet that is effected by the event.
-    const arch::Network<T>& network;  ///< Microfluidic biochip that is simulated.
+    DropletImplementation<T>& droplet;  ///< Droplet for which the event should take place.
+    DropletBoundary<T>& boundary;       ///< Boundary of the droplet that is effected by the event.
+    const arch::Network<T>& network;    ///< Microfluidic biochip that is simulated.
 
   public:
     /**
@@ -76,7 +76,7 @@ class BoundaryTailEvent : public Event<T> {
      * @param boundary Boundary that is effected by the event.
      * @param chip Microfluidic biochip.
      */
-    BoundaryTailEvent(T time, Droplet<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network);
+    BoundaryTailEvent(T time, DropletImplementation<T>& droplet, DropletBoundary<T>& boundary, const arch::Network<T>& network);
 
     /**
      * @brief Perform the boundary tail event.

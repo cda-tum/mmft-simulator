@@ -8,7 +8,7 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     nNodes = network->getNodes().size() + network->getVirtualNodes();
 
     // loop through modules
-    for (const auto& [key, module] : network->getModules()) {
+    for (const auto& [key, module] : network->getCfdModules()) {
         // For now only LBM modules implemented.
         #ifndef USE_ESSLBM
         assert(module->getModuleType() == arch::ModuleType::LBM);
@@ -21,13 +21,14 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     // First loop, all nodes with id > 0 are conducting nodes.
     int iPump = nNodes;
     for (const auto& [key, group] : network->getGroups()) {
+        group->checkGroundValue();
         for (const auto& nodeId : group->nodeIds) {
             // The node is a conducting node
-            if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
+            if(!network->getNodes().at(nodeId)->getGround() && nodeId != size_t(group->groundNodeId)) {
                 conductingNodeIds.emplace(nodeId);
             } 
             // The node is an overall ground node, or counts as ground to a group
-            else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
+            else if (!network->getNodes().at(nodeId)->getGround() && nodeId == size_t(group->groundNodeId)) {
                 groundNodeIds.emplace(nodeId, iPump);
                 iPump++;
             }
@@ -35,7 +36,7 @@ NodalAnalysis<T>::NodalAnalysis(const arch::Network<T>* network_) {
     }
     
     nPressurePumps = network->getPressurePumps().size() + groundNodeIds.size();
-    int nNodesAndPressurePumps = nNodes + nPressurePumps + network->getModules().size();
+    int nNodesAndPressurePumps = nNodes + nPressurePumps + network->getCfdModules().size();
 
     A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
     z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
@@ -54,20 +55,22 @@ void NodalAnalysis<T>::clear() {
     int iPump = network->getNodes().size() + network->getVirtualNodes() + network->getPressurePumps().size();
 
     for (const auto& [key, group] : network->getGroups()) {
+        group->checkGroundValue();
+        // Sort nodes into conducting nodes and ground nodes.
         for (const auto& nodeId : group->nodeIds) {
             // The node is a conducting node
-            if(!network->getNodes().at(nodeId)->getGround() && nodeId != group->groundNodeId) {
+            if(!network->getNodes().at(nodeId)->getGround() && nodeId != size_t(group->groundNodeId)) {
                 conductingNodeIds.emplace(nodeId);
             } 
             // The node is an overall ground node, or counts as ground to a group
-            else if (!network->getNodes().at(nodeId)->getGround() && nodeId == group->groundNodeId) {
+            else if (!network->getNodes().at(nodeId)->getGround() && nodeId == size_t(group->groundNodeId)) {
                 groundNodeIds.emplace(nodeId, iPump);
                 iPump++;
             }
         }
     }
 
-    int nNodesAndPressurePumps = nNodes + nPressurePumps + groundNodeIds.size();
+    size_t nNodesAndPressurePumps = nNodes + nPressurePumps + groundNodeIds.size();
 
     A = Eigen::MatrixXd::Zero(nNodesAndPressurePumps, nNodesAndPressurePumps);
     z = Eigen::VectorXd::Zero(nNodesAndPressurePumps);
@@ -89,7 +92,7 @@ void NodalAnalysis<T>::conductNodalAnalysis() {
 }
 
 template<typename T>
-bool NodalAnalysis<T>::conductNodalAnalysis(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+bool NodalAnalysis<T>::conductNodalAnalysis(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
     clear();
     readConductance();
     readCfdSimulators(cfdSimulators);
@@ -107,8 +110,8 @@ template<typename T>
 void NodalAnalysis<T>::readConductance() {
     // loop through channels and build matrix G
     for (const auto& channel : network->getChannels()) {
-        auto nodeAMatrixId = channel.second->getNodeA();
-        auto nodeBMatrixId = channel.second->getNodeB();
+        auto nodeAMatrixId = channel.second->getNodeAId();
+        auto nodeBMatrixId = channel.second->getNodeBId();
         const T conductance = 1. / channel.second->getResistance();
 
         // main diagonal elements of G
@@ -150,8 +153,8 @@ void NodalAnalysis<T>::readPressurePumps() {
     int iPump = nNodes;
     // loop through pressurePumps and build matrix B, C and vector e
     for (const auto& pressurePump : network->getPressurePumps()) {
-        auto nodeAMatrixId = pressurePump.second->getNodeA();
-        auto nodeBMatrixId = pressurePump.second->getNodeB();
+        auto nodeAMatrixId = pressurePump.second->getNodeAId();
+        auto nodeBMatrixId = pressurePump.second->getNodeBId();
 
         if (contains(conductingNodeIds, nodeAMatrixId)) {
             A(nodeAMatrixId, iPump) = -1;   // matrix B
@@ -173,8 +176,8 @@ template<typename T>
 void NodalAnalysis<T>::readFlowRatePumps() {
     // loop through flowRatePumps and build vector i
     for (const auto& flowRatePump : network->getFlowRatePumps()) {
-        auto nodeAMatrixId = flowRatePump.second->getNodeA();
-        auto nodeBMatrixId = flowRatePump.second->getNodeB();
+        auto nodeAMatrixId = flowRatePump.second->getNodeAId();
+        auto nodeBMatrixId = flowRatePump.second->getNodeBId();
         const T flowRate = flowRatePump.second->getFlowRate();
 
         if (contains(conductingNodeIds, nodeAMatrixId)){
@@ -207,8 +210,8 @@ void NodalAnalysis<T>::setResults() {
     }
 
     for (auto& channel : network->getChannels()) {
-        auto& nodeA = network->getNodes().at(channel.second->getNodeA());
-        auto& nodeB = network->getNodes().at(channel.second->getNodeB());
+        auto& nodeA = network->getNodes().at(channel.second->getNodeAId());
+        auto& nodeB = network->getNodes().at(channel.second->getNodeBId());
         channel.second->setPressure(nodeA->getPressure() - nodeB->getPressure());
     }
 
@@ -236,11 +239,12 @@ void NodalAnalysis<T>::initGroundNodes() {
                     group->groundNodeId = nodeId;
                 }
             }
+            group->checkGroundValue();
             for (auto channelId : group->channelIds) {
-                if (network->getChannels().at(channelId)->getNodeA() == group->groundNodeId) {
+                if (network->getChannels().at(channelId)->getNodeAId() == size_t(group->groundNodeId)) {
                     group->groundChannelId = channelId;
                 } 
-                else if (network->getChannels().at(channelId)->getNodeB() == group->groundNodeId) {
+                else if (network->getChannels().at(channelId)->getNodeBId() == size_t(group->groundNodeId)) {
                     group->groundChannelId = channelId;
                 }
             }
@@ -252,26 +256,30 @@ void NodalAnalysis<T>::initGroundNodes() {
 }
 
 template<typename T>
-void NodalAnalysis<T>::initGroundNodes(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+void NodalAnalysis<T>::initGroundNodes(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
     // Initialize the ground nodes of the groups
     for (const auto& [key, group] : network->getGroups()) {
         if (!group->initialized && !group->grounded) {
             T pMin = -1.0;
             for (auto nodeId : group->nodeIds) {
+                if (nodeId > std::numeric_limits<int>::max()) {
+                    throw std::runtime_error("Node ID " + std::to_string(nodeId) + " is too large to be converted to int.");
+                }
                 if (pMin < 0.0) {
                     pMin = x(nodeId);
-                    group->groundNodeId = nodeId;
+                    group->groundNodeId = int(nodeId);  // This is fine becasue we checked the range 
                 }
                 if (x(nodeId) < pMin) {
                     pMin = x(nodeId);
-                    group->groundNodeId = nodeId;
+                    group->groundNodeId = int(nodeId);  // This is fine becasue we checked the range
                 }
             }
+            group->checkGroundSign();
             for (auto channelId : group->channelIds) {
-                if (network->getChannels().at(channelId)->getNodeA() == group->groundNodeId) {
+                if (network->getChannels().at(channelId)->getNodeAId() == size_t(group->groundNodeId)) {
                     group->groundChannelId = channelId;
                 } 
-                else if (network->getChannels().at(channelId)->getNodeB() == group->groundNodeId) {
+                else if (network->getChannels().at(channelId)->getNodeBId() == size_t(group->groundNodeId)) {
                     group->groundChannelId = channelId;
                 }
             }
@@ -284,16 +292,17 @@ void NodalAnalysis<T>::initGroundNodes(std::unordered_map<int, std::unique_ptr<s
     // Loop over modules to set the ground nodes
     for (const auto& [key, cfdSimulator] : cfdSimulators) {
         if ( ! cfdSimulator->getInitialized() ) {
-            std::unordered_map<int, T> flowRates_ = cfdSimulator->getFlowRates();
-            std::unordered_map<int, bool> groundNodes;
+            std::unordered_map<size_t, T> flowRates_ = cfdSimulator->getFlowRates();
+            std::unordered_map<size_t, bool> groundNodes;
             for (const auto& [nodeId, node] : cfdSimulator->getModule()->getNodes()) {
                 T flowRate = 0.0;
                 if (contains(groundNodeIds, nodeId)) {
                     groundNodes.try_emplace(nodeId, true);
                     for (auto& [key, group] : network->getGroups()) {
-                        if (nodeId == group->groundNodeId) {
-                            T height = network->getChannels().at(group->groundChannelId)->getHeight();
-                            flowRate = network->getChannels().at(group->groundChannelId)->getFlowRate()/height;
+                        group->checkGroundValue();
+                        if (nodeId == size_t(group->groundNodeId)) {
+                            // Get the 2-dimensional flow rate for 2D CFD simulator (m^2/s)
+                            flowRate = network->getRectangularChannel(group->groundChannelId)->get2DFlowRate();
                         }
                     }
                 } else {
@@ -309,13 +318,13 @@ void NodalAnalysis<T>::initGroundNodes(std::unordered_map<int, std::unique_ptr<s
 }
 
 template<typename T>
-void NodalAnalysis<T>::readCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+void NodalAnalysis<T>::readCfdSimulators(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
     for (const auto& [key, cfdSimulator] : cfdSimulators) {
         // If module is not initialized (1st loop), loop over channels of fully connected graph
         if ( ! cfdSimulator->getInitialized() ) {
-            for (const auto& [key, channel] : cfdSimulator->getNetwork()->getChannels()) {
-                auto nodeAMatrixId = channel->getNodeA();
-                auto nodeBMatrixId = channel->getNodeB();
+            for (const auto& [key, channel] : cfdSimulator->getModule()->getNetwork()->getChannels()) {
+                auto nodeAMatrixId = channel->getNodeAId();
+                auto nodeBMatrixId = channel->getNodeBId();
                 const T conductance = 1. / channel->getResistance();
 
                 // main diagonal elements of G
@@ -342,7 +351,7 @@ void NodalAnalysis<T>::readCfdSimulators(std::unordered_map<int, std::unique_ptr
             for (const auto& [key, node] : cfdSimulator->getModule()->getNodes()) {
                 // Write the module's flowrates into vector i if the node is not a group's ground node
                 if (contains(conductingNodeIds, key)) {
-                    T flowRate = cfdSimulator->getFlowRates().at(key) * cfdSimulator->getOpenings().at(key).height;
+                    T flowRate = cfdSimulator->getFlowRates().at(key) * cfdSimulator->getModule()->getOpenings().at(key).height;
                     z(key) = -flowRate;
                 } 
                 // Write module's pressure into matrix B, C and vector e
@@ -356,14 +365,14 @@ void NodalAnalysis<T>::readCfdSimulators(std::unordered_map<int, std::unique_ptr
 }
 
 template<typename T>
-void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
+void NodalAnalysis<T>::writeCfdSimulators(const std::unordered_map<int, std::shared_ptr<sim::CFDSimulator<T>>>& cfdSimulators) {
 
     // Set the pressures and flow rates on the boundary nodes of the modules
     for (auto& cfdSimulator : cfdSimulators) {
-        std::unordered_map<int, T> old_pressures = cfdSimulator.second->getPressures();
-        std::unordered_map<int, T> old_flowrates = cfdSimulator.second->getFlowRates();
-        std::unordered_map<int, T> pressures_ = cfdSimulator.second->getPressures();
-        std::unordered_map<int, T> flowRates_ = cfdSimulator.second->getFlowRates();
+        std::unordered_map<size_t, T> old_pressures = cfdSimulator.second->getPressures();
+        std::unordered_map<size_t, T> old_flowrates = cfdSimulator.second->getFlowRates();
+        std::unordered_map<size_t, T> pressures_ = cfdSimulator.second->getPressures();
+        std::unordered_map<size_t, T> flowRates_ = cfdSimulator.second->getFlowRates();
         for (auto& [key, node] : cfdSimulator.second->getModule()->getNodes()){
             // Communicate pressure to the module
             if (contains(conductingNodeIds, key)) {
@@ -384,7 +393,7 @@ void NodalAnalysis<T>::writeCfdSimulators(std::unordered_map<int, std::unique_pt
             // Communicate the flow rate to the module
             else if (contains(groundNodeIds, key)) {
                 T old_flowRate = old_flowrates.at(key) ;
-                T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getOpenings().at(key).width;
+                T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getModule()->getOpenings().at(key).width;
                 T set_flowRate = 0.0;
                 if (old_flowRate > 0 ) {
                     set_flowRate = old_flowRate + 5 * cfdSimulator.second->getAlpha(key) *  ( new_flowRate - old_flowRate );

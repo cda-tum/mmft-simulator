@@ -1,12 +1,15 @@
 #include "../src/baseSimulator.h"
 
 #include "gtest/gtest.h"
+#include "../test_definitions.h"
 
 #include <cmath>
 
-#include "test_helpers.h"
+#include "../test_helpers.h"
 
 using T = double;
+
+class Tank : public test::definitions::GlobalTest<T> {};
 
 // Membrane and Tank Example based on
 //
@@ -16,16 +19,13 @@ using T = double;
 // D0LC00424C (cit. on pp. 32, 59, 60, 61).
 //
 // executed with MembraneModel9.
-TEST(Tank, TwoTank) {
+TEST_F(Tank, TwoTank) {
   // create the simulator
   constexpr auto cContinuousPhaseViscosity = 0.7e-3;
-  sim::InstantaneousMixingModel<T> mixingModel;
-  sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
-  sim::MembraneModel9<T> membraneModel;
-  arch::Network<T> network;
+  auto network = arch::Network<T>::createNetwork();
 
   // simulator last since it has non-owning references to other objects
-  sim::AbstractMembrane<T> sim(&network);
+  sim::AbstractMembrane<T> sim(network);
 
   // network setup
   auto cWidth = 5e-3;
@@ -43,51 +43,51 @@ TEST(Tank, TwoTank) {
   auto oWidth = 1.5e-6 / (oHeight * cMembraneLength); // 1.5mL organ volume mentioned in paper
 
   // add nodes
-  auto groundSinkNode = network.addNode(0.0, 0.0, true);
-  auto node0 = network.addNode(cConnectionLength, 0.0);
-  auto node1 = network.addNode(cConnectionLength, cMembraneLength);
-  auto node2 = network.addNode(0.0, cMembraneLength);
+  auto groundSinkNode = network->addNode(0.0, 0.0, true);
+  auto node0 = network->addNode(cConnectionLength, 0.0);
+  auto node1 = network->addNode(cConnectionLength, cMembraneLength);
+  auto node2 = network->addNode(0.0, cMembraneLength);
 
   // create channels
-  auto *c1 = network.addChannel(node0->getId(), node1->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // bone tumor tissue
-  [[maybe_unused]] auto *c2 = network.addChannel(node1->getId(), node2->getId(), cHeight, cWidth, cConnectionLength, arch::ChannelType::NORMAL);
-  auto *c3 = network.addChannel(node2->getId(), groundSinkNode->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // cardiac tissue
+  auto c1 = network->addRectangularChannel(node0->getId(), node1->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // bone tumor tissue
+  [[maybe_unused]] auto c2 = network->addRectangularChannel(node1->getId(), node2->getId(), cHeight, cWidth, cConnectionLength, arch::ChannelType::NORMAL);
+  auto c3 = network->addRectangularChannel(node2->getId(), groundSinkNode->getId(), cHeight, cWidth, cMembraneLength, arch::ChannelType::NORMAL); // cardiac tissue
 
   // create membrane and organ
-  auto *m4 = network.addMembraneToChannel(c1->getId(), mHeight, mWidth, poreRadius, porosity);
-  auto *o5 = network.addTankToMembrane(m4->getId(), oHeight, oWidth);
+  auto m4 = network->addMembraneToChannel(c1->getId(), mHeight, mWidth, poreRadius, porosity);
+  auto o5 = network->addTankToMembrane(m4->getId(), oHeight, oWidth);
 
-  auto *m6 = network.addMembraneToChannel(c3->getId(), mHeight, mWidth - pillarArea / cMembraneLength, poreRadius, porosity);
-  auto *o7 = network.addTankToMembrane(m6->getId(), oHeight, oWidth);
+  auto m6 = network->addMembraneToChannel(c3->getId(), mHeight, mWidth - pillarArea / cMembraneLength, poreRadius, porosity);
+  auto o7 = network->addTankToMembrane(m6->getId(), oHeight, oWidth);
 
   // define that node -1 is a sink
-  network.setSink(groundSinkNode->getId());
+  network->setSink(groundSinkNode->getId());
   // define that node -1 is the ground node
-  network.setGround(groundSinkNode->getId());
+  network->setGround(groundSinkNode->getId());
 
   // flowRate pump
   constexpr auto flowRate = 5.5e-8; // 3.3mL/min
   // create flow-rate pump from ground node to node 0 with the given flow-rate
-  auto *pump0 = network.addFlowRatePump(node0->getId(), groundSinkNode->getId(), flowRate);
+  auto pump0 = network->addFlowRatePump(node0->getId(), groundSinkNode->getId(), flowRate);
 
-  EXPECT_TRUE(network.isNetworkValid());
-  network.sortGroups();
+  EXPECT_TRUE(network->isNetworkValid());
 
   // fluids
-  auto *continuousPhaseFluid = sim.addFluid(cContinuousPhaseViscosity, 0.993e3, 1.0 /*molecular size: 9e-10, diffusivity: 4.4e-10, saturation: 0.0*/);
+  auto continuousPhaseFluid = sim.addFluid(cContinuousPhaseViscosity, 0.993e3 /*molecular size: 9e-10, diffusivity: 4.4e-10, saturation: 0.0*/);
 
   // define which fluid is the continuous phase
   sim.setContinuousPhase(continuousPhaseFluid);
 
-  auto *injectionSpecie = sim.addSpecie(4.4e-10, 3.894e-3);
-  auto *injectionMixture = sim.addMixture({{injectionSpecie->getId(), 1.0}});
+  auto injectionSpecie = sim.addSpecie(4.4e-10, 3.894e-3);
+  auto injectionMixture = sim.addMixture(injectionSpecie, 1.0);
+
+  // Set simuation models
+  sim.setInstantaneousMixingModel();
+  sim.set1DResistanceModel();
+  sim.setMembraneModel9();
 
   // permanent/continuous fluid injection
   sim.addPermanentMixtureInjection(injectionMixture->getId(), pump0->getId(), 0.0);
-
-  sim.setMixingModel(&mixingModel);
-  sim.setResistanceModel(&resistanceModel);
-  sim.setMembraneModel(&membraneModel);
 
   sim.setMaxEndTime(86'400.0);  // 24h
   sim.setWriteInterval(1800.0); // 0.5h
@@ -95,7 +95,7 @@ TEST(Tank, TwoTank) {
   // simulate the microfluidic network
   sim.simulate();
 
-  auto &result = *sim.getSimulationResults();
+  auto const &result = *sim.getResults();
 
   auto fluidConcentrations3 = test::helpers::getAverageFluidConcentrationsInEdge(result, 3 / 0.5, o5->getId());
   ASSERT_NEAR(fluidConcentrations3.at(injectionSpecie->getId()), 0.7, 0.15);
