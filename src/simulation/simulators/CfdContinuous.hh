@@ -10,38 +10,30 @@ CfdContinuous<T>::CfdContinuous(Platform platform, std::shared_ptr<arch::Network
 {
     // A fitting stl network definition must be creates from the given network.
     network_stl = std::make_shared<stl::Network>();
-    danglingNodes = network->getDanglingNodes();
 
-    // Add definitions for the nodes
-    for (auto& [k, n] : network->getNodes()) {
-        if(danglingNodes.find(n) = danglingNodes.end()) {
-            network_stl->addNode(double(n->getPosition().at(0)), double(n->getPosition().at(1)), 0.0, false);
-        } else {
-            network_stl->addNode(double(n->getPosition().at(0)), double(n->getPosition().at(1)), 0.0, true);
-        }
-    }
-
-    // Add definitions for the channels
-    for (auto& [k, c] : network->getChannels()) {
-        if (c->isRectangular()) {
-            arch::RectangularChannel<T>* tmpChannel = std::dynamic__cast<arch::RectangularChannel<T>*>(c.get());
-            network_stl->addChannel(c->getNodeAId(), c->getNodeBId(), double(tmpChannel->getWidth()), double(tmpChannel->getHeight()));
-        } else {
-            throw std::logic_error("STL generation is not supported for cylindrical channels.");
-        }
-    }
-
-    // Generate the STL definition from the stl network definition object (network_stl).
-    stlNetwork = std::make_unique<stl::NetworkSTL>(network_stl, radialResolution);
+    // Initial definition for network_stl and stlNetwork
+    updateNetworkSTL();
+    generateSTL();
 
     // Create a local tmp folder if it doesn't exist yet
     std::filesystem::path tmp = "./tmp";
     if (!std::filesystem::exists(tmp)) {
         std::filesystem::create_directories(tmp);
     }
+
     // Create a temporary file for the STL
     fName = "./tmp/networkSTL-" + std::to_string(this->getHash());
-    stlNetwork.writeSTL(fName);
+    updateSTL();
+
+    // Define the CfdModule
+    /**
+     * TODO:
+     */
+
+    // Define the CFDSimulator (lbmSimulator)
+    /**
+     * TODO:
+     */
 }
 
 template<typename T>
@@ -64,8 +56,13 @@ CfdContinuous<T>::CfdContinuous(Platform platform,
 
 template<typename T>
 void setNetwork(std::shared_ptr<arch::Network<T>> network) {
+    // Store the network in the simulation object
     Simulation<T>::setNetwork(network);
-    /** TODO: Update STL shape */
+
+    // Update the STL definitions for the new network
+    updateNetworkSTL();
+    generateSTL();
+    updateSTL();
 }
 
 template<typename T>
@@ -164,6 +161,42 @@ void CfdContinuous<T>::saveState() {
 
     // state
     this->getSimulationResults()->addState(this->getTime(), vtkFiles);
+}
+
+template<typename T>
+void CfdContinuous<T>::generateSTL() {
+    // Generate the STL definition from the stl network definition object (network_stl).
+    stlNetwork = std::make_unique<stl::NetworkSTL>(network_stl, radialResolution);
+}
+
+template<typename T>
+void CfdContinuous<T>::updateNetworkSTL() {
+    // Update the set of dangling nodes
+    danglingNodes = this->getNetwork->getDanglingNodes();
+
+    // Add definitions for the nodes
+    for (auto& [k, n] : this->getNetwork->getNodes()) {
+        if(danglingNodes.find(n) = danglingNodes.end()) {
+            network_stl->addNode(double(n->getPosition().at(0)), double(n->getPosition().at(1)), 0.0, false);
+        } else {
+            network_stl->addNode(double(n->getPosition().at(0)), double(n->getPosition().at(1)), 0.0, true);
+        }
+    }
+
+    // Add definitions for the channels
+    for (auto& [k, c] : this->getNetwork->getChannels()) {
+        if (c->isRectangular()) {
+            arch::RectangularChannel<T>* tmpChannel = dynamic_cast<arch::RectangularChannel<T>*>(c.get());
+            network_stl->addChannel(c->getNodeAId(), c->getNodeBId(), double(tmpChannel->getWidth()), double(tmpChannel->getHeight()));
+        } else {
+            throw std::logic_error("STL generation is not supported for cylindrical channels.");
+        }
+    }
+}
+
+template<typename T>
+void CfdContinuous<T>::updateSTL() {
+    stlNetwork->writeSTL(fName);
 }
     
 

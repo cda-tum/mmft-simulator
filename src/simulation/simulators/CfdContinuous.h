@@ -16,6 +16,7 @@
 #include <vector>
 
 #include <architecture/pNetwork.h>
+#include <stlHandler/NetworkSTL.h>
 
 namespace arch {
 
@@ -31,6 +32,9 @@ class Node;
 
 template<typename T>
 class Opening;
+
+template<typename T>
+class RectangularChannel;
 
 }
 
@@ -49,15 +53,14 @@ class lbmSimulator;
 template<typename T>
 class CfdContinuous : public Simulation<T> {
 private:
-    std::shared_ptr<stl::Network> network_stl = nullptr;
-    std::unique_ptr<stl::NetworkSTL> stlNetwork = nullptr;
-    std::string fName = "";
-    std::set<std::shared_ptr<arch::Node<T>>> danglingNodes;
-    int radialResolution = 25;
-    T characteristicLength = 1e-4;                                                      ///< Standard value (1e-4) or smallest opening width / height.
-    T characteristicVelocity = 0.1;                                                     ///< Standard value (0.1) or Largest expected average velocity in the system.
-    std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;                            ///< A pointer to the module, upon which this simulator acts.
-    std::shared_ptr<CFDSimulator<T>> cfdSimulator;                                      ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
+    std::shared_ptr<stl::Network> network_stl = nullptr;            ///< Network definition as in stl namespace
+    std::unique_ptr<stl::NetworkSTL> stlNetwork = nullptr;          ///< STL shape of a network
+    std::string fName = "";                                         ///< Location of the stored STL file
+    std::set<std::shared_ptr<arch::Node<T>>> danglingNodes;         ///< Set of nodes that are dangling and should have a BC.
+    std::set<size_t> idleNodes;                                     ///< Set of nodes that are idle. I.e., dangling but not assigned a BC.
+    int radialResolution = 25;                                      ///< The resolution of radial objects for the STL definition of the network.
+    std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;        ///< A pointer to the module, upon which this simulator acts.
+    std::shared_ptr<CFDSimulator<T>> cfdSimulator = nullptr;        ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
     bool writePpm = true;
 
 protected:
@@ -68,11 +71,27 @@ protected:
 
     void saveState() override;       
 
+    /** 
+     * @brief Updates the network_stl object for the currently set network definition
+     */
+    void updateNetworkSTL();
+
     /**
-     * TODO:
+     * @brief Generates the stl definition from network_stl and stores it in stlNetwork.
+     */
+    void generateSTL();
+
+    /**
+     * @brief Writes the STL definition stored in stlNetwork into the location in fName.
+     */
+    void updateSTL();
+
+    /**
      * @brief Constructor of the hybrid continuous simulator object
      * @param[in] platform The platform of the derived simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
+     * @param[in] radialResolution The resolution of radial objects in the STL definition of the network
+     * @note This constructor constructs the simulation STL shape from a given network
      */
     CfdContinuous(Platform platform, std::shared_ptr<arch::Network<T>> network, int radialResolution=25);
 

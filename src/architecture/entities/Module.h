@@ -15,6 +15,9 @@ template<typename T>
 class CFDSimulator;
 
 template<typename T>
+class CfcContinuous;
+
+template<typename T>
 class ResistanceModel;
 
 template<typename T>
@@ -217,6 +220,7 @@ public:
     // Friend definitions
     friend class Network<T>;
     friend class sim::CFDSimulator<T>;
+    friend class sim::CfdContinuous<T>;
 };
 
 }   // namespace arch

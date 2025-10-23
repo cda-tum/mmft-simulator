@@ -599,8 +599,8 @@ void Network<T>::sortGroups() {
     }
 }
 
-template<typename>
-std::set<std::shared_ptr<Node<T>>> getDanglingNodes() {
+template<typename T>
+std::set<std::shared_ptr<Node<T>>> Network<T>::getDanglingNodes() {
     std::set<std::shared_ptr<Node<T>>> danglingNodes;
 
     for (auto const& [k, v] : nodes) {

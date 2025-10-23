@@ -42,6 +42,12 @@ class GeometryTest;
 
 namespace sim {
 
+// Forward declared dependencies
+template<typename T>
+class HybridContinuous;
+template<typename T>
+class CfdContinuous;
+
 /**
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
@@ -354,6 +360,7 @@ public:
     void writeVelocityPpm (T min, T max, int imgResolution) override;
 
     friend class HybridContinuous<T>;
+    friend class CfdContinuous<T>;
     friend class test::definitions::GeometryTest<T>;
 };
 
