@@ -43,6 +43,11 @@ class NodalAnalysis;
 
 namespace sim {
 
+template<typename T>
+class InstantaneousMixingModel;
+template<typename T>
+class HybridMixing;
+
 /**
  * @brief Class to specify a module, which is a functional component in a network.
 */
@@ -154,7 +159,7 @@ protected:
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
      * @param[in] concentrations Map of concentrations and node ids.
      */
-    virtual void storeConcentrations(std::unordered_map<int, std::unordered_map<int, T>> concentrations) 
+    virtual void storeConcentrations(std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations) 
     {
         throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
     }
@@ -163,10 +168,10 @@ protected:
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
-    virtual std::unordered_map<int, std::unordered_map<int, T>> getConcentrations() const 
+    virtual std::unordered_map<size_t, std::unordered_map<size_t, T>> getConcentrations() const 
     { 
         throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-        return std::unordered_map<int, std::unordered_map<int, T>>(); 
+        return std::unordered_map<size_t, std::unordered_map<size_t, T>>(); 
     }
 
     /**
@@ -256,7 +261,6 @@ public:
     [[nodiscard]] inline std::shared_ptr<arch::CfdModule<T>> getModule() const { return cfdModule; }
 
     /**
-<<<<<<< HEAD
      * @brief Get the flow direction at a node.
      * @param[in] key The id of the node for which the flow direction is requested.
      * @returns The flow direction at the node: -1 for inflow, 1 for outflow, 0 for no flow.
@@ -265,9 +269,6 @@ public:
 
     /**
      * @brief Get the ground nodes of the module.
-=======
-     * @brief Returns whether boundary nodes communicate the pressure (true) or flow rates (false) to the 1D solver.
->>>>>>> main
      * @returns Ground nodes.
     */
     [[nodiscard]] inline const std::unordered_map<size_t, bool>& getGroundNodes() { return groundNodes; }
@@ -297,34 +298,6 @@ public:
     [[nodiscard]] inline T getBeta(size_t nodeId) const {return updateScheme->getBeta(nodeId);}
 
     /**
-<<<<<<< HEAD
-     * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.
-     * @param[in] concentrations Map of concentrations and node ids.
-     */
-    virtual void storeConcentrations(std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations) 
-    {
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-    }
-
-    /**
-     * @brief Get the concentrations at the boundary nodes.
-     * @returns Concentrations
-     */
-    virtual std::unordered_map<size_t, std::unordered_map<size_t, T>> getConcentrations() const 
-    { 
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-        return std::unordered_map<size_t, std::unordered_map<size_t, T>>(); 
-    }
-
-    /**
-     * @brief Set the boundary values on the lattice at the module nodes.
-     * @param[in] iT Iteration step.
-    */
-    virtual void setBoundaryValues(int iT) = 0;
-
-    /**
-=======
->>>>>>> main
      * @brief Write the vtk file with results of the CFD simulation to file system.
      * @param[in] iT Iteration step.
     */
@@ -396,20 +369,12 @@ public:
         throw std::runtime_error("The function getConcentrationBounds is undefined for this CFD simulator.");
     }
 
-    /**
-     * @brief Update the values at the module nodes based on the simulation result after stepIter iterations.
-     * @param[in] iT Iteration step.
-    */
-    virtual void storeCfdResults (int iT) 
-    {
-        throw std::runtime_error("The function storeCfdResults is undefined for this CFD simulator.");
-    }
-
     friend bool conductCFDSimulation<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
     friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
     friend bool conductADSimulation<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
     friend class HybridContinuous<T>;
     friend class HybridMixing<T>;
+    friend class InstantaneousMixingModel<T>;
     friend class nodal::NodalAnalysis<T>;
     friend class test::definitions::GlobalTest<T>;
 

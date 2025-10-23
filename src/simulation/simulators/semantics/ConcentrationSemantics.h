@@ -163,7 +163,7 @@ protected:
      * @param[in] specieId Id of the specie that should be removed.
      * @throws std::logic_error if the specie is not present in the simulation.
      */
-    void removeSpecie(int specieId);
+    void removeSpecie(size_t specieId);
 
     /**
      * @brief Remove mixture from the simulation.
@@ -171,14 +171,14 @@ protected:
      * @throws std::logic_error if the mixture is not present in the simulation.
      * @note If the mixture is present in the simulation, it is removed from the simulation.
      */
-    void removeMixture(int mixtureId);
+    void removeMixture(size_t mixtureId);
 
     /**
      * @brief Remove mixture injection from the simulation.
      * @param[in] injectionId Id of the mixture injection that should be removed.
      * @throws std::logic_error if the injection is not present in the simulation.
      */
-    void removeMixtureInjection(int mixtureInjectionId);
+    void removeMixtureInjection(size_t mixtureInjectionId);
 
 public:
 
@@ -215,7 +215,7 @@ public:
      * @param specieId Id of the specie.
      * @return Pointer to specie with the correspondig id.
      */
-    [[nodiscard]] inline std::shared_ptr<Specie<T>> getSpecie(int specieId) const { return species.at(specieId); }
+    [[nodiscard]] inline std::shared_ptr<Specie<T>> getSpecie(size_t specieId) const { return species.at(specieId); }
 
     /**
      * @brief Return a read-only map of species currently stored in the simulation
@@ -257,7 +257,7 @@ public:
      * @throws std::out_of_range if the mixture with the given id does not exist.
      * @note The mixture must be present in the simulation.
      */
-    [[nodiscard]] std::shared_ptr<Mixture<T>> getMixture(int mixtureId) const { return mixtures.at(mixtureId); }
+    [[nodiscard]] std::shared_ptr<Mixture<T>> getMixture(size_t mixtureId) const { return mixtures.at(mixtureId); }
 
     /**
      * @brief Return a read-only map of mixtures currently stored in the simulation
@@ -281,7 +281,7 @@ public:
      * @param[in] isPermanent If true, the injection is permanent and will be performed at every time step. If false, the injection is only performed once at the specified time.
      * @return Pointer to created injection.
      */
-    [[maybe_unused]] std::shared_ptr<MixtureInjection<T>> addMixtureInjection(int mixtureId, int edgeId, T injectionTime, bool isPermanent = false);
+    [[maybe_unused]] std::shared_ptr<MixtureInjection<T>> addMixtureInjection(size_t mixtureId, size_t edgeId, T injectionTime, bool isPermanent = false);
 
     /**
      * @brief Create mixture injection. The injection is always performed at the beginning (position 0.0) of the edge.
@@ -300,7 +300,7 @@ public:
      * @param[in] injectionTime Time at which the injection should be injected in s.
      * @return Pointer to created injection.
      */
-    [[maybe_unused]] std::shared_ptr<MixtureInjection<T>> addPermanentMixtureInjection(int mixtureId, int edgeId, T injectionTime);
+    [[maybe_unused]] std::shared_ptr<MixtureInjection<T>> addPermanentMixtureInjection(size_t mixtureId, size_t edgeId, T injectionTime);
 
     /**
      * @brief Create mixture permanent injection. The injection is always performed at the beginning (position 0.0) of the edge.
@@ -319,7 +319,7 @@ public:
      * @throws std::out_of_range if the injection with the given id does not exist.
      * @note The injection must be present in the simulation.
      */
-    [[nodiscard]] std::shared_ptr<MixtureInjection<T>> getMixtureInjection(int injectionId) const;
+    [[nodiscard]] std::shared_ptr<MixtureInjection<T>> getMixtureInjection(size_t injectionId) const;
 
     /**
      * @brief Remove mixture injection from the simulation.

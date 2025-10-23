@@ -56,10 +56,9 @@
 
 #include "architecture/Network.h"
 
-//** TODO: HybridOocSimulation */
-// #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
-// #include "olbProcessors/saturatedFluxPostProcessor2D.h"
-// #include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
+#include "olbProcessors/saturatedFluxPostProcessor2D.h"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
 
 #include "porting/jsonPorter.h"
 #include "porting/jsonReaders.h"

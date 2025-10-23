@@ -52,8 +52,8 @@ void ConcentrationSemantics<T>::removeSpecie(const std::shared_ptr<Specie<T>>& s
 }
 
 template<typename T>
-void ConcentrationSemantics<T>::removeSpecie(int specieId) {
-    auto& it = species.find(specieId);
+void ConcentrationSemantics<T>::removeSpecie(size_t specieId) {
+    auto it = species.find(specieId);
     if (it != species.end()) {
         it->second->resetHash();  // Reset the hash of the specie to avoid dangling references
         // Remove the specie from the species map
@@ -64,7 +64,7 @@ void ConcentrationSemantics<T>::removeSpecie(int specieId) {
                 if (mixture->getSpecieCount() == 1) {
                     removeMixture(mixtureId);
                 } else {
-                    mixture->removeSpecie(specieId);
+                    mixture->removeSpecie(it->second);
                 }
             }
         } 
@@ -91,10 +91,10 @@ std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::addMixture(const std::vec
         throw std::invalid_argument("At least one species must be present in a mixture.");
     }
     // Transform the vector of species and concentrations into an unordered_map
-    std::unordered_map<size_t, Specie<T>*> speciesMap;
+    std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciesMap;
     std::unordered_map<size_t, T> specieConcentrationsMap;
     for (size_t i = 0; i < speciesVec.size(); ++i) {
-        speciesMap.try_emplace(speciesVec[i]->getId(), speciesVec[i].get());
+        speciesMap.try_emplace(speciesVec[i]->getId(), speciesVec[i]);
         specieConcentrationsMap.try_emplace(speciesVec[i]->getId(), concentrations[i]);
     }
 
@@ -111,10 +111,10 @@ std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::createMixture(std::unorde
     Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
     // Transform the vector of species and concentrations into an unordered_map
-    std::unordered_map<size_t, Specie<T>*> speciesMap;
+    std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciesMap;
     std::unordered_map<size_t, T> specieConcentrationsMap(std::move(specieConcentrations_));
     for (auto& [key, conc] : specieConcentrationsMap) {
-        speciesMap.try_emplace(key, species.at(key).get());
+        speciesMap.try_emplace(key, species.at(key));
     }
 
     // Create non-mutable Mixture
@@ -133,15 +133,15 @@ const std::unordered_map<size_t, const Mixture<T>*> ConcentrationSemantics<T>::r
 }
 
 template<typename T>
-void ConcentrationSemantics<T>::removeMixture(int mixtureId) {
-    auto& it = mixtures.find(mixtureId);
+void ConcentrationSemantics<T>::removeMixture(size_t mixtureId) {
+    auto it = mixtures.find(mixtureId);
     if (it != mixtures.end()) {
         it->second->resetHash();  // Reset the hash of the mixture to avoid dangling references
         if (mixtures.erase(mixtureId)) {
             // Remove all injections of this mixture
             auto it = injectionMap.find(mixtureId);
             if (it != injectionMap.end()) {
-                for (int injectionId : it->second) {
+                for (size_t injectionId : it->second) {
                     removeMixtureInjection(injectionId);
                 }
                 injectionMap.erase(it);
@@ -163,7 +163,7 @@ void ConcentrationSemantics<T>::removeMixture(const std::shared_ptr<Mixture<T>>&
  * lot of duplicate code, refactor
  */
 template<typename T>
-std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addMixtureInjection(int mixtureId, int edgeId, T injectionTime, bool isPermanent) {
+std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addMixtureInjection(size_t mixtureId, size_t edgeId, T injectionTime, bool isPermanent) {
     size_t id = MixtureInjection<T>::getMixtureInjectionCounter();
     if (isPermanent) {
         // Mixtures can only be injected into edges that are channels. Otherwise a nullptr is returned
@@ -176,14 +176,14 @@ std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addMixtureInject
         } else if (simRef->getNetwork()->isPressurePump(edgeId)) {
             // If the edge is a pressure pump, the permanent mixture is injected into channels connected to pump outlet
             auto pump = simRef->getNetwork()->getPressurePump(edgeId);
-            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
+            size_t nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
             for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
                 permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             }
         } else if (simRef->getNetwork()->isFlowRatePump(edgeId)) {
             // If the edge is a flow rate pump, the permanent mixture is injected into channels connected to pump outlet
             auto pump = simRef->getNetwork()->getFlowRatePump(edgeId);
-            int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
+            size_t nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
             for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
                 permanentMixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
             }
@@ -200,14 +200,14 @@ std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addMixtureInject
     } else if (simRef->getNetwork()->isPressurePump(edgeId)) {
         // If the edge is a pressure pump, the mixture is injected into channels connected to pump outlet
         auto pump = simRef->getNetwork()->getPressurePump(edgeId);
-        int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
+        size_t nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
         for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
             mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
         }
     } else if (simRef->getNetwork()->isFlowRatePump(edgeId)) {
         // If the edge is a flow rate pump, the mixture is injected into channels connected to pump outlet
         auto pump = simRef->getNetwork()->getFlowRatePump(edgeId);
-        int nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
+        size_t nodeId = (pump->getFlowRate() >= 0.0 ? pump->getNodeBId() : pump->getNodeAId());
         for (auto& channel : simRef->getNetwork()->getChannelsAtNode(nodeId)) {
             mixtureInjections.insert_or_assign(id, std::shared_ptr<MixtureInjection<T>>(new MixtureInjection<T>(simHash, id, mixtures.at(mixtureId).get(), channel.get(), injectionTime)));
         }
@@ -221,7 +221,7 @@ std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addMixtureInject
 }
 
 template<typename T>
-std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addPermanentMixtureInjection(int mixtureId, int edgeId, T injectionTime) {
+std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addPermanentMixtureInjection(size_t mixtureId, size_t edgeId, T injectionTime) {
     return addMixtureInjection(mixtureId, edgeId, injectionTime, true);
 }
 
@@ -231,7 +231,7 @@ std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::addPermanentMixt
 }
 
 template<typename T>
-std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::getMixtureInjection(int mixtureInjectionId) const {
+std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::getMixtureInjection(size_t mixtureInjectionId) const {
     // Check if the mixture exists in mixtureInjections
     auto it_1 = mixtureInjections.find(mixtureInjectionId);   
     if (it_1 != mixtureInjections.end()) {
@@ -249,24 +249,24 @@ std::shared_ptr<MixtureInjection<T>> ConcentrationSemantics<T>::getMixtureInject
 }
 
 template<typename T>
-void ConcentrationSemantics<T>::removeMixtureInjection(int mixtureInjectionId) {
+void ConcentrationSemantics<T>::removeMixtureInjection(size_t mixtureInjectionId) {
     // This function removes the injectionId from the injectionMap for the given mixtureId
     // If the injectionMap for the mixtureId becomes empty, it removes the mixtureId from the injectionMap
-    auto updateMap = [this, mixtureInjectionId](int mixtureId) {
+    auto updateMap = [this, mixtureInjectionId](size_t mixtureId) {
         injectionMap.at(mixtureId).erase(mixtureInjectionId);
         if (injectionMap.at(mixtureId).empty()) { injectionMap.erase(mixtureId); }
     };
     // Check if the mixture exists in mixtureInjections
     auto it_1 = mixtureInjections.find(mixtureInjectionId);   
     if (it_1 != mixtureInjections.end()) {
-        int mixtureId = it_1->second->getMixtureId();
+        size_t mixtureId = it_1->second->getMixtureId();
         mixtureInjections.erase(it_1);
         updateMap(mixtureId);
     } else {
         // Check if the mixture exists in permanentMixtureInjections
         auto it_2 = permanentMixtureInjections.find(mixtureInjectionId);   
         if (it_2 != permanentMixtureInjections.end()) {
-            int mixtureId = it_2->second->getMixtureId();
+            size_t mixtureId = it_2->second->getMixtureId();
             permanentMixtureInjections.erase(it_2);
             updateMap(mixtureId);
         } else {
@@ -361,11 +361,11 @@ template<typename T>
 Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions) {
     size_t id = Mixture<T>::getMixtureCounter();
 
-    std::unordered_map<size_t, Specie<T>*> species;
+    std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
     std::unordered_map<size_t, T> specieConcentrations;
 
     for (auto& [specieId, distribution] : specieDistributions) {
-        species.try_emplace(specieId, getSpecie(specieId).get());
+        species.try_emplace(specieId, getSpecie(specieId));
         specieConcentrations.try_emplace(specieId, T(0));
     }
 

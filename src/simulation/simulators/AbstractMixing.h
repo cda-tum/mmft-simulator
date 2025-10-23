@@ -25,6 +25,9 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
+class ConcentrationSemantics;
+
+template<typename T>
 class Event;
 
 template<typename T>

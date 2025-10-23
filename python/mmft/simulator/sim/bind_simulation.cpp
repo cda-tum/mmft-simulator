@@ -16,6 +16,10 @@
 
 #include "architecture/Network.hh"
 
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
+#include "olbProcessors/saturatedFluxPostProcessor2D.hh"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux.hh"
+
 #include "simulation/entities/Droplet.hh"
 #include "simulation/entities/Fluid.hh"
 #include "simulation/entities/Mixture.hh"
@@ -34,16 +38,20 @@
 #include "simulation/models/MixingModels.hh"
 #include "simulation/models/ResistanceModels.hh"
 
+#include "simulation/simulators/semantics/ConcentrationSemantics.hh"
+
 #include "simulation/simulators/Simulation.hh"
 #include "simulation/simulators/AbstractContinuous.hh"
 #include "simulation/simulators/AbstractDroplet.hh"
 #include "simulation/simulators/AbstractMixing.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
+#include "simulation/simulators/HybridMixing.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
 #include "simulation/simulators/cfdHandlers/olbContinuous.hh"
+#include "simulation/simulators/cfdHandlers/olbMixing.hh"
 
 #include "nodalAnalysis/NodalAnalysis.hh"
 
@@ -90,6 +98,34 @@ void bind_simulation(py::module_& m) {
 		.def("getResults", &sim::Simulation<T>::getResults, "Returns the results of the simulation.")
 		.def("printResults", &sim::Simulation<T>::printResults, "Prints the results of the simulation to the console.")
 		.def("simulate", &sim::Simulation<T>::simulate, "Conducts the simulation.");
+
+}
+
+void bind_concentrationSemantics(py::module_& m) {
+
+	py::class_<sim::ConcentrationSemantics<T>, py::smart_holder>(m, "ConcentrationSemantics")
+		.def("setInstantaneousMixingModel", &sim::ConcentrationSemantics<T>::setInstantaneousMixingModel, "Sets the instantaneous mixing model.")
+		.def("hasInstantaneousMixingModel", &sim::ConcentrationSemantics<T>::hasInstantaneousMixingModel, "Returns whether an instantaneous mixing model was set.")
+		.def("setDiffusiveMixingModel", &sim::ConcentrationSemantics<T>::setDiffusiveMixingModel, "Sets the diffusive mixing model.")
+		.def("hasDiffusiveMixingModel", &sim::ConcentrationSemantics<T>::hasDiffusiveMixingModel, "Returns whether a diffusive mixing model was set.")
+		.def("addSpecie", &sim::ConcentrationSemantics<T>::addSpecie, "Adds a single species to the simulator.")
+		.def("getSpecie", &sim::ConcentrationSemantics<T>::getSpecie, "Returns a species with the given id.")
+		.def("removeSpecie", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&>(&sim::ConcentrationSemantics<T>::removeSpecie), "Removes a species from the simulator.")
+		.def("addMixture", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&, T>(&sim::ConcentrationSemantics<T>::addMixture), "Adds a mixture to the simulator.")
+		.def("addMixture", py::overload_cast<const std::vector<std::shared_ptr<sim::Specie<T>>>&, const std::vector<T>&>(&sim::ConcentrationSemantics<T>::addMixture), "Adds a mixture to the simulator.")
+		.def("getMixture", &sim::ConcentrationSemantics<T>::getMixture, "Returns the mixture with the given id.")
+		.def("readMixtures", &sim::ConcentrationSemantics<T>::readMixtures, "Returns a read-only list of mixtures in the simulator.")
+		.def("removeMixture", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&>(&sim::ConcentrationSemantics<T>::removeMixture), "Removes a mixture from the simulator.")
+		.def("addMixtureInjection", py::overload_cast<size_t, size_t, T, bool>(&sim::ConcentrationSemantics<T>::addMixtureInjection), py::arg("mixtureId"), py::arg("edgeId"), py::arg("injectionTime"), py::arg("isPermanent")=false, 
+			"Add a mixture injection to the simulator.")
+		.def("addMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T, bool>(&sim::ConcentrationSemantics<T>::addMixtureInjection), py::arg("mixture"), py::arg("edge"), 
+			py::arg("injectionTime"), py::arg("isPermanent")=false, "Add a mixture injection to the simulator")
+		.def("addPermanentMixtureInjection", py::overload_cast<size_t, size_t, T>(&sim::ConcentrationSemantics<T>::addPermanentMixtureInjection), "Add a permanent mixture injection to the simulator.")
+		.def("addPermanentMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T>(&sim::ConcentrationSemantics<T>::addPermanentMixtureInjection), 
+			"Add a permanent mixture injection to the simulator.")
+		.def("getMixtureInjection", &sim::ConcentrationSemantics<T>::getMixtureInjection, "Returns the mixture injection with the given id.")
+		.def("removeMixtureInjection", py::overload_cast<const std::shared_ptr<sim::MixtureInjection<T>>&>(&sim::ConcentrationSemantics<T>::removeMixtureInjection), 
+			"Removes the mixture injection with the given id.");
 
 }
 
@@ -158,35 +194,12 @@ void bind_abstractMembrane(py::module_& m) {
 
 void bind_abstractMixing(py::module_& m) {
 
-	py::class_<sim::AbstractMixing<T>, sim::Simulation<T>, py::smart_holder>(m, "AbstractMixing")
+	py::class_<sim::AbstractMixing<T>, sim::Simulation<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "AbstractMixing")
 		.def(py::init<std::shared_ptr<arch::Network<T>>>())
 		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
 				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
 				return std::shared_ptr<sim::AbstractMixing<T>>(dynamic_cast<sim::AbstractMixing<T>*>(tmpPtr.release()));
-			}))
-		.def("setInstantaneousMixingModel", &sim::AbstractMixing<T>::setInstantaneousMixingModel, "Sets the instantaneous mixing model.")
-		.def("hasInstantaneousMixingModel", &sim::AbstractMixing<T>::hasInstantaneousMixingModel, "Returns whether an instantaneous mixing model was set.")
-		.def("setDiffusiveMixingModel", &sim::AbstractMixing<T>::setDiffusiveMixingModel, "Sets the diffusive mixing model.")
-		.def("hasDiffusiveMixingModel", &sim::AbstractMixing<T>::hasDiffusiveMixingModel, "Returns whether a diffusive mixing model was set.")
-		.def("addSpecie", &sim::AbstractMixing<T>::addSpecie, "Adds a single species to the simulator.")
-		.def("getSpecie", &sim::AbstractMixing<T>::getSpecie, "Returns a species with the given id.")
-		.def("removeSpecie", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&>(&sim::AbstractMixing<T>::removeSpecie), "Removes a species from the simulator.")
-		.def("addMixture", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&, T>(&sim::AbstractMixing<T>::addMixture), "Adds a mixture to the simulator.")
-		.def("addMixture", py::overload_cast<const std::vector<std::shared_ptr<sim::Specie<T>>>&, const std::vector<T>&>(&sim::AbstractMixing<T>::addMixture), "Adds a mixture to the simulator.")
-		.def("getMixture", &sim::AbstractMixing<T>::getMixture, "Returns the mixture with the given id.")
-		.def("readMixtures", &sim::AbstractMixing<T>::readMixtures, "Returns a read-only list of mixtures in the simulator.")
-		.def("removeMixture", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&>(&sim::AbstractMixing<T>::removeMixture), "Removes a mixture from the simulator.")
-		.def("addMixtureInjection", py::overload_cast<int, int, T, bool>(&sim::AbstractMixing<T>::addMixtureInjection), py::arg("mixtureId"), py::arg("edgeId"), py::arg("injectionTime"), py::arg("isPermanent")=false, 
-			"Add a mixture injection to the simulator.")
-		.def("addMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T, bool>(&sim::AbstractMixing<T>::addMixtureInjection), py::arg("mixture"), py::arg("edge"), 
-			py::arg("injectionTime"), py::arg("isPermanent")=false, "Add a mixture injection to the simulator")
-		.def("addPermanentMixtureInjection", py::overload_cast<int, int, T>(&sim::AbstractMixing<T>::addPermanentMixtureInjection), "Add a permanent mixture injection to the simulator.")
-		.def("addPermanentMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T>(&sim::AbstractMixing<T>::addPermanentMixtureInjection), 
-			"Add a permanent mixture injection to the simulator.")
-		.def("getMixtureInjection", &sim::AbstractMixing<T>::getMixtureInjection, "Returns the mixture injection with the given id.")
-		.def("removeMixtureInjection", py::overload_cast<const std::shared_ptr<sim::MixtureInjection<T>>&>(&sim::AbstractMixing<T>::removeMixtureInjection), 
-			"Removes the mixture injection with the given id.");
-
+			}));
 }
 
 void bind_hybridContinuous(py::module_& m) {

@@ -98,13 +98,13 @@ class MixtureInjection final {
      * @return true: Change was already performed.
      * @return false: Change was not yet performed. 
      */
-    [[nodiscard]] inline const bool wasPerformed() { return performed; }
+    [[nodiscard]] inline const bool wasPerformed() const { return performed; }
 
     /**
      * @brief Retrieve identification of the mixture that should be injected.
      * @return MixtureId of the mixture to be injected.
      */
-    [[nodiscard]] inline size_t getMixtureId() { return mixture->getId(); }
+    [[nodiscard]] inline size_t getMixtureId() const { return mixture->getId(); }
 
   public:
 
@@ -153,10 +153,7 @@ class MixtureInjection final {
     // Friend classes that need access to private member functions
     friend class AbstractMixing<T>;
     friend class ConcentrationSemantics<T>;
-    /**
-     * TODO: Incoming from main
-     */
-    // friend class InstantaneousMixingModel<T>;
+    friend class InstantaneousMixingModel<T>;
     friend class MixtureInjectionEvent<T>;
     friend class PermanentMixtureInjectionEvent<T>;
     friend class test::definitions::GlobalTest<T>;

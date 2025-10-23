@@ -21,6 +21,9 @@ template<typename T>
 class ConcentrationSemantics;
 
 template<typename T>
+class AbstractMixing;
+
+template<typename T>
 class Mixture;
 
 /**
@@ -117,11 +120,8 @@ class Specie {
 
     // Friend class definitions
     friend class ConcentrationSemantics<T>;
-    /**
-     * TODO: Incoming from main
-     */
-    // friend class AbstractMixing<T>;
-    // friend class Mixture<T>;
+    friend class AbstractMixing<T>;
+    friend class Mixture<T>;
     friend class test::definitions::GlobalTest<T>;
 
 };

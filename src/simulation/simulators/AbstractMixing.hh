@@ -52,6 +52,7 @@ void AbstractMixing<T>::calculateNewMixtures(double timestep_) {
 
 template<typename T>
 void AbstractMixing<T>::simulate() {
+    Simulation<T>::simulate();
     this->assertInitialized();      // perform initialization checks
     this->initialize();             // initialize the simulation
     this->conductNodalAnalysis();   // compute nodal analysis
@@ -173,11 +174,7 @@ void AbstractMixing<T>::saveState() {
 
 template<typename T>
 void AbstractMixing<T>::saveMixtures() {
-    std::unordered_map<int, Mixture<T>*> mixtures_ptr;
-    for (auto& [mixtureId, mixture] : this->getMixtures()) {
-        mixtures_ptr.try_emplace(mixtureId, mixture.get());
-    }
-    this->getSimulationResults()->setMixtures(mixtures_ptr);   
+    this->getSimulationResults()->setMixtures(this->getMixtures());   
 }
 
 }   /// namespace sim
