@@ -19,7 +19,7 @@ template<typename T>
 class Edge;
 
 template<typename T>
-class Node;
+class Network;
 
 /**
  * @brief Class to specify a flow rate pump, which is a component of a chip.

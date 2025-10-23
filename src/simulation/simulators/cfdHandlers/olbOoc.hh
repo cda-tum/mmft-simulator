@@ -12,7 +12,6 @@ lbmOocSimulator<T>::lbmOocSimulator (
                               resolution_, epsilon_, relaxationTime_, adRelaxationTime_), 
         tissue(tissue_), organStlFile(organStlFile_) 
 {
-    this->cfdModule->setModuleTypeLbm();
     this->fluxWall.try_emplace(int(0), &this->zeroFlux);
 } 
 

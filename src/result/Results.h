@@ -31,15 +31,34 @@ class DropletPosition;
 
 template<typename T>
 class Fluid;
+
+template<typename T>
+class Simulation;
+
+template<typename T>
+class AbstractContinuous;
+
+template<typename T>
+class AbstractDroplet;
+
+template<typename T>
+class AbstractMixing;
+
+template<typename T>
+class HybridContinuous;
 }
 
 namespace result {
+
+template<typename T>
+class SimulationResult;
 
 /**
  * @brief Struct to contain a state specified by time, an unordered map of pressures, an unordered map of flow rates, a vector of clogged channel ids, an unordered map of droplet positions.
  */
 template<typename T>
-struct State {
+class State {
+private:
     int id;                                                             ///< Sequential id of the state
     T time;                                                             ///< Simulation time at which the following values were calculated.
     std::unordered_map<int, T> pressures;                               ///< Keys are the nodeIds.
@@ -94,60 +113,65 @@ struct State {
      */
     State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
 
+public:
     /**
      * @brief Function to get pressure at a specific node.
      * @return Pressures of this state in Pa.
      */
-    const std::unordered_map<int, T>& getPressures() const;
+    [[nodiscard]] inline const std::unordered_map<int, T>& getPressures() const { return pressures; }
 
     /**
      * @brief Function to get flow rate at a specific channel.
      * @return Flowrates of this state in m^3/s.
      */
-    const std::unordered_map<int, T>& getFlowRates() const;
+    [[nodiscard]] inline const std::unordered_map<int, T>& getFlowRates() const { return flowRates; }
 
     /**
-     * @brief Function to get flow rate at a specific channel.
-     * @return Flowrates of this state in m^3/s.
+     * TODO:
      */
-    const std::unordered_map<int, std::string>& getVtkFiles() const;
+    [[nodiscard]] inline const std::unordered_map<int, std::string>& getVtkFiles() const { return vtkFiles; }
 
     /**
      * @brief Function to get the droplet positions of this state.
      * @return DropletPositions.
      */
-    std::unordered_map<int, sim::DropletPosition<T>>& getDropletPositions();
+    [[nodiscard]] inline const std::unordered_map<int, sim::DropletPosition<T>>& getDropletPositions() const { return dropletPositions; }
 
     /**
      * @brief Function to get the mixture positions of this state.
      * @return MixturePositions.
      */
-    std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& getMixturePositions();
+    [[nodiscard]] inline const std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& getMixturePositions() const { return mixturePositions; }
 
     /**
      * @brief Function to get the time of a state.
      * @return Time in s.
      */
-    T getTime() const;
+    [[nodiscard]] inline T getTime() const { return time; }
 
     /**
      * @brief Print the state
     */
-    const void printState();
+    void printState() const;
+
+    // Friend class definition
+    friend class SimulationResult<T>;
 };
 
 /**
  * @brief Struct to contain the simulation result specified by a chip, an unordered map of fluids, an unordered map of droplets, an unordered map of injections, a vector of states, a continuous fluid id, the maximal adaptive time step and the id of a resistance model.
  */
 template<typename T>
-struct SimulationResult {
+class SimulationResult {
+
+private:
     arch::Network<T>* network;                                      /// Contains the chip, with all the channels and pumps.
     std::unordered_map<int, sim::Fluid<T>>* fluids;                 /// Contains all fluids which were defined (i.e., also the fluids which were created when droplets merged).
     std::unordered_map<int, sim::Droplet<T>>* droplets;             /// Contains all droplets that occurred during the simulation not only the once that were injected (i.e., also merged and splitted droplets)
-    std::unordered_map<int, sim::Mixture<T>*> mixtures;
+    std::unordered_map<size_t, const std::shared_ptr<sim::Mixture<T>>> mixtures;
     std::unordered_map<int, sim::Specie<T>>* species;
     std::unordered_map<int, int> filledEdges;
-    std::vector<std::unique_ptr<State<T>>> states;                  /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
+    std::vector<std::shared_ptr<const State<T>>> states;            /// Contains all states ordered according to their simulation time (beginning at the start of the simulation).    
 
     int continuousPhaseId;              /// Fluid id which served as the continuous phase.
     T maximalAdaptiveTimeStep;     /// Value for the maximal adaptive time step that was used.
@@ -193,40 +217,55 @@ struct SimulationResult {
     void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
-     * @brief Get the simulated flowrates in the channels.
-     * @return Vector of flowrate values
+     * TODO: Documentation
      */
-    const std::unordered_map<int, T>& getFinalMixturePositions() const;
+    void setMixtures(std::unordered_map<size_t, std::shared_ptr<sim::Mixture<T>>> mixtures);
 
+public:
     /**
      * @brief Get the simulated states that were stored during simulation.
      * @return Vector of states
      */
-    const std::vector<std::unique_ptr<State<T>>>& getStates() const;
+    [[nodiscard]] inline const std::vector<std::shared_ptr<const State<T>>>& getStates() const { return states; }
+
+    /**
+     * TODO:
+     */
+    [[nodiscard]] inline const std::shared_ptr<const State<T>>& getLastState() const { return states.back(); }
+
+    /**
+     * TODO:
+     */
+    [[nodiscard]] inline const std::shared_ptr<const State<T>>& getState(size_t key) const { return states.at(key); }
 
     /**
      * @brief Print all the states that were stored during simulation.
     */
-    const void printStates() const;
+    void printStates() const;
 
     /**
      * @brief Print last state that was stored during simulation.
     */
-    const void printLastState() const;
+    inline void printLastState() const { states.back()->printState();}
 
     /**
      * @brief Print state key
      * @param[in] key The key of the state that should be printed.
     */
-    const void printState(int key) const;
+    inline void printState(size_t key) const { states.at(key)->printState(); }
 
-    const void setMixtures(std::unordered_map<int, sim::Mixture<T>*> mixtures);
+    [[nodiscard]] inline const std::unordered_map<size_t, const std::shared_ptr<sim::Mixture<T>>>& getMixtures() const { return mixtures; }
 
-    const std::unordered_map<int, sim::Mixture<T>*>& getMixtures() const;
+    void printMixtures();
 
-    const void printMixtures();
+    void writeMixture(int mixtureId);
 
-    const void writeMixture(int mixtureId);
+    // Friend class definition
+    friend class sim::Simulation<T>;
+    friend class sim::AbstractContinuous<T>;
+    friend class sim::AbstractDroplet<T>;
+    friend class sim::AbstractMixing<T>;
+    friend class sim::HybridContinuous<T>;
 };
 
 }   // namespace results

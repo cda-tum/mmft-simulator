@@ -306,7 +306,7 @@ public:
 };
 
 template<typename T>
-class DiffusionMixingModel final : public MixingModel<T> {
+class DiffusionMixingModel : public MixingModel<T> {
 
 private:
     int resolution = 10;

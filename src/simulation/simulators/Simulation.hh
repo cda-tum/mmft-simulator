@@ -7,7 +7,7 @@ namespace sim {
         if (network_ == nullptr) {
             throw std::logic_error("Network cannot be null.");
         }
-        this->simulationResult = std::make_unique<result::SimulationResult<T>>();
+        this->simulationResult = std::shared_ptr<result::SimulationResult<T>>(new result::SimulationResult<T>());
     }
 
     template<typename T>
@@ -30,7 +30,7 @@ namespace sim {
     std::shared_ptr<Fluid<T>> Simulation<T>::addFluid(T viscosity, T density) {
         auto id = Fluid<T>::getFluidCounter();
 
-        auto result = fluids.insert_or_assign(id, std::shared_ptr<Fluid<T>>(new Fluid<T>(id, density, viscosity)));
+        auto result = fluids.insert_or_assign(id, std::shared_ptr<Fluid<T>>(new Fluid<T>(id, this->getHash(), density, viscosity)));
 
         return result.first->second;
     }
@@ -95,8 +95,14 @@ namespace sim {
         if (fluidId == continuousPhase) {
             throw std::logic_error("Cannot delete continuous phase.");
         }
-        if (!fluids.erase(fluidId)) {
+        if (fluids.find(fluidId) == fluids.end()) {
             throw std::logic_error("Could not delete fluid with key " + std::to_string(fluidId) + ". Fluid not found.");
+        } else {
+            // reset the simHash of the fluid to indicate it has been removed from the simulation   
+            fluids.at(fluidId)->resetHash();
+            if (!fluids.erase(fluidId)) {
+                throw std::logic_error("Could not delete fluid with key " + std::to_string(fluidId) + ". Unknown error.");
+            }
         }
     }
 
@@ -185,6 +191,13 @@ namespace sim {
         }
 
         nodalAnalysis = std::make_shared<nodal::NodalAnalysis<T>> (network.get());
+    }
+
+    template<typename T>
+    void Simulation<T>::simulate() {
+        // Perform common simulation steps
+        network->sortGroups();             // Sort groups in the network
+        network->isNetworkValid();         // Check if the network is valid
     }
 
 }   /// namespace sim

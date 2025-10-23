@@ -4,7 +4,8 @@ namespace sim {
 
     template<typename T>
     AbstractMembrane<T>::AbstractMembrane(std::shared_ptr<arch::Network<T>> network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) {
-        membraneModel = std::unique_ptr<MembraneModel9<T>>(new MembraneModel9<T>());
+        // Default membrane model upon construction
+        this->setMembraneModel9();
     }
 
     template<typename T>
@@ -17,6 +18,7 @@ namespace sim {
 
     template<typename T>
     void AbstractMembrane<T>::simulate() {
+        Simulation<T>::simulate();
         this->assertInitialized();              // perform initialization checks
         this->initialize();                     // initialize the simulation
         

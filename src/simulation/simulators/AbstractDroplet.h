@@ -169,9 +169,6 @@ public:
      */
     [[nodiscard]] std::tuple<bool, std::shared_ptr<Droplet<T>>> getDropletAtNode(const std::shared_ptr<arch::Node<T>>& node) const;
 
-    /** TODO: Miscellaneous 
-     * reset the simHash
-    */
     /**
      * @brief Removes the droplet from the simulator. If one or multiple dropletInjections are coupled
      * to the removed droplet, these are also removed from the simulator.
@@ -198,7 +195,7 @@ public:
      * @param[in] injectionPosition Position inside the channel at which the droplet should be injected (relative to the channel length between 0.0 and 1.0).
      * @return Pointer to created injection.
      */
-    [[maybe_unused]] std::shared_ptr<DropletInjection<T>> addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::RectangularChannel<T>>& channel, T injectionPosition); 
+    [[maybe_unused]] std::shared_ptr<DropletInjection<T>> addDropletInjection(const std::shared_ptr<Droplet<T>>& droplet, T injectionTime, const std::shared_ptr<arch::Channel<T>>& channel, T injectionPosition); 
 
     /**
      * @brief Get injection
@@ -214,9 +211,6 @@ public:
     */
     void removeDropletInjection(const std::shared_ptr<DropletInjection<T>>& dropletInjection);
 
-    /** TODO: Miscellaneous 
-     * reset the simHash
-     */
     /**
      * @brief In addition to removing the fluid, the droplets that point to the fluid that is to be
      * removed, will be reset to point to the default fluid, i.e., the continuous phase.

@@ -12,10 +12,16 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
-class CfdSimulator;
+class CFDSimulator;
 
 template<typename T>
 class ResistanceModel;
+
+template<typename T>
+class lbmSimulator;
+
+template<typename T>
+class essLbmSimulator;
 
 }
 
@@ -24,6 +30,9 @@ namespace arch {
 // Forward declared dependencies
 template<typename T>
 class Node;
+
+template<typename T>
+class Network;
 
 template<typename T>
 struct Opening;
@@ -90,6 +99,22 @@ protected:
     */
     inline void setNodes(std::unordered_map<size_t, std::shared_ptr<Node<T>>> boundaryNodes) { this->boundaryNodes = boundaryNodes; }
 
+    /**
+     * @brief Removes a node from the module.
+     * @param[in] nodeId Id of the node that should be removed.
+     */
+    virtual void removeNode(size_t nodeId) { boundaryNodes.erase(nodeId); }
+
+    /**
+     * @brief Sets the type of the module to LBM.
+     */
+    inline void setModuleTypeLbm() { moduleType = ModuleType::LBM; }
+
+    /**
+     * @brief Returns the type of the module to ESS LBM.
+     */
+    inline void setModuleTypeEssLbm() { moduleType = ModuleType::ESS_LBM; }
+
 public:
 
     /**
@@ -120,19 +145,11 @@ public:
      * @brief Returns the type of the module.
      * @returns What type the channel has.
      */
-    inline void setModuleTypeLbm() { moduleType = ModuleType::LBM; }
-
-    /**
-     * @brief Returns the type of the module.
-     * @returns What type the channel has.
-     */
-    inline void setModuleTypeEssLbm() { moduleType = ModuleType::ESS_LBM; }
-
-    /**
-     * @brief Returns the type of the module.
-     * @returns What type the channel has.
-     */
     [[nodiscard]] inline ModuleType getModuleType() const { return moduleType; }
+
+    // Friend definitions
+    friend class sim::lbmSimulator<T>;
+    friend class sim::essLbmSimulator<T>;
 };
 
 /**
@@ -164,6 +181,12 @@ private:
      * @param[in] resistanceModel The resistance model that is used in the simulator to obtain channel resistances.
      */
     void initialize(const sim::ResistanceModel<T>* resistanceModel);
+
+    /**
+     * @brief Removes a node and its opening from the CFD module.
+     * @param[in] nodeId Id of the node that should be removed.
+     */
+    void removeNode(size_t nodeId) override;
 
 public:
 

@@ -16,6 +16,9 @@ class NodalAnalysis;
 
 namespace arch {
 
+template<typename T>
+class Network;
+
 /**
  * @brief Class to specify a node, which defines connections between components of a Network.
 */
@@ -52,7 +55,7 @@ public:
     [[nodiscard]] inline size_t getId() const { return id; }
 
     /**
-     * @brief Get position of the node.
+     * @brief Set position of the node.
      * @param[in] pos Vector of the absolute position of the node.
     */
     inline void setPosition(std::vector<T> pos) { this->pos =  std::move(pos); }

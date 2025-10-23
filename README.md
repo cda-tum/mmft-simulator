@@ -23,8 +23,8 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 |               | Abstract      | Hybrid        |
 | :-----------  | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      |
+| Concentration | &#x2705;      |               |
 | BigDroplet    | &#x2705;      |               |
-| Mixing        | &#x2705;      |               |
 | Membrane      | &#x2705;      |               |
 
 </div>
@@ -35,11 +35,10 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 
 ### Platforms
 **Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based pressure-driven microfluidic flow. <sup>[[3]](https://doi.org/10.1039/C2LC20799K)</sup> <br>
-**BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[4]](https://doi.org/10.1145/3313867)</sup> <sup>[[5]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
-**Mixing**: Solvents play an important role in microfluidics and on this platform, concentrations of species dissolved in the continuous phase can be simulated. There are currently **two** mixing models available:
+**Concentration**: Solvents play an important role in microfluidics and on this platform, concentrations of species dissolved in the continuous phase can be simulated. There are currently **two** mixing models available:
 * Instantaneous mixing model: Fluids are assumed to be fully mixed as soon as they meet.
-* Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology, following an abstracted advection-diffusion equation&mdash;as described in the respective publication. <sup>[[6]](https://doi.org/10.1109/TCAD.2025.3549703)</sup> <br>
-
+* Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology, following an abstracted advection-diffusion equation&mdash;as described in the respective publication. <sup>[[4]](https://doi.org/10.1109/TCAD.2025.3549703)</sup> <br>
+**BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[5]](https://doi.org/10.1145/3313867)</sup> <sup>[[6]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
 **Membrane**: Same as the Mixing platform, but supports tanks (e.g. for organs-on-chips designs) and membranes (connect tank to channel to allow diffusive mixture exchange between the two) and requires the instantaneous mixing model. <sup>[[7]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
 
 
@@ -99,23 +98,56 @@ using T = double;
 
 int main(int argc, char const* argv []) {
 
-    std::string networkFile = "/path/to/Network.JSON";
-    std::string simulationFile = "/path/to/Simulation.JSON";
-    
-    // Load and set the network from a JSON file
-    arch::Network<T> network = porting::networkFromJSON<T>(networkFile);
+    // define network
+    auto network = arch::Network<T>::createNetwork();
 
-    // Check validity
-    network.isNetworkValid();
+    // define simulation
+    sim::AbstractContinuous<T> testSimulation(network);
 
-    // Load and set the simulation from a JSON file
-    sim::Simulation<T> simulation = porting::simulationFromJSON<T>(simulationFile, &network);
-    
-    // Simulate
-    simulation.simulate();
+    // nodes
+    auto node0 = network->addNode(0.0, 0.0, true);
+    auto node1 = network->addNode(1e-3, 2e-3, false);
+    auto node2 = network->addNode(1e-3, 1e-3, false);
+    auto node3 = network->addNode(1e-3, 0.0, false);
+    auto node4 = network->addNode(2e-3, 2e-3, false);
+    auto node5 = network->addNode(2e-3, 1e-3, false);
+    auto node6 = network->addNode(2e-3, 0.0, false);
+    auto node7 = network->addNode(3e-3, 1e-3, true);
 
-    // Store results
-    porting::resultToJSON<T>("/path/to/Result.JSON", &simulation );
+    // pressure pump
+    auto pressure = 1e3;
+    auto pump0 = network->addPressurePump(node0->getId(), node1->getId(), pressure);
+    auto pump1 = network->addPressurePump(node0->getId(), node2->getId(), pressure);
+    auto pump2 = network->addPressurePump(node0->getId(), node3->getId(), pressure);
+
+    // channels
+    auto cWidth = 100e-6;
+    auto cHeight = 100e-6;
+    auto cLength = 1000e-6;
+
+    auto c1 = network->addRectangularChannel(node1->getId(), node4->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c2 = network->addRectangularChannel(node2->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c3 = network->addRectangularChannel(node3->getId(), node6->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c4 = network->addRectangularChannel(node4->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c5 = network->addRectangularChannel(node6->getId(), node5->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+    auto c6 = network->addRectangularChannel(node5->getId(), node7->getId(), cHeight, cWidth, cLength, arch::ChannelType::NORMAL);
+
+    // fluids
+    auto fluid0 = testSimulation.addFluid(1e-3, 997.0);
+    //--- continuousPhase ---
+    testSimulation.setContinuousPhase(fluid0->getId());
+
+    // Set the resistance model
+    testSimulation.set1DResistanceModel();
+
+    // simulate
+    testSimulation.simulate();
+
+    // results
+    auto result = testSimulation.getResults();
+    result->printLastState();
+
+    return 0;
 }
 ```
 
@@ -124,25 +156,60 @@ int main(int argc, char const* argv []) {
 ```python
 from mmft import simulator
 
-# Initialize Network object and load from JSON file
-network = simulator.Network()
-network.loadNetwork("/path/to/Network.JSON")
+network = createNetwork()
 
-# Check validity
-network.sort()
-network.valid()
+# Nodes
+n0 = network.addNode(0.0, 0.0, True)
+n1 = network.addNode(1e-3, 2e-3, False)
+n2 = network.addNode(1e-3, 1e-3, False)
+n3 = network.addNode(1e-3, 0.0, False)
+n4 = network.addNode(2e-3, 2e-3, False)
+n5 = network.addNode(2e-3, 1e-3, False)
+n6 = network.addNode(2e-3, 0.0, False)
+n7 = network.addNode(3e-3, 1e-3, True)
 
-# Initialize Simulation object and load from JSON file
-simulation = AbstractContinuousSimulation("/path/to/Simulation.JSON", network)
+# Channels
+network.addPressurePump(n0, n1, 1e3)
+network.addPressurePump(n0, n2, 1e3)
+network.addPressurePump(n0, n3, 1e3)
+network.addRectangularChannel(n1, n4, 1e-4, 1e-4, ChannelType.normal)
+network.addRectangularChannel(n2, n5, 1e-4, 1e-4, ChannelType.normal)
+network.addRectangularChannel(n3, n6, 1e-4, 1e-4, ChannelType.normal)
+network.addRectangularChannel(n4, n5, 1e-4, 1e-4, ChannelType.normal)
+network.addRectangularChannel(n6, n5, 1e-4, 1e-4, ChannelType.normal)
+network.addRectangularChannel(n5, n7, 1e-4, 1e-4, ChannelType.normal)
 
-# Perform simulation 
+# Simulation
+simulation = AbstractContinuous(network)
+
+# Fluid & Resistance Model
+f0 = simulation.addFluid(1e-3, 997)
+simulation.setContinuousPhase(f0)
+simulation.set1DResistanceModel()
+
 simulation.simulate()
 
-# Store results
-simulation.saveResult("/path/to/Result.JSON")
+# Results
+results = simulation.getResults()
+results.printLastState()
 ```
 
 ### JSON Definitions
+
+The network and simulation objects can also be defined using a JSON file and loaded into the MMFT-Simulator:
+
+```cpp
+    // Load and set the network from a JSON file
+    std::cout << "[Main] Create network object..." << std::endl;
+    std::shared_ptr<arch::Network<T>> network = porting::networkFromJSON<T>("path/to/network.json");
+
+    // Load and set the simulation from a JSON file
+    std::cout << "[Main] Create simulation object..." << std::endl;
+    std::unique_ptr<sim::Simulation<T>> simulation = porting::simulationFromJSON<T>("path/to/simulation.json", network);
+
+    // Store the simulation result in a JSON file
+    porting::resultToJSON("path/to/results.json", simulation);
+```
 
 The JSON file formats provide an accessible way for loading and storing simulation cases and results. To simulate a case, the JSON definitions for the `Network` and `Simulation` are necessary. Once a simulation is finished, the `Result` can be stored in a JSON file (see code-snippets above). 
 
@@ -323,11 +390,11 @@ More details about the implementation and the mechanisms behind the MMFT Simulat
 
 [[3]](https://doi.org/10.1039/C2LC20799K) K. W. Oh, K. Lee, B. Ahn, and E. P. Furlani. Design of pressure-driven microfluidic networks using electric circuit analogy. Lab on a Chip 2012.
 
-[[4]](https://doi.org/10.1145/3313867) A. Grimmer, M. Hamidović, W. Haselmayr, and R. Wille. Advanced Simulation of Droplet Microfluidics. ACM Journal on Emerging Technologies in Computing Systems (JETC), 2019.
+[[4]](https://doi.org/10.1109/TCAD.2025.3549703) M. Takken, M. Emmerich, and R. Wille. An Abstract Simulator for Species Concentrations in Channel-Based Microfluidic Devices. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems (TCAD), 2025.
 
-[[5]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
+[[5]](https://doi.org/10.1145/3313867) A. Grimmer, M. Hamidović, W. Haselmayr, and R. Wille. Advanced Simulation of Droplet Microfluidics. ACM Journal on Emerging Technologies in Computing Systems (JETC), 2019.
 
-[[6]](https://doi.org/10.1109/TCAD.2025.3549703) M. Takken, E. Emmerich, and R. Wille. An Abstract Simulator for Species Concentrations in Channel-Based Microfluidic Devices. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems (TCAD), 2025.
+[[6]](https://doi.org/10.1016/j.simpa.2022.100440) G. Fink, F. Costamoling, and R. Wille. MMFT Droplet Simulator: Efficient Simulation of Droplet-based Microfluidic Devices. Software Impacts, 2022.
 
 [[7]](https://doi.org/10.1038/s41598-024-77741-8) M. Emmerich, F. Costamoling, and R. Wille. Modular and Extendable 1D-Simulator for Microfluidic Devices. Scientific Reports, 2024.
 

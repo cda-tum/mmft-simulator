@@ -272,6 +272,7 @@ void HybridContinuous<T>::initialize() {
 
 template<typename T>
 void HybridContinuous<T>::simulate() {
+    Simulation<T>::simulate();
     this->assertInitialized();              // perform initialization checks
     this->initialize();                     // initialize the simulation
     // Catch runtime error, not enough CFD simulators.

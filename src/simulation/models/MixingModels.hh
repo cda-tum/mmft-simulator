@@ -188,11 +188,11 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::v
     bool updated = false;
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         bool createMixture = false;
-        std::unordered_map<size_t, Specie<T>*> speciePtrs;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciePtrs;
         std::unordered_map<size_t, T> newConcentrations;
         for (auto& mixtureInflow : mixtureInflowList) {
             for (auto& [specieId, oldConcentration] : tmpMixtures[mixtureInflow.mixtureId].getSpecieConcentrations()) {
-                speciePtrs.try_emplace(specieId, sim->getSpecie(specieId).get());
+                speciePtrs.try_emplace(specieId, sim->getSpecie(specieId));
                 T newConcentration = oldConcentration * mixtureInflow.inflowVolume / totalInflowVolumeAtNode.at(nodeId);
                 auto [iterator, inserted] = newConcentrations.try_emplace(specieId, newConcentration);
                 if (!inserted) {

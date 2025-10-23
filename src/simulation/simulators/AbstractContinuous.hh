@@ -7,6 +7,7 @@ namespace sim {
 
     template<typename T>
     void AbstractContinuous<T>::simulate() {
+        Simulation<T>::simulate();
         this->assertInitialized();      // perform initialization checks
         this->initialize();             // initialize the simulation
         this->conductNodalAnalysis();   // compute nodal analysis

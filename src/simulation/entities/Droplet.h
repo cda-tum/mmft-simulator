@@ -231,6 +231,7 @@ template<typename T>
 class Droplet {
   private:
     const size_t id;                                                ///< Unique identifier of the droplet.
+    size_t simHash = 0;                                             ///< Hash of the simulation that created this mixture object.
     std::string name = "";                                          ///< Name of the droplet.
     T volume = 1e-11;                                               ///< Volume of the droplet in m^3.
     Fluid<T>* fluid = nullptr;                                      ///< Pointer to fluid of which the droplet consists of.
@@ -245,8 +246,13 @@ class Droplet {
      * @param[in] volume Volume of the droplet in m^3.
      * @param[in] fluid Pointer to fluid the droplet consists of.
      */
-    Droplet(size_t id, T volume, Fluid<T>* fluid);
+    Droplet(size_t id, size_t simHash, T volume, Fluid<T>* fluid);
 
+    /**
+     * @brief Reset the simulation hash of this fluid upon removal of droplet.
+     */
+    void resetHash() noexcept { this->simHash = 0; }
+    
   public:
     /**
      * @brief Returns unique identifier of the droplet.
@@ -284,14 +290,12 @@ class Droplet {
      */
     [[nodiscard]] inline const Fluid<T>* readFluid() const { return fluid; }
 
-    /** TODO: Miscellaneous */
     /**
      * @brief Set the fluid of this droplet.
-     * TODO add SimHash to confirm this fluid belongs to same simulator
      * @param[in] fluid A pointer to the fluid that composes the droplet.
      * @throws a logic_error is the fluid pointer is a nullptr.
      */
-    void setFluid(Fluid<T>* fluid);
+    void setFluid(const std::shared_ptr<Fluid<T>>& fluid);
 
     /**
      * @brief A vector to read-only references of the droplet boundaries.
@@ -341,7 +345,7 @@ class DropletImplementation : public Droplet<T> {
      * @param[in] volume Volume of the droplet in m^3.
      * @param[in] fluid Pointer to fluid the droplet consists of.
      */
-    DropletImplementation(size_t id, T volume, Fluid<T>* fluid);
+    DropletImplementation(size_t id, size_t simHash, T volume, Fluid<T>* fluid);
 
   public:
 

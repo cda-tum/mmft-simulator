@@ -5,20 +5,18 @@ namespace sim {
 template<typename T>
 MembraneModel<T>::MembraneModel() { }
 
-//=========================================================================================
-//=============================  permeability Membrane  ===================================
-//=========================================================================================
+/** TODO: HybridOocSimulation
+ * Check if a Permeability membrane model is relevant
+ */
+// template<typename T>
+// PermeabilityMembraneModel<T>::PermeabilityMembraneModel() : MembraneModel<T>() { }
 
-template<typename T>
-PermeabilityMembraneModel<T>::PermeabilityMembraneModel() : MembraneModel<T>() { }
 
-
-//=========================================================================================
-//============================  poreResistance Membrane  ==================================
-//=========================================================================================
-
-template<typename T>
-PoreResistanceMembraneModel<T>::PoreResistanceMembraneModel() : MembraneModel<T>() { }
+/** TODO: HybridOocSimulation
+ * Check if a PoreResistance membrane model is relevant
+ */
+// template<typename T>
+// PoreResistanceMembraneModel<T>::PoreResistanceMembraneModel() : MembraneModel<T>() { }
 
 // Ishahak2020
 template<typename T>
@@ -26,7 +24,7 @@ MembraneModel0<T>::MembraneModel0() = default;
 
 template<typename T>
 T MembraneModel0<T>::getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const {
-    return getPoreResistance(membrane, specie) / (area * membrane->getPorosity());
+    return getPoreResistance(membrane, mixture) / (area * membrane->getPorosity());
 }
 
 template<typename T>
@@ -154,7 +152,7 @@ MembraneModel6<T>::MembraneModel6() {}
 template<typename T>
 T MembraneModel6<T>::getMembraneResistance(const std::shared_ptr<arch::Membrane<T>>& membrane, Mixture<T> const* mixture, Specie<T> const* specie, T area) const {
     T diffusionCoefficient = specie->getDiffusivity();
-    return (0.5 * membrane->getChannel()->getHeight() / diffusionCoefficient + membrane->getHeight() / diffusionFactorMembrane + membrane->getTank()->getHeight() * 0.5 / diffusionCoefficient);
+    return (0.5 * membrane->getRectangularChannel()->getHeight() / diffusionCoefficient + membrane->getHeight() / diffusionFactorMembrane + membrane->getTank()->getHeight() * 0.5 / diffusionCoefficient);
 }
 
 // Berg1993, permeability increases twice as fast for small number of N
