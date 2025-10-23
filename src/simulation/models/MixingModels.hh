@@ -62,26 +62,26 @@ void MixingModel<T>::limitMinimalTimeStep(T minMinimalTimeStep, T maxMinimalTime
 }
 
 template<typename T>
-const std::deque<std::pair<int,T>>& MixingModel<T>::getMixturesInEdge(size_t channelId) const {
+const std::deque<std::pair<size_t,T>>& MixingModel<T>::getMixturesInEdge(size_t channelId) const {
     return mixturesInEdge.at(channelId);
 }
 
 template<typename T>
-const std::unordered_map<size_t, std::deque<std::pair<int,T>>>& MixingModel<T>::getMixturesInEdges() const {
+const std::unordered_map<size_t, std::deque<std::pair<size_t,T>>>& MixingModel<T>::getMixturesInEdges() const {
     return mixturesInEdge;
 }
 
 template<typename T>
-const std::unordered_map<size_t, int>& MixingModel<T>::getFilledEdges() const {
+const std::unordered_map<size_t, size_t>& MixingModel<T>::getFilledEdges() const {
     return filledEdges;
 }
 
 template<typename T>
-void MixingModel<T>::injectMixtureInEdge(int mixtureId, size_t channelId, T endPos) {
+void MixingModel<T>::injectMixtureInEdge(size_t mixtureId, size_t channelId, T endPos) {
     if (this->mixturesInEdge.count(channelId)) {
         this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, endPos));
     } else {
-        std::deque<std::pair<int,T>> newDeque;
+        std::deque<std::pair<size_t,T>> newDeque;
         newDeque.push_back(std::make_pair(mixtureId, endPos));
         this->mixturesInEdge.try_emplace(channelId, newDeque);
     }
@@ -145,12 +145,12 @@ void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vec
         for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
             // If the node is an outflow
             if (cfdSimulator->getFlowDirection(nodeId) < 0.0) {
-                int tmpMixtureIndex = tmpMixtures.size();
-                int tmpMixtureId = std::numeric_limits<int>::max();
-                std::unordered_map<size_t, Specie<T>*> species;
+                size_t tmpMixtureIndex = tmpMixtures.size();
+                size_t tmpMixtureId = std::numeric_limits<int>::max();
+                std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
                 std::unordered_map<size_t, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
                 for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
-                    species.try_emplace(speciesId, sim->getSpecie(speciesId).get());
+                    species.try_emplace(speciesId, sim->getSpecie(speciesId));
                 }
                 Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase().get());
                 tmpMixtures.push_back(tmpMixture);
@@ -188,11 +188,11 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::v
     bool updated = false;
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         bool createMixture = false;
-        std::unordered_map<size_t, Specie<T>*> speciePtrs;
+        std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciePtrs;
         std::unordered_map<size_t, T> newConcentrations;
         for (auto& mixtureInflow : mixtureInflowList) {
             for (auto& [specieId, oldConcentration] : tmpMixtures[mixtureInflow.mixtureId].getSpecieConcentrations()) {
-                speciePtrs.try_emplace(specieId, sim->getSpecie(specieId).get());
+                speciePtrs.try_emplace(specieId, sim->getSpecie(specieId));
                 T newConcentration = oldConcentration * mixtureInflow.inflowVolume / totalInflowVolumeAtNode.at(nodeId);
                 auto [iterator, inserted] = newConcentrations.try_emplace(specieId, newConcentration);
                 if (!inserted) {

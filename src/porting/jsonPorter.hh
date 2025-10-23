@@ -100,8 +100,6 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
 
         readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
         readResistanceModel<T>(jsonString, *simPtr);
-        network_->sortGroups();
-        network_->isNetworkValid();
     }
 
     // Read a Hybrid simulation definition
@@ -114,7 +112,6 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             readResistanceModel<T>(jsonString, *simPtr);
             readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())), network_.get());
             readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())));
-            network_->sortGroups();
         } else if (platform == sim::Platform::Mixing) {
             simPtr = std::make_unique<sim::HybridMixing<T>>(network_);
             simPtr->setFixtureId(activeFixture);
@@ -127,7 +124,6 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             readMixtureInjections<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())), activeFixture);
             readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridMixing<T>*>(simPtr.get())), network_.get());
             readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridMixing<T>*>(simPtr.get())));
-            network_->sortGroups();
         } else if (platform == sim::Platform::Ooc) {
             throw std::invalid_argument("OoC simulations are currently not supported.");
             /** TODO: HybridOocSimulation

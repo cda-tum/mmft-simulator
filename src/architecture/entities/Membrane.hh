@@ -73,6 +73,15 @@ std::shared_ptr<Channel<T>> Membrane<T>::getChannel() const {
 }
 
 template<typename T>
+std::shared_ptr<RectangularChannel<T>> Membrane<T>::getRectangularChannel() const {
+    if(channel->isRectangular()) {
+        return std::dynamic_pointer_cast<RectangularChannel<T>>(channel);
+    } else {
+        throw std::bad_cast();
+    }
+}
+
+template<typename T>
 std::shared_ptr<Tank<T>> Membrane<T>::getTank() const {
     return tank;
 }

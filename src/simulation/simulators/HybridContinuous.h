@@ -181,7 +181,7 @@ public:
      * @brief Create and add an LBM Simulator for a CFD Module to the Hybrid simulation
      * @param[in] module A pointer to the CfdModule on which this simulator instance will conduct LBM simulations.
      * @param[in] resolution The number of grid cells across the characteristic length.
-     * @param[in] epsilon The allowed error margin between this hybrid domain and the abstract domain in TODO.
+     * @param[in] epsilon The allowed error margin between this hybrid domain and the surrounding abstract domain.
      * @param[in] tau The relaxation number of this LBM solver.
      * @param[in] charPhysLength The physical characteristic length of this LBM solver.
      * @param[in] charPhysVelocity The physical characteristic velocity of this LBM solver.

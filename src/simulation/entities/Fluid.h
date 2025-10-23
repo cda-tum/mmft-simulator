@@ -20,6 +20,16 @@ namespace sim {
 template<typename T>
 class Simulation;
 
+template<typename T>
+class Droplet;
+
+template<typename T>
+class Mixture;
+
+template<typename T>
+class DiffusiveMixture;
+
+
 /**
  * @brief Class to define the fluid parameters of a droplet or the continuous phase.
  */
@@ -28,6 +38,7 @@ class Fluid {
   private:
     inline static int fluidCounter = 0;                     ///< Global counter for amount of created fluid objects.
     size_t const id;                                        ///< Unique identifier of the fluid.
+    size_t simHash = 0;                                     ///< Hash of the simulation that created this fluid object.
     std::string name = "";                                  ///< Name of the fluid.
     T density = 1.0e3;                                      ///< Density of the continuous phase in [kg/m^3].
     T viscosity = 1.0e-3;                                   ///< Dynamic viscosity of the continuous phase in [Pa s].
@@ -53,7 +64,7 @@ class Fluid {
      * @param[in] density Density of the fluid in [kg/m^3].
      * @param[in] viscosity Viscosity of the fluid in [Pa s].
      */
-    Fluid(size_t id, T density, T viscosity);
+    Fluid(size_t id, size_t simHash, T density, T viscosity);
 
     /**
      * @brief Constructs a fluid.
@@ -62,7 +73,19 @@ class Fluid {
      * @param[in] viscosity Viscosity of the fluid in [Pa s].
      * @param[in] name Name of the fluid.
      */
-    Fluid(size_t id, T density, T viscosity, std::string name);
+    Fluid(size_t id, size_t simHash, T density, T viscosity, std::string name);
+
+    /**
+     * @brief Reset the simulation hash of this fluid upon removal of fluid.
+     */
+    void resetHash() noexcept { this->simHash = 0; }
+
+    /**
+     * @brief Check if the simulation hash of this fluid matches the provided hash.
+     * @param simHash Hash of the simulation to check against.
+     * @returns true if the hashes match, false otherwise.
+     */
+    bool checkHashes(size_t simHash) const;
 
   public:
 
@@ -110,6 +133,9 @@ class Fluid {
 
     // Friend class definition, because the Fluid constructors are private
     friend class Simulation<T>;
+    friend class Droplet<T>;
+    friend class Mixture<T>;
+    friend class DiffusiveMixture<T>;
     friend class test::definitions::GlobalTest<T>;
 };
 

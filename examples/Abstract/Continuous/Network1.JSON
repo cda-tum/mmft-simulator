@@ -108,7 +108,6 @@
     "fluids": [
         {	
             "name": "Water",
-            "concentration": 1,
             "density": 997,           
             "viscosity": 1e-3
         }

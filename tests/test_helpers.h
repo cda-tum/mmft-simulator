@@ -19,12 +19,12 @@ inline std::unordered_map<int, double> getAverageFluidConcentrationsInEdge(const
         return {};
     }
     const auto& state = *result.getStates().at(stateId);
-    if (!state.mixturePositions.count(edgeId)) {
+    if (!state.getMixturePositions().count(edgeId)) {
         // if there is no mixture position, this means the entire edge is filled
         // with continuous phase which is usually not stored as a mixture
         return { { -1, 1.0 } };
     }
-    const auto& mixturePositions = state.mixturePositions.at(edgeId);
+    const auto& mixturePositions = state.getMixturePositions().at(edgeId);
     const auto& mixtures = result.getMixtures();
 
     std::unordered_map<int, double> averageConcentrations;
@@ -37,7 +37,7 @@ inline std::unordered_map<int, double> getAverageFluidConcentrationsInEdge(const
         auto position2 = mixturePosition.position2;
         auto mixtureLength = position2 - position1;
 
-        const auto& species = mixtures.at(mixtureId)->readSpecieConcentrations();
+        const auto& species = mixtures.at(mixtureId)->getSpecieConcentrations();
         for (const auto& [specieId, concentration]: species) {
             // percentage of channel filled with this mixture
             double newConcentration = concentration * mixtureLength;
@@ -69,14 +69,14 @@ inline std::vector<std::vector<int>> getDropletPath(const result::SimulationResu
     // loop through states
     for (const auto& state : result.getStates()) {
         // get dropletPosition
-        auto itDropletPosition = state->dropletPositions.find(dropletId);
-        if (itDropletPosition != state->dropletPositions.end()) {
+        auto itDropletPosition = state->getDropletPositions().find(dropletId);
+        if (itDropletPosition != state->getDropletPositions().end()) {
             // all channels that contain the droplet in the current saved state
             std::vector<int> position;
 
             // add channelIds of boundaries
             for (auto& boundary : itDropletPosition->second.boundaries) {
-                position.push_back(boundary.getChannelPosition().getChannel()->getId());
+                position.push_back(boundary.readChannelPosition().getChannel()->getId());
             }
 
             // add fully occupied channelIds

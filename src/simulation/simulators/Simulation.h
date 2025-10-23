@@ -82,7 +82,7 @@ private:
     T dt = 0.01;
     T writeInterval = 0.1;
     T tMax = 100;
-    std::unique_ptr<result::SimulationResult<T>> simulationResult = nullptr;
+    std::shared_ptr<result::SimulationResult<T>> simulationResult = nullptr;
 
     // Disabled because no stable simulator uses tissues
     // std::unordered_map<int, std::shared_ptr<Tissue<T>>> tissues;                        ///< Tissues specified for the simulation.
@@ -151,6 +151,16 @@ protected:
      * @param[in] fluid The fluid the continuous phase consists of.
      */
     inline void setFluids(std::unordered_map<size_t, std::shared_ptr<Fluid<T>>> fluids) { this->fluids = std::move(fluids); }
+
+    /**
+     * @brief Creates and adds a new fluid out of two existing fluids.
+     * @param fluid0Id Id of the first fluid.
+     * @param volume0 The volume of the first fluid.
+     * @param fluid1Id Id of the second fluid.
+     * @param volume1 The volume of the second fluid.
+     * @return Pointer to new fluid.
+     */
+    std::shared_ptr<Fluid<T>> addMixedFluid(int fluid0Id, T volume0, int fluid1Id, T volume1);
 
     /**
      * @brief Get fluid.
@@ -235,16 +245,6 @@ public:
 
     /**
      * @brief Creates and adds a new fluid out of two existing fluids.
-     * @param fluid0Id Id of the first fluid.
-     * @param volume0 The volume of the first fluid.
-     * @param fluid1Id Id of the second fluid.
-     * @param volume1 The volume of the second fluid.
-     * @return Pointer to new fluid.
-     */
-    std::shared_ptr<Fluid<T>> addMixedFluid(int fluid0Id, T volume0, int fluid1Id, T volume1);
-
-    /**
-     * @brief Creates and adds a new fluid out of two existing fluids.
      * @param fluid0 Pointer to the first fluid.
      * @param volume0 The volume of the first fluid.
      * @param fluid1 Pointer to the second fluid.
@@ -267,9 +267,6 @@ public:
      */
     [[nodiscard]] const std::unordered_map<size_t, const Fluid<T>*> readFluids() const;
 
-    /** TODO: Miscellaneous
-     * reset the simHash
-     */
     /**
      * @brief Removes a fluid from the simulation, based using the fluid ptr. 
      * @param[in] fluid Pointer to the fluid that is to be removed
@@ -278,7 +275,7 @@ public:
     virtual void removeFluid(const std::shared_ptr<Fluid<T>>& fluid);
 
     /**
-     * @brief Set the type of the simulation.
+     * @brief Get the fixture id.
      * @param[in] type
      */
     [[nodiscard]] inline int getFixtureId() const { return this->fixtureId; }
@@ -353,7 +350,7 @@ public:
      * @brief Get the results of the simulation.
      * @return Pointer to the result of the simulation.
      */
-    [[nodiscard]] inline const result::SimulationResult<T>* getResults() const { return simulationResult.get(); }
+    [[nodiscard]] inline const std::shared_ptr<result::SimulationResult<T>> getResults() const { return simulationResult; }
 
     /**
      * @brief Print the results as pressure at the nodes and flow rates at the channels
@@ -364,7 +361,7 @@ public:
      * @brief Conduct the simulation.
      * @return The result of the simulation containing all intermediate simulation steps and calculated parameters.
      */
-    virtual void simulate() = 0;
+    virtual void simulate();
 
     /**
      * @brief Mandatory virtual destructor is set to default.

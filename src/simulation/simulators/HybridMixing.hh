@@ -81,6 +81,7 @@ void HybridMixing<T>::writeConcentrationPpm(size_t adKey, std::pair<T,T> bounds,
 
 template<typename T>
 void HybridMixing<T>::simulate() {
+    Simulation<T>::simulate();
     this->assertInitialized();              // perform initialization checks
     this->initialize();                     // initialize the simulation
 

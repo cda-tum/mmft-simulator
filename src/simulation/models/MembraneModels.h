@@ -51,38 +51,44 @@ public:
 
 };
 
-/**
- * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
-*/
-template<typename T>
-class PermeabilityMembraneModel final : public MembraneModel<T> {
+/** TODO: HybridOocSimulation
+ * Check if a Permeability membrane model is relevant
+ */
+// /**
+//  * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
+// */
+// template<typename T>
+// class PermeabilityMembraneModel final : public MembraneModel<T> {
 
-private:
+// private:
 
-    /**
-     * @brief Constructor of a poreResistance membrane model.
-    */
-    PermeabilityMembraneModel();
+//     /**
+//      * @brief Constructor of a poreResistance membrane model.
+//     */
+//     PermeabilityMembraneModel();
     
-    friend class AbstractMembrane<T>;
-};
+//     friend class AbstractMembrane<T>;
+// };
 
-/**
- * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
-*/
-template<typename T>
-class PoreResistanceMembraneModel final : public MembraneModel<T> {
+/** TODO: HybridOocSimulation
+ * Check if a PoreResistance membrane model is relevant
+ */
+// /**
+//  * @brief Class that describes the poreResistance membrane model. This membrane model derives the permeability from pore geometry.
+// */
+// template<typename T>
+// class PoreResistanceMembraneModel final : public MembraneModel<T> {
 
-private:
+// private:
 
-    /**
-     * @brief Constructor of a poreResistance membrane model.
-    */
-    PoreResistanceMembraneModel();
+//     /**
+//      * @brief Constructor of a poreResistance membrane model.
+//     */
+//     PoreResistanceMembraneModel();
 
-    friend class AbstractMembrane<T>;
+//     friend class AbstractMembrane<T>;
 
-};
+// };
 
 /**
  * @brief Class that defines the functionality of the 1D membrane resistance model.

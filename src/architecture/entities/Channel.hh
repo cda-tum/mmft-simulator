@@ -64,26 +64,14 @@ T Arc<T,DIM>::getLength() {
 template<typename T>
 Channel<T>::Channel(size_t id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_, ChannelShape shape_) : 
 Edge<T>(id_, nodeA_->getId(), nodeB_->getId()), shape(shape_) { 
-    std::unique_ptr<Line_segment<T,2>> line = std::make_unique<Line_segment<T,2>> (nodeA_->getPosition(), nodeB_->getPosition());
-    this->length = line->getLength();
+    Line_segment<T,2> line = Line_segment<T,2> (nodeA_->getPosition(), nodeB_->getPosition());
     line_segments.push_back(std::move(line));
 }
 
 template<typename T>
 Channel<T>::Channel(size_t id_, std::shared_ptr<Node<T>> nodeA_, std::shared_ptr<Node<T>> nodeB_,
-                    std::vector<Line_segment<T,2>*> line_segments_, std::vector<Arc<T,2>*> arcs_, ChannelShape shape_) :
-Edge<T>(id_, nodeA_->getId(), nodeB_->getId()), shape(shape_) {
-    for (auto& line : line_segments_) {
-        this->length += line->getLength();
-        std::unique_ptr<Line_segment<T,2>> uLine(line);
-        line_segments.push_back(std::move(uLine));
-    }
-    for (auto& arc : arcs_) {
-        this->length += arc->getLength();
-        std::unique_ptr<Arc<T,2>> uArc(arc);
-        arcs.push_back(std::move(uArc));
-    }
-}
+                    std::vector<Line_segment<T,2>> line_segments_, std::vector<Arc<T,2>> arcs_, ChannelShape shape_) :
+Edge<T>(id_, nodeA_->getId(), nodeB_->getId()), line_segments(std::move(line_segments_)), arcs(std::move(arcs_)), shape(shape_) { }
 
 //=====================================================================================
 //================================  RectangularChannel ================================

@@ -21,6 +21,12 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
+class ConcentrationSemantics;
+
+template<typename T>
+class CFDSimulator;
+
+template<typename T>
 class lbmSimulator;
 
 template<typename T>

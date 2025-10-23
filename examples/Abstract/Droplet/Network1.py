@@ -3,7 +3,7 @@ from mmft.simulator import *
 # Droplet Abstract
 def abstractDroplet():
 
-    network = Network()
+    network = createNetwork()
 
     # Nodes
     n0 = network.addNode(0.0, 0.0, False)
@@ -14,35 +14,30 @@ def abstractDroplet():
     n5 = network.addNode(4e-3, 0.0, True, True)
 
     # Channels
-    c0 = network.addChannel(n0, n1, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n1, n2, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n2, n3, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n2, n4, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n3, n4, 1e-4, 3e-5, ChannelType.normal)
-    network.addChannel(n4, n5, 1e-4, 3e-5, ChannelType.normal)
+    c0 = network.addRectangularChannel(n0, n1, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n1, n2, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n2, n3, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n2, n4, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n3, n4, 1e-4, 3e-5, ChannelType.normal)
+    network.addRectangularChannel(n4, n5, 1e-4, 3e-5, ChannelType.normal)
     network.addFlowRatePump(n5, n0, 3e-11)
 
-    network.sort()
-    network.valid()
-
-    simulation = Simulation()
-    
-    # Simulation meta-data
-    simulation.setType(Type.abstract)
-    simulation.setPlatform(Platform.bigDroplet)
-    simulation.setNetwork(network)
+    # Simulation
+    simulation = AbstractDroplet(network)
 
     # Fluid & Resistance Model
-    water = simulation.addFluid(1e3, 1e-3, 1.0)
-    oil = simulation.addFluid(1e3, 3e-3, 1.0)
+    water = simulation.addFluid(1e-3, 1e3)
+    oil = simulation.addFluid(3e-3, 1e3)
     simulation.setContinuousPhase(water)
-    simulation.setRectangularResistanceModel()
+    simulation.set1DResistanceModel()
     d1 = simulation.addDroplet(oil, 4.5e-13)
-    simulation.injectDroplet(d1, 0.0, c0, 0.5)
+    simulation.addDropletInjection(d1, 0.0, c0, 0.5)
 
     simulation.simulate()
 
-    simulation.saveResult("dropletAbstract.JSON")
+    # Results
+    result = simulation.getResults()
+    result.printLastState()
 
 def main():
     abstractDroplet()

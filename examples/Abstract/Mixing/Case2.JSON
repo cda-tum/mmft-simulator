@@ -8,7 +8,6 @@
     "fluids": [
         {	
             "name": "Water",
-            "concentration": 1,
             "density": 1e3,           
             "viscosity": 1e-3
         }

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <fstream>
 #include <memory>
 #include <queue>
@@ -15,6 +16,13 @@
 
 using json = nlohmann::json;
 
+namespace test::definitions {
+// Forward declared dependencies
+template<typename T>
+class GlobalTest;
+
+}
+
 namespace porting { 
 
 // Forward declared dependencies
@@ -22,6 +30,22 @@ template<typename T>
 void readNodes (json jsonString, arch::Network<T>& network);
 template<typename T>
 void readChannels (json jsonString, arch::Network<T>& network);
+
+}
+
+namespace nodal {
+
+// Forward declared dependencies
+template<typename T>
+class NodalAnalysis;
+
+}
+
+namespace sim {
+
+// Forward declared dependencies
+template<typename T>
+class Simulation;
 
 }
 
@@ -121,6 +145,7 @@ private:
 
     int virtualNodes = 0;
 
+protected:
     /**
      * @brief Constructor of the Network
      * @param[in] nodes Nodes of the network.
@@ -169,9 +194,45 @@ private:
     [[nodiscard]] size_t edgeCount() const;
 
     /**
-     * TODO: Today
+     * @brief Removes all edges from the network, that are connected to a specific node, but not channels and. hence, not in the reach of the node.
+     * @param[in] nodeId Id of the node for which the edges should be removed.
      */
     void removeEdgesFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all flow rate pumps from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the flow rate pumps should be removed.
+     */ 
+    void removeFlowRatePumpsFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all pressure pumps from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the pressure pumps should be removed.
+     */
+    void removePressurePumpsFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all membranes from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the membranes should be removed.
+     */
+    void removeMembranesFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Removes all tanks from the network, that are connected to a specific node.
+     * @param[in] nodeId Id of the node for which the tanks should be removed.
+     */
+    void removeTanksFromNodeReach(size_t nodeId);
+
+    /**
+     * @brief Sorts the nodes and channels into detached abstract domain groups
+    */
+    void sortGroups();
+
+    /**
+     * @brief Get the groups in the network.
+     * @returns Groups
+    */
+    [[nodiscard]] inline const std::unordered_map<size_t, std::unique_ptr<Group<T>>>& getGroups() const { return groups; }
 
 public:
 
@@ -239,9 +300,12 @@ public:
     bool isNetworkValid();
 
     /**
+     * TODO: Implement function to write network to JSON
+     */
+    /**
      * @brief Store the network object in a JSON file.
     */
-    void toJson(std::string jsonString) const;
+    // void toJson(std::string jsonString) const;
 
     /**
      * @brief Prints the contents of this network
@@ -252,7 +316,7 @@ public:
     //======================================  Nodes =======================================
     //=====================================================================================
 
-private:
+protected:
     /**
      * @brief Adds a new node to the network.
     */
@@ -263,6 +327,11 @@ public:
      * @brief Adds a new node to the network.
     */
     [[maybe_unused]] std::shared_ptr<Node<T>> addNode(T x, T y, bool ground=false);
+
+    /**
+     * @brief Adds a new node to the network.
+    */
+    [[maybe_unused]] std::shared_ptr<Node<T>> addNode(T x, T y, bool ground, bool sink);
 
     /**
      * @brief Get a pointer to the node with the specific id.
@@ -323,7 +392,7 @@ public:
      * @brief Specifies a node as sink.
      * @param[in] node Pointer to the node that is a sink.
      */
-    void setSink(std::shared_ptr<Node<T>> node) const { setSink(node->getId()); }
+    void setSink(std::shared_ptr<Node<T>> node) { setSink(node->getId()); }
 
     /**
      * @brief Checks and returns if a node is a sink.
@@ -349,7 +418,7 @@ public:
      * @brief Sets a node as the ground node, i.e., this node has a pressure value of 0 and acts as a reference node for all other nodes.
      * @param[in] node Pointer to the node that should be the ground node of the network.
      */
-    void setGround(std::shared_ptr<Node<T>> node) const { setGround(node->getId()); }
+    void setGround(std::shared_ptr<Node<T>> node) { setGround(node->getId()); }
 
     /**
      * @brief Checks and returns if a node is a ground node.
@@ -368,12 +437,12 @@ public:
     /**
      * @brief Calculate the distance between the two given nodes
      */
-    [[nodiscard]] T calculateNodeDistance(size_t nodeAId, size_t nodeBId);
+    [[nodiscard]] T calculateNodeDistance(size_t nodeAId, size_t nodeBId) const;
 
     /**
      * @brief Calculate the distance between the two given nodes
      */
-    [[nodiscard]] T calculateNodeDistance(std::shared_ptr<Node<T>> nodeAId, std::shared_ptr<Node<T>> nodeBId) { return calculateNodeDistance(nodeAId->getId(), nodeBId->getId()); }
+    [[nodiscard]] T calculateNodeDistance(std::shared_ptr<Node<T>> nodeAId, std::shared_ptr<Node<T>> nodeBId) const { return calculateNodeDistance(nodeAId->getId(), nodeBId->getId()); }
 
     /**
      * @brief Removes a node from the network.
@@ -385,7 +454,7 @@ public:
     //=====================================================================================
     //======================================  Channels ====================================
     //=====================================================================================
-private:
+protected:
     /**
      * @brief Adds a new channel to the chip.
      * @param[in] nodeAId Id of the node at one end of the channel.
@@ -435,7 +504,7 @@ public:
      */
     [[maybe_unused]] std::shared_ptr<RectangularChannel<T>> addRectangularChannel(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB, T height, T width, T length, ChannelType type) 
     { 
-        addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, length, type); 
+        return addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, length, type); 
     }
 
     /**
@@ -460,7 +529,7 @@ public:
      */
     [[maybe_unused]] std::shared_ptr<RectangularChannel<T>> addRectangularChannel(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB, T height, T width, ChannelType type) 
     { 
-        addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, type); 
+        return addRectangularChannel(nodeA->getId(), nodeB->getId(), height, width, type); 
     }
 
     /**
@@ -483,7 +552,7 @@ public:
      */
     [[maybe_unused]] std::shared_ptr<RectangularChannel<T>> addRectangularChannel(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB, T resistance, ChannelType type) 
     { 
-        addRectangularChannel(nodeA->getId(), nodeB->getId(), resistance, type); 
+        return addRectangularChannel(nodeA->getId(), nodeB->getId(), resistance, type); 
     }
 
     /**
@@ -553,6 +622,17 @@ public:
     [[maybe_unused]] std::shared_ptr<FlowRatePump<T>> addFlowRatePump(size_t nodeAId, size_t nodeBId, T flowRate);
 
     /**
+     * @brief Adds a new flow rate pump to the network.
+     * @param[in] nodeA Pointer to the node at one end of the flow rate pump.
+     * @param[in] nodeB Pointer to the node at the other end of the flow rate pump.
+     * @param[in] flowRate Volumetric flow rate of the pump in m^3/s.
+     * @return Pointer to the newly created flow rate pump.
+     */
+    [[maybe_unused]] inline std::shared_ptr<FlowRatePump<T>> addFlowRatePump(std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T flowRate) {
+        return addFlowRatePump(nodeA->getId(), nodeB->getId(), flowRate);   
+    }
+
+    /**
      * @brief Get a pointer to the flowrate pump with the specific id.
      * @param[in] pumpId Id of the flowrate pump.
      * @return Pointer to the flowrate pump with this id.
@@ -589,9 +669,20 @@ public:
      * @param[in] nodeAId Id of the node at one end of the pressure pump.
      * @param[in] nodeBId Id of the node at the other end of the pressure pump.
      * @param[in] pressure Pressure of the pump in Pas/L.
-     * @return Id of the newly created pressure pump.
+     * @return Pointer to the newly created pressure pump.
      */
     [[maybe_unused]] std::shared_ptr<PressurePump<T>> addPressurePump(size_t nodeAId, size_t nodeBId, T pressure);
+
+    /**
+     * @brief Adds a new pressure pump to the chip.
+     * @param[in] nodeA Pointer to the node at one end of the pressure pump.
+     * @param[in] nodeB Pointer to the node at the other end of the pressure pump.
+     * @param[in] pressure Pressure of the pump in Pas/L.
+     * @return Pointer to the newly created pressure pump.
+     */
+    [[maybe_unused]] inline std::shared_ptr<PressurePump<T>> addPressurePump(std::shared_ptr<Node<T>> nodeA, std::shared_ptr<Node<T>> nodeB, T pressure) {
+        return addPressurePump(nodeA->getId(), nodeB->getId(), pressure);    
+    }
 
     /**
      * @brief Get a pointer to the pressure pump with the specific id.
@@ -656,7 +747,7 @@ public:
      * @param[in] module Pointer to the module that should be removed.
      * @throws logic_error if the module is not found in the network.
      */
-    void removeModule(const std::shared_ptr<CfdModule<T>>& module);
+    void removeModule(const std::shared_ptr<Module<T>>& module);
 
     //=====================================================================================
     //====================================== Membrane =====================================
@@ -692,7 +783,7 @@ public:
      * @param membraneId Id of the membrane.
      * @return Pointer to the membrane with this id.
      */
-    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembrane(size_t membraneId);
+    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembrane(size_t membraneId) const;
     
     /**
      * @brief Get the membrane that is connected to both specified nodes.
@@ -700,7 +791,7 @@ public:
      * @param nodeBId Id of nodeB.
      * @return Pointer to the membrane that lies between these nodes.
      */
-    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId);
+    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(size_t nodeAId, size_t nodeBId) const;
 
     /**
      * @brief Get the membrane that is connected to both specified nodes.
@@ -708,7 +799,7 @@ public:
      * @param nodeB Pointer to nodeB.
      * @return Pointer to the membrane that lies between these nodes.
      */
-    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) 
+    [[nodiscard]] std::shared_ptr<Membrane<T>> getMembraneBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) const
     {
         return getMembraneBetweenNodes(nodeA->getId(), nodeB->getId());
     }
@@ -724,14 +815,14 @@ public:
      * @param nodeId Id of the node.
      * @return Vector containing pointers to all membranes that are connected to this node.
      */
-    [[nodiscard]] std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(size_t nodeId);
+    [[nodiscard]] std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(size_t nodeId) const;
 
     /**
      * @brief Get vector of all membranes that are connected to the specified node.
      * @param node Pointer to the node.
      * @return Vector containing pointers to all membranes that are connected to this node.
      */
-    [[nodiscard]] inline std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(std::shared_ptr<Node<T>> node) 
+    [[nodiscard]] inline std::vector<std::shared_ptr<Membrane<T>>> getMembranesAtNode(std::shared_ptr<Node<T>> node) const
     { 
         return getMembranesAtNode(node->getId()); 
     }
@@ -777,7 +868,7 @@ public:
      * @param nodeBId Id of nodeB.
      * @return Pointer to the tank that lies between the two nodes.
      */
-    [[nodiscard]] std::shared_ptr<Tank<T>> getTankBetweenNodes(size_t nodeAId, size_t nodeBId);
+    [[nodiscard]] std::shared_ptr<Tank<T>> getTankBetweenNodes(size_t nodeAId, size_t nodeBId) const;
 
     /**
      * @brief Get the tank that lies between two nodes.
@@ -785,7 +876,7 @@ public:
      * @param nodeB Pointer to nodeB.
      * @return Pointer to the tank that lies between the two nodes.
      */
-    [[nodiscard]] inline std::shared_ptr<Tank<T>> getTankBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) 
+    [[nodiscard]] inline std::shared_ptr<Tank<T>> getTankBetweenNodes(const std::shared_ptr<Node<T>>& nodeA, const std::shared_ptr<Node<T>>& nodeB) const
     {
         return getTankBetweenNodes(nodeA->getId(), nodeB->getId());
     }
@@ -801,22 +892,6 @@ public:
     */
     [[nodiscard]] bool isTank(size_t edgeId) const { return tanks.find(edgeId) != tanks.end(); }
 
-
-    //=====================================================================================
-    //======================================== TODO =======================================
-    //=====================================================================================
-
-    /** TODO: Today
-     * @brief Get the groups in the network.
-     * @returns Groups
-    */
-    [[nodiscard]] inline const std::unordered_map<size_t, std::unique_ptr<Group<T>>>& getGroups() const { return groups; }
-
-    /** TODO: Today
-     * @brief Sorts the nodes and channels into detached abstract domain groups
-    */
-    void sortGroups();
-
     // Disable copy constructors
     Network<T>(const Network<T>& src) = delete;
     Network<T>(const Network<T>&& src) = delete;
@@ -829,6 +904,9 @@ public:
     ~Network<T>() = default;
 
     // friend definitions
+    friend class nodal::NodalAnalysis<T>;
+    friend class sim::Simulation<T>;
+    friend class test::definitions::GlobalTest<T>;
     friend void porting::readNodes<T>(json, arch::Network<T>&);
     friend void porting::readChannels<T>(json, arch::Network<T>&);
 };

@@ -8,13 +8,16 @@ DropletPosition<T>::DropletPosition() { }
 ///-----------------------------Droplet------------------------------------///
 
 template<typename T>
-Droplet<T>::Droplet(size_t id, T volume, Fluid<T>* fluid) : 
-    id(id), volume(volume), fluid(fluid) { }
+Droplet<T>::Droplet(size_t id, size_t simHash, T volume, Fluid<T>* fluid) : 
+    id(id), simHash(simHash), volume(volume), fluid(fluid) { }
 
 template<typename T>
-void Droplet<T>::setFluid(Fluid<T>* fluid) {
+void Droplet<T>::setFluid(const std::shared_ptr<Fluid<T>>& fluid) {
     if(fluid) {
-        this->fluid = fluid;
+        if (fluid->checkHashes(this->simHash) == false) {
+            throw std::logic_error("Tried to set invalid fluid for droplet: fluid does not belong to the same simulation.");
+        }
+        this->fluid = fluid.get();
     } else{
         throw std::logic_error("Tried to set invalid fluid for droplet: nullPtr.");
     }
@@ -40,8 +43,8 @@ const std::vector<const arch::Channel<T>*> Droplet<T>::readFullyOccupiedChannels
 
 
 template<typename T>
-DropletImplementation<T>::DropletImplementation(size_t id, T volume, Fluid<T>* fluid) 
-    : Droplet<T>(id, volume, fluid) { ++dropletCounter; }
+DropletImplementation<T>::DropletImplementation(size_t id, size_t simHash, T volume, Fluid<T>* fluid) 
+    : Droplet<T>(id, simHash, volume, fluid) { ++dropletCounter; }
 
 template<typename T>
 void DropletImplementation<T>::setDropletState(DropletState dropletState) {

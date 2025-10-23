@@ -260,7 +260,7 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             {
                 assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
                 auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), resolution,
-                                                            epsilon, tau, charPhysLength, charPhysVelocity, name);
+                                                                epsilon, tau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }
             else if(simulator["Type"] == "ESS_LBM")

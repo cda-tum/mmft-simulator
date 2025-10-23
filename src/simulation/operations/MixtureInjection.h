@@ -39,6 +39,9 @@ template<typename T>
 class Mixture;
 
 template<typename T>
+class InstantaneousMixingModel;
+
+template<typename T>
 class MixtureInjectionEvent;
 
 template<typename T>
@@ -95,7 +98,13 @@ class MixtureInjection final {
      * @return true: Change was already performed.
      * @return false: Change was not yet performed. 
      */
-    [[nodiscard]] inline const bool wasPerformed() { return performed; }
+    [[nodiscard]] inline const bool wasPerformed() const { return performed; }
+
+    /**
+     * @brief Retrieve identification of the mixture that should be injected.
+     * @return MixtureId of the mixture to be injected.
+     */
+    [[nodiscard]] inline size_t getMixtureId() const { return mixture->getId(); }
 
   public:
 
@@ -141,15 +150,10 @@ class MixtureInjection final {
      */
     inline void setInjectionChannel(arch::Channel<T>* channel) { this->injectionChannel = channel; }
 
-    /**
-     * @brief Retrieve identification of the mixture that should be injected.
-     * @return MixtureId of the mixture to be injected.
-     */
-    [[nodiscard]] inline size_t getMixtureId() { return mixture->getId(); }
-
     // Friend classes that need access to private member functions
     friend class AbstractMixing<T>;
     friend class ConcentrationSemantics<T>;
+    friend class InstantaneousMixingModel<T>;
     friend class MixtureInjectionEvent<T>;
     friend class PermanentMixtureInjectionEvent<T>;
     friend class test::definitions::GlobalTest<T>;

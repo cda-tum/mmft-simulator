@@ -18,15 +18,11 @@ TEST_F(InstantaneousMixing, Case1) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 1:
@@ -73,11 +69,11 @@ TEST_F(InstantaneousMixing, Case1) {
     EXPECT_NEAR(result->getStates().at(3)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
     EXPECT_NEAR(result->getStates().at(3)->getMixturePositions().at(4).front().position2, 1.0, 1e-12);
 
-    EXPECT_EQ(result->getMixtures().at(0)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(1)->readSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(0)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(1)->getSpecieConcentrations().size(), 1);
 
-    EXPECT_NEAR(result->getMixtures().at(1)->readSpecieConcentrations().at(0), 
-        0.5*result->getMixtures().at(0)->readSpecieConcentrations().at(0), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(1)->getSpecieConcentrations().at(0), 
+        0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
 }
 
 TEST_F(InstantaneousMixing, Case2) {
@@ -91,15 +87,11 @@ TEST_F(InstantaneousMixing, Case2) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 2:
@@ -202,16 +194,16 @@ TEST_F(InstantaneousMixing, Case2) {
     EXPECT_NEAR(result->getStates().at(6)->getMixturePositions().at(4).front().position1, 0.0, 1e-12);
     EXPECT_NEAR(result->getStates().at(6)->getMixturePositions().at(4).front().position2, 1.0, 1e-12);
 
-    EXPECT_EQ(result->getMixtures().at(0)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(1)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(2)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(3)->readSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(0)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(1)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(2)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(3)->getSpecieConcentrations().size(), 1);
 
-    EXPECT_NEAR(result->getMixtures().at(2)->readSpecieConcentrations().at(0), 
-        0.5*result->getMixtures().at(0)->readSpecieConcentrations().at(0), 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(3)->readSpecieConcentrations().at(0), 
-        0.5*result->getMixtures().at(0)->readSpecieConcentrations().at(0) + 
-        0.5*result->getMixtures().at(1)->readSpecieConcentrations().at(0), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(2)->getSpecieConcentrations().at(0), 
+        0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(3)->getSpecieConcentrations().at(0), 
+        0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0) + 
+        0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(0), 1e-7);
     
 }
 
@@ -226,15 +218,11 @@ TEST_F(InstantaneousMixing, Case3) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 3:
@@ -302,15 +290,11 @@ TEST_F(InstantaneousMixing, Case4) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 4:
@@ -438,15 +422,11 @@ TEST_F(InstantaneousMixing, Case5) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 5:
@@ -480,15 +460,11 @@ TEST_F(InstantaneousMixing, Case6) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 6:
@@ -530,15 +506,11 @@ TEST_F(InstantaneousMixing, Case7) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 7:
@@ -572,15 +544,11 @@ TEST_F(InstantaneousMixing, Case8) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 8:
@@ -607,21 +575,21 @@ TEST_F(InstantaneousMixing, Case8) {
     EXPECT_NEAR(result->getStates().at(6)->getTime(), 2.745356, 5e-7);
     EXPECT_NEAR(result->getStates().at(7)->getTime(), 3.216761, 5e-7);
 
-    EXPECT_EQ(result->getMixtures().at(0)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(1)->readSpecieConcentrations().size(), 2);
-    EXPECT_EQ(result->getMixtures().at(2)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(3)->readSpecieConcentrations().size(), 2);
-    EXPECT_EQ(result->getMixtures().at(4)->readSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(0)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(1)->getSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(2)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(3)->getSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(4)->getSpecieConcentrations().size(), 2);
 
-    EXPECT_NEAR(result->getMixtures().at(3)->readSpecieConcentrations().at(0), 
-        0.5*result->getMixtures().at(0)->readSpecieConcentrations().at(0) +
-        0.5*result->getMixtures().at(1)->readSpecieConcentrations().at(0), 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(3)->readSpecieConcentrations().at(1), 
-        0.5*result->getMixtures().at(1)->readSpecieConcentrations().at(1), 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(4)->readSpecieConcentrations().at(0), 
-        0.5*result->getMixtures().at(0)->readSpecieConcentrations().at(0), 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(4)->readSpecieConcentrations().at(1), 
-        0.5*result->getMixtures().at(2)->readSpecieConcentrations().at(1), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(3)->getSpecieConcentrations().at(0), 
+        0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0) +
+        0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(0), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(3)->getSpecieConcentrations().at(1), 
+        0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(1), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(4)->getSpecieConcentrations().at(0), 
+        0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(4)->getSpecieConcentrations().at(1), 
+        0.5*result->getMixtures().at(2)->getSpecieConcentrations().at(1), 1e-7);
     
 
 }
@@ -637,15 +605,11 @@ TEST_F(InstantaneousMixing, Case9) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 9:
@@ -676,14 +640,14 @@ TEST_F(InstantaneousMixing, Case9) {
     EXPECT_NEAR(result->getStates().at(8)->getTime(), 2.745356, 5e-7);
     EXPECT_NEAR(result->getStates().at(9)->getTime(), 2.856467, 5e-7);
 
-    EXPECT_EQ(result->getMixtures().at(0)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(1)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(2)->readSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(0)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(1)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(2)->getSpecieConcentrations().size(), 1);
 
-    EXPECT_NEAR(result->getMixtures().at(1)->readSpecieConcentrations().at(0),
-        result->getMixtures().at(0)->readSpecieConcentrations().at(0)/3.0, 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(2)->readSpecieConcentrations().at(0),
-        result->getMixtures().at(0)->readSpecieConcentrations().at(0)/1.5, 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(1)->getSpecieConcentrations().at(0),
+        result->getMixtures().at(0)->getSpecieConcentrations().at(0)/3.0, 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(2)->getSpecieConcentrations().at(0),
+        result->getMixtures().at(0)->getSpecieConcentrations().at(0)/1.5, 1e-7);
 
 }
 
@@ -698,15 +662,11 @@ TEST_F(InstantaneousMixing, Case10) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 10:
@@ -737,26 +697,26 @@ TEST_F(InstantaneousMixing, Case10) {
     EXPECT_NEAR(result->getStates().at(8)->getTime(), 2.745356, 5e-7);
     EXPECT_NEAR(result->getStates().at(9)->getTime(), 2.856467, 5e-7);
 
-    EXPECT_EQ(result->getMixtures().at(0)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(1)->readSpecieConcentrations().size(), 2);
-    EXPECT_EQ(result->getMixtures().at(2)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(3)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(4)->readSpecieConcentrations().size(), 2);
-    EXPECT_EQ(result->getMixtures().at(5)->readSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(0)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(1)->getSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(2)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(3)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(4)->getSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(5)->getSpecieConcentrations().size(), 2);
 
-    EXPECT_NEAR(result->getMixtures().at(3)->readSpecieConcentrations().at(0), 
-        result->getMixtures().at(0)->readSpecieConcentrations().at(0)/3.0, 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(4)->readSpecieConcentrations().at(0), 
-        result->getMixtures().at(0)->readSpecieConcentrations().at(0)/3.0 +
-        result->getMixtures().at(1)->readSpecieConcentrations().at(0)/3.0, 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(4)->readSpecieConcentrations().at(1), 
-        result->getMixtures().at(1)->readSpecieConcentrations().at(1)/3.0, 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(5)->readSpecieConcentrations().at(0), 
-        result->getMixtures().at(0)->readSpecieConcentrations().at(0)/3.0 +
-        result->getMixtures().at(1)->readSpecieConcentrations().at(0)/3.0, 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(5)->readSpecieConcentrations().at(1), 
-        result->getMixtures().at(1)->readSpecieConcentrations().at(1)/3.0 +
-        result->getMixtures().at(2)->readSpecieConcentrations().at(1)/3.0, 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(3)->getSpecieConcentrations().at(0), 
+        result->getMixtures().at(0)->getSpecieConcentrations().at(0)/3.0, 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(4)->getSpecieConcentrations().at(0), 
+        result->getMixtures().at(0)->getSpecieConcentrations().at(0)/3.0 +
+        result->getMixtures().at(1)->getSpecieConcentrations().at(0)/3.0, 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(4)->getSpecieConcentrations().at(1), 
+        result->getMixtures().at(1)->getSpecieConcentrations().at(1)/3.0, 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(5)->getSpecieConcentrations().at(0), 
+        result->getMixtures().at(0)->getSpecieConcentrations().at(0)/3.0 +
+        result->getMixtures().at(1)->getSpecieConcentrations().at(0)/3.0, 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(5)->getSpecieConcentrations().at(1), 
+        result->getMixtures().at(1)->getSpecieConcentrations().at(1)/3.0 +
+        result->getMixtures().at(2)->getSpecieConcentrations().at(1)/3.0, 1e-7);
 
 }
 
@@ -771,15 +731,11 @@ TEST_F(InstantaneousMixing, Case11) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 11:
@@ -798,11 +754,11 @@ TEST_F(InstantaneousMixing, Case11) {
     EXPECT_NEAR(result->getStates().at(2)->getTime(), 0.745356, 5e-7);
     EXPECT_NEAR(result->getStates().at(3)->getTime(), 1.216761, 5e-7);
 
-    EXPECT_EQ(result->getMixtures().at(0)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(1)->readSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(0)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(1)->getSpecieConcentrations().size(), 1);
 
-    EXPECT_NEAR(result->getMixtures().at(1)->readSpecieConcentrations().at(0), 
-        0.5*result->getMixtures().at(0)->readSpecieConcentrations().at(0), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(1)->getSpecieConcentrations().at(0), 
+        0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0), 1e-7);
 }
 
 TEST_F(InstantaneousMixing, Case12) {
@@ -816,15 +772,11 @@ TEST_F(InstantaneousMixing, Case12) {
     // Load and set the simulations from the JSON files
     auto sim = porting::simulationFromJSON<T>(simFile, network);
 
-    // Check if network is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     sim->simulate();
 
     // results
-    const result::SimulationResult<T>* result = sim->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = sim->getResults();
 
     /**
      * Case 12:
@@ -845,15 +797,15 @@ TEST_F(InstantaneousMixing, Case12) {
     EXPECT_NEAR(result->getStates().at(3)->getTime(), 0.745356, 5e-7);
     EXPECT_NEAR(result->getStates().at(4)->getTime(), 1.216761, 5e-7);
 
-    EXPECT_EQ(result->getMixtures().at(0)->readSpecieConcentrations().size(), 1);
-    EXPECT_EQ(result->getMixtures().at(1)->readSpecieConcentrations().size(), 2);
-    EXPECT_EQ(result->getMixtures().at(2)->readSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(0)->getSpecieConcentrations().size(), 1);
+    EXPECT_EQ(result->getMixtures().at(1)->getSpecieConcentrations().size(), 2);
+    EXPECT_EQ(result->getMixtures().at(2)->getSpecieConcentrations().size(), 2);
 
-    EXPECT_NEAR(result->getMixtures().at(2)->readSpecieConcentrations().at(0), 
-        0.5*result->getMixtures().at(0)->readSpecieConcentrations().at(0) +
-        0.5*result->getMixtures().at(1)->readSpecieConcentrations().at(0), 1e-7);
-    EXPECT_NEAR(result->getMixtures().at(2)->readSpecieConcentrations().at(1), 
-        0.5*result->getMixtures().at(1)->readSpecieConcentrations().at(1), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(2)->getSpecieConcentrations().at(0), 
+        0.5*result->getMixtures().at(0)->getSpecieConcentrations().at(0) +
+        0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(0), 1e-7);
+    EXPECT_NEAR(result->getMixtures().at(2)->getSpecieConcentrations().at(1), 
+        0.5*result->getMixtures().at(1)->getSpecieConcentrations().at(1), 1e-7);
 
 }
 

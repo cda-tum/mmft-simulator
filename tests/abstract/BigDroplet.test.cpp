@@ -60,15 +60,11 @@ TEST_F(BigDroplet, allResultValues) {
     // Set the resistance model
     testSimulation.set1DResistanceModel();
 
-    // check if chip is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     testSimulation.simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getId(), pump->getId());
     EXPECT_EQ(network->getFlowRatePumps().at(pump->getId())->getNodeAId(), node0->getId());
@@ -329,15 +325,11 @@ TEST_F(BigDroplet, inverseDirectionChannels) {
     // Set the resistance model
     testSimulation.set1DResistanceModel();
 
-    // check if chip is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     testSimulation.simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -537,15 +529,11 @@ TEST_F(BigDroplet, mixedDirectionChannels) {
     // Set the resistance model
     testSimulation.set1DResistanceModel();
 
-    // check if chip is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     testSimulation.simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation.getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation.getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -703,15 +691,12 @@ TEST_F(BigDroplet, jsonDefinition) {
 
     // Load and set the simulation from a JSON file
     auto testSimulation = porting::simulationFromJSON<T>(file, network);
-   
-    network->sortGroups();
-    network->isNetworkValid();
 
     // Perform simulation and store results
     testSimulation->simulate();
 
     // results
-    const result::SimulationResult<T>* result = testSimulation->getResults();
+    const std::shared_ptr<result::SimulationResult<T>> result = testSimulation->getResults();
 
     EXPECT_NEAR(result->getStates().at(0)->getTime(), 0.000000, 5e-7);
     EXPECT_NEAR(result->getStates().at(1)->getTime(), 0.000000, 5e-7);
@@ -902,10 +887,6 @@ TEST_F(BigDroplet, noSink1) {
     // Set the resistance model
     testSimulation.set1DResistanceModel();
 
-    // check if chip is valid
-    network->isNetworkValid();
-    network->sortGroups();
-
     // simulate
     testSimulation.simulate();
 }
@@ -950,10 +931,6 @@ TEST_F(BigDroplet, noSink2) {
 
     // Set the resistance model
     testSimulation.set1DResistanceModel();
-
-    // check if chip is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     testSimulation.simulate();
@@ -1000,10 +977,6 @@ TEST_F(BigDroplet, noSinkTwoDroplets) {
 
     // Set the resistance model
     testSimulation.set1DResistanceModel();
-
-    // check if chip is valid
-    network->isNetworkValid();
-    network->sortGroups();
 
     // simulate
     testSimulation.simulate();
@@ -1162,7 +1135,6 @@ TEST_F(BigDroplet, RingNetworkE1) {
   network->setGround(groundNode->getId());
 
   EXPECT_TRUE(network->isNetworkValid());
-  network->sortGroups();
 
   // fluids
   auto fluid0 = sim.addFluid(1e-3, 1e3 /*, molecular size: 9e-10*/);
@@ -1381,7 +1353,6 @@ TEST_F(BigDroplet, RingNetworkE2) {
   network->setGround(groundNode->getId());
 
   EXPECT_TRUE(network->isNetworkValid());
-  network->sortGroups();
 
   // fluids
   auto fluid0 = sim.addFluid(1e-3, 1e3 /*, molecular size: 9e-10*/);
