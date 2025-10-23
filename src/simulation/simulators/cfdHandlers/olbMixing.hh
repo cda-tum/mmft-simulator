@@ -397,15 +397,11 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
             adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
         }
     }
-    // If the boundary is an outflow
-    else if (this->getFlowDirection(key) < 0.0) {
+    // If the boundary is an outflow or there is no flow
+    else if (this->getFlowDirection(key) <= 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
         }
-    }
-    else {
-        std::cerr << "Error: Invalid Flow Type Boundary Node." << std::endl;
-        exit(1);
     }
 }
 
