@@ -626,6 +626,10 @@ std::set<std::shared_ptr<Node<T>>> Network<T>::getDanglingNodes() {
         }
     }
 
+    for ( auto node : danglingNodes) {
+        std::cout << "Dangling node ID: " << node->getId() << std::endl;
+    }
+
     return danglingNodes;
 }
 

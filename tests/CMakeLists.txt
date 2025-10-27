@@ -1,4 +1,5 @@
 add_subdirectory(abstract)
+add_subdirectory(cfd)
 add_subdirectory(hybrid)
 
 target_sources(${TARGET_NAME} PRIVATE ${SOURCE_LIST})

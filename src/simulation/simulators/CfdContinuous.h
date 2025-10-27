@@ -53,14 +53,23 @@ class lbmSimulator;
 template<typename T>
 class CfdContinuous : public Simulation<T> {
 private:
+
+    size_t resolution = 20;
+    T charPhysLength = 1e-4;
+    T charPhysVelocity = 1e-1;
+    T epsilon = 0.1;
+    T relaxationTime = 0.932;
+
     std::shared_ptr<stl::Network> network_stl = nullptr;            ///< Network definition as in stl namespace
     std::unique_ptr<stl::NetworkSTL> stlNetwork = nullptr;          ///< STL shape of a network
     std::string fName = "";                                         ///< Location of the stored STL file
     std::set<std::shared_ptr<arch::Node<T>>> danglingNodes;         ///< Set of nodes that are dangling and should have a BC.
     std::set<size_t> idleNodes;                                     ///< Set of nodes that are idle. I.e., dangling but not assigned a BC.
+    std::unordered_map<size_t, T> pressureBCs;                      ///< Map of pressure BCs at dangling nodes. <nodeId, pressure>
+    std::unordered_map<size_t, T> velocityBCs;                      ///< Map of velocity BCs at dangling nodes. <nodeId, velocity>
     int radialResolution = 25;                                      ///< The resolution of radial objects for the STL definition of the network.
     std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;        ///< A pointer to the module, upon which this simulator acts.
-    std::shared_ptr<CFDSimulator<T>> cfdSimulator = nullptr;        ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
+    std::shared_ptr<lbmSimulator<T>> simulator = nullptr;           ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
     bool writePpm = true;
 
 protected:
@@ -87,7 +96,36 @@ protected:
     void updateSTL();
 
     /**
-     * @brief Constructor of the hybrid continuous simulator object
+     * @brief Updates the idle nodes from the dangling nodes
+     */
+    void updateIdleNodes();
+
+    /**
+     * @brief Updates the idle nodes from the given openings
+     * @param[in] openings The map of openings that define the idle nodes
+     */
+    void updateIdleNodes(const std::unordered_map<size_t, arch::Opening<T>>& openings);
+
+    /**
+     * @brief Returns the position of the CFD domain.
+     * @returns The position of the CFD domain as vector<T>
+     */
+    std::vector<T> getPosition() const;
+
+    /**
+     * @brief Returns the size of the CFD domain.
+     * @returns The size of the CFD domain as vector<T>
+     */
+    std::vector<T> getSize() const;
+
+    /**
+     * @brief Returns the openings of the CFD domain.
+     * @returns The openings of the CFD domain as unordered_map<size_t, arch::Opening<T>>
+     */
+    std::unordered_map<size_t, arch::Opening<T>> getOpenings() const;
+
+    /**
+     * @brief Constructor of the hybrid continuous simulator object using the network as basis for the STL definition.
      * @param[in] platform The platform of the derived simulator object
      * @param[in] network Pointer to the network object, in which the simulation takes place
      * @param[in] radialResolution The resolution of radial objects in the STL definition of the network
@@ -95,8 +133,14 @@ protected:
      */
     CfdContinuous(Platform platform, std::shared_ptr<arch::Network<T>> network, int radialResolution=25);
 
-    /** TODO:
-     * 
+    /**
+     * @brief Constructor of the hybrid continuous simulator object using an stlFile and openings as basis for the STL definition.
+     * @param[in] platform The platform of the derived simulator object
+     * @param[in] position The position of the CFD domain
+     * @param[in] size The size of the CFD domain
+     * @param[in] stlFile The STL file that defines the CFD domain shape
+     * @param[in] openings The map of openings that define the idle nodes
+     * @note This constructor uses an stlFile and openings to define the CFD domain
      */
     CfdContinuous(Platform platform,
                   std::vector<T> position,
@@ -108,14 +152,14 @@ protected:
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    [[nodiscard]] inline std::shared_ptr<CFDSimulator<T>>& getCFDSimulator() { return cfdSimulator; }
+    [[nodiscard]] inline std::shared_ptr<CFDSimulator<T>>& getCFDSimulator() { return simulator; }
 
     /**
      * @brief Get injection
      * @param simulatorId The id of the injection
      * @return Pointer to injection with the corresponding id.
      */
-    [[nodiscard]] inline const CFDSimulator<T>* readCFDSimulator() const { return cfdSimulator.get(); }
+    [[nodiscard]] inline const CFDSimulator<T>* readCFDSimulator() const { return simulator.get(); }
 
     /** TODO:
      * 
@@ -127,11 +171,17 @@ public:
     /**
      * @brief Constructor of the CFD continuous simulator object using the network as basis for the STL definition.
      * @param[in] network Pointer to the network object, in which the simulation takes place
+     * @param[in] radialResolution The resolution of radial objects in the STL definition of the network
+     * @note This constructor constructs the simulation STL shape from a given network
      */
     CfdContinuous(std::shared_ptr<arch::Network<T>> network, int radialResolution=25);
 
-    /** TODO:
-     * 
+    /**
+     * @brief Constructor of the CFD continuous simulator object using an stlFile and openings as basis for the STL definition.
+     * @param[in] position The position of the CFD domain
+     * @param[in] size The size of the CFD domain
+     * @param[in] stlFile The STL file that defines the CFD domain shape
+     * @param[in] openings The map of openings that define the idle nodes
      */
     CfdContinuous(std::vector<T> position,
                   std::vector<T> size,
@@ -146,25 +196,31 @@ public:
      */
     void setNetwork(std::shared_ptr<arch::Network<T>> network) override;
 
-    /** TODO:
+    /**
      * @note Adding a BC is only possible for domains that have been constructed using a network.
-     * @throws logic_error if the simulation object was constructed using an stlFile and openings.
+     * @throws logic_error if adding a BC is not possible.
      */
     void addPressureBC(std::shared_ptr<arch::Node<T>> node, T pressure);
 
-    /** TODO:
-     * 
-     */
-    void setPressureBC(std::shared_ptr<arch::Node<T>> node, T pressure);
-
-    /** TODO:
+    /**
      * @note Adding a BC is only possible for domains that have been constructed using a network.
-     * @throws logic_error if the simulation object was constructed using an stlFile and openings.
+     * @throws logic_error if adding a BC is not possible.
      */
     void addVelocityBC(std::shared_ptr<arch::Node<T>>, T velocity);
 
-    /** TODO:
-     * 
+    /**
+     * @brief Sets a pressure boundary condition at a given node.
+     * @param[in] node The node at which the pressure BC is set.
+     * @param[in] pressure The pressure value at the boundary condition.
+     * @throws logic_error if setting the BC value is not possible.
+     */
+    void setPressureBC(std::shared_ptr<arch::Node<T>> node, T pressure);
+
+    /**
+     * @brief Sets a velocity boundary condition at a given node.
+     * @param[in] node The node at which the velocity BC is set.
+     * @param[in] velocity The velocity value at the boundary condition.
+     * @throws logic_error if setting the BC value is not possible.
      */
     void setVelocityBC(std::shared_ptr<arch::Node<T>>, T velocity);
 
@@ -179,11 +235,6 @@ public:
      * If it was constructed using an stlFile and openings, this BC will default to a pressure BC with 0 Pa.
      */
     void removeVelocityBC(std::shared_ptr<arch::Node<T>> node);
-
-    /** TODO:
-     * 
-     */
-    void generateSTL();
 
     /**
      * @brief Sets the resistance model for abstract simulation components to the 1D resistance model
@@ -200,13 +251,13 @@ public:
      * @brief Returns the current global characteristic length for the simulation.
      * @returns The global characteristic length
      */
-    [[nodiscard]] inline T getCharacteristicLength() { return characteristicLength; }
+    [[nodiscard]] inline T getCharacteristicLength() { return simulator->getCharacteristicLength(); }
 
     /**
      * @brief Returns the current global characteristic velocity for the simulation.
      * @returns The global characteristic velocity
      */
-    [[nodiscard]] inline T getCharacteristicVelocity() { return characteristicVelocity; }
+    [[nodiscard]] inline T getCharacteristicVelocity() { return simulator->getCharacteristicVelocity(); }
 
     /**
      * @brief Get the global bounds of pressure values in the CFD simulators.

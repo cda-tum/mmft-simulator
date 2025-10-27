@@ -61,6 +61,10 @@
 
 #include "result/Results.hh"
 
+#include <architecture/pNetwork.hh>
+#include <stlHandler/BaseSTL.hh>
+#include <stlHandler/NetworkSTL.hh>
+
 #ifdef USE_ESSLBM
     #include "simulation/simulators/essContinuous.hh"
     #include "simulation/simulators/essMixing.hh"
