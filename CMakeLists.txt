@@ -43,7 +43,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     stl
     GIT_REPOSITORY https://github.com/cda-tum/mmft-STL-generator
-    GIT_TAG origin/main
+    GIT_TAG v1.1
 )
 FetchContent_MakeAvailable(eigen googletest json lbm stl)
 

@@ -15,7 +15,7 @@ template<typename T>
 class CFDSimulator;
 
 template<typename T>
-class CfcContinuous;
+class CfdContinuous;
 
 template<typename T>
 class ResistanceModel;

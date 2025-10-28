@@ -192,16 +192,17 @@ void lbmSimulator<T>::solve() {
 
 template<typename T>
 void lbmSimulator<T>::solveCFD(size_t maxIter) {
+    // Check if initialized and set boundary conditions
     checkInitialized();
     this->setBoundaryValues(step);
-    std::cout<< "Simulating..."<<std::endl;
-    for (int iT = 0; iT < maxIter; ++iT){    
+    // Main simulation loop
+    for (int iT = 0; iT < int(maxIter); ++iT){    
         writeVTK(step);       
         lattice->collideAndStream();
         step += 1;
+        // Check convergence
         if (isConverged) { break; }
     }
-    std::cout<< "Done simulating..."<<std::endl;
 }
 
 template<typename T>
@@ -279,13 +280,6 @@ void lbmSimulator<T>::prepareNsLattice (const T omega) {
     lattice->defineRhoU(getGeometry(), 1, rhoF, uF);
     lattice->iniEquilibrium(getGeometry(), 1, rhoF, uF);
 
-    for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
-        std::cout<<"Setting opening at node "<<key<<" with material "<<key+3<<"."<<std::endl;
-        std::cout<<"  - Normal vector: ["<<Opening.normal[0]<<", "<<Opening.normal[1]<<"]."<<std::endl;
-        std::cout<<"  - Tangent vector: ["<<Opening.tangent[0]<<", "<<Opening.tangent[1]<<"]."<<std::endl;
-        std::cout<<"  - Width: "<<Opening.width<<" m."<<std::endl;
-    }
-
     // Set lattice dynamics and initial condition for in- and outlets
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         if (this->groundNodes.at(key)) {
@@ -343,9 +337,6 @@ void lbmSimulator<T>::initFlowRateIntegralPlane() {
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, int(key)+3};
 
-        std::cout<<"The position of superPlaneIntegralFluxVelocity2D for key " << std::to_string(key) << " is [" << 
-            std::to_string(posX) << ", " << std::to_string(posY) << "]"<<std::endl;
-
         if (!this->groundNodes.at(key)) {
             std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;
             flux = std::make_shared< olb::SuperPlaneIntegralFluxVelocity2D<T> > (getLattice(), getConverter(), getGeometry(),
@@ -370,11 +361,9 @@ void lbmSimulator<T>::readGeometryStl (const T dx, const bool print) {
 
     T correction[2]= {0.0, 0.0};
 
-    std::cout<<"Reading STL file "<<this->cfdModule->getStlFile()<<" for module "<<this->name<<"..."<<std::endl;
     stlReader = std::make_shared<olb::STLreader<T>>(this->cfdModule->getStlFile(), dx);
     auto min = stlReader->getMesh().getMin();
     auto max = stlReader->getMesh().getMax();
-    std::cout<<"STL bounding box min: ["<<min[0]<<", "<<min[1]<<"], max: ["<<max[0]<<", "<<max[1]<<"]"<<std::endl;
 
     if (max[0] - min[0] > this->cfdModule->getSize()[0] + 1e-9 ||
         max[1] - min[1] > this->cfdModule->getSize()[1] + 1e-9) 

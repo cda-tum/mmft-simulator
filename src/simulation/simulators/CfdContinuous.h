@@ -54,11 +54,12 @@ template<typename T>
 class CfdContinuous : public Simulation<T> {
 private:
 
-    size_t resolution = 20;
-    T charPhysLength = 1e-4;
-    T charPhysVelocity = 1e-1;
-    T epsilon = 0.1;
-    T relaxationTime = 0.932;
+    size_t maxIter = 100000;                    ///< Maximum number of iterations for the CFD solver.
+    size_t resolution = 20;                     ///< Resolution of the CFD domain. Gridpoints in charPhysLength.
+    T charPhysLength = 1e-4;                    ///< Characteristic physical length (= width, usually).
+    T charPhysVelocity = 1e-1;                  ///< Characteristic physical velocity (expected maximal velocity).
+    T epsilon = 0.1;                            ///< Convergence criterion.
+    T relaxationTime = 0.932;                   ///< Relaxation time (tau) for the OLB solver.
 
     std::shared_ptr<stl::Network> network_stl = nullptr;            ///< Network definition as in stl namespace
     std::unique_ptr<stl::NetworkSTL> stlNetwork = nullptr;          ///< STL shape of a network
@@ -70,7 +71,7 @@ private:
     int radialResolution = 25;                                      ///< The resolution of radial objects for the STL definition of the network.
     std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;        ///< A pointer to the module, upon which this simulator acts.
     std::shared_ptr<lbmSimulator<T>> simulator = nullptr;           ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
-    bool writePpm = true;
+    bool writePpm = false;                                          ///< Whether to write ppm files for pressure and velocity fields.
 
 protected:
 
@@ -166,6 +167,11 @@ protected:
      */
     bool getWritePpm() { return writePpm; }
 
+    /** TODO:
+     * 
+     */
+    void setBoundaryConditions();
+
 public:
 
     /**
@@ -236,11 +242,6 @@ public:
      */
     void removeFlowRateBC(std::shared_ptr<arch::Node<T>> node);
 
-    /** TODO:
-     * 
-     */
-    void setBoundaryConditions();
-
     /**
      * @brief Sets the resistance model for abstract simulation components to the 1D resistance model
      * @throws A logic_error because this resistance model is incompatible with Hybrid simulation.
@@ -253,16 +254,34 @@ public:
     void setPoiseuilleResistanceModel() override;
 
     /**
+     * @brief Returns the maximum number of iterations for the CFD solver.
+     * @returns The maximum number of iterations for the CFD solver.
+     */
+    [[nodiscard]] inline size_t getMaxIter() const { return maxIter; }
+
+    /**
+     * @brief Sets the maximum number of iterations for the CFD solver.
+     * @param[in] maxIter The maximum number of iterations for the CFD solver.
+     */
+    inline void setMaxIter(size_t maxIter) { this->maxIter = maxIter; }
+
+    /**
+     * @brief Sets whether to write ppm files for pressure and velocity fields.
+     * @param[in] writePpm Whether to write ppm files for pressure and velocity fields
+     */
+    inline void setWritePpm(bool writePpm) { this->writePpm = writePpm; }
+
+    /**
      * @brief Returns the current global characteristic length for the simulation.
      * @returns The global characteristic length
      */
-    [[nodiscard]] inline T getCharacteristicLength() { return simulator->getCharacteristicLength(); }
+    [[nodiscard]] inline T getCharacteristicLength() { return charPhysLength; }
 
     /**
      * @brief Returns the current global characteristic velocity for the simulation.
      * @returns The global characteristic velocity
      */
-    [[nodiscard]] inline T getCharacteristicVelocity() { return simulator->getCharacteristicVelocity(); }
+    [[nodiscard]] inline T getCharacteristicVelocity() { return charPhysVelocity; }
 
     /**
      * @brief Get the global bounds of pressure values in the CFD simulators.

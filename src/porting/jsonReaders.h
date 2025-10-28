@@ -195,4 +195,7 @@ void readMixingModel (json jsonString, sim::ConcentrationSemantics<T>& simulatio
 template<typename T>
 size_t readActiveFixture (json jsonString);
 
+template<typename T>
+void readBoundaryConditions (json jsonString, sim::CfdContinuous<T>& simulation, arch::Network<T>* network);
+
 }   // namespace porting

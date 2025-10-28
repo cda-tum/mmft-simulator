@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <iostream>
+
 namespace arch {
 
 /**

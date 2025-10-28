@@ -469,4 +469,23 @@ size_t readActiveFixture(json jsonString) {
     return activeFixture;
 }
 
+template<typename T>
+void readBoundaryConditions(json jsonString, sim::CfdContinuous<T>& simulation, arch::Network<T>* network) {
+    if (jsonString["simulation"]["fixtures"][simulation.getFixtureId()].contains("boundaryConditions")) {
+        for (auto& bc : jsonString["simulation"]["fixtures"][simulation.getFixtureId()]["boundaryConditions"]) {
+            int nodeId = bc["node"];
+            std::string type = bc["type"];
+            if (type == "FlowRate") {
+                T Q = bc["Q"];
+                simulation.addFlowRateBC(network->getNode(nodeId), Q);
+            } else if (type == "Pressure") {
+                T p = bc["p"];
+                simulation.addPressureBC(network->getNode(nodeId), p);
+            } else {
+                throw std::invalid_argument("Invalid boundary condition type. Please choose one of the following:\nVelocity\nPressure");
+            }
+        }
+    }
+}
+
 }   // namespace porting

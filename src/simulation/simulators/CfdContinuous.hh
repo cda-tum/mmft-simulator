@@ -11,46 +11,36 @@ CfdContinuous<T>::CfdContinuous(Platform platform, std::shared_ptr<arch::Network
     // A fitting stl network definition must be creates from the given network.
     network_stl = std::make_shared<stl::Network>();
     // Initial definition for network_stl and stlNetwork, fill dangling nodes
-    std::cout<<"Generating STL definition from network..."<<std::endl;
     updateNetworkSTL();
-    std::cout<<"Generating STL shape from network..."<<std::endl;
     generateSTL();
-    std::cout<<"Storing STL shape to file..."<<std::endl;
     // Create a local tmp folder if it doesn't exist yet
     std::filesystem::path tmp = "./tmp";
     if (!std::filesystem::exists(tmp)) {
         std::filesystem::create_directories(tmp);
     }
-    std::cout<<"Storing STL shape to file..."<<std::endl;
     // Create a temporary file for the STL
     fName = "./tmp/networkSTL-" + std::to_string(this->getHash());
     std::string stlLocation = fName + ".stl";
     updateSTL();
-    std::cout<<"STL definition generated."<<std::endl;
     // Define the cfdModule
     cfdModule = std::shared_ptr<arch::CfdModule<T>>(new arch::CfdModule<T>(0, getPosition(), getSize(), stlLocation, getOpenings()));
     // Fill idle nodes
-    std::cout<<"Updating idle nodes..."<<std::endl;
     updateIdleNodes();
     // Define the simulator (lbmSimulator)
-    std::cout<<"Defining LBM simulator..."<<std::endl;
     std::string name = "lbmContinuous";
     simulator = std::shared_ptr<lbmSimulator<T>>(new lbmSimulator<T>(0, name, cfdModule, resolution, charPhysLength, charPhysVelocity, epsilon, relaxationTime));
 }
 
 template<typename T>
 std::vector<T> CfdContinuous<T>::getPosition() const {
-    std::cout<<"Getting position from STL network..."<<std::endl;
     // Calculate position from bounding box
     std::vector<T> position = { std::get<0>(stlNetwork->getBoundingBox())[0],
                                 std::get<0>(stlNetwork->getBoundingBox())[1] };
     return position;
-    // return {0.0, 0.0};
 }
 
 template<typename T>
 std::vector<T> CfdContinuous<T>::getSize() const {
-    std::cout<<"Getting size from STL network..."<<std::endl;
     // Calculate size from bounding box
     std::vector<T> size = { std::get<1>(stlNetwork->getBoundingBox())[0] - std::get<0>(stlNetwork->getBoundingBox())[0],
                             std::get<1>(stlNetwork->getBoundingBox())[1] - std::get<0>(stlNetwork->getBoundingBox())[1] };
@@ -59,10 +49,8 @@ std::vector<T> CfdContinuous<T>::getSize() const {
 
 template<typename T>
 std::unordered_map<size_t, arch::Opening<T>> CfdContinuous<T>::getOpenings() const {
-    std::cout<<"Getting openings for Module..."<<std::endl;
     std::unordered_map<size_t, arch::Opening<T>> Openings;
     for (auto& nodePtr : danglingNodes) {
-        std::cout<<"Processing opening at node "<<nodePtr->getId()<<"."<<std::endl;
         // Get the normal vector of the node opening from the network
         std::vector<T> invNormal = stlNetwork->getNodeNormalVector(nodePtr->getId());
         std::vector<T> normal = {-invNormal[0], -invNormal[1]};
@@ -90,7 +78,7 @@ CfdContinuous<T>::CfdContinuous(Platform platform,
                                 : Simulation<T>(Type::CFD, platform, nullptr), fName(stlFile)
 {
     // Define the CFD module
-    cfdModule = std::shared_ptr<arch::CfdModule<T>>(new arch::CfdModule<T>(position, size, stlFile, openings));
+    cfdModule = std::shared_ptr<arch::CfdModule<T>>(new arch::CfdModule<T>(0, position, size, stlFile, openings));
     // Fill dangling nodes and idle nodes
     updateIdleNodes(openings);
     // Define the simulator (lbmSimulator)
@@ -261,13 +249,11 @@ void CfdContinuous<T>::initialize() {
     // Initialize the simulator
     simulator->lbmInit(this->getContinuousPhase()->getViscosity(), this->getContinuousPhase()->getDensity());
     // Set boundary conditions
-    std::cout<<"Set boundary conditions..."<<std::endl;
     setBoundaryConditions();
-    std::cout<<"Preparing geometry..."<<std::endl;
+    // Prepare geometry and lattice
     simulator->prepareGeometry();
-    std::cout<<"Preparing lattice..."<<std::endl;
     simulator->prepareLattice();
-    std::cout<<"Checking initialization..."<<std::endl;
+    // Check that the simulator is initialized
     simulator->checkInitialized();
 }
 
@@ -276,21 +262,14 @@ void CfdContinuous<T>::simulate() {
     this->assertInitialized();
     this->initialize();
 
-    std::cout<<"Start Simulation"<<std::endl;
-    bool isConverged = false;
-
     // Solve the CFD domain
-    size_t maxIter = 100000;
     simulator->solveCFD(maxIter);
 
-    std::cout<<"Finished Simulation"<<std::endl;
-
     if (writePpm) {
-        std::cout<<"Writing PPM"<<std::endl;
         writePressurePpm(getGlobalPressureBounds());
         writeVelocityPpm(getGlobalVelocityBounds());
     }
-    std::cout<<"Saving State"<<std::endl;
+
     saveState();
 }
 
@@ -319,16 +298,14 @@ void CfdContinuous<T>::updateNetworkSTL() {
     danglingNodes = this->getNetwork()->getDanglingNodes();
 
     // Add definitions for the nodes
-    for (int nodeId = 0; nodeId < this->getNetwork()->getNodes().size(); ++nodeId) {
+    for (size_t nodeId = 0; nodeId < this->getNetwork()->getNodes().size(); ++nodeId) {
         auto it = std::find_if(danglingNodes.begin(), danglingNodes.end(),
                                [&](const std::shared_ptr<arch::Node<T>>& nodePtr) { return nodePtr->getId() == nodeId; });
         bool isDangling = (it != danglingNodes.end());
         if(!isDangling) {
             network_stl->addNode(double(this->getNetwork()->getNodes().at(nodeId)->getPosition().at(0)), double(this->getNetwork()->getNodes().at(nodeId)->getPosition().at(1)), 0.0, false);
-            std::cout << "Added node " << this->getNetwork()->getNodes().at(nodeId)->getId() << " as non-dangling." << std::endl;
         } else {
             network_stl->addNode(double(this->getNetwork()->getNodes().at(nodeId)->getPosition().at(0)), double(this->getNetwork()->getNodes().at(nodeId)->getPosition().at(1)), 0.0, true);
-            std::cout << "Added node " << this->getNetwork()->getNodes().at(nodeId)->getId() << " as dangling." << std::endl;
         }
     }
 
@@ -337,8 +314,6 @@ void CfdContinuous<T>::updateNetworkSTL() {
         if (c->isRectangular()) {
             arch::RectangularChannel<T>* tmpChannel = dynamic_cast<arch::RectangularChannel<T>*>(c.get());
             auto addedChannel = network_stl->addChannel(int(k), c->getNodeAId(), c->getNodeBId(), double(tmpChannel->getWidth()), double(tmpChannel->getHeight()));
-            std::cout<< "Added rectangular channel " << addedChannel->getId() << " between nodes " << addedChannel->getNodeA()->getId() << " and " << addedChannel->getNodeB()->getId() << "." << std::endl;
-            std::cout<<" Which should have been " << tmpChannel->getId() << " between nodes " << tmpChannel->getNodeAId() << " and " << tmpChannel->getNodeBId() << "."<<std::endl;
         } else {
             throw std::logic_error("STL generation is not supported for cylindrical channels.");
         }
