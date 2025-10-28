@@ -10,6 +10,10 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_) { }
 
 template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, std::string> vtkFiles_) 
+    : id(id_), time(time_), vtkFiles(vtkFiles_) { }
+
+template<typename T>
 State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::string> vtkFiles_) 
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), vtkFiles(vtkFiles_) { }
 
@@ -86,6 +90,13 @@ template<typename T>
 void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates) {
     int id = states.size();
     std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, pressures, flowRates));
+    states.push_back(std::move(newState));
+}
+
+template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, std::string> vtkFiles) {
+    int id = states.size();
+    std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, vtkFiles));
     states.push_back(std::move(newState));
 }
 

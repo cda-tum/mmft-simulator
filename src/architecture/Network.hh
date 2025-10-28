@@ -600,6 +600,40 @@ void Network<T>::sortGroups() {
 }
 
 template<typename T>
+std::set<std::shared_ptr<Node<T>>> Network<T>::getDanglingNodes() {
+    std::set<std::shared_ptr<Node<T>>> danglingNodes;
+
+    for (auto const& [k, v] : nodes) {
+        const auto net = reach.at(k);
+        int connections = net.size();
+        for (auto const& [key, pump] : pressurePumps) {
+            if (pump->getNodeAId() == k || pump->getNodeBId() == k) {
+                connections += 1;
+            }
+        }
+        for (auto const& [key, pump] : flowRatePumps) {
+            if (pump->getNodeAId() == k || pump->getNodeBId() == k) {
+                connections += 1;
+            }
+        }
+        if (modularReach.count(k)) {
+            connections += 1;
+        }
+        if (connections == 1) {
+            danglingNodes.emplace(v);
+        } else if (connections == 0) {
+            throw std::invalid_argument("Provided network has one or more disconnected nodes.");
+        }
+    }
+
+    for ( auto node : danglingNodes) {
+        std::cout << "Dangling node ID: " << node->getId() << std::endl;
+    }
+
+    return danglingNodes;
+}
+
+template<typename T>
 bool Network<T>::isNetworkValid() {
     // checks if all nodes and channels are connected to ground (if channel network is one graph)
     std::unordered_map<size_t, bool> visitedNodes;

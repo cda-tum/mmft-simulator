@@ -30,6 +30,7 @@
 #include "simulation/simulators/AbstractMembrane.h"
 #include "simulation/simulators/HybridContinuous.h"
 #include "simulation/simulators/HybridMixing.h"
+#include "simulation/simulators/CfdContinuous.h"
 
 #include "simulation/simulators/CFDSim.h"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.h"
@@ -65,6 +66,10 @@
 #include "porting/jsonWriters.h"
 
 #include "result/Results.h"
+
+#include <architecture/pNetwork.h>
+#include <stlHandler/BaseSTL.h>
+#include <stlHandler/NetworkSTL.h>
 
 #ifdef USE_ESSLBM
     #include "simulation/simulators/essContinuous.h"

@@ -288,6 +288,12 @@ public:
     }
 
     /**
+     * @brief Get all the nodes in the network that are dangling. I.e., that are connected to 1 ege.
+     * @return A vector of all dangling nodes.
+     */
+    std::set<std::shared_ptr<Node<T>>> getDanglingNodes();
+
+    /**
      * @brief Checks if chip network is valid.
      * @return If the network is valid.
      */

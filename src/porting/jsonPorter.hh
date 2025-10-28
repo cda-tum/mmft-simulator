@@ -151,7 +151,15 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
 
     // Read a CFD simulation definition
     else if (simType == sim::Type::CFD) {
-        throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
+        if (platform == sim::Platform::Continuous) {
+            simPtr = std::make_unique<sim::CfdContinuous<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
+            readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+            readBoundaryConditions<T>(jsonString, *(dynamic_cast<sim::CfdContinuous<T>*>(simPtr.get())), network_.get());
+        } else {
+            throw std::invalid_argument("Continuous simulations are currently not supported for this platform.");
+        }
     } 
     
     // Invalid simulation definition

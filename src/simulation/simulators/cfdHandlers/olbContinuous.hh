@@ -191,6 +191,21 @@ void lbmSimulator<T>::solve() {
 }
 
 template<typename T>
+void lbmSimulator<T>::solveCFD(size_t maxIter) {
+    // Check if initialized and set boundary conditions
+    checkInitialized();
+    this->setBoundaryValues(step);
+    // Main simulation loop
+    for (int iT = 0; iT < int(maxIter); ++iT){    
+        writeVTK(step);       
+        lattice->collideAndStream();
+        step += 1;
+        // Check convergence
+        if (isConverged) { break; }
+    }
+}
+
+template<typename T>
 void lbmSimulator<T>::setOutputDir () {
     if (!std::filesystem::is_directory(this->vtkFolder) || !std::filesystem::exists(this->vtkFolder)) {
         std::filesystem::create_directory(this->vtkFolder);
@@ -286,8 +301,10 @@ void lbmSimulator<T>::initPressureIntegralPlane() {
             throw std::runtime_error("The number of openings in a module cannot exceed " + std::to_string(std::numeric_limits<int>::max()) + ".");
         }
 
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+        auto min = stlReader->getMesh().getMin();
+
+        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0] + min[0];
+        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1] + min[1];          
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, int(key)+3};
@@ -312,8 +329,10 @@ void lbmSimulator<T>::initFlowRateIntegralPlane() {
             throw std::runtime_error("The number of openings in a module cannot exceed " + std::to_string(std::numeric_limits<int>::max()) + ".");
         }
 
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+        auto min = stlReader->getMesh().getMin();
+
+        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0] + min[0];
+        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1] + min[1];
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, int(key)+3};

@@ -42,6 +42,12 @@ class GeometryTest;
 
 namespace sim {
 
+// Forward declared dependencies
+template<typename T>
+class HybridContinuous;
+template<typename T>
+class CfdContinuous;
+
 /**
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
@@ -199,6 +205,12 @@ protected:
     void solve();
 
     /**
+     * @brief Conducts the collide and stream operations of the lattice for a pure CFD simulation.
+     * @param[in] maxIter Maximum number of iterations for the CFD solving.
+    */
+    void solveCFD(size_t maxIter);
+
+    /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
@@ -354,6 +366,7 @@ public:
     void writeVelocityPpm (T min, T max, int imgResolution) override;
 
     friend class HybridContinuous<T>;
+    friend class CfdContinuous<T>;
     friend class test::definitions::GeometryTest<T>;
 };
 

@@ -40,7 +40,12 @@ FetchContent_Declare(
     GIT_REPOSITORY https://gitlab.com/openlb/release.git
     GIT_TAG 1.7.0
 )
-FetchContent_MakeAvailable(eigen googletest json lbm)
+FetchContent_Declare(
+    stl
+    GIT_REPOSITORY https://github.com/cda-tum/mmft-STL-generator
+    GIT_TAG v1.1
+)
+FetchContent_MakeAvailable(eigen googletest json lbm stl)
 
 option(USE_ESSLBM "USE_ESSLBM" OFF)
 if(USE_ESSLBM)
@@ -84,6 +89,7 @@ target_include_directories(
 # add library
 set(TARGET_NAME simLib)
 add_library(${TARGET_NAME})
+target_link_libraries(${TARGET_NAME} PUBLIC stlLib)
 
 # add sources
 add_subdirectory(src)
@@ -120,13 +126,9 @@ if(TEST)
     set(TARGET_NAME testLib)
     add_library(${TARGET_NAME})
     add_subdirectory(tests)
-    add_executable(simulatorTest)
-    target_sources(simulatorTest PUBLIC tests/test.cpp)
+    add_executable(simulatorTest tests/test.cpp)
     target_include_directories(simulatorTest PRIVATE src)
-    target_link_libraries(simulatorTest PUBLIC gtest gtest_main)
-    target_link_libraries(simulatorTest PUBLIC gtest lbmLib)
-    target_link_libraries(simulatorTest PUBLIC gtest simLib)
-    target_link_libraries(simulatorTest PUBLIC gtest testLib)
+    target_link_libraries(simulatorTest PRIVATE gtest_main lbmLib simLib testLib stlLib)
     gtest_discover_tests(simulatorTest)
 endif()
 
@@ -135,10 +137,6 @@ option(BENCHMARK "Configure for building benchmarks")
 if(BENCHMARK)
     find_package(benchmark REQUIRED)
     set(TARGET_NAME simulatorBenchmark)
-    add_executable(simulatorBenchmark)
-    target_sources(simulatorBenchmark PUBLIC benchmarks/benchmark.cpp)
-    target_link_libraries(simulatorBenchmark PUBLIC gtest gtest_main)
-    target_link_libraries(simulatorBenchmark PUBLIC gtest lbmLib)
-    target_link_libraries(simulatorBenchmark PUBLIC gtest simLib)
-    target_link_libraries(simulatorBenchmark PUBLIC benchmark::benchmark)
+    add_executable(simulatorBenchmark benchmarks/benchmark.cpp)
+    target_link_libraries(simulatorBenchmark PRIVATE gtest_main lbmLib simLib benchmark::benchmark)
 endif()

@@ -47,6 +47,7 @@
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
 #include "simulation/simulators/HybridMixing.hh"
+#include "simulation/simulators/CfdContinuous.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
@@ -63,6 +64,11 @@
 #include "porting/jsonPorter.hh"
 
 #include "result/Results.hh"
+
+#include "architecture/pNetwork.hh"
+#include "parser/pjsonParser.hh"
+#include "stlHandler/BaseSTL.hh"
+#include "stlHandler/NetworkSTL.hh"
 
 namespace py = pybind11;
 
@@ -260,6 +266,37 @@ void bind_cfdSimulators(py::module_& m) {
 		.def("setTau", &sim::lbmSimulator<T>::setTau, "Sets the relaxation time of the simulator.")
 		.def("getStepIter", &sim::lbmSimulator<T>::getStepIter, "Returns the number of steps used for the value tracer (default = 1000).")
 		.def("hasConverged", &sim::lbmSimulator<T>::hasConverged, "Returns whether the simulator has converged or not.");
+
+}
+
+void bind_cfdContinuous(py::module_& m) {
+
+	py::class_<sim::CfdContinuous<T>, sim::Simulation<T>, py::smart_holder>(m, "CfdContinuous")
+		.def(py::init<std::shared_ptr<arch::Network<T>>, int>(), py::arg("network"), py::arg("radialResolution")=25)
+		.def(py::init<std::vector<T>, std::vector<T>, std::string, std::unordered_map<size_t, arch::Opening<T>>>())
+		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::shared_ptr<sim::CfdContinuous<T>>(dynamic_cast<sim::CfdContinuous<T>*>(tmpPtr.release()));
+			}))
+		.def("setNetwork", &sim::CfdContinuous<T>::setNetwork, "Sets the network on which the simulation is conducted.")
+		.def("addPressureBC", &sim::CfdContinuous<T>::addPressureBC, "Adds a pressure boundary condition to the simulator.")
+		.def("addFlowRateBC", &sim::CfdContinuous<T>::addFlowRateBC, "Adds a flow rate boundary condition to the simulator.")
+		.def("setPressureBC", &sim::CfdContinuous<T>::setPressureBC, "Sets the pressure boundary condition for the given node.")
+		.def("setFlowRateBC", &sim::CfdContinuous<T>::setFlowRateBC, "Sets the flow rate boundary condition for the given node.")
+		.def("removePressureBC", &sim::CfdContinuous<T>::removePressureBC, "Removes the pressure boundary condition from the given node.")
+		.def("removeFlowRateBC", &sim::CfdContinuous<T>::removeFlowRateBC, "Removes the flow rate boundary condition from the given node.")
+		.def("set1DResistanceModel", &sim::CfdContinuous<T>::set1DResistanceModel, "Sets the resistance model for abstract simulation to the 1D resistance model.")
+		.def("setPoiseuilleResistanceModel", &sim::CfdContinuous<T>::setPoiseuilleResistanceModel, "Sets the resistance model for abstract simulation components to the poiseuille resistance model.")
+		.def("getMaxIter", &sim::CfdContinuous<T>::getMaxIter, "Returns the maximum number of allowed iterations for the CFD solver.")
+		.def("setMaxIter", &sim::CfdContinuous<T>::setMaxIter, "Sets the maximum number of allowed iterations for the CFD solver.")
+		.def("setWritePpm", &sim::CfdContinuous<T>::setWritePpm, "Sets whether ppm images should be written during the simulation.")
+		.def("getCharacteristicLength", &sim::CfdContinuous<T>::getCharacteristicLength, "Returns the characteristic length of the LBM simulator.")
+		.def("getCharacteristicVelocity", &sim::CfdContinuous<T>::getCharacteristicVelocity, "Returns the characteristic velocity of the LBM simulator.")
+		.def("getGloablPressureBounds", &sim::CfdContinuous<T>::getGlobalPressureBounds, "Returns the global pressure bounds in the CFD simulator.")
+		.def("getGlobalVelocityBounds", &sim::CfdContinuous<T>::getGlobalVelocityBounds, "Returns the global velocity bounds in the CFD simulator.")
+		.def("writePressurePpm", &sim::CfdContinuous<T>::writePressurePpm, "Write the pressure field in ppm format.")
+		.def("writeVelocityPpm", &sim::CfdContinuous<T>::writeVelocityPpm, "Write the velocity field in ppm format.")
+		.def("simulate", &sim::CfdContinuous<T>::simulate, "Conducts the simulation.");
 
 }
 
