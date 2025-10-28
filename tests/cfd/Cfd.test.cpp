@@ -43,9 +43,9 @@ TEST_F(Cfd, Case1a) {
     testSimulation.setContinuousPhase(fluid0->getId());
 
     // Boundary conditions
-    testSimulation.addPressureBC(node1, 1e3);
-    testSimulation.addPressureBC(node2, 1e3);
-    testSimulation.addPressureBC(node3, 1e3);
+    testSimulation.addPressureBC(node1, 1e2);
+    testSimulation.addPressureBC(node2, 1e2);
+    testSimulation.addPressureBC(node3, 1e2);
     testSimulation.addPressureBC(node7, 0.0);
     
     // Simulate

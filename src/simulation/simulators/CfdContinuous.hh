@@ -45,6 +45,7 @@ std::vector<T> CfdContinuous<T>::getPosition() const {
     std::vector<T> position = { std::get<0>(stlNetwork->getBoundingBox())[0],
                                 std::get<0>(stlNetwork->getBoundingBox())[1] };
     return position;
+    // return {0.0, 0.0};
 }
 
 template<typename T>
@@ -63,7 +64,8 @@ std::unordered_map<size_t, arch::Opening<T>> CfdContinuous<T>::getOpenings() con
     for (auto& nodePtr : danglingNodes) {
         std::cout<<"Processing opening at node "<<nodePtr->getId()<<"."<<std::endl;
         // Get the normal vector of the node opening from the network
-        std::vector<T> normal = stlNetwork->getNodeNormalVector(nodePtr->getId());
+        std::vector<T> invNormal = stlNetwork->getNodeNormalVector(nodePtr->getId());
+        std::vector<T> normal = {-invNormal[0], -invNormal[1]};
         // Get the channel width from the network
         T channelWidth = stlNetwork->getChannelWidthAtNode(nodePtr->getId());
         // Create the opening and add it to the map
@@ -124,7 +126,7 @@ void CfdContinuous<T>::addPressureBC(std::shared_ptr<arch::Node<T>> node, T pres
 }
 
 template<typename T>
-void CfdContinuous<T>::addVelocityBC(std::shared_ptr<arch::Node<T>> node, T velocity) {
+void CfdContinuous<T>::addFlowRateBC(std::shared_ptr<arch::Node<T>> node, T velocity) {
     // Check that the node is a dangling node with no BC yet
     if (danglingNodes.find(node) == danglingNodes.end()) {
         throw std::logic_error("Cannot add a boundary condition at node " + std::to_string(node->getId()) + " because it is not a boundary node.");
@@ -134,7 +136,7 @@ void CfdContinuous<T>::addVelocityBC(std::shared_ptr<arch::Node<T>> node, T velo
         throw std::logic_error("Cannot add a boundary condition at node " + std::to_string(node->getId()) + " because a BC is already set.");
     }
     // Add the BC
-    velocityBCs.try_emplace(node->getId(), velocity);
+    flowRateBCs.try_emplace(node->getId(), velocity);
     // Remove the node from the idle nodes
     idleNodes.erase(it);
 }
@@ -150,10 +152,10 @@ void CfdContinuous<T>::setPressureBC(std::shared_ptr<arch::Node<T>> node, T pres
 }
 
 template<typename T>
-void CfdContinuous<T>::setVelocityBC(std::shared_ptr<arch::Node<T>> node, T velocity) {
+void CfdContinuous<T>::setFlowRateBC(std::shared_ptr<arch::Node<T>> node, T velocity) {
     // Check that the node is a velocity BC
-    auto it = velocityBCs.find(node->getId());
-    if (it == velocityBCs.end()) {
+    auto it = flowRateBCs.find(node->getId());
+    if (it == flowRateBCs.end()) {
         throw std::logic_error("Cannot set velocity value at node " + std::to_string(node->getId()) + " because it is not a velocity BC.");
     }
     it->second = velocity;
@@ -172,16 +174,35 @@ void CfdContinuous<T>::removePressureBC(std::shared_ptr<arch::Node<T>> node) {
 }
 
 template<typename T>
-void CfdContinuous<T>::removeVelocityBC(std::shared_ptr<arch::Node<T>> node) {
+void CfdContinuous<T>::removeFlowRateBC(std::shared_ptr<arch::Node<T>> node) {
     // Check that the node is a velocity BC
-    auto it = velocityBCs.find(node->getId());
-    if (it == velocityBCs.end()) {
+    auto it = flowRateBCs.find(node->getId());
+    if (it == flowRateBCs.end()) {
         throw std::logic_error("Cannot remove velocity BC at node " + std::to_string(node->getId()) + " because it is not a velocity BC.");
     }
-    velocityBCs.erase(it);
+    flowRateBCs.erase(it);
     // Add the node to the idle nodes
     idleNodes.insert(node->getId());
 }
+
+template<typename T>
+void CfdContinuous<T>::setBoundaryConditions() {
+    // Set a node to groundNode if it is a velocity BC
+    std::unordered_map<size_t, bool> groundNodes;
+    for (auto& node : danglingNodes) {
+        if (flowRateBCs.find(node->getId()) != flowRateBCs.end()) {
+            groundNodes.try_emplace(node->getId(), true);
+        } else if (pressureBCs.find(node->getId()) != pressureBCs.end()) {
+            groundNodes.try_emplace(node->getId(), false);
+        } else {
+            throw std::logic_error("Tried to set BC type for non-dangling node.");
+        }
+    }
+    simulator->setGroundNodes(groundNodes);
+    simulator->storePressures(pressureBCs);
+    simulator->storeFlowRates(flowRateBCs);
+}
+
 
 template<typename T>
 void CfdContinuous<T>::set1DResistanceModel() {
@@ -229,7 +250,7 @@ void CfdContinuous<T>::assertInitialized() const {
         throw std::logic_error("CFD simulation is not initialized: there are " + std::to_string(idleNodes.size()) + " idle nodes without BC defined.");
     }
     // Finally, check that all dangling nodes have a BC defined
-    if (danglingNodes.size() != (pressureBCs.size() + velocityBCs.size())) {
+    if (danglingNodes.size() != (pressureBCs.size() + flowRateBCs.size())) {
         throw std::logic_error("CFD simulation is not initialized: not all dangling nodes have a BC defined.");
     }
     this->getNetwork()->isNetworkValid();
@@ -239,6 +260,9 @@ template<typename T>
 void CfdContinuous<T>::initialize() {
     // Initialize the simulator
     simulator->lbmInit(this->getContinuousPhase()->getViscosity(), this->getContinuousPhase()->getDensity());
+    // Set boundary conditions
+    std::cout<<"Set boundary conditions..."<<std::endl;
+    setBoundaryConditions();
     std::cout<<"Preparing geometry..."<<std::endl;
     simulator->prepareGeometry();
     std::cout<<"Preparing lattice..."<<std::endl;
@@ -252,21 +276,21 @@ void CfdContinuous<T>::simulate() {
     this->assertInitialized();
     this->initialize();
 
+    std::cout<<"Start Simulation"<<std::endl;
     bool isConverged = false;
 
-    while (!isConverged) {
-        // Solve the CFD domain
-        simulator->solve();
-        if (simulator->hasConverged()) {
-            isConverged = true;
-        }
-    }
+    // Solve the CFD domain
+    size_t maxIter = 100000;
+    simulator->solveCFD(maxIter);
+
+    std::cout<<"Finished Simulation"<<std::endl;
 
     if (writePpm) {
+        std::cout<<"Writing PPM"<<std::endl;
         writePressurePpm(getGlobalPressureBounds());
         writeVelocityPpm(getGlobalVelocityBounds());
     }
-
+    std::cout<<"Saving State"<<std::endl;
     saveState();
 }
 
@@ -305,18 +329,6 @@ void CfdContinuous<T>::updateNetworkSTL() {
         } else {
             network_stl->addNode(double(this->getNetwork()->getNodes().at(nodeId)->getPosition().at(0)), double(this->getNetwork()->getNodes().at(nodeId)->getPosition().at(1)), 0.0, true);
             std::cout << "Added node " << this->getNetwork()->getNodes().at(nodeId)->getId() << " as dangling." << std::endl;
-        }
-    }
-    for (auto& [k, n] : this->getNetwork()->getNodes()) {
-        auto it = std::find_if(danglingNodes.begin(), danglingNodes.end(),
-                               [&](const std::shared_ptr<arch::Node<T>>& nodePtr) { return nodePtr->getId() == n->getId(); });
-        bool isDangling = (it != danglingNodes.end());
-        if(!isDangling) {
-            network_stl->addNode(int(k), double(n->getPosition().at(0)), double(n->getPosition().at(1)), 0.0, false);
-            std::cout << "Added node " << n->getId() << " as non-dangling." << std::endl;
-        } else {
-            network_stl->addNode(int(k), double(n->getPosition().at(0)), double(n->getPosition().at(1)), 0.0, true);
-            std::cout << "Added node " << n->getId() << " as dangling." << std::endl;
         }
     }
 

@@ -191,6 +191,20 @@ void lbmSimulator<T>::solve() {
 }
 
 template<typename T>
+void lbmSimulator<T>::solveCFD(size_t maxIter) {
+    checkInitialized();
+    this->setBoundaryValues(step);
+    std::cout<< "Simulating..."<<std::endl;
+    for (int iT = 0; iT < maxIter; ++iT){    
+        writeVTK(step);       
+        lattice->collideAndStream();
+        step += 1;
+        if (isConverged) { break; }
+    }
+    std::cout<< "Done simulating..."<<std::endl;
+}
+
+template<typename T>
 void lbmSimulator<T>::setOutputDir () {
     if (!std::filesystem::is_directory(this->vtkFolder) || !std::filesystem::exists(this->vtkFolder)) {
         std::filesystem::create_directory(this->vtkFolder);
@@ -272,11 +286,6 @@ void lbmSimulator<T>::prepareNsLattice (const T omega) {
         std::cout<<"  - Width: "<<Opening.width<<" m."<<std::endl;
     }
 
-    /**
-     * TODO: Continue here: Set boundary conditions for all openings
-     * based on defined BC types (pressure or velocity). Not grounNodes.
-     */
-
     // Set lattice dynamics and initial condition for in- and outlets
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         if (this->groundNodes.at(key)) {
@@ -298,8 +307,10 @@ void lbmSimulator<T>::initPressureIntegralPlane() {
             throw std::runtime_error("The number of openings in a module cannot exceed " + std::to_string(std::numeric_limits<int>::max()) + ".");
         }
 
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+        auto min = stlReader->getMesh().getMin();
+
+        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0] + min[0];
+        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1] + min[1];          
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, int(key)+3};
@@ -324,11 +335,16 @@ void lbmSimulator<T>::initFlowRateIntegralPlane() {
             throw std::runtime_error("The number of openings in a module cannot exceed " + std::to_string(std::numeric_limits<int>::max()) + ".");
         }
 
-        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0];
-        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1];          
+        auto min = stlReader->getMesh().getMin();
+
+        T posX =  Opening.node->getPosition()[0] - this->cfdModule->getPosition()[0] + min[0];
+        T posY =  Opening.node->getPosition()[1] - this->cfdModule->getPosition()[1] + min[1];
 
         std::vector<T> position = {posX, posY};
         std::vector<int> materials = {1, int(key)+3};
+
+        std::cout<<"The position of superPlaneIntegralFluxVelocity2D for key " << std::to_string(key) << " is [" << 
+            std::to_string(posX) << ", " << std::to_string(posY) << "]"<<std::endl;
 
         if (!this->groundNodes.at(key)) {
             std::shared_ptr<olb::SuperPlaneIntegralFluxVelocity2D<T>> flux;

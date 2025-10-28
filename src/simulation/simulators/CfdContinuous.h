@@ -66,7 +66,7 @@ private:
     std::set<std::shared_ptr<arch::Node<T>>> danglingNodes;         ///< Set of nodes that are dangling and should have a BC.
     std::set<size_t> idleNodes;                                     ///< Set of nodes that are idle. I.e., dangling but not assigned a BC.
     std::unordered_map<size_t, T> pressureBCs;                      ///< Map of pressure BCs at dangling nodes. <nodeId, pressure>
-    std::unordered_map<size_t, T> velocityBCs;                      ///< Map of velocity BCs at dangling nodes. <nodeId, velocity>
+    std::unordered_map<size_t, T> flowRateBCs;                      ///< Map of flowrate BCs at dangling nodes. <nodeId, flowrate>
     int radialResolution = 25;                                      ///< The resolution of radial objects for the STL definition of the network.
     std::shared_ptr<arch::CfdModule<T>> cfdModule = nullptr;        ///< A pointer to the module, upon which this simulator acts.
     std::shared_ptr<lbmSimulator<T>> simulator = nullptr;           ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
@@ -206,7 +206,7 @@ public:
      * @note Adding a BC is only possible for domains that have been constructed using a network.
      * @throws logic_error if adding a BC is not possible.
      */
-    void addVelocityBC(std::shared_ptr<arch::Node<T>>, T velocity);
+    void addFlowRateBC(std::shared_ptr<arch::Node<T>>, T velocity);
 
     /**
      * @brief Sets a pressure boundary condition at a given node.
@@ -217,12 +217,12 @@ public:
     void setPressureBC(std::shared_ptr<arch::Node<T>> node, T pressure);
 
     /**
-     * @brief Sets a velocity boundary condition at a given node.
+     * @brief Sets a flowrate boundary condition at a given node.
      * @param[in] node The node at which the velocity BC is set.
-     * @param[in] velocity The velocity value at the boundary condition.
+     * @param[in] flowRate The fowrate value at the boundary condition.
      * @throws logic_error if setting the BC value is not possible.
      */
-    void setVelocityBC(std::shared_ptr<arch::Node<T>>, T velocity);
+    void setFlowRateBC(std::shared_ptr<arch::Node<T>>, T flowrate);
 
     /**
      * @note Removing a BC is only possible for domains that have been constructed using a network. 
@@ -234,7 +234,12 @@ public:
      * @note Removing a BC is only possible for domains that have been constructed using a network. 
      * If it was constructed using an stlFile and openings, this BC will default to a pressure BC with 0 Pa.
      */
-    void removeVelocityBC(std::shared_ptr<arch::Node<T>> node);
+    void removeFlowRateBC(std::shared_ptr<arch::Node<T>> node);
+
+    /** TODO:
+     * 
+     */
+    void setBoundaryConditions();
 
     /**
      * @brief Sets the resistance model for abstract simulation components to the 1D resistance model

@@ -205,6 +205,12 @@ protected:
     void solve();
 
     /**
+     * @brief Conducts the collide and stream operations of the lattice for a pure CFD simulation.
+     * @param[in] maxIter Maximum number of iterations for the CFD solving.
+    */
+    void solveCFD(size_t maxIter);
+
+    /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
