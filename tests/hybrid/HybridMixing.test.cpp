@@ -61,8 +61,17 @@ TEST_F(HybridConcentration, Case1a) {
     //--- continuousPhase ---
     testSimulation.setContinuousPhase(fluid0->getId());
 
+    // mixture
+    auto s1 = testSimulation.addSpecie(1e-9, 1e-1);
+    s1->setName("Specie_1");
+    auto mixture1 = testSimulation.addMixture(s1, 1e-2);
+    testSimulation.addMixtureInjection(mixture1->getId(), c0->getId(), 0.0, 1.0);
+
     // Set the resistance model
     testSimulation.setPoiseuilleResistanceModel();
+
+    // Set the mixing model
+    testSimulation.setInstantaneousMixingModel();
 
     // simulator
     std::string name = "Paper1a-cross-0";

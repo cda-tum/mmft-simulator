@@ -120,6 +120,12 @@ protected:
     std::vector<T> getSize() const;
 
     /**
+     * @brief Returns the cfdModule pointer.
+     * @returns The cfdModule pointer.
+     */
+    [[nodiscard]] inline std::shared_ptr<arch::CfdModule<T>> getCfdModule() const { return cfdModule; }
+
+    /**
      * @brief Returns the openings of the CFD domain.
      * @returns The openings of the CFD domain as unordered_map<size_t, arch::Opening<T>>
      */
@@ -153,14 +159,14 @@ protected:
      * @brief Get injection
      * @return Reference to the unordered map of MixtureInjections
      */
-    [[nodiscard]] inline std::shared_ptr<CFDSimulator<T>>& getCFDSimulator() { return simulator; }
+    [[nodiscard]] inline std::shared_ptr<lbmSimulator<T>> getCFDSimulator() { return simulator; }
 
     /**
      * @brief Get injection
      * @param simulatorId The id of the injection
      * @return Pointer to injection with the corresponding id.
      */
-    [[nodiscard]] inline const CFDSimulator<T>* readCFDSimulator() const { return simulator.get(); }
+    [[nodiscard]] inline const lbmSimulator<T>* readCFDSimulator() const { return simulator.get(); }
 
     /** TODO:
      * 
@@ -170,7 +176,21 @@ protected:
     /** TODO:
      * 
      */
-    void setBoundaryConditions();
+    virtual void setBoundaryConditions();
+
+    inline void setSimulator(std::shared_ptr<lbmSimulator<T>> simulator) { this->simulator = simulator; }
+
+    /**
+     * @brief Get dangling nodes
+     * @return Set of dangling nodes
+     */
+    [[nodiscard]] inline const std::set<std::shared_ptr<arch::Node<T>>>& getDanglingNodes() const { return danglingNodes; }
+
+    /**
+     * @brief Get idle nodes
+     * @return Set of idle node ids
+     */
+    [[nodiscard]] inline const std::set<size_t>& getIdleNodes() const { return idleNodes; }
 
 public:
 
@@ -266,10 +286,76 @@ public:
     inline void setMaxIter(size_t maxIter) { this->maxIter = maxIter; }
 
     /**
+     * @brief Returns the resolution of the CFD domain.
+     * @returns The resolution of the CFD domain.
+     */
+    [[nodiscard]] inline size_t getResolution() const { return resolution; }
+
+    /**
+     * @brief Sets the resolution of the CFD domain.
+     * @param[in] resolution The resolution of the CFD domain.
+     */
+    inline void setResolution(size_t resolution) { this->resolution = resolution; }
+
+    /**
+     * @brief Returns the epsilon for the simulator.
+     * @returns The epsilon for the simulator.
+     */
+    [[nodiscard]] inline T getEpsilon() const { return epsilon; }
+
+    /**
+     * @brief Sets the epsilon for the simulator.
+     * @param[in] epsilon The epsilon for the simulator.
+     */
+    inline void setEpsilon(T epsilon) { this->epsilon = epsilon; }
+
+    /**
+     * @brief Returns the relaxation time for the simulator.
+     * @returns The relaxation time for the simulator.
+     */
+    [[nodiscard]] inline T getTau() const { return relaxationTime; }
+
+    /**
+     * @brief Sets the relaxation time for the simulator.
+     * @param[in] relaxationTime The relaxation time for the simulator.
+     */
+    inline void setTau(T relaxationTime) { this->relaxationTime = relaxationTime; }
+
+    /**
+     * @brief Returns the characteristic physical length for the simulation.
+     * @returns The characteristic physical length
+     */
+    [[nodiscard]] inline T getCharPhysLength() const { return charPhysLength; }
+
+    /**
+     * @brief Sets the characteristic physical length for the simulation.
+     * @param[in] charPhysLength The characteristic physical length
+     */
+    inline void setCharPhysLength(T charPhysLength) { this->charPhysLength = charPhysLength; }
+
+    /**
+     * @brief Returns the characteristic physical velocity for the simulation.
+     * @returns The characteristic physical velocity
+     */
+    [[nodiscard]] inline T getCharPhysVelocity() const { return charPhysVelocity; }
+
+    /**
+     * @brief Sets the characteristic physical velocity for the simulation.
+     * @param[in] charPhysVelocity The characteristic physical velocity
+     */
+    inline void setCharPhysVelocity(T charPhysVelocity) { this->charPhysVelocity = charPhysVelocity; }
+
+    /**
      * @brief Sets whether to write ppm files for pressure and velocity fields.
      * @param[in] writePpm Whether to write ppm files for pressure and velocity fields
      */
     inline void setWritePpm(bool writePpm) { this->writePpm = writePpm; }
+
+    /**
+     * @brief Returns whether ppm files for pressure and velocity fields are written.
+     * @returns Whether ppm files for pressure and velocity fields are written
+     */
+    [[nodiscard]] inline bool isWritePpm() const { return writePpm; }
 
     /**
      * @brief Returns the current global characteristic length for the simulation.
@@ -287,23 +373,23 @@ public:
      * @brief Get the global bounds of pressure values in the CFD simulators.
      * @return A tuple with the global bounds for pressure values <pMin, pMax>
      */
-    std::pair<T,T> getGlobalPressureBounds() const;
+    std::pair<T,T> getGlobalPressureBounds();
     
     /**
      * @brief Get the global bounds of velocity magnitude values in the CFD simulators.
      * @return A tuple with the global bounds for velocity magnitude values <velMin, velMax>
      */
-    std::pair<T,T> getGlobalVelocityBounds() const;
+    std::pair<T,T> getGlobalVelocityBounds();
 
     /**
      * @brief Write the pressure field in .ppm image format for all cfdSimulators
      */
-    void writePressurePpm(std::pair<T,T> bounds, int resolution=600) const;
+    void writePressurePpm(std::pair<T,T> bounds, int resolution=600);
 
     /**
      * @brief Write the velocity field in .ppm image format for all cfdSimulators
      */
-    void writeVelocityPpm(std::pair<T,T> bounds, int resolution=600) const;
+    void writeVelocityPpm(std::pair<T,T> bounds, int resolution=600);
 
     void simulate() override;
 };

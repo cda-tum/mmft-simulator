@@ -221,7 +221,7 @@ public:
      * @brief Return a read-only map of species currently stored in the simulation
      * @return Unordered map of specie ids and const pointers to the species
      */
-    [[nodiscard]] const std::unordered_map<size_t, const Specie<T>*> readSpecies() const;
+    [[nodiscard]] std::unordered_map<size_t, const Specie<T>*> readSpecies() const;
 
     /**
      * @brief Remove specie from the simulator. If a mixture contains the specie, it is removed from the mixture as well.

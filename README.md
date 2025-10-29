@@ -23,7 +23,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 |               | Abstract      | Hybrid        | CFD           |
 | :-----------  | :-----------: | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      | &#x2705;      |
-| Concentration | &#x2705;      |               |               |
+| Concentration | &#x2705;      | &#x2705;      | &#x2705;      |
 | BigDroplet    | &#x2705;      |               |               |
 | Membrane      | &#x2705;      |               |               |
 

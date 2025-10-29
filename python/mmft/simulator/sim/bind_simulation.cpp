@@ -48,6 +48,7 @@
 #include "simulation/simulators/HybridContinuous.hh"
 #include "simulation/simulators/HybridMixing.hh"
 #include "simulation/simulators/CfdContinuous.hh"
+#include "simulation/simulators/CfdMixing.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
@@ -239,6 +240,27 @@ void bind_hybridContinuous(py::module_& m) {
 
 }
 
+void bind_hybridMixing(py::module_& m) {
+
+	py::class_<sim::HybridMixing<T>, sim::HybridContinuous<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "HybridMixing")
+		.def(py::init<std::shared_ptr<arch::Network<T>>>())
+		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::shared_ptr<sim::HybridMixing<T>>(dynamic_cast<sim::HybridMixing<T>*>(tmpPtr.release()));
+			}))
+		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, std::string>(&sim::HybridMixing<T>::addLbmSimulator),
+			py::arg("module"), py::arg("name")="", "Add a LBM simulator to the hybrid mixing simulation.")
+		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, size_t, std::string>(&sim::HybridMixing<T>::addLbmSimulator),
+			py::arg("module"), py::arg("resolution"), py::arg("name")="", "Add a LBM simulator to the hybrid mixing simulation.")
+		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, size_t, T, T, T, T, T, std::string>(&sim::HybridMixing<T>::addLbmSimulator),
+			py::arg("module"), py::arg("resolution"), py::arg("epsilon"), py::arg("tau"), py::arg("adTau"), py::arg("charPhysLength"), py::arg("charPhysVelocity"), py::arg("name")="", 
+			"Add a LBM simulator to the hybrid mixing simulation.")
+		.def("getGlobalConcentrationBounds", &sim::HybridMixing<T>::getGlobalConcentrationBounds, "Returns the global concentration bounds in the CFD simulators.")
+		.def("writeConcentrationPpm", &sim::HybridMixing<T>::writeConcentrationPpm, "Write the concentration field in ppm format for all simulators.")
+		.def("simulate", &sim::HybridMixing<T>::simulate, "Conducts the hybrid mixing simulation.");
+		
+}
+
 void bind_cfdSimulators(py::module_& m) {
 
 	py::class_<sim::CFDSimulator<T>, py::smart_holder>(m, "CFDSimulator")
@@ -289,14 +311,43 @@ void bind_cfdContinuous(py::module_& m) {
 		.def("setPoiseuilleResistanceModel", &sim::CfdContinuous<T>::setPoiseuilleResistanceModel, "Sets the resistance model for abstract simulation components to the poiseuille resistance model.")
 		.def("getMaxIter", &sim::CfdContinuous<T>::getMaxIter, "Returns the maximum number of allowed iterations for the CFD solver.")
 		.def("setMaxIter", &sim::CfdContinuous<T>::setMaxIter, "Sets the maximum number of allowed iterations for the CFD solver.")
+		.def("getResolution", &sim::CfdContinuous<T>::getResolution, "Returns the simulation resolution used for the CFD simulator.")
+		.def("setResolution", &sim::CfdContinuous<T>::setResolution, "Sets the simulation resolution used for the CFD simulator.")
+		.def("getEpsilon", &sim::CfdContinuous<T>::getEpsilon, "Returns the epsilon parameter used for the CFD simulator.")
+		.def("setEpsilon", &sim::CfdContinuous<T>::setEpsilon, "Sets the epsilon parameter used for the CFD simulator.")
+		.def("getTau", &sim::CfdContinuous<T>::getTau, "Returns the relaxation time used for the CFD simulator.")
+		.def("setTau", &sim::CfdContinuous<T>::setTau, "Sets the relaxation time used for the CFD simulator.")
+		.def("getCharPhysLength", &sim::CfdContinuous<T>::getCharPhysLength, "Returns the characteristic physical length of the LBM simulator.")
+		.def("setCharPhysLength", &sim::CfdContinuous<T>::setCharPhysLength, "Sets the characteristic physical length of the LBM simulator.")
+		.def("getCharPhysVelocity", &sim::CfdContinuous<T>::getCharPhysVelocity, "Returns the characteristic physical velocity of the LBM simulator.")
+		.def("setCharPhysVelocity", &sim::CfdContinuous<T>::setCharPhysVelocity, "Sets the characteristic physical velocity of the LBM simulator.")
 		.def("setWritePpm", &sim::CfdContinuous<T>::setWritePpm, "Sets whether ppm images should be written during the simulation.")
+		.def("isWritePpm", &sim::CfdContinuous<T>::isWritePpm, "Returns whether ppm images are written during the simulation.")
 		.def("getCharacteristicLength", &sim::CfdContinuous<T>::getCharacteristicLength, "Returns the characteristic length of the LBM simulator.")
 		.def("getCharacteristicVelocity", &sim::CfdContinuous<T>::getCharacteristicVelocity, "Returns the characteristic velocity of the LBM simulator.")
-		.def("getGloablPressureBounds", &sim::CfdContinuous<T>::getGlobalPressureBounds, "Returns the global pressure bounds in the CFD simulator.")
+		.def("getGlobalPressureBounds", &sim::CfdContinuous<T>::getGlobalPressureBounds, "Returns the global pressure bounds in the CFD simulator.")
 		.def("getGlobalVelocityBounds", &sim::CfdContinuous<T>::getGlobalVelocityBounds, "Returns the global velocity bounds in the CFD simulator.")
 		.def("writePressurePpm", &sim::CfdContinuous<T>::writePressurePpm, "Write the pressure field in ppm format.")
 		.def("writeVelocityPpm", &sim::CfdContinuous<T>::writeVelocityPpm, "Write the velocity field in ppm format.")
 		.def("simulate", &sim::CfdContinuous<T>::simulate, "Conducts the simulation.");
+
+}
+
+void bind_cfdMixing(py::module_& m) {
+
+	py::class_<sim::CfdMixing<T>, sim::CfdContinuous<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "CfdMixing")
+		.def(py::init<std::shared_ptr<arch::Network<T>>, int>(), py::arg("network"), py::arg("radialResolution")=25)
+		.def(py::init<std::vector<T>, std::vector<T>, std::string, std::unordered_map<size_t, arch::Opening<T>>>())
+		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::shared_ptr<sim::CfdContinuous<T>>(dynamic_cast<sim::CfdContinuous<T>*>(tmpPtr.release()));
+			}))
+		.def("addConcentrationBC", &sim::CfdMixing<T>::addConcentrationBC, "Adds a concentration boundary condition to the simulator.")
+		.def("setConcentrationBC", &sim::CfdMixing<T>::setConcentrationBC, "Sets the concentration boundary condition for the given node.")
+		.def("removeConcentrationBC", &sim::CfdMixing<T>::removeConcentrationBC, "Removes the concentration boundary condition from the given node.")
+		.def("getGlobalConcentrationBounds", &sim::CfdMixing<T>::getGlobalConcentrationBounds, "Returns the global concentration bounds in the CFD simulator.")
+		.def("writeConcentrationPpm", &sim::CfdMixing<T>::writeConcentrationPpm, "Write the concentration field in ppm format.")
+		.def("simulate", &sim::CfdMixing<T>::simulate, "Conducts the simulation.");
 
 }
 
