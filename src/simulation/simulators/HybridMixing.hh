@@ -103,7 +103,7 @@ void HybridMixing<T>::simulate() {
         // conduct CFD simulations
         allConverged = conductCFDSimulation(this->getCFDSimulators());
         // compute nodal analysis again
-        pressureConverged = this->getNodalAnalysis()->conductNodalAnalysis(this->getCFDSimulators());
+        pressureConverged = HybridContinuous<T>::conductNodalAnalysis().value();
     }
 
     #ifdef VERBOSE     
@@ -126,9 +126,15 @@ void HybridMixing<T>::simulate() {
 
     // Obtain overal steady-state concentration results
     bool concentrationConverged = false;
+    int iterationCounter = 0;
     while (!concentrationConverged) {
-        concentrationConverged = conductADSimulation(this->getCFDSimulators());
         this->getMixingModel()->propagateSpecies(this->getNetwork().get(), this);
+        concentrationConverged = conductADSimulation(this->getCFDSimulators());
+        concentrationConverged = false;
+        if (iterationCounter > 10) {
+            concentrationConverged = true;
+        }
+        iterationCounter++;
     }
 }
 

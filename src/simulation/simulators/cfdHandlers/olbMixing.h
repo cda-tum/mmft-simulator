@@ -31,6 +31,8 @@ namespace sim {
 // Forward declared dependencies
 template<typename T>
 class HybridMixing;
+template<typename T>
+class CfdMixing;
 
 /**
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
@@ -226,6 +228,7 @@ public:
     void writeConcentrationPpm(size_t adKey, T min, T max, int imgResolution) override;
 
     friend class HybridMixing<T>;
+    friend class CfdMixing<T>;
 };
 
 }   // namespace arch

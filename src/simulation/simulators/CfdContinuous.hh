@@ -26,9 +26,11 @@ CfdContinuous<T>::CfdContinuous(Platform platform, std::shared_ptr<arch::Network
     cfdModule = std::shared_ptr<arch::CfdModule<T>>(new arch::CfdModule<T>(0, getPosition(), getSize(), stlLocation, getOpenings()));
     // Fill idle nodes
     updateIdleNodes();
-    // Define the simulator (lbmSimulator)
-    std::string name = "lbmContinuous";
-    simulator = std::shared_ptr<lbmSimulator<T>>(new lbmSimulator<T>(0, name, cfdModule, resolution, charPhysLength, charPhysVelocity, epsilon, relaxationTime));
+    if (platform == Platform::Continuous) {
+        // Define the simulator (lbmSimulator)
+        std::string name = "lbmContinuous";
+        simulator = std::shared_ptr<lbmSimulator<T>>(new lbmSimulator<T>(0, name, cfdModule, resolution, charPhysLength, charPhysVelocity, epsilon, relaxationTime));
+    }
 }
 
 template<typename T>
@@ -81,9 +83,11 @@ CfdContinuous<T>::CfdContinuous(Platform platform,
     cfdModule = std::shared_ptr<arch::CfdModule<T>>(new arch::CfdModule<T>(0, position, size, stlFile, openings));
     // Fill dangling nodes and idle nodes
     updateIdleNodes(openings);
-    // Define the simulator (lbmSimulator)
-    std::string name = "lbmContinuous";
-    simulator = std::shared_ptr<lbmSimulator<T>>(new lbmSimulator<T>(0, name, cfdModule, resolution, charPhysLength, charPhysVelocity, epsilon, relaxationTime));
+    if (platform == Platform::Continuous) {
+        // Define the simulator (lbmSimulator)
+        std::string name = "lbmContinuous";
+        simulator = std::shared_ptr<lbmSimulator<T>>(new lbmSimulator<T>(0, name, cfdModule, resolution, charPhysLength, charPhysVelocity, epsilon, relaxationTime));
+    }
 }
 
 template<typename T>
@@ -203,26 +207,26 @@ void CfdContinuous<T>::setPoiseuilleResistanceModel() {
 }
 
 template<typename T>
-std::pair<T,T> CfdContinuous<T>::getGlobalPressureBounds() const {
+std::pair<T,T> CfdContinuous<T>::getGlobalPressureBounds() {
     std::tuple<T,T> bounds = simulator->getPressureBounds();
     return std::pair<T,T> {std::get<0>(bounds), std::get<1>(bounds)};
 }
 
 template<typename T>
-std::pair<T,T> CfdContinuous<T>::getGlobalVelocityBounds() const {
+std::pair<T,T> CfdContinuous<T>::getGlobalVelocityBounds() {
     std::tuple<T,T> bounds = simulator->getVelocityBounds();
     return std::pair<T,T> {std::get<0>(bounds), std::get<1>(bounds)};
 }
 
 
 template<typename T>
-void CfdContinuous<T>::writePressurePpm(std::pair<T,T> bounds, int resolution) const {
+void CfdContinuous<T>::writePressurePpm(std::pair<T,T> bounds, int resolution) {
     // 0.98 and 1.02 factors are there to account for artifical black pixels that might show
     simulator->writePressurePpm(0.98*bounds.first, 1.02*bounds.second, resolution);
 }
 
 template<typename T>
-void CfdContinuous<T>::writeVelocityPpm(std::pair<T,T> bounds, int resolution) const {
+void CfdContinuous<T>::writeVelocityPpm(std::pair<T,T> bounds, int resolution) {
     // 0.98 and 1.02 factors are there to account for artifical black pixels that might show
     simulator->writeVelocityPpm(0.98*bounds.first, 1.02*bounds.second, resolution);
 }
@@ -275,8 +279,6 @@ void CfdContinuous<T>::simulate() {
 
 template<typename T>
 void CfdContinuous<T>::saveState() {
-    std::unordered_map<int, T> savePressures;
-    std::unordered_map<int, T> saveFlowRates;
     std::unordered_map<int, std::string> vtkFiles;
 
     // vtk File

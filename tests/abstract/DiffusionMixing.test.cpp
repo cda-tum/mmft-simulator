@@ -248,14 +248,14 @@ TEST(DiffusiveMixing, case3) {
     T cWidth = 100e-6;
     T cHeight = 100e-6;
     T cLength = sqrt(1e-3*1e-3 + 1e-3*1e-3);
-    T flowRate0 = 3.53553e-09;
-    T flowRate1 = 3.53553e-09;
-    T flowRate2 = 7.85674e-10;
-    T flowRate3 = 6.28539e-09;
-    T flowRate4 = 7.85674e-10;
-    T flowRate5 = 6.28539e-09;
-    T flowRate6 = 6.28539e-09;
-    T flowRate7 = 7.85674e-10;
+    [[maybe_unused]] T flowRate0 = 3.53553e-09;
+    [[maybe_unused]] T flowRate1 = 3.53553e-09;
+    [[maybe_unused]] T flowRate2 = 7.85674e-10;
+    [[maybe_unused]] T flowRate3 = 6.28539e-09;
+    [[maybe_unused]] T flowRate4 = 7.85674e-10;
+    [[maybe_unused]] T flowRate5 = 6.28539e-09;
+    [[maybe_unused]] T flowRate6 = 6.28539e-09;
+    [[maybe_unused]] T flowRate7 = 7.85674e-10;
     T pecletNr2 = (flowRate2 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr3 = (flowRate3 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     T pecletNr6 = (flowRate6 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
@@ -318,7 +318,7 @@ TEST(DiffusiveMixing, case3) {
 
     for (int i = 0; i < numValues; ++i) {
         T x = xStart + i * step;
-        T y0;
+        [[maybe_unused]] T y0;
         T y1;
         T y2;
         //y0 = fConstant0(x);
@@ -346,29 +346,29 @@ TEST(DiffusiveMixing, case4) {
     // parameters
     T cWidth = 100e-6;
     T cHeight = 100e-6;
-    T cLength1 = 2e-3;
-    T cLength2 = sqrt(2e-3*2e-3 + 1e-3*1e-3);
-    T cLength3 = sqrt(2e-3*2e-3 + 2e-3*2e-3);
-    T flowRate0 = 3.23735e-10;
-    T flowRate1 = 3.23735e-10;
-    T flowRate2 = 3.23735e-10;
-    T flowRate3 = 3.23735e-10;
-    T flowRate4 = 6.47446e-10;
-    T flowRate5 = 6.47446e-10;
-    T flowRate6 = 1.29489e-09;
-    T flowRate7 = 1.5942e-09;
-    T flowRate8 = 1.5942e-09;
-    T flowRate9 = 1.89351e-09;
-    T flowRate10 = 6.07277e-10;
-    T flowRate11 = 6.78956e-10;
-    T flowRate12 = 6.07277e-10;
-    T pecletNr0 = (flowRate0 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    T pecletNr4 = (flowRate4 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    T pecletNr6 = (flowRate6 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    T pecletNr7 = (flowRate7 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    T pecletNr9 = (flowRate9 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    T pecletNr10 = (flowRate10 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
-    T pecletNr11 = (flowRate11 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    [[maybe_unused]] T cLength1 = 2e-3;
+    [[maybe_unused]] T cLength2 = sqrt(2e-3*2e-3 + 1e-3*1e-3);
+    [[maybe_unused]] T cLength3 = sqrt(2e-3*2e-3 + 2e-3*2e-3);
+    [[maybe_unused]] T flowRate0 = 3.23735e-10;
+    [[maybe_unused]] T flowRate1 = 3.23735e-10;
+    [[maybe_unused]] T flowRate2 = 3.23735e-10;
+    [[maybe_unused]] T flowRate3 = 3.23735e-10;
+    [[maybe_unused]] T flowRate4 = 6.47446e-10;
+    [[maybe_unused]] T flowRate5 = 6.47446e-10;
+    [[maybe_unused]] T flowRate6 = 1.29489e-09;
+    [[maybe_unused]] T flowRate7 = 1.5942e-09;
+    [[maybe_unused]] T flowRate8 = 1.5942e-09;
+    [[maybe_unused]] T flowRate9 = 1.89351e-09;
+    [[maybe_unused]] T flowRate10 = 6.07277e-10;
+    [[maybe_unused]] T flowRate11 = 6.78956e-10;
+    [[maybe_unused]] T flowRate12 = 6.07277e-10;
+    [[maybe_unused]] T pecletNr0 = (flowRate0 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    [[maybe_unused]] T pecletNr4 = (flowRate4 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    [[maybe_unused]] T pecletNr6 = (flowRate6 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    [[maybe_unused]] T pecletNr7 = (flowRate7 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    [[maybe_unused]] T pecletNr9 = (flowRate9 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    [[maybe_unused]] T pecletNr10 = (flowRate10 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
+    [[maybe_unused]] T pecletNr11 = (flowRate11 / cHeight) / 1e-8; // (flowrate / height) / diffusivity
     // EXPECT_NEAR(pecletNr, 30.0, 1e-7);
     int resolution = 1000;
 
@@ -473,9 +473,9 @@ TEST(DiffusiveMixing, caseJeonEtAl) {
 
 
     // parameters
-    auto cWidth = 50e-6;
-    auto cHeight = 100e-6;
-    auto cLength = 570e-10;  // Channel length
+    [[maybe_unused]] auto cWidth = 50e-6;
+    [[maybe_unused]] auto cHeight = 100e-6;
+    [[maybe_unused]] auto cLength = 570e-10;  // Channel length
 
     // Concentrations (from Jeon et al. read out from simulations)
     T c0 = 0.0;
@@ -505,20 +505,20 @@ TEST(DiffusiveMixing, caseJeonEtAl) {
 
     // Flowrates (calculated using 1D simulation)
 
-    T flowRate0 = 5.44862e-12; // channel 87
-    T flowRate1 = 5.4081e-12; // channel 88
-    T flowRate2 = 5.58838e-12; // channel 89
-    T flowRate3 = 5.69198e-12; // channel 90
-    T flowRate4 = 5.72583e-12; // channel 91
-    T flowRate5 = 5.69198e-12; // channel 92
-    T flowRate6 = 5.58838e-12; // channel 93
-    T flowRate7 = 5.4081e-12; // channel 94
-    T flowRate8 = 5.44862e-12; // channel 95
+    [[maybe_unused]] T flowRate0 = 5.44862e-12; // channel 87
+    [[maybe_unused]] T flowRate1 = 5.4081e-12; // channel 88
+    [[maybe_unused]] T flowRate2 = 5.58838e-12; // channel 89
+    [[maybe_unused]] T flowRate3 = 5.69198e-12; // channel 90
+    [[maybe_unused]] T flowRate4 = 5.72583e-12; // channel 91
+    [[maybe_unused]] T flowRate5 = 5.69198e-12; // channel 92
+    [[maybe_unused]] T flowRate6 = 5.58838e-12; // channel 93
+    [[maybe_unused]] T flowRate7 = 5.4081e-12; // channel 94
+    [[maybe_unused]] T flowRate8 = 5.44862e-12; // channel 95
 
-    T flowRate9 = 4.93353e-11; // channel 96
-    T flowRate10 = 5.13294e-11; // channel 97
-    T flowRate11 = 4.93353e-11; // channel 98
-    T flowRate12 = 1.5e-10; // channel 99
+    [[maybe_unused]] T flowRate9 = 4.93353e-11; // channel 96
+    [[maybe_unused]] T flowRate10 = 5.13294e-11; // channel 97
+    [[maybe_unused]] T flowRate11 = 4.93353e-11; // channel 98
+    [[maybe_unused]] T flowRate12 = 1.5e-10; // channel 99
 
     /**
      * 1mm/s

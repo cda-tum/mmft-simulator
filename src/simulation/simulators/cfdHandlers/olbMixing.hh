@@ -172,6 +172,9 @@ void lbmMixingSimulator<T>::writeVTK (int iT) {
     if (iT %1000 == 0) {
         #ifdef VERBOSE
             std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
+            for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
+                meanConcentrations.at(key).at(0)->print();
+            } 
         #endif
     }
 
@@ -210,18 +213,20 @@ void lbmMixingSimulator<T>::writeConcentrationPpm(size_t adKey, T min, T max, in
 
 template<typename T>
 void lbmMixingSimulator<T>::solve() {
-    // theta = 10
-    this->setBoundaryValues(this->getStep());
-    for (int iT = 0; iT < 10; ++iT){
-        this->getLattice().collideAndStream();
-        this->getLattice().executeCoupling();
-        for (auto& [speciesId, adLattice] : adLattices) {
-            adLattice->collideAndStream();
-        }
-        writeVTK(this->getStep());
-        this->getStep() += 1;
-    }
-    storeCfdResults(this->getStep());
+    // this->checkInitialized();
+    // int theta = this->updateScheme->getTheta();
+    // this->setBoundaryValues(this->getStep());
+    // for (int iT = 0; iT < theta; ++iT){
+    //     writeVTK(this->getStep());
+    //     this->getLattice().collideAndStream();
+    //     this->getLattice().executeCoupling();
+    //     for (auto& [speciesId, adLattice] : adLattices) {
+    //         adLattice->collideAndStream();
+    //     }
+    //     this->getStep() += 1;
+    // }
+    // storeCfdResults(this->getStep());
+    nsSolve();
 }
 
 template<typename T>
@@ -233,11 +238,12 @@ void lbmMixingSimulator<T>::executeCoupling() {
 
 template<typename T>
 void lbmMixingSimulator<T>::nsSolve() {
-    // theta = 10
+    this->checkInitialized();
+    int theta = this->updateScheme->getTheta();
     this->setBoundaryValues(this->getStep());
-    for (int iT = 0; iT < 10; ++iT){
-        this->getLattice().collideAndStream();
+    for (int iT = 0; iT < theta; ++iT){
         writeVTK(this->getStep());
+        this->getLattice().collideAndStream();
         this->getStep() += 1;
     }
     storeCfdResults(this->getStep());
@@ -247,11 +253,11 @@ template<typename T>
 void lbmMixingSimulator<T>::adSolve() {
     // theta = 10
     this->setBoundaryValues(this->getStep());
-    for (int iT = 0; iT < 100; ++iT){
+    for (int iT = 0; iT < 10000; ++iT){
+        writeVTK(this->getStep());
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
         }
-        writeVTK(this->getStep());
         this->getStep() += 1;
     }
     storeCfdResults(this->getStep());
@@ -397,15 +403,11 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
             adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
         }
     }
-    // If the boundary is an outflow
-    else if (this->getFlowDirection(key) < 0.0) {
+    // If the boundary is an outflow or there is no flow
+    else if (this->getFlowDirection(key) <= 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
         }
-    }
-    else {
-        std::cerr << "Error: Invalid Flow Type Boundary Node." << std::endl;
-        exit(1);
     }
 }
 

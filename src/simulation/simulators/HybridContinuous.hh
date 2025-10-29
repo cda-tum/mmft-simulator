@@ -295,7 +295,6 @@ void HybridContinuous<T>::simulate() {
         allConverged = conductCFDSimulation(cfdSimulators);
         // compute nodal analysis again
         pressureConverged = HybridContinuous<T>::conductNodalAnalysis().value();
-
     }
 
     #ifdef VERBOSE     

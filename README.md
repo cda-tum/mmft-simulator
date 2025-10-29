@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ubuntu-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml)
-[![MacOS-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml)
+<!-- [![MacOS-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml) -->
 <!-- [![Windows-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_windows.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_windows.yml) -->
 
 <p align="center">
@@ -23,7 +23,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 |               | Abstract      | Hybrid        | CFD           |
 | :-----------  | :-----------: | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      | &#x2705;      |
-| Concentration | &#x2705;      |               |               |
+| Concentration | &#x2705;      | &#x2705;      | &#x2705;      |
 | BigDroplet    | &#x2705;      |               |               |
 | Membrane      | &#x2705;      |               |               |
 

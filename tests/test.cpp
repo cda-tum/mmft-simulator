@@ -11,5 +11,6 @@
 #include "abstract/Tank.test.cpp"
 #include "abstract/Topology.test.cpp"
 #include "hybrid/Hybrid.test.cpp"
+#include "hybrid/HybridMixing.test.cpp"
 #include "hybrid/Opening.test.cpp"
 #include "cfd/Cfd.test.cpp"
