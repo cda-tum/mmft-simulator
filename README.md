@@ -20,24 +20,26 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 
 <div align="center">
 
-|               | Abstract      | Hybrid        |
-| :-----------  | :-----------: | :-----------: |
-| Continuous    | &#x2705;      | &#x2705;      |
-| Concentration | &#x2705;      |               |
-| BigDroplet    | &#x2705;      |               |
-| Membrane      | &#x2705;      |               |
+|               | Abstract      | Hybrid        | CFD           |
+| :-----------  | :-----------: | :-----------: | :-----------: |
+| Continuous    | &#x2705;      | &#x2705;      | &#x2705;      |
+| Concentration | &#x2705;      |               |               |
+| BigDroplet    | &#x2705;      |               |               |
+| Membrane      | &#x2705;      |               |               |
 
 </div>
 
 ### Abstraction Levels
 **Abstract**: This abstraction level highly abstracts the underlying physics to an extend that it can, in most cases, provide simulation results almost instantly. It uses a method that draws an analogy between the <br>Hagen-Poiseuille law and Ohm's law, and applies analogous methods from electrical circuit engineering to <br>channel-based microfluidic devices.<br>
-**Hybrid**: The Hybrid exploits simulation methods on a high level of abstraction to accelerate CFD simulations (using the LBM as implemented in the OpenLB library) of microfluidic devices. More details can be found in the corresponding publication.<sup>[[2]](https://doi.org/10.3390/mi15010129)</sup>
+**Hybrid**: The Hybrid exploits simulation methods on a high level of abstraction to accelerate CFD simulations (using the LBM as implemented in the [OpenLB](https://www.openlb.net/) library) of microfluidic devices. More details can be found in the corresponding publication.<sup>[[2]](https://doi.org/10.3390/mi15010129)</sup> <br>
+**CFD**: The CFD simulation simulates the microfluidic device on a low level of abstraction. This generally provides accurate results in the entire simulation domain, but is computationally expensive. The defined network is automatically converted into an STL geometry, using the [MMFT-STL-Generator](https://github.com/cda-tum/mmft-STL-generator). Alternatively, an STL file can be loaded for the CFD simulation. The [OpenLB](https://www.openlb.net/) library is used as back-end for the CFD simulation.
 
 ### Platforms
 **Continuous**: The continuous platform is considered the default platform in the MMFT Simulator and describes the fluid dynamics for channel-based pressure-driven microfluidic flow. <sup>[[3]](https://doi.org/10.1039/C2LC20799K)</sup> <br>
 **Concentration**: Solvents play an important role in microfluidics and on this platform, concentrations of species dissolved in the continuous phase can be simulated. There are currently **two** mixing models available:
 * Instantaneous mixing model: Fluids are assumed to be fully mixed as soon as they meet.
 * Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology, following an abstracted advection-diffusion equation&mdash;as described in the respective publication. <sup>[[4]](https://doi.org/10.1109/TCAD.2025.3549703)</sup> <br>
+
 **BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[5]](https://doi.org/10.1145/3313867)</sup> <sup>[[6]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
 **Membrane**: Same as the Mixing platform, but supports tanks (e.g. for organs-on-chips designs) and membranes (connect tank to channel to allow diffusive mixture exchange between the two) and requires the instantaneous mixing model. <sup>[[7]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
 

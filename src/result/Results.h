@@ -88,6 +88,13 @@ private:
      * @brief Constructs a state, which represent a time step during a simulation.
      * @param[in] id Id of the state
      * @param[in] time Value of the current time step.
+     */
+    State(int id, T time, std::unordered_map<int, std::string> vtkFiles);
+
+    /**
+     * @brief Constructs a state, which represent a time step during a simulation.
+     * @param[in] id Id of the state
+     * @param[in] time Value of the current time step.
      * @param[in] pressures The pressure values at the nodes at the current time step.
      * @param[in] flowRates The flowRate values at the nodes at the current time step.
      */
@@ -202,6 +209,12 @@ private:
      * @brief Adds a state to the simulation results.
      * @param[in] state
     */
+    void addState(T time, std::unordered_map<int, std::string> vtkFiles);
+
+    /**
+     * @brief Adds a state to the simulation results.
+     * @param[in] state
+    */
     void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::string> vtkFiles);
 
     /**
@@ -266,6 +279,7 @@ public:
     friend class sim::AbstractDroplet<T>;
     friend class sim::AbstractMixing<T>;
     friend class sim::HybridContinuous<T>;
+    friend class sim::CfdContinuous<T>;
 };
 
 }   // namespace results

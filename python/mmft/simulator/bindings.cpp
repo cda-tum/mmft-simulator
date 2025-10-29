@@ -35,10 +35,12 @@ PYBIND11_MODULE(pysimulator, m) {
 	bind_injections(m);
 	bind_cfdSimulators(m);
 	bind_simulation(m);
+	bind_concentrationSemantics(m);
 	bind_abstractContinuous(m);
 	bind_abstractDroplet(m);
 	bind_abstractMixing(m);
 	bind_hybridContinuous(m);
+	bind_cfdContinuous(m);
 	bind_porter(m);
 	bind_results(m);
 		

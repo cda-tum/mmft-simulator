@@ -140,7 +140,7 @@ void readDroplets(json jsonString, sim::AbstractDroplet<T>& simulation) {
 }
 
 template<typename T>
-void readSpecies(json jsonString, sim::AbstractMixing<T>& simulation) {
+void readSpecies(json jsonString, sim::ConcentrationSemantics<T>& simulation) {
     for (auto& specie : jsonString["simulation"]["species"]) {
         if (specie.contains("diffusivity") && specie.contains("saturationConcentration")) {
             T diffusivity = specie["diffusivity"];
@@ -182,7 +182,7 @@ void readSpecies(json jsonString, sim::AbstractMixing<T>& simulation) {
 // }
 
 template<typename T>
-void readMixtures(json jsonString, sim::AbstractMixing<T>& simulation) {
+void readMixtures(json jsonString, sim::ConcentrationSemantics<T>& simulation) {
     for (auto& mixture : jsonString["simulation"]["mixtures"]) {
         if (mixture.contains("species") && mixture.contains("concentrations")) {
             if (mixture["species"].size() == mixture["concentrations"].size()) {
@@ -223,7 +223,7 @@ void readDropletInjections(json jsonString, sim::AbstractDroplet<T>& simulation,
 }
 
 template<typename T>
-void readMixtureInjections(json jsonString, sim::AbstractMixing<T>& simulation, int activeFixture) {
+void readMixtureInjections(json jsonString, sim::ConcentrationSemantics<T>& simulation, int activeFixture) {
     if (jsonString["simulation"]["fixtures"][activeFixture].contains("mixtureInjections")) {
         for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["mixtureInjections"]) {
             int mixtureId = injection["mixture"];
@@ -263,19 +263,47 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
                                                                 epsilon, tau, charPhysLength, charPhysVelocity, name);
                 simulator->setVtkFolder(vtkFolder);
             }
-            /** TODO: HybridMixingSimulation
-             * Enable hybrid mixing simulation and uncomment code below
-             */
-            // else if (simulator["Type"] == "Mixing")
-            // {
-            //     std::unordered_map<int, sim::Specie<T>*> species;
-            //     for (auto& [specieId, speciePtr] : simulation.getSpecies()) {
-            //         species.try_emplace(specieId, speciePtr.get());
-            //     }
-            //     auto simulator = simulation.addLbmMixingSimulator(name, stlFile, network->getCfdModule(moduleId), species,
-            //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
-            //     simulator->setVtkFolder(vtkFolder);
-            // }
+            else if(simulator["Type"] == "ESS_LBM")
+            {
+                #ifdef USE_ESSLBM
+                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getCfdModule(moduleId), Openings, charPhysLength, 
+                                                            charPhysVelocity, resolution, epsilon, tau);
+                simulator->setVtkFolder(vtkFolder);
+                #else
+                throw std::invalid_argument("The simulator was not build using the ESS library.");
+                #endif
+            }
+        }
+}
+
+template<typename T>
+void readSimulators(json jsonString, sim::HybridMixing<T>& simulation, arch::Network<T>* network) {
+        std::string vtkFolder;
+        if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
+            throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");
+        }
+        if (jsonString["simulation"]["settings"].contains("vtkFolder")) {
+            vtkFolder = jsonString["simulation"]["settings"]["vtkFolder"];
+        } else {
+            vtkFolder = "./tmp/";
+        }
+        for (auto& simulator : jsonString["simulation"]["settings"]["simulators"]) {
+            std::string name = simulator["name"];
+            T charPhysLength = simulator["charPhysLength"];
+            T charPhysVelocity = simulator["charPhysVelocity"];
+            size_t resolution = simulator["resolution"];
+            T epsilon = simulator["epsilon"];
+            T tau = simulator["tau"];
+            T adTau = simulator["adTau"];
+            int moduleId = simulator["moduleId"];
+
+            if (simulator["Type"] == "Mixing")
+            {
+                assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
+                auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), resolution,
+                                                            epsilon, tau, adTau, charPhysLength, charPhysVelocity, name);
+                simulator->setVtkFolder(vtkFolder);
+            }
             /** TODO: HybridOocSimulation
              * Enable hybrid OoC simulation and uncomment code below
              */
@@ -291,16 +319,6 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
             //                                                 Openings, charPhysLength, charPhysVelocity, resolution, epsilon, tau);
             //     simulator->setVtkFolder(vtkFolder);
             // }
-            else if(simulator["Type"] == "ESS_LBM")
-            {
-                #ifdef USE_ESSLBM
-                auto simulator = simulation.addEssLbmSimulator(name, stlFile, network->getCfdModule(moduleId), Openings, charPhysLength, 
-                                                            charPhysVelocity, resolution, epsilon, tau);
-                simulator->setVtkFolder(vtkFolder);
-                #else
-                throw std::invalid_argument("The simulator was not build using the ESS library.");
-                #endif
-            }
         }
 }
 
@@ -423,7 +441,7 @@ void readResistanceModel(json jsonString, sim::Simulation<T>& simulation) {
 }
 
 template<typename T>
-void readMixingModel(json jsonString, sim::AbstractMixing<T>& simulation) {
+void readMixingModel(json jsonString, sim::ConcentrationSemantics<T>& simulation) {
     if (jsonString["simulation"].contains("mixingModel")) {
         if (jsonString["simulation"]["mixingModel"] == "Instantaneous") {
             simulation.setInstantaneousMixingModel();
@@ -449,6 +467,25 @@ size_t readActiveFixture(json jsonString) {
         std::cout << "[" << __FILE__ << "] activeFixture was not defined." << std::endl;
     }
     return activeFixture;
+}
+
+template<typename T>
+void readBoundaryConditions(json jsonString, sim::CfdContinuous<T>& simulation, arch::Network<T>* network) {
+    if (jsonString["simulation"]["fixtures"][simulation.getFixtureId()].contains("boundaryConditions")) {
+        for (auto& bc : jsonString["simulation"]["fixtures"][simulation.getFixtureId()]["boundaryConditions"]) {
+            int nodeId = bc["node"];
+            std::string type = bc["type"];
+            if (type == "FlowRate") {
+                T Q = bc["Q"];
+                simulation.addFlowRateBC(network->getNode(nodeId), Q);
+            } else if (type == "Pressure") {
+                T p = bc["p"];
+                simulation.addPressureBC(network->getNode(nodeId), p);
+            } else {
+                throw std::invalid_argument("Invalid boundary condition type. Please choose one of the following:\nVelocity\nPressure");
+            }
+        }
+    }
 }
 
 }   // namespace porting

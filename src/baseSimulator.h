@@ -21,17 +21,21 @@
 #include "simulation/models/MixingModels.h"
 #include "simulation/models/ResistanceModels.h"
 
+#include "simulation/simulators/semantics/ConcentrationSemantics.h"
+
 #include "simulation/simulators/Simulation.h"
 #include "simulation/simulators/AbstractContinuous.h"
 #include "simulation/simulators/AbstractDroplet.h"
 #include "simulation/simulators/AbstractMixing.h"
 #include "simulation/simulators/AbstractMembrane.h"
 #include "simulation/simulators/HybridContinuous.h"
+#include "simulation/simulators/HybridMixing.h"
+#include "simulation/simulators/CfdContinuous.h"
 
 #include "simulation/simulators/CFDSim.h"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.h"
 #include "simulation/simulators/cfdHandlers/olbContinuous.h"
-// #include "simulation/simulators/cfdHandlers/olbMixing.h" //** TODO: HybridMixingSimulation */
+#include "simulation/simulators/cfdHandlers/olbMixing.h"
 // #include "simulation/simulators/cfdHandlers/olbOoc.h"    //** TODO: HybridOocSimulation */
 
 #include "nodalAnalysis/NodalAnalysis.h"
@@ -53,16 +57,19 @@
 
 #include "architecture/Network.h"
 
-//** TODO: HybridOocSimulation */
-// #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
-// #include "olbProcessors/saturatedFluxPostProcessor2D.h"
-// #include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.h"
+#include "olbProcessors/saturatedFluxPostProcessor2D.h"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux.h"
 
 #include "porting/jsonPorter.h"
 #include "porting/jsonReaders.h"
 #include "porting/jsonWriters.h"
 
 #include "result/Results.h"
+
+#include <architecture/pNetwork.h>
+#include <stlHandler/BaseSTL.h>
+#include <stlHandler/NetworkSTL.h>
 
 #ifdef USE_ESSLBM
     #include "simulation/simulators/essContinuous.h"

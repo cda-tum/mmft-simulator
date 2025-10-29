@@ -16,6 +16,10 @@
 
 #include "architecture/Network.hh"
 
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
+#include "olbProcessors/saturatedFluxPostProcessor2D.hh"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux.hh"
+
 #include "simulation/entities/Droplet.hh"
 #include "simulation/entities/Fluid.hh"
 #include "simulation/entities/Mixture.hh"
@@ -34,16 +38,21 @@
 #include "simulation/models/MixingModels.hh"
 #include "simulation/models/ResistanceModels.hh"
 
+#include "simulation/simulators/semantics/ConcentrationSemantics.hh"
+
 #include "simulation/simulators/Simulation.hh"
 #include "simulation/simulators/AbstractContinuous.hh"
 #include "simulation/simulators/AbstractDroplet.hh"
 #include "simulation/simulators/AbstractMixing.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
+#include "simulation/simulators/HybridMixing.hh"
+#include "simulation/simulators/CfdContinuous.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
 #include "simulation/simulators/cfdHandlers/olbContinuous.hh"
+#include "simulation/simulators/cfdHandlers/olbMixing.hh"
 
 #include "nodalAnalysis/NodalAnalysis.hh"
 
@@ -55,6 +64,11 @@
 #include "porting/jsonPorter.hh"
 
 #include "result/Results.hh"
+
+#include "architecture/pNetwork.hh"
+#include "parser/pjsonParser.hh"
+#include "stlHandler/BaseSTL.hh"
+#include "stlHandler/NetworkSTL.hh"
 
 namespace py = pybind11;
 
@@ -90,6 +104,34 @@ void bind_simulation(py::module_& m) {
 		.def("getResults", &sim::Simulation<T>::getResults, "Returns the results of the simulation.")
 		.def("printResults", &sim::Simulation<T>::printResults, "Prints the results of the simulation to the console.")
 		.def("simulate", &sim::Simulation<T>::simulate, "Conducts the simulation.");
+
+}
+
+void bind_concentrationSemantics(py::module_& m) {
+
+	py::class_<sim::ConcentrationSemantics<T>, py::smart_holder>(m, "ConcentrationSemantics")
+		.def("setInstantaneousMixingModel", &sim::ConcentrationSemantics<T>::setInstantaneousMixingModel, "Sets the instantaneous mixing model.")
+		.def("hasInstantaneousMixingModel", &sim::ConcentrationSemantics<T>::hasInstantaneousMixingModel, "Returns whether an instantaneous mixing model was set.")
+		.def("setDiffusiveMixingModel", &sim::ConcentrationSemantics<T>::setDiffusiveMixingModel, "Sets the diffusive mixing model.")
+		.def("hasDiffusiveMixingModel", &sim::ConcentrationSemantics<T>::hasDiffusiveMixingModel, "Returns whether a diffusive mixing model was set.")
+		.def("addSpecie", &sim::ConcentrationSemantics<T>::addSpecie, "Adds a single species to the simulator.")
+		.def("getSpecie", &sim::ConcentrationSemantics<T>::getSpecie, "Returns a species with the given id.")
+		.def("removeSpecie", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&>(&sim::ConcentrationSemantics<T>::removeSpecie), "Removes a species from the simulator.")
+		.def("addMixture", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&, T>(&sim::ConcentrationSemantics<T>::addMixture), "Adds a mixture to the simulator.")
+		.def("addMixture", py::overload_cast<const std::vector<std::shared_ptr<sim::Specie<T>>>&, const std::vector<T>&>(&sim::ConcentrationSemantics<T>::addMixture), "Adds a mixture to the simulator.")
+		.def("getMixture", &sim::ConcentrationSemantics<T>::getMixture, "Returns the mixture with the given id.")
+		.def("readMixtures", &sim::ConcentrationSemantics<T>::readMixtures, "Returns a read-only list of mixtures in the simulator.")
+		.def("removeMixture", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&>(&sim::ConcentrationSemantics<T>::removeMixture), "Removes a mixture from the simulator.")
+		.def("addMixtureInjection", py::overload_cast<size_t, size_t, T, bool>(&sim::ConcentrationSemantics<T>::addMixtureInjection), py::arg("mixtureId"), py::arg("edgeId"), py::arg("injectionTime"), py::arg("isPermanent")=false, 
+			"Add a mixture injection to the simulator.")
+		.def("addMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T, bool>(&sim::ConcentrationSemantics<T>::addMixtureInjection), py::arg("mixture"), py::arg("edge"), 
+			py::arg("injectionTime"), py::arg("isPermanent")=false, "Add a mixture injection to the simulator")
+		.def("addPermanentMixtureInjection", py::overload_cast<size_t, size_t, T>(&sim::ConcentrationSemantics<T>::addPermanentMixtureInjection), "Add a permanent mixture injection to the simulator.")
+		.def("addPermanentMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T>(&sim::ConcentrationSemantics<T>::addPermanentMixtureInjection), 
+			"Add a permanent mixture injection to the simulator.")
+		.def("getMixtureInjection", &sim::ConcentrationSemantics<T>::getMixtureInjection, "Returns the mixture injection with the given id.")
+		.def("removeMixtureInjection", py::overload_cast<const std::shared_ptr<sim::MixtureInjection<T>>&>(&sim::ConcentrationSemantics<T>::removeMixtureInjection), 
+			"Removes the mixture injection with the given id.");
 
 }
 
@@ -158,35 +200,12 @@ void bind_abstractMembrane(py::module_& m) {
 
 void bind_abstractMixing(py::module_& m) {
 
-	py::class_<sim::AbstractMixing<T>, sim::Simulation<T>, py::smart_holder>(m, "AbstractMixing")
+	py::class_<sim::AbstractMixing<T>, sim::Simulation<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "AbstractMixing")
 		.def(py::init<std::shared_ptr<arch::Network<T>>>())
 		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
 				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
 				return std::shared_ptr<sim::AbstractMixing<T>>(dynamic_cast<sim::AbstractMixing<T>*>(tmpPtr.release()));
-			}))
-		.def("setInstantaneousMixingModel", &sim::AbstractMixing<T>::setInstantaneousMixingModel, "Sets the instantaneous mixing model.")
-		.def("hasInstantaneousMixingModel", &sim::AbstractMixing<T>::hasInstantaneousMixingModel, "Returns whether an instantaneous mixing model was set.")
-		.def("setDiffusiveMixingModel", &sim::AbstractMixing<T>::setDiffusiveMixingModel, "Sets the diffusive mixing model.")
-		.def("hasDiffusiveMixingModel", &sim::AbstractMixing<T>::hasDiffusiveMixingModel, "Returns whether a diffusive mixing model was set.")
-		.def("addSpecie", &sim::AbstractMixing<T>::addSpecie, "Adds a single species to the simulator.")
-		.def("getSpecie", &sim::AbstractMixing<T>::getSpecie, "Returns a species with the given id.")
-		.def("removeSpecie", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&>(&sim::AbstractMixing<T>::removeSpecie), "Removes a species from the simulator.")
-		.def("addMixture", py::overload_cast<const std::shared_ptr<sim::Specie<T>>&, T>(&sim::AbstractMixing<T>::addMixture), "Adds a mixture to the simulator.")
-		.def("addMixture", py::overload_cast<const std::vector<std::shared_ptr<sim::Specie<T>>>&, const std::vector<T>&>(&sim::AbstractMixing<T>::addMixture), "Adds a mixture to the simulator.")
-		.def("getMixture", &sim::AbstractMixing<T>::getMixture, "Returns the mixture with the given id.")
-		.def("readMixtures", &sim::AbstractMixing<T>::readMixtures, "Returns a read-only list of mixtures in the simulator.")
-		.def("removeMixture", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&>(&sim::AbstractMixing<T>::removeMixture), "Removes a mixture from the simulator.")
-		.def("addMixtureInjection", py::overload_cast<int, int, T, bool>(&sim::AbstractMixing<T>::addMixtureInjection), py::arg("mixtureId"), py::arg("edgeId"), py::arg("injectionTime"), py::arg("isPermanent")=false, 
-			"Add a mixture injection to the simulator.")
-		.def("addMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T, bool>(&sim::AbstractMixing<T>::addMixtureInjection), py::arg("mixture"), py::arg("edge"), 
-			py::arg("injectionTime"), py::arg("isPermanent")=false, "Add a mixture injection to the simulator")
-		.def("addPermanentMixtureInjection", py::overload_cast<int, int, T>(&sim::AbstractMixing<T>::addPermanentMixtureInjection), "Add a permanent mixture injection to the simulator.")
-		.def("addPermanentMixtureInjection", py::overload_cast<const std::shared_ptr<sim::Mixture<T>>&, const std::shared_ptr<arch::Edge<T>>&, T>(&sim::AbstractMixing<T>::addPermanentMixtureInjection), 
-			"Add a permanent mixture injection to the simulator.")
-		.def("getMixtureInjection", &sim::AbstractMixing<T>::getMixtureInjection, "Returns the mixture injection with the given id.")
-		.def("removeMixtureInjection", py::overload_cast<const std::shared_ptr<sim::MixtureInjection<T>>&>(&sim::AbstractMixing<T>::removeMixtureInjection), 
-			"Removes the mixture injection with the given id.");
-
+			}));
 }
 
 void bind_hybridContinuous(py::module_& m) {
@@ -247,6 +266,37 @@ void bind_cfdSimulators(py::module_& m) {
 		.def("setTau", &sim::lbmSimulator<T>::setTau, "Sets the relaxation time of the simulator.")
 		.def("getStepIter", &sim::lbmSimulator<T>::getStepIter, "Returns the number of steps used for the value tracer (default = 1000).")
 		.def("hasConverged", &sim::lbmSimulator<T>::hasConverged, "Returns whether the simulator has converged or not.");
+
+}
+
+void bind_cfdContinuous(py::module_& m) {
+
+	py::class_<sim::CfdContinuous<T>, sim::Simulation<T>, py::smart_holder>(m, "CfdContinuous")
+		.def(py::init<std::shared_ptr<arch::Network<T>>, int>(), py::arg("network"), py::arg("radialResolution")=25)
+		.def(py::init<std::vector<T>, std::vector<T>, std::string, std::unordered_map<size_t, arch::Opening<T>>>())
+		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
+				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
+				return std::shared_ptr<sim::CfdContinuous<T>>(dynamic_cast<sim::CfdContinuous<T>*>(tmpPtr.release()));
+			}))
+		.def("setNetwork", &sim::CfdContinuous<T>::setNetwork, "Sets the network on which the simulation is conducted.")
+		.def("addPressureBC", &sim::CfdContinuous<T>::addPressureBC, "Adds a pressure boundary condition to the simulator.")
+		.def("addFlowRateBC", &sim::CfdContinuous<T>::addFlowRateBC, "Adds a flow rate boundary condition to the simulator.")
+		.def("setPressureBC", &sim::CfdContinuous<T>::setPressureBC, "Sets the pressure boundary condition for the given node.")
+		.def("setFlowRateBC", &sim::CfdContinuous<T>::setFlowRateBC, "Sets the flow rate boundary condition for the given node.")
+		.def("removePressureBC", &sim::CfdContinuous<T>::removePressureBC, "Removes the pressure boundary condition from the given node.")
+		.def("removeFlowRateBC", &sim::CfdContinuous<T>::removeFlowRateBC, "Removes the flow rate boundary condition from the given node.")
+		.def("set1DResistanceModel", &sim::CfdContinuous<T>::set1DResistanceModel, "Sets the resistance model for abstract simulation to the 1D resistance model.")
+		.def("setPoiseuilleResistanceModel", &sim::CfdContinuous<T>::setPoiseuilleResistanceModel, "Sets the resistance model for abstract simulation components to the poiseuille resistance model.")
+		.def("getMaxIter", &sim::CfdContinuous<T>::getMaxIter, "Returns the maximum number of allowed iterations for the CFD solver.")
+		.def("setMaxIter", &sim::CfdContinuous<T>::setMaxIter, "Sets the maximum number of allowed iterations for the CFD solver.")
+		.def("setWritePpm", &sim::CfdContinuous<T>::setWritePpm, "Sets whether ppm images should be written during the simulation.")
+		.def("getCharacteristicLength", &sim::CfdContinuous<T>::getCharacteristicLength, "Returns the characteristic length of the LBM simulator.")
+		.def("getCharacteristicVelocity", &sim::CfdContinuous<T>::getCharacteristicVelocity, "Returns the characteristic velocity of the LBM simulator.")
+		.def("getGloablPressureBounds", &sim::CfdContinuous<T>::getGlobalPressureBounds, "Returns the global pressure bounds in the CFD simulator.")
+		.def("getGlobalVelocityBounds", &sim::CfdContinuous<T>::getGlobalVelocityBounds, "Returns the global velocity bounds in the CFD simulator.")
+		.def("writePressurePpm", &sim::CfdContinuous<T>::writePressurePpm, "Write the pressure field in ppm format.")
+		.def("writeVelocityPpm", &sim::CfdContinuous<T>::writeVelocityPpm, "Write the velocity field in ppm format.")
+		.def("simulate", &sim::CfdContinuous<T>::simulate, "Conducts the simulation.");
 
 }
 

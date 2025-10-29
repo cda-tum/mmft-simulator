@@ -62,26 +62,26 @@ void MixingModel<T>::limitMinimalTimeStep(T minMinimalTimeStep, T maxMinimalTime
 }
 
 template<typename T>
-const std::deque<std::pair<int,T>>& MixingModel<T>::getMixturesInEdge(size_t channelId) const {
+const std::deque<std::pair<size_t,T>>& MixingModel<T>::getMixturesInEdge(size_t channelId) const {
     return mixturesInEdge.at(channelId);
 }
 
 template<typename T>
-const std::unordered_map<size_t, std::deque<std::pair<int,T>>>& MixingModel<T>::getMixturesInEdges() const {
+const std::unordered_map<size_t, std::deque<std::pair<size_t,T>>>& MixingModel<T>::getMixturesInEdges() const {
     return mixturesInEdge;
 }
 
 template<typename T>
-const std::unordered_map<size_t, int>& MixingModel<T>::getFilledEdges() const {
+const std::unordered_map<size_t, size_t>& MixingModel<T>::getFilledEdges() const {
     return filledEdges;
 }
 
 template<typename T>
-void MixingModel<T>::injectMixtureInEdge(int mixtureId, size_t channelId, T endPos) {
+void MixingModel<T>::injectMixtureInEdge(size_t mixtureId, size_t channelId, T endPos) {
     if (this->mixturesInEdge.count(channelId)) {
         this->mixturesInEdge.at(channelId).push_back(std::make_pair(mixtureId, endPos));
     } else {
-        std::deque<std::pair<int,T>> newDeque;
+        std::deque<std::pair<size_t,T>> newDeque;
         newDeque.push_back(std::make_pair(mixtureId, endPos));
         this->mixturesInEdge.try_emplace(channelId, newDeque);
     }
@@ -91,7 +91,7 @@ template<typename T>
 InstantaneousMixingModel<T>::InstantaneousMixingModel() : MixingModel<T>() { }
 
 template<typename T>
-void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) {
+void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) {
 
     std::vector<Mixture<T>> tmpMixtures;
 
@@ -131,7 +131,7 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Ab
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
+void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     // Add mixture injections
     for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
         int tmpMixtureIndex = tmpMixtures.size();
@@ -140,27 +140,24 @@ void InstantaneousMixingModel<T>::initNodeOutflow(AbstractMixing<T>* sim, std::v
         tmpMixtures.push_back(Mixture<T>(*sim->getMixture(mixtureInjection->getMixtureId())));
         mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
     }
-    /** TODO: HybridMixingSimulation
-     * Enable hybrid mixing simulation and uncomment code below
-     */
     // Add CFD Simulator outflows
-    // for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
-    //     for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
-    //         // If the node is an outflow
-    //         if (cfdSimulator->getFlowRates().at(nodeId) < 0.0) {
-    //             int tmpMixtureIndex = tmpMixtures.size();
-    //             int tmpMixtureId = std::numeric_limits<int>::max();
-    //             std::unordered_map<int, Specie<T>*> species;
-    //             std::unordered_map<int, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
-    //             for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
-    //                 species.try_emplace(speciesId, sim->getSpecie(speciesId));
-    //             }
-    //             Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase());
-    //             tmpMixtures.push_back(tmpMixture);
-    //             mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
-    //         }
-    //     }
-    // }
+    for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
+        for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
+            // If the node is an outflow
+            if (cfdSimulator->getFlowDirection(nodeId) < 0.0) {
+                size_t tmpMixtureIndex = tmpMixtures.size();
+                size_t tmpMixtureId = std::numeric_limits<int>::max();
+                std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
+                std::unordered_map<size_t, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
+                for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
+                    species.try_emplace(speciesId, sim->getSpecie(speciesId));
+                }
+                Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase().get());
+                tmpMixtures.push_back(tmpMixture);
+                mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
+            }
+        }
+    }
 }
 
 template<typename T>
@@ -187,7 +184,7 @@ void InstantaneousMixingModel<T>::channelPropagation(arch::Network<T>* network) 
 }
 
 template<typename T>
-bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
+bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     bool updated = false;
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         bool createMixture = false;
@@ -239,24 +236,21 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(AbstractMixing<T>* sim, std:
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::storeConcentrations(AbstractMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
-    /** TODO: HybridMixingSimulation
-     * Enable hybrid mixing simulation and uncomment code below
-     */
-    // for (auto& [key, cfdSimulator] : sim->getCFDSimulators()) {
-    //     std::unordered_map<int, std::unordered_map<int, T>> concentrations = cfdSimulator->getConcentrations();
-    //     for (auto& [nodeId, opening] : cfdSimulator->getOpenings()) {
-    //         // If the node is an inflow
-    //         if (cfdSimulator->getFlowRates().at(nodeId) > 0.0) {
-    //             if (mixtureOutflowAtNode.count(nodeId)) {
-    //                 for (auto& [specieId, specieConcentration] : tmpMixtures[mixtureOutflowAtNode.at(nodeId)].getSpecieConcentrations()) {
-    //                     concentrations.at(nodeId).at(specieId) = specieConcentration;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     cfdSimulator->storeConcentrations(concentrations);
-    // }
+void InstantaneousMixingModel<T>::storeConcentrations(HybridMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
+    for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
+        std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations = cfdSimulator->getConcentrations();
+        for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
+            // If the node is an inflow
+            if (cfdSimulator->getFlowDirection(nodeId) > 0.0) {
+                if (mixtureOutflowAtNode.count(nodeId)) {
+                    for (auto& [specieId, specieConcentration] : tmpMixtures[mixtureOutflowAtNode.at(nodeId)].getSpecieConcentrations()) {
+                        concentrations.at(nodeId).at(specieId) = specieConcentration;
+                    }
+                }
+            }
+        }
+        cfdSimulator->storeConcentrations(concentrations);
+    }
 }
 
 template<typename T>
@@ -911,7 +905,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, size_
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, AbstractMixing<T>* sim) {
+void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) {
     /** TODO: Miscellaneous */
 }
 

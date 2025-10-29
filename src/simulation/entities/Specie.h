@@ -18,6 +18,9 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
+class ConcentrationSemantics;
+
+template<typename T>
 class AbstractMixing;
 
 template<typename T>
@@ -116,6 +119,7 @@ class Specie {
     [[nodiscard]] inline T getSatConc() const noexcept { return satConc; }
 
     // Friend class definitions
+    friend class ConcentrationSemantics<T>;
     friend class AbstractMixing<T>;
     friend class Mixture<T>;
     friend class test::definitions::GlobalTest<T>;

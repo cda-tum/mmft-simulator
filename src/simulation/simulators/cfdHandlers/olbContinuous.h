@@ -42,6 +42,12 @@ class GeometryTest;
 
 namespace sim {
 
+// Forward declared dependencies
+template<typename T>
+class HybridContinuous;
+template<typename T>
+class CfdContinuous;
+
 /**
  * @brief Class that defines the lbm module which is the interface between the 1D solver and OLB.
 */
@@ -101,6 +107,14 @@ protected:
         return *lattice;
     }
 
+    auto& getConverge() {
+        return *converge;
+    }
+
+    auto& getStep() {
+        return step;
+    }
+
     void setOutputDir();
     
     virtual void initValueContainers();
@@ -138,7 +152,7 @@ protected:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmSimulator(int id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule,
+    lbmSimulator(size_t id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule,
         size_t resolution, T charPhysLenth, T charPhysVelocity, T epsilon, T relaxationTime=0.932);
     
         /**
@@ -153,7 +167,7 @@ protected:
      * @param[in] epsilon Convergence criterion for the pressure values at nodes on the boundary of the module.
      * @param[in] relaxationTime Relaxation time tau for the LBM solver.
     */
-    lbmSimulator(int id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule, std::shared_ptr<mmft::Scheme<T>> updateScheme, 
+    lbmSimulator(size_t id, std::string name, std::shared_ptr<arch::CfdModule<T>> cfdModule, std::shared_ptr<mmft::Scheme<T>> updateScheme, 
         size_t resolution, T charPhysLenth, T charPhysVelocity, T epsilon, T relaxationTime=0.932);
 
     /**
@@ -191,6 +205,12 @@ protected:
     void solve();
 
     /**
+     * @brief Conducts the collide and stream operations of the lattice for a pure CFD simulation.
+     * @param[in] maxIter Maximum number of iterations for the CFD solving.
+    */
+    void solveCFD(size_t maxIter);
+
+    /**
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
@@ -223,6 +243,13 @@ protected:
     [[nodiscard]] inline const std::unordered_map<size_t, T>& getFlowRates() const { return flowRates; }
 
     /**
+     * @brief Get the flow direction at a node.
+     * @param[in] key The id of the node for which the flow direction is requested.
+     * @returns The flow direction at the node: -1 for inflow, 1 for outflow, 0 for no flow.
+     */
+    int getFlowDirection(size_t key) override;
+
+    /**
      * @brief Sets a new characteristic length for the simulator.
      * @param[in] charPhysLength the new characteristic physical length.
      * @note Since this is a global parameter, only the HybridContinuous object can set a new characteristic length.
@@ -235,6 +262,12 @@ protected:
      * @note Since this is a global parameter, only the HybridContinuous object can set a new characteristic velocity.
      */
     void setCharPhysVelocity(T charPhysVelocity) { this->charPhysVelocity = charPhysVelocity; isInitialized = false; }
+
+    void setIsInitialized() { isInitialized = true; }
+
+    void unsetIsInitialized() { isInitialized = false; }
+
+    bool& getIsConverged() { return isConverged; }
 
 public:
 
@@ -333,6 +366,7 @@ public:
     void writeVelocityPpm (T min, T max, int imgResolution) override;
 
     friend class HybridContinuous<T>;
+    friend class CfdContinuous<T>;
     friend class test::definitions::GeometryTest<T>;
 };
 

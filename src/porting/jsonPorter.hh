@@ -90,10 +90,10 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
             readPumps<T>(jsonString, network_.get());
-            readMixingModel<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
-            readSpecies<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
-            readMixtures<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())));
-            readMixtureInjections<T>(jsonString, *(dynamic_cast<sim::AbstractMixing<T>*>(simPtr.get())), activeFixture);
+            readMixingModel<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
+            readSpecies<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
+            readMixtures<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
+            readMixtureInjections<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())), activeFixture);
         } else {
             throw std::invalid_argument("Invalid platform for Abstract simulation. Please select one of the following:\n\tcontinuous\n\tdroplet\n\tmixing");
         }
@@ -113,19 +113,17 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())), network_.get());
             readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())));
         } else if (platform == sim::Platform::Mixing) {
-            throw std::invalid_argument("Mixing simulations are currently only supported for Abstract simulations.");
-            /** TODO: HybridMixingSimulation
-             * Enable hybrid mixing simulation and uncomment code below
-             */
-            // readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
-            // readResistanceModel<T>(jsonString, *simPtr);
-            // readMixingModel<T>(jsonString, *simPtr);
-            // readSpecies<T>(jsonString, *simPtr);
-            // readMixtures<T>(jsonString, *simPtr);
-            // readMixtureInjections<T>(jsonString, *simPtr, activeFixture);
-            // readSimulators<T>(jsonString, *simPtr, network_);
-            // readUpdateScheme(jsonString, *simPtr);
-            // network_->sortGroups();
+            simPtr = std::make_unique<sim::HybridMixing<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
+            readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+            readResistanceModel<T>(jsonString, *simPtr);
+            readMixingModel<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
+            readSpecies<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
+            readMixtures<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
+            readMixtureInjections<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())), activeFixture);
+            readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridMixing<T>*>(simPtr.get())), network_.get());
+            readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridMixing<T>*>(simPtr.get())));
         } else if (platform == sim::Platform::Ooc) {
             throw std::invalid_argument("OoC simulations are currently not supported.");
             /** TODO: HybridOocSimulation
@@ -153,7 +151,15 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
 
     // Read a CFD simulation definition
     else if (simType == sim::Type::CFD) {
-        throw std::invalid_argument("Continuous simulations are currently not supported for CFD simulations.");
+        if (platform == sim::Platform::Continuous) {
+            simPtr = std::make_unique<sim::CfdContinuous<T>>(network_);
+            simPtr->setFixtureId(activeFixture);
+            readFluids<T>(jsonString, *simPtr);
+            readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
+            readBoundaryConditions<T>(jsonString, *(dynamic_cast<sim::CfdContinuous<T>*>(simPtr.get())), network_.get());
+        } else {
+            throw std::invalid_argument("Continuous simulations are currently not supported for this platform.");
+        }
     } 
     
     // Invalid simulation definition

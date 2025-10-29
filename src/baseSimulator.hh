@@ -15,18 +15,22 @@
 #include "simulation/models/MixingModels.hh"
 #include "simulation/models/ResistanceModels.hh"
 
+#include "simulation/simulators/semantics/ConcentrationSemantics.hh"
+
 #include "simulation/simulators/Simulation.hh"
 #include "simulation/simulators/AbstractContinuous.hh"
 #include "simulation/simulators/AbstractDroplet.hh"
 #include "simulation/simulators/AbstractMixing.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
+#include "simulation/simulators/HybridMixing.hh"
+#include "simulation/simulators/CfdContinuous.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
 #include "simulation/simulators/cfdHandlers/olbContinuous.hh"
-// #include "simulation/simulators/cfdHandlers/olbMixing.h" //** TODO: HybridMixingSimulation */
-// #include "simulation/simulators/cfdHandlers/olbOoc.h"    //** TODO: HybridOocSimulation */
+#include "simulation/simulators/cfdHandlers/olbMixing.hh"
+// #include "simulation/simulators/cfdHandlers/olbOoc.hh"    //** TODO: HybridOocSimulation */
 
 
 #include "nodalAnalysis/NodalAnalysis.hh"
@@ -47,16 +51,19 @@
 
 #include "architecture/Network.hh"
 
-//** TODO: HybridOocSimulation */
-// #include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
-// #include "olbProcessors/saturatedFluxPostProcessor2D.hh"
-// #include "olbProcessors/setFunctionalRegularizedHeatFlux.hh"
+#include "olbProcessors/navierStokesAdvectionDiffusionCouplingPostProcessor2D.hh"
+#include "olbProcessors/saturatedFluxPostProcessor2D.hh"
+#include "olbProcessors/setFunctionalRegularizedHeatFlux.hh"
 
 #include "porting/jsonPorter.hh"
 #include "porting/jsonReaders.hh"
 #include "porting/jsonWriters.hh"
 
 #include "result/Results.hh"
+
+#include <architecture/pNetwork.hh>
+#include <stlHandler/BaseSTL.hh>
+#include <stlHandler/NetworkSTL.hh>
 
 #ifdef USE_ESSLBM
     #include "simulation/simulators/essContinuous.hh"
