@@ -437,15 +437,17 @@ TEST(DiffusiveMixing, JeonEtAl_10mms) {
 
     T diffusivity = 5e-10; // m^2/s
 
-    [[maybe_unused]] T flowRate0 = 5.44862e-12; // channel 87
-    [[maybe_unused]] T flowRate1 = 5.4081e-12; // channel 88
-    [[maybe_unused]] T flowRate2 = 5.58838e-12; // channel 89
-    [[maybe_unused]] T flowRate3 = 5.69198e-12; // channel 90
-    [[maybe_unused]] T flowRate4 = 5.72583e-12; // channel 91
-    [[maybe_unused]] T flowRate5 = 5.69198e-12; // channel 92
-    [[maybe_unused]] T flowRate6 = 5.58838e-12; // channel 93
-    [[maybe_unused]] T flowRate7 = 5.4081e-12; // channel 94
-    [[maybe_unused]] T flowRate8 = 5.44862e-12; // channel 95
+    [[maybe_unused]] T flowRate0 = 1.634586e-11; // channel 87
+    [[maybe_unused]] T flowRate1 = 1.62243e-11; // channel 88
+    [[maybe_unused]] T flowRate2 = 1.676514e-11; // channel 89
+
+    [[maybe_unused]] T flowRate3 = 1.707595e-11; // channel 90
+    [[maybe_unused]] T flowRate4 = 1.717750e-11; // channel 91
+    [[maybe_unused]] T flowRate5 = 1.707595e-11; // channel 92
+
+    [[maybe_unused]] T flowRate6 = 1.676514e-11; // channel 93
+    [[maybe_unused]] T flowRate7 = 1.62243e-11; // channel 94
+    [[maybe_unused]] T flowRate8 = 1.634586e-11; // channel 95
 
     // Flowrates (calculated using 1D simulation)
     [[maybe_unused]] T flowRate9 = 4.93353e-11; // channel 96
@@ -476,7 +478,7 @@ TEST(DiffusiveMixing, JeonEtAl_10mms) {
 
     // inflow into channel 9 (aq. to channel 96 in main.cpp)
     constantFlowSections9.push_back({0.0, 0.331322, 0.331322, 0.0, c0, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 0
-    constantFlowSections9.push_back({0.331322, 0.66018, 0.328857, 0.0, c1, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 1
+    constantFlowSections9.push_back({0.331322, 0.660180, 0.328858, 0.0, c1, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 1
     constantFlowSections9.push_back({0.66018, 1.0, 0.339820, 0.0, c2, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 2
     // inflow into channel 10 (aq. to channel 97 in main.cpp)
     constantFlowSections10.push_back({0.0, 0.332674, 0.332674, 0.0, c3, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 3
@@ -484,8 +486,8 @@ TEST(DiffusiveMixing, JeonEtAl_10mms) {
     constantFlowSections10.push_back({0.667326, 1.0, 0.332674, 0.0, c5, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 5
     // inflow into channel 11 (aq. to channel 98 in main.cpp)
     constantFlowSections11.push_back({0.0, 0.339820, 0.339820, 0.0, c6, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 6
-    constantFlowSections11.push_back({0.339820, 0.668677, 0.328857, 0.0, c7, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 7
-    constantFlowSections11.push_back({0.668677, 1.0, 0.331322, 0.0, c8, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 8
+    constantFlowSections11.push_back({0.339820, 0.6686780, 0.328858, 0.0, c7, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 7
+    constantFlowSections11.push_back({0.668678, 1.0, 0.331322, 0.0, c8, zeroFunction, zeroSegmentedResult, T(0.0)}); // bottom of channel 8
     
     auto [fConstant9, segmentedResultConstant9, a_0_Constant9] = diffusionMixingModelTest.getAnalyticalSolutionConstant(0.0, 3*cWidth, resolution, pecletNr9, constantFlowSections9);
     auto [fConstant10, segmentedResultConstant10, a_0_Constant10] = diffusionMixingModelTest.getAnalyticalSolutionConstant(0.0, 3*cWidth, resolution, pecletNr10, constantFlowSections10);
