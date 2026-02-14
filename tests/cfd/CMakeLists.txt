@@ -1,5 +1,6 @@
 set(SOURCE_LIST 
-    Cfd.test.cpp
+    Concentration.test.cpp
+    Continuous.test.cpp
 )
 
 target_sources(${TARGET_NAME} PRIVATE ${SOURCE_LIST})

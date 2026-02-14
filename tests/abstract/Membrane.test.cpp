@@ -9,7 +9,7 @@
 
 using T = double;
 
-class Tank : public test::definitions::GlobalTest<T> {};
+class Membrane : public test::definitions::GlobalTest<T> {};
 
 // Membrane and Tank Example based on
 //
@@ -19,7 +19,7 @@ class Tank : public test::definitions::GlobalTest<T> {};
 // D0LC00424C (cit. on pp. 32, 59, 60, 61).
 //
 // executed with MembraneModel9.
-TEST_F(Tank, TwoTank) {
+TEST_F(Membrane, TwoTank) {
   // create the simulator
   constexpr auto cContinuousPhaseViscosity = 0.7e-3;
   auto network = arch::Network<T>::createNetwork();
@@ -60,9 +60,9 @@ TEST_F(Tank, TwoTank) {
   auto m6 = network->addMembraneToChannel(c3->getId(), mHeight, mWidth - pillarArea / cMembraneLength, poreRadius, porosity);
   auto o7 = network->addTankToMembrane(m6->getId(), oHeight, oWidth);
 
-  // define that node -1 is a sink
+  // define that groundSinkeNode is a sink
   network->setSink(groundSinkNode->getId());
-  // define that node -1 is the ground node
+  // define that groundSinkeNode is the ground node
   network->setGround(groundSinkNode->getId());
 
   // flowRate pump

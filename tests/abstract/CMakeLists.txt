@@ -1,10 +1,10 @@
 set(SOURCE_LIST 
     Architecture.test.cpp
-    BigDroplet.test.cpp
+    Concentration.test.cpp
     Continuous.test.cpp
+    Droplet.test.cpp
     GradientGenerator.test.cpp
-    InstantaneousMixing.test.cpp
-    Tank.test.cpp
+    Membrane.test.cpp
     Topology.test.cpp
 )
 

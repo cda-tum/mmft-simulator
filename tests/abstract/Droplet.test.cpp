@@ -7,9 +7,9 @@
 
 using T = double;
 
-class BigDroplet : public test::definitions::GlobalTest<T> { };
+class Droplet : public test::definitions::GlobalTest<T> { };
 
-TEST_F(BigDroplet, allResultValues) {
+TEST_F(Droplet, allResultValues) {
 
     // define network
     auto network = arch::Network<T>::createNetwork();
@@ -275,7 +275,7 @@ TEST_F(BigDroplet, allResultValues) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST_F(BigDroplet, inverseDirectionChannels) {
+TEST_F(Droplet, inverseDirectionChannels) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -479,7 +479,7 @@ TEST_F(BigDroplet, inverseDirectionChannels) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST_F(BigDroplet, mixedDirectionChannels) {
+TEST_F(Droplet, mixedDirectionChannels) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -683,7 +683,7 @@ TEST_F(BigDroplet, mixedDirectionChannels) {
     EXPECT_EQ(testSimulation.getContinuousPhase()->getId(), fluid0->getId());
 }
 
-TEST_F(BigDroplet, jsonDefinition) {
+TEST_F(Droplet, jsonDefinition) {
     std::string file = "../examples/Abstract/Droplet/Network1.JSON";
 
     // Load and set the network from a JSON file
@@ -846,7 +846,7 @@ TEST_F(BigDroplet, jsonDefinition) {
     EXPECT_EQ(testSimulation->getContinuousPhase()->getId(), 0);
 }
 
-TEST_F(BigDroplet, noSink1) {
+TEST_F(Droplet, noSink1) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -891,7 +891,7 @@ TEST_F(BigDroplet, noSink1) {
     testSimulation.simulate();
 }
 
-TEST_F(BigDroplet, noSink2) {
+TEST_F(Droplet, noSink2) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -936,7 +936,7 @@ TEST_F(BigDroplet, noSink2) {
     testSimulation.simulate();
 }
 
-TEST_F(BigDroplet, noSinkTwoDroplets) {
+TEST_F(Droplet, noSinkTwoDroplets) {
     // define network
     auto network = arch::Network<T>::createNetwork();
 
@@ -988,7 +988,7 @@ Gerold Fink et al. “Automatic Design of Droplet-Based Microfluidic Ring Networ
 IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 40.2 (2021),
 pp. 339–349. DOI: 10.1109/TCAD.2020.2997000 (cit. on pp. 27, 54, 55, 56, 57).
 */
-TEST_F(BigDroplet, RingNetworkE1) {
+TEST_F(Droplet, RingNetworkE1) {
   constexpr auto cContinuousPhaseViscosity = 1e-3;
   sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);
   auto network = arch::Network<T>::createNetwork();
@@ -1207,7 +1207,7 @@ Gerold Fink et al. “Automatic Design of Droplet-Based Microfluidic Ring Networ
 IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 40.2 (2021),
 pp. 339–349. DOI: 10.1109/TCAD.2020.2997000 (cit. on pp. 27, 54, 55, 56, 57).
 */
-TEST_F(BigDroplet, RingNetworkE2) {
+TEST_F(Droplet, RingNetworkE2) {
   constexpr auto cContinuousPhaseViscosity = 1e-3;
   sim::InstantaneousMixingModel<T> mixingModel;
   sim::ResistanceModel1D<T> resistanceModel(cContinuousPhaseViscosity);

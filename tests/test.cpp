@@ -3,15 +3,17 @@
 
 #include "gtest/gtest.h"
 
-// #include "abstract/Architecture.test.cpp"
-// #include "abstract/BigDroplet.test.cpp"
-// #include "abstract/Continuous.test.cpp"
-// #include "abstract/GradientGenerator.test.cpp"
-#include "abstract/InstantaneousMixing.test.cpp"
-#include "abstract/DiffusionMixing.test.cpp"
-// #include "abstract/Tank.test.cpp"
+#include "abstract/Architecture.test.cpp"
+#include "abstract/Concentration.test.cpp"
+#include "abstract/Continuous.test.cpp"
+#include "abstract/Droplet.test.cpp"
+#include "abstract/GradientGenerator.test.cpp"
+#include "abstract/Membrane.test.cpp"
 #include "abstract/Topology.test.cpp"
-// #include "hybrid/Hybrid.test.cpp"
-// #include "hybrid/HybridMixing.test.cpp"
-// #include "hybrid/Opening.test.cpp"
-// #include "cfd/Cfd.test.cpp"
+
+#include "hybrid/Concentration.test.cpp"
+#include "hybrid/Continuous.test.cpp"
+#include "hybrid/Opening.test.cpp"
+
+#include "cfd/Concentration.test.cpp"
+#include "cfd/Continuous.test.cpp"

@@ -7,9 +7,9 @@
 
 using T = double;
 
-class Cfd : public test::definitions::GlobalTest<T> {};
+class CfdContinuous : public test::definitions::GlobalTest<T> {};
 
-TEST_F(Cfd, Case1a) {
+TEST_F(CfdContinuous, Case1a) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     

@@ -1,5 +1,6 @@
 set(SOURCE_LIST 
-    Hybrid.test.cpp
+    Concentration.test.cpp
+    Continuous.test.cpp
     Opening.test.cpp
 )
 
