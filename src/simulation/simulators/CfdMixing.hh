@@ -41,8 +41,8 @@ void CfdMixing<T>::addConcentrationBC(std::shared_ptr<arch::Node<T>> node, const
     if (this->getDanglingNodes().find(node) == this->getDanglingNodes().end()) {
         throw std::logic_error("Cannot add a boundary condition at node " + std::to_string(node->getId()) + " because it is not a boundary node.");
     }
-    auto it = this->getIdleNodes().find(node->getId());
-    if (it == this->getIdleNodes().end()) {
+    auto it = concentrationBCs.find(node->getId());
+    if (it != concentrationBCs.end()) {
         throw std::logic_error("Cannot add a boundary condition at node " + std::to_string(node->getId()) + " because a BC is already set.");
     }
     // Add the BC
@@ -119,7 +119,7 @@ void CfdMixing<T>::simulate() {
     this->initialize();
 
     // Solve the CFD domain
-    mixingSimulator->solve();
+    mixingSimulator->solveCFD(this->getMaxIter());;
 
     if (this->isWritePpm()) {
         this->writePressurePpm(this->getGlobalPressureBounds());

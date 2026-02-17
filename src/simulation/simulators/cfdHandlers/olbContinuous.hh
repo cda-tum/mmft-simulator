@@ -206,6 +206,30 @@ void lbmSimulator<T>::solveCFD(size_t maxIter) {
 }
 
 template<typename T>
+void lbmSimulator<T>::storePressures(const std::unordered_map<size_t, T>& pressure) { 
+    assert(pressure.size() <= this->pressures.size());
+    for (auto& [key, value] : pressure) {
+        auto it = this->pressures.find(key);
+        if (it == this->pressures.end()) {
+            throw std::logic_error("Cannot store pressure for node" + std::to_string(key) + ". Not a BC.");
+        }
+        it->second = value;
+    }
+}
+
+template<typename T>
+void lbmSimulator<T>::storeFlowRates(const std::unordered_map<size_t, T>& flowRate) { 
+    assert(flowRate.size() <= this->flowRates.size());
+    for (auto& [key, value] : flowRate) {
+        auto it = this->flowRates.find(key);
+        if (it == this->flowRates.end()) {
+            throw std::logic_error("Cannot store flow rate for node" + std::to_string(key) + ". Not a BC.");
+        }
+        it->second = value;
+    }
+}
+
+template<typename T>
 void lbmSimulator<T>::setOutputDir () {
     if (!std::filesystem::is_directory(this->vtkFolder) || !std::filesystem::exists(this->vtkFolder)) {
         std::filesystem::create_directory(this->vtkFolder);
@@ -474,7 +498,7 @@ template<typename T>
 void lbmSimulator<T>::storeCfdResults (int iT) {
     int input[1] = { };
     T output[10];
-    
+
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         if (this->groundNodes.at(key)) {
             meanPressures.at(key)->operator()(output, input);

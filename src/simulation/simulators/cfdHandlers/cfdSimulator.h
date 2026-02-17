@@ -135,7 +135,7 @@ protected:
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
-    virtual void storePressures(std::unordered_map<size_t, T> pressure) = 0;
+    virtual void storePressures(const std::unordered_map<size_t, T>& pressure) = 0;
 
     /**
      * @brief Get the pressures at the boundary nodes.
@@ -147,7 +147,7 @@ protected:
      * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
      * @param[in] flowRate Map of flow rates and node ids.
      */
-    virtual void storeFlowRates(std::unordered_map<size_t, T> flowRate) = 0;
+    virtual void storeFlowRates(const std::unordered_map<size_t, T>& flowRate) = 0;
 
     /**
      * @brief Get the flow rates at the boundary nodes.

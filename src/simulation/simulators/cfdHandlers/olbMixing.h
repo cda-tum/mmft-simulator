@@ -159,15 +159,27 @@ protected:
     void prepareLattice() override;
 
     /**
-     * @brief Set the boundary values on the lattice at the module nodes.
+     * @brief Set the pressure and flow rate boundary values on the lattice at the module nodes.
      * @param[in] iT Iteration step.
     */
     void setBoundaryValues(int iT) override;
 
     /**
+     * @brief Set the concentration boundary values on the lattice at the module nodes.
+     * @param[in] iT Iteration step.
+    */
+    void setConcBoundaryValues(int iT);
+
+    /**
      * @brief Conducts the collide and stream operations of the lattice.
     */
     void solve() override;
+
+    /**
+     * @brief Conducts the collide and stream operations of the lattice for a pure CFD simulation.
+     * @param[in] maxIter Maximum number of iterations for the CFD solving.
+    */
+    void solveCFD(size_t maxIter);
 
     /**
      * @brief Conducts the collide and stream operations of the NS lattice.
