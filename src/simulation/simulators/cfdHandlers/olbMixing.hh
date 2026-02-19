@@ -171,10 +171,11 @@ void lbmMixingSimulator<T>::writeVTK (int iT) {
     if (iT %1000 == 0) {
         #ifdef VERBOSE
             std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
-            std::cout << "[TODO] Not printing meanConcentration values" << std::endl;
             for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
-                // meanConcentrations.at(key).at(0)->print();
-            } 
+                for (auto& [speciesId, adLattice] : adLattices) {
+                    meanConcentrations.at(key).at(speciesId)->print();
+                }
+            }
         #endif
     }
 
@@ -287,10 +288,10 @@ void lbmMixingSimulator<T>::nsSolve() {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::adSolve() {
+void lbmMixingSimulator<T>::adSolve(size_t maxIter) {
     // theta = 10
-    this->setBoundaryValues(this->getStep());
-    for (int iT = 0; iT < 10000; ++iT){
+    this->setConcBoundaryValues(this->getStep());
+    for (int iT = 0; iT < int(maxIter); ++iT){
         writeVTK(this->getStep());
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
@@ -457,7 +458,14 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
 
 template<typename T>
 void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations_) {
-    this->concentrations = concentrations_;
+    assert(concentrations_.size() <= this->concentrations.size());
+    for (auto& [key, value] : concentrations_) {
+        auto it = this->concentrations.find(key);
+        if (it == this->concentrations.end()) {
+            throw std::logic_error("Cannot store concentration for node" + std::to_string(key) + ". Not a BC.");
+        }
+        it->second = value;
+    }
 }
 
 template<typename T>

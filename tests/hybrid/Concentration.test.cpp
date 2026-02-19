@@ -9,7 +9,7 @@ using T = double;
 
 class HybridConcentration : public test::definitions::GlobalTest<T> {};
 
-TEST_F(HybridConcentration, Case1a) {
+TEST_F(HybridConcentration, Case1a_Instantaneous) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     
@@ -53,6 +53,12 @@ TEST_F(HybridConcentration, Case1a) {
 
     auto m0 = network->addCfdModule(position, size, stlFile, Openings);
 
+    // pressure pump
+    auto pressure = 1e3;
+    network->setPressurePump(c0->getId(), pressure);
+    network->setPressurePump(c1->getId(), pressure);
+    network->setPressurePump(c2->getId(), pressure);
+
     // define simulation
     sim::HybridMixing<T> testSimulation(network);
 
@@ -84,12 +90,6 @@ TEST_F(HybridConcentration, Case1a) {
 
     testSimulation.addLbmSimulator(network->getCfdModule(m0->getId()), resolution, epsilon, tau, adTau, charPhysLength, charPhysVelocity, name);
     testSimulation.setNaiveHybridScheme(0.1, 0.5, 10);
-
-    // pressure pump
-    auto pressure = 1e3;
-    network->setPressurePump(c0->getId(), pressure);
-    network->setPressurePump(c1->getId(), pressure);
-    network->setPressurePump(c2->getId(), pressure);
     
     // Simulate
     testSimulation.simulate();
@@ -112,4 +112,13 @@ TEST_F(HybridConcentration, Case1a) {
     EXPECT_NEAR(network->getChannels().at(6)->getFlowRate(), 1.1732e-9, 1e-14);
     EXPECT_NEAR(network->getChannels().at(7)->getFlowRate(), 1.1732e-9, 1e-14);
     EXPECT_NEAR(network->getChannels().at(8)->getFlowRate(), 4.69188e-9, 1e-14);
+
+    testSimulation.getResults()->printLastState();
+    testSimulation.getResults()->printMixtures();
+
+    /**
+     * Tests:
+     * - We should at least have a filled edge in c0, with the concentration given at the beginning
+     * - Later also in c8 (last channel), with the new concentration resulting from CFD
+     */
 }

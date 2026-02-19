@@ -46,6 +46,9 @@ class AbstractMixing;
 
 template<typename T>
 class HybridContinuous;
+
+template<typename T>
+class HybridMixing;
 }
 
 namespace result {
@@ -63,10 +66,10 @@ private:
     T time;                                                             ///< Simulation time at which the following values were calculated.
     std::unordered_map<int, T> pressures;                               ///< Keys are the nodeIds.
     std::unordered_map<int, T> flowRates;                               ///< Keys are the edgeIds (channels and pumps).
-    std::unordered_map<int, std::string> vtkFiles;
     std::unordered_map<int, sim::DropletPosition<T>> dropletPositions;  ///< Only contains the position of droplets that are currently inside the network (key is the droplet id).
     std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions;  ///< Only contains the position of mixtures that are currently inside the network (key is the channel id).
     std::unordered_map<int, int> filledEdges;                           ///< Contains the mixture ids that fill the edges of the network <EdgeID, MixtureID>
+    std::unordered_map<int, std::string> vtkFiles;                      ///< Contains the vtk filenames that were generated during the step.
 
     /**
      * @brief Constructs a state, which represent a time step during a simulation.
@@ -97,6 +100,7 @@ private:
      * @param[in] time Value of the current time step.
      * @param[in] pressures The pressure values at the nodes at the current time step.
      * @param[in] flowRates The flowRate values at the nodes at the current time step.
+     * @param[in] vtkFiles The vtk filenames that were generated during the step.
      */
     State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::string> vtkFiles);
 
@@ -117,8 +121,21 @@ private:
      * @param[in] pressures The pressure values at the nodes at the current time step.
      * @param[in] flowRates The flowRate values at the nodes at the current time step.
      * @param[in] mixturePositions The positions of the mixtures at the current time step.
+     * @param[in] filledEdges The filled edges at the current time step.
      */
     State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges);
+
+    /**
+     * @brief Constructs a state, which represent a time step during a simulation.
+     * @param[in] id Id of the state
+     * @param[in] time Value of the current time step.
+     * @param[in] pressures The pressure values at the nodes at the current time step.
+     * @param[in] flowRates The flowRate values at the nodes at the current time step.
+     * @param[in] mixturePositions The positions of the mixtures at the current time step.
+     * @param[in] filledEdges The filled edges at the current time step.
+     * @param[in] vtkFiles The vtk filenames that were generated during the step.
+     */
+    State(int id, T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, int> filledEdges, std::unordered_map<int, std::string> vtkFiles);
 
 public:
     /**
@@ -230,6 +247,12 @@ private:
     void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions);
 
     /**
+     * @brief Adds a state to the simulation results.
+     * @param[in] state
+    */
+    void addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, std::string> vtkFiles);
+
+    /**
      * TODO: Documentation
      */
     void setMixtures(std::unordered_map<size_t, std::shared_ptr<sim::Mixture<T>>> mixtures);
@@ -279,6 +302,7 @@ public:
     friend class sim::AbstractDroplet<T>;
     friend class sim::AbstractMixing<T>;
     friend class sim::HybridContinuous<T>;
+    friend class sim::HybridMixing<T>;
     friend class sim::CfdContinuous<T>;
 };
 

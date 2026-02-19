@@ -188,8 +188,9 @@ protected:
 
     /**
      * @brief Conducts the collide and stream operations of the AD lattice(s).
+     * @param[in] maxIter Maximum number of iterations for the CFD solving.
     */
-    void adSolve();
+    void adSolve(size_t maxIter);
 
     /**
      * @brief Store the abstract concentrations at the nodes on the module boundary in the simulator.

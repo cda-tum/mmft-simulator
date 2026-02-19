@@ -219,7 +219,7 @@ protected:
     /**
      * @brief Conducts the collide and stream operations of the AD lattice(s).
     */
-    virtual void adSolve() 
+    virtual void adSolve(size_t maxIter) 
     {
         throw std::runtime_error("The function adSolve is undefined for this CFD simulator.");
     }

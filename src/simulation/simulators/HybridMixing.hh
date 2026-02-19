@@ -136,6 +136,69 @@ void HybridMixing<T>::simulate() {
         }
         iterationCounter++;
     }
+
+    this->saveState();
+    this->saveMixtures();
+}
+
+template<typename T>
+void HybridMixing<T>::saveState() {
+    std::unordered_map<int, T> savePressures;
+    std::unordered_map<int, T> saveFlowRates;
+    std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
+    std::unordered_map<int, std::string> vtkFiles;
+
+    // pressures
+    for (auto& [id, node] : this->getNetwork()->getNodes()) {
+        savePressures.try_emplace(node->getId(), node->getPressure());
+    }
+
+    // flow rates
+    for (auto& [id, channel] : this->getNetwork()->getChannels()) {
+        saveFlowRates.try_emplace(channel->getId(), channel->getFlowRate());
+    }
+    for (auto& [id, pump] : this->getNetwork()->getFlowRatePumps()) {
+        saveFlowRates.try_emplace(pump->getId(), pump->getFlowRate());
+    }
+    for (auto& [id, pump] : this->getNetwork()->getPressurePumps()) {
+        saveFlowRates.try_emplace(pump->getId(), pump->getFlowRate());
+    }
+
+    // Add a mixture position for all filled edges
+    for (auto& [channelId, mixingId] : this->getMixingModel()->getFilledEdges()) {
+        std::deque<MixturePosition<T>> newDeque;
+        MixturePosition<T> newMixturePosition(mixingId, channelId, 0.0, 1.0);
+        newDeque.push_front(newMixturePosition);
+        saveMixturePositions.try_emplace(channelId, newDeque);
+    }
+    // Add all mixture positions
+    for (auto& [channelId, deque] : this->getMixingModel()->getMixturesInEdges()) {
+        for (auto& pair : deque) {
+            if (!saveMixturePositions.count(channelId)) {
+                std::deque<MixturePosition<T>> newDeque;
+                MixturePosition<T> newMixturePosition(pair.first, channelId, 0.0, deque.front().second);
+                newDeque.push_front(newMixturePosition);
+                saveMixturePositions.try_emplace(channelId, newDeque);
+            } else {
+                MixturePosition<T> newMixturePosition(pair.first, channelId, 0.0, pair.second);
+                saveMixturePositions.at(channelId).front().position1 = pair.second;
+                saveMixturePositions.at(channelId).push_front(newMixturePosition);
+            }
+        }
+    }
+
+    // vtk Files
+    for (auto& [id, simulator] : this->readCFDSimulators()) {
+        vtkFiles.try_emplace(simulator->getId(), simulator->getVtkFile());
+    }
+
+    // state
+    this->getSimulationResults()->addState(this->getTime(), savePressures, saveFlowRates, saveMixturePositions, vtkFiles);
+}
+
+template<typename T>
+void HybridMixing<T>::saveMixtures() {
+    this->getSimulationResults()->setMixtures(this->getMixtures());   
 }
 
 }   // namespace sim

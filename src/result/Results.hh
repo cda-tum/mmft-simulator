@@ -26,6 +26,10 @@ State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::un
     : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_), filledEdges(filledEdges_) { }
 
 template<typename T>
+State<T>::State(int id_, T time_, std::unordered_map<int, T> pressures_, std::unordered_map<int, T> flowRates_, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions_, std::unordered_map<int, int> filledEdges_, std::unordered_map<int, std::string> vtkFiles_) 
+    : id(id_), time(time_), pressures(pressures_), flowRates(flowRates_), mixturePositions(mixturePositions_), filledEdges(filledEdges_), vtkFiles(vtkFiles_) { }
+
+template<typename T>
 void State<T>::printState() const {
     std::cout << "\n";
     // print the current timestep
@@ -75,6 +79,8 @@ void State<T>::printState() const {
         }
         std::cout << "\n";
     }
+    // print no. vtk files
+    std::cout << "\t[Result] Number of VTK files: " << vtkFiles.size() << std::endl;
 }
 
 template<typename T>
@@ -127,6 +133,21 @@ void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures,
     std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, pressures, flowRates, mixturePositions, filledEdges));
     states.push_back(std::move(newState));
 }
+
+template<typename T>
+void SimulationResult<T>::addState(T time, std::unordered_map<int, T> pressures, std::unordered_map<int, T> flowRates, std::unordered_map<int, std::deque<sim::MixturePosition<T>>> mixturePositions, std::unordered_map<int, std::string> vtkFiles) {
+    int id = states.size();
+    for ( auto& [channelId, deque] : mixturePositions ) {
+        if (filledEdges.count(channelId)) {
+            filledEdges.at(channelId) = deque.front().mixtureId;
+        } else {
+            filledEdges.try_emplace(channelId, deque.back().mixtureId);
+        }
+    }
+    std::shared_ptr<State<T>> newState = std::shared_ptr<State<T>>(new State<T>(id, time, pressures, flowRates, mixturePositions, filledEdges, vtkFiles));
+    states.push_back(std::move(newState));
+}
+
 
 template<typename T>
 void SimulationResult<T>::printStates() const {

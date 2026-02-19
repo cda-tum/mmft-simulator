@@ -61,7 +61,8 @@ namespace sim {
             assert(cfdSimulator.second->getModule()->getModuleType() == arch::ModuleType::ESS_LBM);
             throw std::runtime_error("Simulation of Advection Diffusion not defined for ESS LBM.");
             #endif
-            cfdSimulator.second->adSolve();
+            size_t maxIter = 10000;
+            cfdSimulator.second->adSolve(maxIter);
 
             if (!cfdSimulator.second->hasAdConverged()) {
                 allConverge = false;

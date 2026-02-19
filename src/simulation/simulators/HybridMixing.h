@@ -33,7 +33,7 @@ template<typename T>
 class lbmMixingSimulator;
 
 /**
- * @brief Class that conducts a abstract mixing simulation
+ * @brief Class that conducts an abstract mixing simulation
  */
 template<typename T>
 class HybridMixing : public HybridContinuous<T>, public ConcentrationSemantics<T> {
@@ -43,8 +43,9 @@ private:
     /** TODO: HybridMixing */
     // void initialize() override;
 
-    /** TODO: HybridMixing */
-    // void saveState() override;
+    void saveState() override;
+
+    void saveMixtures();
 
 public:
     /**

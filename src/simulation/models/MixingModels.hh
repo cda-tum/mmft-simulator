@@ -112,7 +112,7 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Hy
     // Initial node outflow from mixtureInjections and CFD simulators, stored in mixtureOutflowAtNode
     initNodeOutflow(sim, tmpMixtures);
 
-    // Propagate the mixtures through the entire channel, without considering time steps    
+    // Propagate the mixtures through the entire channel, without considering time steps
     channelPropagation(network);
 
     bool inflowUpdated = true;
@@ -134,6 +134,14 @@ template<typename T>
 void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     // Add mixture injections
     for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
+        int tmpMixtureIndex = tmpMixtures.size();
+        size_t nodeId = mixtureInjection->getInjectionChannel()->getFlowRate() >= 0.0 ? 
+                     mixtureInjection->getInjectionChannel()->getNodeBId() : mixtureInjection->getInjectionChannel()->getNodeAId();
+        tmpMixtures.push_back(Mixture<T>(*sim->getMixture(mixtureInjection->getMixtureId())));
+        mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
+    }
+    // Add permanent mixture injections
+    for (auto& [key, mixtureInjection] : sim->getPermanentMixtureInjections()) {
         int tmpMixtureIndex = tmpMixtures.size();
         size_t nodeId = mixtureInjection->getInjectionChannel()->getFlowRate() >= 0.0 ? 
                      mixtureInjection->getInjectionChannel()->getNodeBId() : mixtureInjection->getInjectionChannel()->getNodeAId();
@@ -178,6 +186,11 @@ void InstantaneousMixingModel<T>::channelPropagation(arch::Network<T>* network) 
             auto [iterator, inserted] = mixtureInflowAtNode.try_emplace(oppositeNode, std::vector<MixtureInFlow<T>>(1, mixtureInflow));
             if (!inserted) {
                 mixtureInflowAtNode.at(oppositeNode).push_back(mixtureInflow);
+            }
+            // Add or update filledEdges
+            auto [iteratorEdge, insertedEdge] = this->filledEdges.try_emplace(channel->getId(), mixtureId);
+            if (!insertedEdge) {
+                iteratorEdge->second = mixtureId;
             }
         }
     }
