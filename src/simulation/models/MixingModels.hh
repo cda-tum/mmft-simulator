@@ -153,16 +153,17 @@ void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vec
         for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
             // If the node is an outflow
             if (cfdSimulator->getFlowDirection(nodeId) < 0.0) {
+                size_t mixtureId = sim->getMixtures().size();
                 size_t tmpMixtureIndex = tmpMixtures.size();
-                size_t tmpMixtureId = std::numeric_limits<int>::max();
-                std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
-                std::unordered_map<size_t, T> speciesConcentrations(cfdSimulator->getConcentrations().at(nodeId));
+                std::vector<std::shared_ptr<Specie<T>>> species;
+                std::vector<T> concentrations;
                 for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
-                    species.try_emplace(speciesId, sim->getSpecie(speciesId));
+                    species.push_back(sim->getSpecie(speciesId));
+                    concentrations.push_back(concentration);
                 }
-                Mixture<T> tmpMixture = Mixture<T>(tmpMixtureId, species, speciesConcentrations, sim->getContinuousPhase().get());
-                tmpMixtures.push_back(tmpMixture);
-                mixtureOutflowAtNode.try_emplace(nodeId, tmpMixtureIndex);
+                auto cfdMixture = sim->addMixture(species, concentrations);
+                tmpMixtures.push_back(Mixture<T>(*cfdMixture));
+                mixtureOutflowAtNode.try_emplace(nodeId, cfdMixture->getId());
             }
         }
     }
