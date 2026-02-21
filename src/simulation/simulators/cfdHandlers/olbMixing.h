@@ -202,7 +202,7 @@ protected:
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
-    std::unordered_map<size_t, std::unordered_map<size_t, T>> getConcentrations() const override;
+    const std::unordered_map<size_t, std::unordered_map<size_t, T>>& getConcentrations() const override;
 
     /**
      * @brief Returns whether the module has converged or not.

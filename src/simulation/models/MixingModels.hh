@@ -157,7 +157,10 @@ void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vec
                 size_t tmpMixtureIndex = tmpMixtures.size();
                 std::vector<std::shared_ptr<Specie<T>>> species;
                 std::vector<T> concentrations;
-                for (auto& [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
+                std::cout << "Node " << nodeId << " has " << cfdSimulator->getConcentrations().at(nodeId).size() << " concentration values" << std::endl;
+                std::cout << "It has specie " << 0 << " at concentration " << cfdSimulator->getConcentrations().at(nodeId).at(0) << std::endl;
+                for (auto [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
+                    std::cout << "It has specie " << speciesId << " at concentration " << concentration << std::endl;
                     species.push_back(sim->getSpecie(speciesId));
                     concentrations.push_back(concentration);
                 }

@@ -168,7 +168,7 @@ protected:
      * @brief Get the concentrations at the boundary nodes.
      * @returns Concentrations
      */
-    virtual std::unordered_map<size_t, std::unordered_map<size_t, T>> getConcentrations() const 
+    virtual const std::unordered_map<size_t, std::unordered_map<size_t, T>>& getConcentrations() const 
     { 
         throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
         return std::unordered_map<size_t, std::unordered_map<size_t, T>>(); 

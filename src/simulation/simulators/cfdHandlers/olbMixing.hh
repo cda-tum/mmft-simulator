@@ -469,7 +469,7 @@ void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<size_t, std::
 }
 
 template<typename T>
-std::unordered_map<size_t, std::unordered_map<size_t, T>> lbmMixingSimulator<T>::getConcentrations() const {
+const std::unordered_map<size_t, std::unordered_map<size_t, T>>& lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
 }
 
