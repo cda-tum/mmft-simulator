@@ -293,6 +293,12 @@ public:
      */
     [[nodiscard]] inline T getLargestMolecularSize() const {return largestMolecularSize;}
 
+    /**
+     * @brief Check if this mixture is diffusive.
+     * @return True if the mixture is diffusive, false otherwise.
+     */
+    virtual bool isDiffusive() const { return false; }
+
     virtual ~Mixture() = default;
 
     // Friend class definition
@@ -397,6 +403,12 @@ public:
      * @return The spectral resolution of the distribution function.
      */
     [[nodiscard]] inline int getResolution() { return this->resolution; }
+
+    /**
+     * @brief Check if this mixture is diffusive.
+     * @return True if the mixture is diffusive, false otherwise.
+     */
+    bool isDiffusive() const override { return true; }
 
     // Friend class definitions
     friend class ConcentrationSemantics<T>;

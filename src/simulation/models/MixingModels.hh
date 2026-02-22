@@ -153,14 +153,9 @@ void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vec
         for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
             // If the node is an outflow
             if (cfdSimulator->getFlowDirection(nodeId) < 0.0) {
-                size_t mixtureId = sim->getMixtures().size();
-                size_t tmpMixtureIndex = tmpMixtures.size();
                 std::vector<std::shared_ptr<Specie<T>>> species;
                 std::vector<T> concentrations;
-                std::cout << "Node " << nodeId << " has " << cfdSimulator->getConcentrations().at(nodeId).size() << " concentration values" << std::endl;
-                std::cout << "It has specie " << 0 << " at concentration " << cfdSimulator->getConcentrations().at(nodeId).at(0) << std::endl;
                 for (auto [speciesId, concentration] : cfdSimulator->getConcentrations().at(nodeId)) {
-                    std::cout << "It has specie " << speciesId << " at concentration " << concentration << std::endl;
                     species.push_back(sim->getSpecie(speciesId));
                     concentrations.push_back(concentration);
                 }
@@ -203,12 +198,23 @@ void InstantaneousMixingModel<T>::channelPropagation(arch::Network<T>* network) 
 template<typename T>
 bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     bool updated = false;
+    // Construct the node outflow based on the node inflow, for each node
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
         bool createMixture = false;
         std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciePtrs;
         std::unordered_map<size_t, T> newConcentrations;
+        // Store all the incoming species and their new concentrations, where relevant
+        // into speciePrs and newConcentrations
         for (auto& mixtureInflow : mixtureInflowList) {
-            for (auto& [specieId, oldConcentration] : tmpMixtures[mixtureInflow.mixtureId].getSpecieConcentrations()) {
+            // Find the mixture with mixtureId in tmpMixtures
+            auto mixtureIt = std::find_if(tmpMixtures.begin(), tmpMixtures.end(), [&](const Mixture<T>& m) {
+                return m.getId() == mixtureInflow.mixtureId;
+            });
+            if (mixtureIt == tmpMixtures.end()) {
+                throw std::runtime_error("Error: Mixture with ID " + std::to_string(mixtureInflow.mixtureId) + " not found in temporary mixtures.");
+            }
+            // For each inflow mixture store the species and their new corresponding concentrations
+            for (auto& [specieId, oldConcentration] : mixtureIt->getSpecieConcentrations()) {
                 speciePtrs.try_emplace(specieId, sim->getSpecie(specieId));
                 T newConcentration = oldConcentration * mixtureInflow.inflowVolume / totalInflowVolumeAtNode.at(nodeId);
                 auto [iterator, inserted] = newConcentrations.try_emplace(specieId, newConcentration);
@@ -216,31 +222,47 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::v
                     iterator->second = iterator->second + newConcentration;
                 }
             }
+            // Check if a new mixture needs to be created, i.e., if the mixture ID is not the first and only inflow mixture
             if (mixtureInflow.mixtureId != mixtureInflowList[0].mixtureId) {
                 createMixture = true;
             }
         }
-        int outflowMixtureId;
+        // The id for the outflow mixture
+        size_t outflowMixtureId;
         // Constructor for placeholder dummy object. Does not increase mixtureCount.
         Mixture<T> newMixture (tmpMixtures.size(), speciePtrs, newConcentrations, sim->getContinuousPhase().get());
-
         if (createMixture) {
+            // Multiple inflow mixtures result in a new outflow mixture
             outflowMixtureId = tmpMixtures.size();
         } else {
+            // Single inflow mixture results in the same outflow mixture
             outflowMixtureId = mixtureInflowList[0].mixtureId;
         }
         if (!mixtureOutflowAtNode.count(nodeId)) {
+            // If no outflow mixture exists for the node, add the new mixture as node outflow
             if (createMixture) {
                 tmpMixtures.push_back(newMixture);
             }
-            mixtureOutflowAtNode.try_emplace(nodeId, outflowMixtureId);
+            auto result = mixtureOutflowAtNode.try_emplace(nodeId, outflowMixtureId);
+            if (!result.second) {
+                throw std::runtime_error("Error: Outflow mixture for node " + std::to_string(nodeId) + " already exists.");
+            }
             updated = true;
 
         } else {
-            // Check if the ouflow gets updated or not
-            if (tmpMixtures[mixtureOutflowAtNode.at(nodeId)] == tmpMixtures[outflowMixtureId]) {
+            auto mixtureIt1 = std::find_if(tmpMixtures.begin(), tmpMixtures.end(), [&](const Mixture<T>& m) {
+                return m.getId() == outflowMixtureId;
+            });
+            auto mixtureIt2 = std::find_if(tmpMixtures.begin(), tmpMixtures.end(), [&](const Mixture<T>& m) {
+                return m.getId() == mixtureOutflowAtNode.at(nodeId);
+            });
+            // There already was an outflow mixture for this node
+            // Check if the outflow gets updated or not
+            if (mixtureIt1 == mixtureIt2) {
+                // It's the same mixture -> continues
                 continue;
             } else {
+                // It's not the same mixture, set the new mixture as node outflow
                 if (createMixture) {
                     tmpMixtures.push_back(newMixture);
                 }
@@ -675,7 +697,7 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
     // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
     // It is unlikely that this exact mixture, with same species and functions already exists
     for (auto& nodeId : mixingNodes) {
-        // Perform topoology analysis at node, to know how the inflow sections and their relative order.
+        // Perform topology analysis at node, to know how the inflow sections and their relative order.
         topologyAnalysis(network, nodeId);
         for (auto& [channelId, genericChannel] : network->getChannels()) {
             if (genericChannel->isRectangular()) {
@@ -730,7 +752,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, size_
     arch::Node<T>* node = network->getNode(nodeId).get();
     concatenatedFlows.clear();
     outflowDistributions.clear();
-    if (!node->getGround()){
+    if (!node->getGround() && !network->isModuleNode(nodeId)) {
 
         // 1. List all connecting channels with angle and inflow
         std::vector<RadialPosition<T>> channelOrder;
@@ -830,7 +852,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, size_
             for (auto& channelInId : channelInIDs) {
                 bool filled = false;
                 if (!network->getChannel(channelInId)->isRectangular()) {
-                    throw std::logic_error("Channel " + std::to_string(channelInId) + " is not rectangular. Cannot use DiffusionMixingModel." );
+                    throw std::logic_error("[topologyAnalysis] Channel " + std::to_string(channelInId) + " is not rectangular. Cannot use DiffusionMixingModel." );
                 } 
                 arch::RectangularChannel<T>* channelIn = dynamic_cast<arch::RectangularChannel<T>*>(network->getChannel(channelInId).get());
                 while (!filled){
@@ -923,7 +945,199 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, size_
 
 template<typename T>
 void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) {
-    /** TODO: Miscellaneous */
+    
+    // Define total inflow volume at nodes
+    updatedChannels.clear();
+
+    // Initial node outflow from mixtureInjections and CFD simulators, stored in mixtureOutflowAtNode
+    introduceMixtures(sim, network);
+
+    bool inflowUpdated = true;
+    while (inflowUpdated) {
+        auto tmpUpdatedChannels = updatedChannels;
+        // From node inflow, generate the node's outflow
+        updateNodeInflow(network);
+        generateInflows(network, sim);
+        if (tmpUpdatedChannels == updatedChannels) {
+            // No new inflows were generated, we can stop
+            inflowUpdated = false;
+        }
+    }
+
+    // Store the concentrations of the final state in the concentration buffer of olbMixingSolver
+    storeConcentrationProfiles(network, sim);
+
+    // Clean step
+    clean(network);
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::introduceMixtures(HybridMixing<T>* sim, arch::Network<T>* network) {
+    // Add mixture injections
+    for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
+        this->injectMixtureInEdge(mixtureInjection->getId(), mixtureInjection->getInjectionChannel()->getId(), 0.0);
+    }
+    // Add permanent mixture injections
+    for (auto& [key, permanentMixtureInjection] : sim->getPermanentMixtureInjections()) {
+        this->injectMixtureInEdge(permanentMixtureInjection->getId(), permanentMixtureInjection->getInjectionChannel()->getId(), 0.0);
+    }
+    // Add CFD solver outflows
+    for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
+        for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
+            // If the node is an outflow
+            if (cfdSimulator->getFlowDirection(nodeId) < 0.0) {
+                // Assert only one channel is attached
+                auto channels = network->getChannelsAtNode(nodeId);
+                assert(channels.size() == 1);
+                size_t injectionChannelId = channels.at(0)->getId();
+                // Define and add the mixture to the simulator
+                std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species;
+                std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
+                for (auto [speciesId, profile] : cfdSimulator->getConcentrationProfiles().at(nodeId)) {
+                    species.try_emplace(speciesId, sim->getSpecie(speciesId));
+                    specieDistributions.try_emplace(speciesId, profile);
+                }
+                auto cfdMixture = sim->addDiffusiveMixture(species, specieDistributions);
+                // Inject the mixture into the channel
+                this->injectMixtureInEdge(cfdMixture->getId(), injectionChannelId, 0.0);
+            }
+        }
+    }
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::updateNodeInflow(arch::Network<T>* network) {
+    mixingNodes.clear();
+    for (auto& [nodeId, node] : network->getNodes()) {
+        for (auto& [channelId, channel] : network->getChannels()) {
+            // If the channel flows into this node
+            if ((channel->getFlowRate() > 0.0 && channel->getNodeBId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeAId() == nodeId)) {
+                if (this->mixturesInEdge.count(channel->getId())) {
+                    for (auto& [mixtureId, endPos] : this->mixturesInEdge.at(channel->getId())) {
+                        // Propagate the mixture positions in the channel to the end
+                        T newEndPos = 1.0;
+                        endPos = newEndPos;
+                        // if the mixture front left the channel, it's fully filled with the current mixture
+                        if (this->filledEdges.count(channel->getId())) {
+                            this->filledEdges.at(channel->getId()) = mixtureId;
+                        } else {
+                            this->filledEdges.try_emplace(channel->getId(), mixtureId);
+                        }
+                        // We must generate the outflow of this node, i.e., the inflow of the channels that flow out of the node
+                        if (!network->isModuleNode(nodeId)) {
+                            mixingNodes.emplace(nodeId);
+                        } 
+                    }
+                }
+            } 
+            // The channel flows out of this node
+            else if ((channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId)) {
+                if (this->mixturesInEdge.count(channel->getId())) {
+                    if (network->isModuleNode(nodeId)) {
+                        cfdMixtureNodes.emplace(nodeId);
+                    }
+                }
+            }
+        }
+    }
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::generateInflows(arch::Network<T>* network, HybridMixing<T>* sim) {
+    auto mixtures = sim->getMixtures();
+    // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
+    // It is unlikely that this exact mixture, with same species and functions already exists
+    for (auto& nodeId : mixingNodes) {
+        // Perform topology analysis at node, to know how the inflow sections and their relative order.
+        topologyAnalysis(network, nodeId);
+        for (auto& [channelId, genericChannel] : network->getChannels()) {
+            if (genericChannel->isRectangular()) {
+                arch::RectangularChannel<T>* channel = network->getRectangularChannel(genericChannel->getId()).get();
+                // If the channel flows out of this node
+                if ((channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId)) {
+                    // Loop over all species in the incoming mixtures and add to set of present species
+                    std::set<int> presentSpecies;
+                    for (auto& section : outflowDistributions.at(channel->getId())) {
+                        if (this->filledEdges.count(section.channelId)) {
+                            for (auto& [specieId, pair] : mixtures.at(this->filledEdges.at(section.channelId))->getSpecieDistributions()) {
+                                if (presentSpecies.find(specieId) == presentSpecies.end()) {
+                                    presentSpecies.emplace(specieId);
+                                }
+                            }
+                        }
+                    }
+                    // We should evaluate the final function of the mixture reaching the end of this channel
+                    std::unordered_map<size_t, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
+                    for (auto& specieId : presentSpecies) {
+                        T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                        std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
+                            channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
+                            pecletNr, outflowDistributions.at(channel->getId()), mixtures);
+                        newDistributions.try_emplace(specieId, analyticalResult);
+                    }
+                    //Create new DiffusiveMixture
+                    DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
+                    newMixture->setNonConstant();
+                    this->injectMixtureInEdge(newMixture->getId(), channelId);
+                    updatedChannels.emplace(channelId);
+                } 
+            } else {
+                throw std::logic_error("[generateInflows] Channel " + std::to_string(genericChannel->getId()) + " is not rectangular. Cannot use DiffusionMixingModel." );
+            }
+        }
+    }
+    // Cover the mixtures that are introduced from CFD solvers
+    for (auto& nodeId : cfdMixtureNodes) {
+        for (auto& [channelId, genericChannel] : network->getChannels()) {
+            // Update a cfd channel only once
+            if (genericChannel->isRectangular()) {
+                arch::RectangularChannel<T>* channel = network->getRectangularChannel(genericChannel->getId()).get();
+                // If the channel flows out of this node
+                if ((channel->getFlowRate() > 0.0 && channel->getNodeAId() == nodeId) || (channel->getFlowRate() < 0.0 && channel->getNodeBId() == nodeId)) {
+                    // We should evaluate the final function of the mixture reaching the end of this channel
+                    std::unordered_map<size_t, std::tuple<std::function<T(T)>,std::vector<T>,T>> newDistributions;
+                    for (auto& [specieId, pair] : mixtures.at(this->filledEdges.at(channelId))->getSpecieDistributions()) {
+                        T pecletNr = (std::abs(channel->getFlowRate()) / channel->getHeight()) / (sim->getSpecie(specieId))->getDiffusivity();
+                        std::vector<FlowSection<T>> cfdFlowSection = {FlowSection<T> {channelId, 0.0, 1.0, channel->getFlowRate(), channel->getWidth()}};
+                        std::tuple<std::function<T(T)>, std::vector<T>, T> analyticalResult = getAnalyticalSolutionTotal(
+                            channel->getLength(), std::abs(channel->getFlowRate()), channel->getWidth(), 100, specieId, 
+                            pecletNr, cfdFlowSection, mixtures);
+                        newDistributions.try_emplace(specieId, analyticalResult);
+                    }
+                    //Create new DiffusiveMixture
+                    DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
+                    newMixture->setNonConstant();
+                    this->injectMixtureInEdge(newMixture->getId(), channelId);
+                    updatedChannels.emplace(channelId);
+                }
+            }
+        }
+    }
+}
+
+template<typename T>
+void DiffusionMixingModel<T>::storeConcentrationProfiles(arch::Network<T>* network, HybridMixing<T>* sim) {
+    for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
+        std::unordered_map<size_t, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>>> concentrationProfiles;
+        for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
+            // If the node is an inflow (into cfd)
+            if (cfdSimulator->getFlowDirection(nodeId) > 0.0) {
+                // Assert only one channel is attached
+                auto channels = network->getChannelsAtNode(nodeId);
+                assert(channels.size() == 1);
+                size_t injectionChannelId = channels.at(0)->getId();
+                // Store the concentration profiles of the mixture that reaches the channel end in the cfd simulator
+                if (this->filledEdges.count(injectionChannelId)) {
+                    size_t mixtureId = this->filledEdges.at(injectionChannelId);
+                    for (auto& [specieId, profile] : sim->getMixtures().at(mixtureId)->getSpecieDistributions()) {
+                        concentrationProfiles.try_emplace(nodeId);
+                        concentrationProfiles.at(nodeId).try_emplace(specieId, profile);
+                    }
+                }
+            }
+        }
+        cfdSimulator->storeConcentrationProfiles(concentrationProfiles);
+    }
 }
 
 template<typename T>

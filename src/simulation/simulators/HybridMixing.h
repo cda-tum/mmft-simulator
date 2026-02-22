@@ -89,6 +89,16 @@ public:
         size_t resolution, T epsilon, T tau, T adTau, T charPhysLength, T charPhysVelocity, std::string name="");                        
         
     /**
+     * @brief Sets an instantaneous mixing model for the simulation.
+     */
+    void setInstantaneousMixingModel() override;
+
+    /**
+     * @brief Sets a diffusive mixing model for the simulation.
+     */
+    void setDiffusiveMixingModel() override;
+
+    /**
      * @brief Get the global bounds of velocity magnitude values in the CFD simulators.
      * @return A tuple with the global bounds for velocity magnitude values <velMin, velMax>
      */

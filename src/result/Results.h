@@ -168,6 +168,13 @@ public:
     [[nodiscard]] inline const std::unordered_map<int, std::deque<sim::MixturePosition<T>>>& getMixturePositions() const { return mixturePositions; }
 
     /**
+     * @brief Function to get the mixture positions of this state.
+     * @return MixturePositions.
+     */
+    [[nodiscard]] inline const std::unordered_map<int, int>& getFilledEdges() const { return filledEdges; }
+
+
+    /**
      * @brief Function to get the time of a state.
      * @return Time in s.
      */

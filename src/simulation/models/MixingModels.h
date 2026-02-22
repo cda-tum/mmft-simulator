@@ -174,6 +174,14 @@ public:
     void addPermanentMixtureInjection(size_t mixtureId, size_t channelId) { permanentMixtureInjections.insert({channelId, mixtureId}); }
 
     /**
+     * @brief Update the position of all mixtures in the network and update the inflow into all nodes, for a steady-state simulation.
+     * @param[in] network pointer to the network.
+    */
+    virtual void updateNodeInflow(arch::Network<T>* network) {
+        throw std::runtime_error("The steady-state node inflow update is not implemented for this mixing model.");
+    }
+
+    /**
      * @brief Update the position of all mixtures in the network and update the inflow into all nodes.
      * @param[in] timeStep the current timestep size.
      * @param[in] network pointer to the network.
@@ -189,9 +197,9 @@ public:
     */
     virtual void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) = 0;
 
-    virtual bool isInstantaneous() = 0;
+    virtual bool isInstantaneous() const = 0;
 
-    virtual bool isDiffusive() = 0;
+    virtual bool isDiffusive() const = 0;
 };
 
 /**
@@ -299,9 +307,9 @@ public:
     */
     void printMixturesInNetwork();
 
-    bool isInstantaneous() override { return 1; };
+    bool isInstantaneous() const override { return 1; };
 
-    bool isDiffusive() override { return 0; };
+    bool isDiffusive() const override { return 0; };
 
 };
 
@@ -311,6 +319,8 @@ class DiffusionMixingModel : public MixingModel<T> {
 private:
     int resolution = 10;
     std::set<size_t> mixingNodes;
+    std::set<size_t> cfdMixtureNodes;
+    std::set<size_t> updatedChannels;
     std::vector<std::vector<RadialPosition<T>>> concatenatedFlows;
     std::unordered_map<int, std::vector<FlowSection<T>>> outflowDistributions;
     std::unordered_map<size_t, int> filledEdges;                                   ///< Which edges are currently filled and what mixture is at the front <EdgeID, MixtureID>
@@ -330,6 +340,11 @@ public:
     void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) override;
 
     /**
+     * @brief Propagate the mixtures until the channel end.
+    */
+    void updateNodeInflow(arch::Network<T>* network) override;
+
+    /**
      * @brief Propagate the mixtures and check if a mixtures reaches channel end.
     */
     void updateNodeInflow(T timeStep, arch::Network<T>* network) override;
@@ -339,13 +354,42 @@ public:
     */
     void generateInflows(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
 
+    /**
+     * @brief Generate a new inflow in case a mixture has reached channel end for hybrid simulation. Invoked by propagateSpecies.
+    */
+    void generateInflows(arch::Network<T>* network, HybridMixing<T>* sim);
+
     void topologyAnalysis(arch::Network<T>* network, size_t nodeId);
 
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
+     * @param[in] network Pointer to the network.
+     * @param[in] sim Pointer to the hybrid mixing simulation.
      */
     void propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) override;
-    
+
+    /**
+     * @brief Initialize the node outflow from mixture injections and CFD simulators by updating 
+     * the mixturesInEdge container for introduced mixtures in a hybrid mixing simulation.
+     * @param[in] sim Pointer to the hybrid mixing simulation.
+     * @param[in] network Pointer to the network.
+     */
+    void introduceMixtures(HybridMixing<T>* sim, arch::Network<T>* network);
+
+    /**
+     * @brief Propagate the mixtures through one entire channel, without considering time steps,
+     * to the opposite node, while considering diffusion
+     * @param[in] network Pointer to the network.
+     */
+    void channelPropagation(arch::Network<T>* network);
+
+    /**
+     * @brief Store the concentration profiles in the CFD solver buffer.
+     * @param[in] network Pointer to the network.
+     * @param[in] sim Pointer to the hybrid mixing simulation.
+     */
+    void storeConcentrationProfiles(arch::Network<T>* network, HybridMixing<T>* sim);
+
     void printTopology();
 
     std::tuple<std::function<T(T)>,std::vector<T>, T> getAnalyticalSolutionConstant(T channelLength, T channelWidth, int resolution, T pecletNr, const std::vector<FlowSectionInput<T>>& parameters);
@@ -363,9 +407,9 @@ public:
 
     std::unordered_map<int, std::vector<FlowSection<T>>>& getOutflowDistributions() { return outflowDistributions; }
 
-    bool isInstantaneous() override { return 0; };
+    bool isInstantaneous() const override { return 0; };
 
-    bool isDiffusive() override { return 1; };
+    bool isDiffusive() const override { return 1; };
 
 };
 

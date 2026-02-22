@@ -44,7 +44,7 @@ std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_pt
         // add Simulator
         const auto& [it, inserted] = this->getCFDSimulators().try_emplace(id, addCfdSimulator);
         if (inserted) {
-            addCfdSimulator->initialize(this->getResistanceModel());
+            addCfdSimulator->initialize(this->getResistanceModel(), this->getMixingModel());
         } else {
             throw std::logic_error("Could not emplace new lbmSimulator.");
         }
@@ -53,6 +53,22 @@ std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_pt
     } else {
         throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
     }
+}
+
+template<typename T>
+void HybridMixing<T>::setInstantaneousMixingModel() {
+    if (this->getCFDSimulators().size() > 0) {
+        throw std::logic_error("Cannot change to instantaneous mixing model when CFD simulators are already added to the simulation.");
+    }
+    ConcentrationSemantics<T>::setInstantaneousMixingModel();
+}
+
+template<typename T>
+void HybridMixing<T>::setDiffusiveMixingModel() {
+    if (this->getCFDSimulators().size() > 0) {
+        throw std::logic_error("Cannot change to diffusive mixing model when CFD simulators are already added to the simulation.");
+    }
+    ConcentrationSemantics<T>::setDiffusiveMixingModel();
 }
 
 template<typename T>

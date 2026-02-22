@@ -45,6 +45,10 @@ namespace sim {
 
 template<typename T>
 class InstantaneousMixingModel;
+
+template<typename T>
+class DiffusionMixingModel;
+
 template<typename T>
 class HybridMixing;
 
@@ -106,6 +110,11 @@ protected:
     };
 
     void initialize(const ResistanceModel<T>* resistanceModel);
+
+    virtual void initialize(const ResistanceModel<T>* resistanceModel, const MixingModel<T>* mixingModel) 
+    {
+        throw std::runtime_error("The simulator does not support mixing model initialization.");
+    }
 
     /**
      * @brief Initialize an instance of the LBM solver for this simulator.
@@ -170,8 +179,25 @@ protected:
      */
     virtual const std::unordered_map<size_t, std::unordered_map<size_t, T>>& getConcentrations() const 
     { 
-        throw std::runtime_error("The function storeConcentrations is undefined for this CFD simulator.");
-        return std::unordered_map<size_t, std::unordered_map<size_t, T>>(); 
+        throw std::runtime_error("The function getConcentrations is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Store the abstract concentration profiles at the nodes on the module boundary in the simulator.
+     * @param[in] concentrationProfiles Map of concentration profiles and node ids.
+     */
+    virtual void storeConcentrationProfiles(std::unordered_map<size_t, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>>> concentrationProfiles) 
+    {
+        throw std::runtime_error("The function storeConcentrationProfiles is undefined for this CFD simulator.");
+    }
+
+    /**
+     * @brief Get the concentration profiles at the boundary nodes.
+     * @returns Concentrations
+     */
+    virtual const std::unordered_map<size_t, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>>>& getConcentrationProfiles() const 
+    { 
+        throw std::runtime_error("The function getConcentrationProfiles is undefined for this CFD simulator.");
     }
 
     /**
@@ -375,6 +401,7 @@ public:
     friend class HybridContinuous<T>;
     friend class HybridMixing<T>;
     friend class InstantaneousMixingModel<T>;
+    friend class DiffusionMixingModel<T>;
     friend class nodal::NodalAnalysis<T>;
     friend class test::definitions::GlobalTest<T>;
 
