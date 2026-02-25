@@ -60,9 +60,9 @@ TEST_F(Membrane, TwoTank) {
   auto m6 = network->addMembraneToChannel(c3->getId(), mHeight, mWidth - pillarArea / cMembraneLength, poreRadius, porosity);
   auto o7 = network->addTankToMembrane(m6->getId(), oHeight, oWidth);
 
-  // define that groundSinkeNode is a sink
+  // define that groundSinkNode is a sink
   network->setSink(groundSinkNode->getId());
-  // define that groundSinkeNode is the ground node
+  // define that groundSinkNode is the ground node
   network->setGround(groundSinkNode->getId());
 
   // flowRate pump

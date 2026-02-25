@@ -1,19 +1,19 @@
-name: Windows-build
+# name: Windows-build
 
-on: [push]
+# on: [push]
 
-defaults:
-  run:
-    shell: pwsh
+# defaults:
+#   run:
+#     shell: pwsh
 
-jobs:
-  build:
-    runs-on: windows-latest
+# jobs:
+#   build:
+#     runs-on: windows-latest
 
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
+#     steps:
+#     - uses: actions/checkout@v3
+#       with:
+#         submodules: recursive
     
 #     - uses: msys2/setup-msys2@v2
 #       with:
