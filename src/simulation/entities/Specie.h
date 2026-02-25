@@ -21,7 +21,7 @@ template<typename T>
 class ConcentrationSemantics;
 
 template<typename T>
-class AbstractMixing;
+class AbstractConcentration;
 
 template<typename T>
 class Mixture;
@@ -48,7 +48,7 @@ class Specie {
 
     /**
      * @brief A static member function that returns the amount of specie objects that have been created.
-     * Is used in (friend) AbstractMixing<T>::addSpecie() to create a specie object and add it to the simulation.
+     * Is used in (friend) AbstractConcentration<T>::addSpecie() to create a specie object and add it to the simulation.
      * @returns The number of created specie objects: specieCounter.
      */
     static size_t getSpecieCounter() noexcept { return specieCounter; }
@@ -120,7 +120,7 @@ class Specie {
 
     // Friend class definitions
     friend class ConcentrationSemantics<T>;
-    friend class AbstractMixing<T>;
+    friend class AbstractConcentration<T>;
     friend class Mixture<T>;
     friend class test::definitions::GlobalTest<T>;
 

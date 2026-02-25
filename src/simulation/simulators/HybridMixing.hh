@@ -3,7 +3,7 @@
 namespace sim {
 
 template<typename T>
-HybridMixing<T>::HybridMixing(std::shared_ptr<arch::Network<T>> network) : HybridContinuous<T>(Platform::Mixing, network), ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash()) { }
+HybridMixing<T>::HybridMixing(std::shared_ptr<arch::Network<T>> network) : HybridContinuous<T>(Platform::Concentration, network), ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash()) { }
 
 template<typename T>
 void HybridMixing<T>::assertInitialized() const 

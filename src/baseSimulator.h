@@ -25,8 +25,8 @@
 
 #include "simulation/simulators/Simulation.h"
 #include "simulation/simulators/AbstractContinuous.h"
+#include "simulation/simulators/AbstractConcentration.h"
 #include "simulation/simulators/AbstractDroplet.h"
-#include "simulation/simulators/AbstractMixing.h"
 #include "simulation/simulators/AbstractMembrane.h"
 #include "simulation/simulators/HybridContinuous.h"
 #include "simulation/simulators/HybridMixing.h"

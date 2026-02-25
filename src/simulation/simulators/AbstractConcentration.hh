@@ -1,22 +1,22 @@
-#include "AbstractMixing.h"
+#include "AbstractConcentration.h"
 
 namespace sim {
 
 template<typename T>
-AbstractMixing<T>::AbstractMixing(std::shared_ptr<arch::Network<T>> network) : AbstractMixing<T>(Type::Abstract, Platform::Mixing, network) { }
+AbstractConcentration<T>::AbstractConcentration(std::shared_ptr<arch::Network<T>> network) : AbstractConcentration<T>(Type::Abstract, Platform::Concentration, network) { }
 
 template<typename T>
-AbstractMixing<T>::AbstractMixing(Type type_, Platform platform_, std::shared_ptr<arch::Network<T>> network) : Simulation<T>(type_, platform_, network), ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash()) { }
+AbstractConcentration<T>::AbstractConcentration(Type type_, Platform platform_, std::shared_ptr<arch::Network<T>> network) : Simulation<T>(type_, platform_, network), ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash()) { }
 
 template<typename T>
-void AbstractMixing<T>::assertInitialized() const {
+void AbstractConcentration<T>::assertInitialized() const {
     // Assert initialization for base classes.
     Simulation<T>::assertInitialized();     
     ConcentrationSemantics<T>::assertInitialized();
 }
 
 template<typename T>
-std::vector<std::unique_ptr<Event<T>>> AbstractMixing<T>::computeMixingEvents() {
+std::vector<std::unique_ptr<Event<T>>> AbstractConcentration<T>::computeMixingEvents() {
     // events
     std::vector<std::unique_ptr<Event<T>>> events;
 
@@ -46,12 +46,12 @@ std::vector<std::unique_ptr<Event<T>>> AbstractMixing<T>::computeMixingEvents() 
 }
 
 template<typename T>
-void AbstractMixing<T>::calculateNewMixtures(double timestep_) {
+void AbstractConcentration<T>::calculateNewMixtures(double timestep_) {
     this->getMixingModel()->updateMixtures(timestep_, this->getNetwork().get(), this, this->getMixtures());
 }
 
 template<typename T>
-void AbstractMixing<T>::simulate() {
+void AbstractConcentration<T>::simulate() {
     Simulation<T>::simulate();
     this->assertInitialized();      // perform initialization checks
     this->initialize();             // initialize the simulation
@@ -124,7 +124,7 @@ void AbstractMixing<T>::simulate() {
 
 
 template<typename T>
-void AbstractMixing<T>::saveState() {
+void AbstractConcentration<T>::saveState() {
     std::unordered_map<int, T> savePressures;
     std::unordered_map<int, T> saveFlowRates;
     std::unordered_map<int, std::deque<MixturePosition<T>>> saveMixturePositions;
@@ -173,7 +173,7 @@ void AbstractMixing<T>::saveState() {
 }
 
 template<typename T>
-void AbstractMixing<T>::saveMixtures() {
+void AbstractConcentration<T>::saveMixtures() {
     this->getSimulationResults()->setMixtures(this->getMixtures());   
 }
 

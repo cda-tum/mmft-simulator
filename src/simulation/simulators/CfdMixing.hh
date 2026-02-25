@@ -4,7 +4,7 @@ namespace sim {
 
 template<typename T>
 CfdMixing<T>::CfdMixing(std::shared_ptr<arch::Network<T>> network, int radialResolution) 
-    : CfdContinuous<T>(Platform::Mixing, network, radialResolution), 
+    : CfdContinuous<T>(Platform::Concentration, network, radialResolution), 
       ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash())
 {
     // Define the simulator (lbmMixingSimulator)
@@ -19,7 +19,7 @@ CfdMixing<T>::CfdMixing(std::vector<T> position,
                         std::vector<T> size,
                         std::string stlFile,
                         std::unordered_map<size_t, arch::Opening<T>> openings) 
-                        : CfdContinuous<T>(Platform::Mixing, position, size, stlFile, openings),
+                        : CfdContinuous<T>(Platform::Concentration, position, size, stlFile, openings),
                           ConcentrationSemantics<T>(dynamic_cast<Simulation<T>*>(this), this->getHash())
 {
     // Define the simulator (lbmMixingSimulator)

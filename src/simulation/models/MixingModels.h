@@ -33,7 +33,7 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
-class AbstractMixing;
+class AbstractConcentration;
 
 template<typename T>
 class AbstractMembrane;
@@ -195,7 +195,7 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    virtual void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) = 0;
+    virtual void updateMixtures(T timeStep, arch::Network<T>* network, AbstractConcentration<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) = 0;
 
     virtual bool isInstantaneous() const = 0;
 
@@ -231,7 +231,7 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) override;
+    void updateMixtures(T timeStep, arch::Network<T>* network, AbstractConcentration<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) override;
 
     /**
      * @brief Move mixtures according to the timestep
@@ -261,7 +261,7 @@ public:
      * @param[in] sim Pointer to the simulation.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void generateNodeOutflow(AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
+    void generateNodeOutflow(AbstractConcentration<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Add the node outflow as inflow to the channels
@@ -270,7 +270,7 @@ public:
      * @param[in] network Pointer to the network.
      * @param[in] mixtures Unordered map of the mixtures in the system.
     */
-    void updateChannelInflow(T timeStep, AbstractMixing<T>* sim, arch::Network<T>* network, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
+    void updateChannelInflow(T timeStep, AbstractConcentration<T>* sim, arch::Network<T>* network, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Remove mixtures that have 'outflowed' their channel
@@ -337,7 +337,7 @@ public:
      * @param[in] sim pointer to the simulation.
      * @param[in] mixtures reference to the unordered map of mixtures.
     */
-    void updateMixtures(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) override;
+    void updateMixtures(T timeStep, arch::Network<T>* network, AbstractConcentration<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures) override;
 
     /**
      * @brief Propagate the mixtures until the channel end.
@@ -352,7 +352,7 @@ public:
     /**
      * @brief Generate a new inflow in case a mixture has reached channel end. Invoked by updateNodeInflow.
     */
-    void generateInflows(T timeStep, arch::Network<T>* network, AbstractMixing<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
+    void generateInflows(T timeStep, arch::Network<T>* network, AbstractConcentration<T>* sim, std::unordered_map<size_t, std::shared_ptr<Mixture<T>>>& mixtures);
 
     /**
      * @brief Generate a new inflow in case a mixture has reached channel end for hybrid simulation. Invoked by propagateSpecies.

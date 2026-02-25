@@ -10,8 +10,8 @@ class DiffusiveMixing : public test::definitions::GlobalTest<T> {};
 
 TEST_F(InstantaneousMixing, Case1) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network1.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case1.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network1.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case1.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -79,8 +79,8 @@ TEST_F(InstantaneousMixing, Case1) {
 
 TEST_F(InstantaneousMixing, Case2) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network1.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case2.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network1.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case2.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -210,8 +210,8 @@ TEST_F(InstantaneousMixing, Case2) {
 
 TEST_F(InstantaneousMixing, Case3) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network2.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case3.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network2.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case3.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -282,8 +282,8 @@ TEST_F(InstantaneousMixing, Case3) {
 
 TEST_F(InstantaneousMixing, Case4) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network2.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case4.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network2.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case4.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -414,8 +414,8 @@ TEST_F(InstantaneousMixing, Case4) {
 
 TEST_F(InstantaneousMixing, Case5) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network3.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case5.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network3.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case5.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -452,8 +452,8 @@ TEST_F(InstantaneousMixing, Case5) {
 
 TEST_F(InstantaneousMixing, Case6) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network3.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case6.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network3.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case6.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -498,8 +498,8 @@ TEST_F(InstantaneousMixing, Case6) {
 
 TEST_F(InstantaneousMixing, Case7) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network4.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case7.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network4.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case7.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -536,8 +536,8 @@ TEST_F(InstantaneousMixing, Case7) {
 
 TEST_F(InstantaneousMixing, Case8) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network4.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case8.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network4.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case8.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -597,8 +597,8 @@ TEST_F(InstantaneousMixing, Case8) {
 
 TEST_F(InstantaneousMixing, Case9) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network5.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case9.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network5.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case9.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -654,8 +654,8 @@ TEST_F(InstantaneousMixing, Case9) {
 
 TEST_F(InstantaneousMixing, Case10) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network5.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case10.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network5.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case10.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -723,8 +723,8 @@ TEST_F(InstantaneousMixing, Case10) {
 
 TEST_F(InstantaneousMixing, Case11) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network6.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case11.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network6.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case11.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);
@@ -764,8 +764,8 @@ TEST_F(InstantaneousMixing, Case11) {
 
 TEST_F(InstantaneousMixing, Case12) {
     // Define JSON files
-    std::string networkFile = "../examples/Abstract/Mixing/Network6.JSON";
-    std::string simFile = "../examples/Abstract/Mixing/Case12.JSON";
+    std::string networkFile = "../examples/Abstract/Concentration/Network6.JSON";
+    std::string simFile = "../examples/Abstract/Concentration/Case12.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(networkFile);

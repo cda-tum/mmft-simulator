@@ -81,10 +81,10 @@ template<typename T>
 auto writeFluids (const sim::Simulation<T>* simulation);
 
 template<typename T>
-auto writeMixtures (const sim::AbstractMixing<T>* simulation);
+auto writeMixtures (const sim::AbstractConcentration<T>* simulation);
 
 template<typename T>
-auto writeMixtures (json& jsonString, const result::State<T>* state, const sim::AbstractMixing<T>* simulation);
+auto writeMixtures (json& jsonString, const result::State<T>* state, const sim::AbstractConcentration<T>* simulation);
 
 /**
  * @brief Return the simulation type of the simulation

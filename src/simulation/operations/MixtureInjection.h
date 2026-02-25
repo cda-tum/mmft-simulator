@@ -30,7 +30,7 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
-class AbstractMixing;
+class AbstractConcentration;
 
 template<typename T>
 class ConcentrationSemantics;
@@ -71,7 +71,7 @@ class MixtureInjection final {
 
     /**
      * @brief A static member function that returns the amount of MixtureInjection objects that have been created.
-     * Is used in (friend) AbstractMixing<T>::addMixtureInjection() to create a mixture object and add it to the simulation.
+     * Is used in (friend) AbstractConcentration<T>::addMixtureInjection() to create a mixture object and add it to the simulation.
      * @returns The number of created MixtureInjection objects: injectionCounter.
      */
     static size_t getMixtureInjectionCounter() { return injectionCounter; }
@@ -151,7 +151,7 @@ class MixtureInjection final {
     inline void setInjectionChannel(arch::Channel<T>* channel) { this->injectionChannel = channel; }
 
     // Friend classes that need access to private member functions
-    friend class AbstractMixing<T>;
+    friend class AbstractConcentration<T>;
     friend class ConcentrationSemantics<T>;
     friend class InstantaneousMixingModel<T>;
     friend class MixtureInjectionEvent<T>;

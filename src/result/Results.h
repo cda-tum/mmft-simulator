@@ -42,7 +42,7 @@ template<typename T>
 class AbstractDroplet;
 
 template<typename T>
-class AbstractMixing;
+class AbstractConcentration;
 
 template<typename T>
 class HybridContinuous;
@@ -307,7 +307,7 @@ public:
     friend class sim::Simulation<T>;
     friend class sim::AbstractContinuous<T>;
     friend class sim::AbstractDroplet<T>;
-    friend class sim::AbstractMixing<T>;
+    friend class sim::AbstractConcentration<T>;
     friend class sim::HybridContinuous<T>;
     friend class sim::HybridMixing<T>;
     friend class sim::CfdContinuous<T>;
