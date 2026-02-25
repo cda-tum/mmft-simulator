@@ -380,7 +380,7 @@ std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::addDiffusiveMixture(const
     auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(simHash, id, std::move(speciesMap), std::move(specieConcentrationsMap), std::move(specieDistributions), carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
-    return result.first->second.=;
+    return result.first->second;
 }
 
 template<typename T>

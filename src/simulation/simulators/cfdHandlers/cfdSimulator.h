@@ -44,6 +44,9 @@ class NodalAnalysis;
 namespace sim {
 
 template<typename T>
+class MixingModel;
+
+template<typename T>
 class InstantaneousMixingModel;
 
 template<typename T>
