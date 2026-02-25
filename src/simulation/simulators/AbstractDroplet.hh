@@ -3,7 +3,7 @@
 namespace sim {
 
     template<typename T>
-    AbstractDroplet<T>::AbstractDroplet(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Abstract, Platform::BigDroplet, network) { }
+    AbstractDroplet<T>::AbstractDroplet(std::shared_ptr<arch::Network<T>> network) : Simulation<T>(Type::Abstract, Platform::Droplet, network) { }
 
     template<typename T>
     std::shared_ptr<Droplet<T>> AbstractDroplet<T>::addDroplet(int fluidId, T volume) {

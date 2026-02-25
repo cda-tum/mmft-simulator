@@ -166,7 +166,7 @@
     ]
 },
 "simulation": {
-    "platform": "Mixing",
+    "platform": "Concentration",
     "type": "Hybrid",
     "resistanceModel": "Poiseuille",
     "mixingModel": "Instantaneous",

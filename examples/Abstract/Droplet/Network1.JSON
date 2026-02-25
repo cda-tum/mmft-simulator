@@ -80,7 +80,7 @@
     ]
 },
 "simulation": {
-    "platform": "BigDroplet",
+    "platform": "Droplet",
     "type": "Abstract",
     "resistanceModel": "Rectangular",
     "fluids": [
@@ -106,7 +106,7 @@
         {
             "name": "Setup #1",
             "phase": 0,
-            "bigDropletInjections": [
+            "dropletInjections": [
                 {
                     "fluid": 1,
                     "volume": 4.5e-13,

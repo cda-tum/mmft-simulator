@@ -27,10 +27,13 @@ void bind_enums(py::module_& m) {
 
 	py::enum_<sim::Type>(m, "Type")
 		.value("abstract", sim::Type::Abstract)
-		.value("hybrid", sim::Type::Hybrid);
+		.value("hybrid", sim::Type::Hybrid)
+		.value("cfd", sim::Type::CFD);
 
 	py::enum_<sim::Platform>(m, "Platform")
 		.value("continuous", sim::Platform::Continuous)
-		.value("bigDroplet", sim::Platform::BigDroplet);
+		.value("concentration", sim::Platform::Concentration)
+		.value("droplet", sim::Platform::Droplet)
+		.value("membrane", sim::Platform::Membrane);
 
 }

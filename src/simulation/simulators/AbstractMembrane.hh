@@ -3,14 +3,14 @@
 namespace sim {
 
     template<typename T>
-    AbstractMembrane<T>::AbstractMembrane(std::shared_ptr<arch::Network<T>> network) : AbstractMixing<T>(Type::Abstract, Platform::Membrane, network) {
+    AbstractMembrane<T>::AbstractMembrane(std::shared_ptr<arch::Network<T>> network) : AbstractConcentration<T>(Type::Abstract, Platform::Membrane, network) {
         // Default membrane model upon construction
         this->setMembraneModel9();
     }
 
     template<typename T>
     void AbstractMembrane<T>::assertInitialized() const {
-        AbstractMixing<T>::assertInitialized();     // Assert initialization for base class.
+        AbstractConcentration<T>::assertInitialized();     // Assert initialization for base class.
         if (this->membraneModel == nullptr) {
             throw std::logic_error("Simulation not initialized: Mixing model is not set for Mixing platform.");
         }

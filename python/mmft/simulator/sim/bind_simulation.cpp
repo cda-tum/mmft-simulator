@@ -43,7 +43,7 @@
 #include "simulation/simulators/Simulation.hh"
 #include "simulation/simulators/AbstractContinuous.hh"
 #include "simulation/simulators/AbstractDroplet.hh"
-#include "simulation/simulators/AbstractMixing.hh"
+#include "simulation/simulators/AbstractConcentration.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
 #include "simulation/simulators/HybridMixing.hh"
@@ -199,13 +199,13 @@ void bind_abstractMembrane(py::module_& m) {
 
 }
 
-void bind_abstractMixing(py::module_& m) {
+void bind_AbstractConcentration(py::module_& m) {
 
-	py::class_<sim::AbstractMixing<T>, sim::Simulation<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "AbstractMixing")
+	py::class_<sim::AbstractConcentration<T>, sim::Simulation<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "AbstractConcentration")
 		.def(py::init<std::shared_ptr<arch::Network<T>>>())
 		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
 				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
-				return std::shared_ptr<sim::AbstractMixing<T>>(dynamic_cast<sim::AbstractMixing<T>*>(tmpPtr.release()));
+				return std::shared_ptr<sim::AbstractConcentration<T>>(dynamic_cast<sim::AbstractConcentration<T>*>(tmpPtr.release()));
 			}));
 }
 

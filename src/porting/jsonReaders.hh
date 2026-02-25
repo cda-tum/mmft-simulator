@@ -74,18 +74,18 @@ template<typename T>
 sim::Platform readPlatform(json jsonString) {
     sim::Platform platform = sim::Platform::Continuous;
     if (!jsonString["simulation"].contains("platform")) {
-        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
+        throw std::invalid_argument("Please define a platform. The following platforms are possible:\nContinuous\nConcentration\nDroplet\nMembrane");
     }
     if (jsonString["simulation"]["platform"] == "Continuous") {
         return platform;
-    } else if (jsonString["simulation"]["platform"] == "BigDroplet") {
-        platform = sim::Platform::BigDroplet;
-    } else if (jsonString["simulation"]["platform"] == "Mixing") {
-        platform = sim::Platform::Mixing;
-    } else if (jsonString["simulation"]["platform"] == "Ooc") {
-        platform = sim::Platform::Ooc;
+    } else if (jsonString["simulation"]["platform"] == "Droplet") {
+        platform = sim::Platform::Droplet;
+    } else if (jsonString["simulation"]["platform"] == "Concentration") {
+        platform = sim::Platform::Concentration;
+    } else if (jsonString["simulation"]["platform"] == "Membrane") {
+        platform = sim::Platform::Membrane;
     } else {
-        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nBigDroplet\nMixing\nOoc");
+        throw std::invalid_argument("Platform is invalid. The following platforms are possible:\nContinuous\nConcentration\nDroplet\nMembrane");
     }
     return platform;
 } 
@@ -207,8 +207,8 @@ void readMixtures(json jsonString, sim::ConcentrationSemantics<T>& simulation) {
 
 template<typename T>
 void readDropletInjections(json jsonString, sim::AbstractDroplet<T>& simulation, int activeFixture) {
-    if (jsonString["simulation"]["fixtures"][activeFixture].contains("bigDropletInjections")) {
-        for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["bigDropletInjections"]) {
+    if (jsonString["simulation"]["fixtures"][activeFixture].contains("dropletInjections")) {
+        for (auto& injection : jsonString["simulation"]["fixtures"][activeFixture]["dropletInjections"]) {
             int fluid = injection["fluid"];
             T volume = injection["volume"];
             auto newDroplet = simulation.addDroplet(fluid, volume);

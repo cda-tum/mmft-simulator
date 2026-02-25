@@ -1,5 +1,5 @@
 /**
- * @file AbstractMixing.h
+ * @file AbstractConcentration.h
  */
 
 #pragma once
@@ -52,7 +52,7 @@ class Specie;
  * @brief Class that conducts a abstract continuous simulation
  */
 template<typename T>
-class AbstractMixing : public Simulation<T>, public ConcentrationSemantics<T> {
+class AbstractConcentration : public Simulation<T>, public ConcentrationSemantics<T> {
 
 protected:
 
@@ -74,7 +74,7 @@ protected:
      * @param[in] platform Simulation platform of the derived simulation object.
      * @param[in] network Pointer to the network object, in which the simulation takes place.
      */
-    AbstractMixing(Type simType, Platform platform, std::shared_ptr<arch::Network<T>> network);
+    AbstractConcentration(Type simType, Platform platform, std::shared_ptr<arch::Network<T>> network);
     
     void saveState() override;
 
@@ -92,7 +92,7 @@ public:
      * @throws std::logic_error if the network is null.
      * @note The mixing model is defaulted to an InstantaneousMixingModel.
      */
-    AbstractMixing(std::shared_ptr<arch::Network<T>> network);
+    AbstractConcentration(std::shared_ptr<arch::Network<T>> network);
 
     /**
      * @brief Abstract mixing simulation for flow with species concentrations.

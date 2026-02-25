@@ -31,7 +31,7 @@ class MembraneModel;
  * @brief Class that conducts an abstract continuous simulation
  */
 template<typename T>
-class AbstractMembrane final : public AbstractMixing<T> {
+class AbstractMembrane final : public AbstractConcentration<T> {
 private:
     std::unique_ptr<MembraneModel<T>> membraneModel = nullptr;                                          ///< The membrane model used for an OoC simulation.
 

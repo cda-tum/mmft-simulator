@@ -79,14 +79,14 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
             readPumps<T>(jsonString, network_.get());
-        } else if (platform == sim::Platform::BigDroplet) {
+        } else if (platform == sim::Platform::Droplet) {
             simPtr = std::make_unique<sim::AbstractDroplet<T>>(network_);
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
             readPumps<T>(jsonString, network_.get());
             readDropletInjections<T>(jsonString, *(dynamic_cast<sim::AbstractDroplet<T>*>(simPtr.get())), activeFixture);
-        } else if (platform == sim::Platform::Mixing) {
-            simPtr = std::make_unique<sim::AbstractMixing<T>>(network_);
+        } else if (platform == sim::Platform::Concentration) {
+            simPtr = std::make_unique<sim::AbstractConcentration<T>>(network_);
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
             readPumps<T>(jsonString, network_.get());
@@ -112,7 +112,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             readResistanceModel<T>(jsonString, *simPtr);
             readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())), network_.get());
             readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())));
-        } else if (platform == sim::Platform::Mixing) {
+        } else if (platform == sim::Platform::Concentration) {
             simPtr = std::make_unique<sim::HybridMixing<T>>(network_);
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
@@ -139,7 +139,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             // readSimulators<T>(jsonString, *simPtr, network_);
             // readUpdateScheme(jsonString, *simPtr);
             // network_->sortGroups();
-        } else if (platform == sim::Platform::BigDroplet) {
+        } else if (platform == sim::Platform::Droplet) {
             throw std::invalid_argument("Droplet simulations are currently only supported for Abstract simulations.");
         } else {
             throw std::invalid_argument("Invalid platform for Hybrid simulation. Please select one of the following:\n\tcontinuous");
@@ -197,8 +197,8 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
         if (simulation->getPlatform() == sim::Platform::Continuous && simulation->getType() == sim::Type::Hybrid) {
             jsonState["modules"] = writeModules(state.get());
         }
-        if (simulation->getPlatform() == sim::Platform::BigDroplet && simulation->getType() == sim::Type::Abstract) {
-            jsonState["bigDroplets"] = writeDroplets(state.get(), dynamic_cast<sim::AbstractDroplet<T>*>(simulation));
+        if (simulation->getPlatform() == sim::Platform::Droplet && simulation->getType() == sim::Type::Abstract) {
+            jsonState["Droplets"] = writeDroplets(state.get(), dynamic_cast<sim::AbstractDroplet<T>*>(simulation));
         }
         jsonStates.push_back(jsonState);
     }
@@ -207,8 +207,8 @@ nlohmann::ordered_json resultToJSON(sim::Simulation<T>* simulation) {
     jsonResult["type"] = writeSimType(simulation);
     jsonResult["platform"] = writeSimPlatform(simulation);
     jsonResult["fluids"] =  writeFluids(simulation);
-    if (simulation->getPlatform() == sim::Platform::Mixing && simulation->getType() == sim::Type::Abstract) {
-        jsonResult["mixtures"] = writeMixtures(dynamic_cast<sim::AbstractMixing<T>*>(simulation));
+    if (simulation->getPlatform() == sim::Platform::Concentration && simulation->getType() == sim::Type::Abstract) {
+        jsonResult["mixtures"] = writeMixtures(dynamic_cast<sim::AbstractConcentration<T>*>(simulation));
     }
     jsonResult.push_back({"network", jsonStates});
 
