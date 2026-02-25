@@ -199,7 +199,7 @@ void bind_abstractMembrane(py::module_& m) {
 
 }
 
-void bind_AbstractConcentration(py::module_& m) {
+void bind_abstractConcentration(py::module_& m) {
 
 	py::class_<sim::AbstractConcentration<T>, sim::Simulation<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "AbstractConcentration")
 		.def(py::init<std::shared_ptr<arch::Network<T>>>())
