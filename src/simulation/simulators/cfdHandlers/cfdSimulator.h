@@ -53,7 +53,7 @@ template<typename T>
 class DiffusionMixingModel;
 
 template<typename T>
-class HybridMixing;
+class HybridConcentration;
 
 template<typename T>
 class Specie;
@@ -415,7 +415,7 @@ public:
     friend void coupleNsAdLattices<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
     friend bool conductADSimulation<T>(const std::unordered_map<int, std::shared_ptr<CFDSimulator<T>>>& cfdSimulators);
     friend class HybridContinuous<T>;
-    friend class HybridMixing<T>;
+    friend class HybridConcentration<T>;
     friend class InstantaneousMixingModel<T>;
     friend class DiffusionMixingModel<T>;
     friend class nodal::NodalAnalysis<T>;

@@ -29,7 +29,7 @@
 #include "simulation/simulators/AbstractDroplet.h"
 #include "simulation/simulators/AbstractMembrane.h"
 #include "simulation/simulators/HybridContinuous.h"
-#include "simulation/simulators/HybridMixing.h"
+#include "simulation/simulators/HybridConcentration.h"
 #include "simulation/simulators/CfdContinuous.h"
 #include "simulation/simulators/CfdConcentration.h"
 

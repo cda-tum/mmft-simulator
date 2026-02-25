@@ -113,7 +113,7 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())), network_.get());
             readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridContinuous<T>*>(simPtr.get())));
         } else if (platform == sim::Platform::Concentration) {
-            simPtr = std::make_unique<sim::HybridMixing<T>>(network_);
+            simPtr = std::make_unique<sim::HybridConcentration<T>>(network_);
             simPtr->setFixtureId(activeFixture);
             readFluids<T>(jsonString, *simPtr);
             readContinuousPhase<T>(jsonString, *simPtr, activeFixture);
@@ -122,8 +122,8 @@ std::unique_ptr<sim::Simulation<T>> simulationFromJSON(json jsonString, std::sha
             readSpecies<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
             readMixtures<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())));
             readMixtureInjections<T>(jsonString, *(dynamic_cast<sim::ConcentrationSemantics<T>*>(simPtr.get())), activeFixture);
-            readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridMixing<T>*>(simPtr.get())), network_.get());
-            readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridMixing<T>*>(simPtr.get())));
+            readSimulators<T>(jsonString, *(dynamic_cast<sim::HybridConcentration<T>*>(simPtr.get())), network_.get());
+            readUpdateScheme(jsonString, *(dynamic_cast<sim::HybridConcentration<T>*>(simPtr.get())));
         } else if (platform == sim::Platform::Ooc) {
             throw std::invalid_argument("OoC simulations are currently not supported.");
             /** TODO: HybridOocSimulation

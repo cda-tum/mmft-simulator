@@ -275,7 +275,7 @@ public:
 //  * @brief Class that conducts a abstract continuous simulation
 //  */
 // template<typename T>
-// class HybridOoc final : public HybridMixing<T> {
+// class HybridOoc final : public HybridConcentration<T> {
 // private:
 //     /**
 //      * @brief Constructor of the hybrid mixing simulator object
