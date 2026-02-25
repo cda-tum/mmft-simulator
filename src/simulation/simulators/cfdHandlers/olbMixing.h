@@ -30,7 +30,7 @@ namespace sim {
    
 // Forward declared dependencies
 template<typename T>
-class HybridMixing;
+class HybridConcentration;
 template<typename T>
 class CfdConcentration;
 
@@ -317,7 +317,7 @@ public:
      */
     void writeConcentrationPpm(size_t adKey, T min, T max, int imgResolution) override;
 
-    friend class HybridMixing<T>;
+    friend class HybridConcentration<T>;
     friend class CfdConcentration<T>;
 };
 

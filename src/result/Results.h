@@ -48,7 +48,7 @@ template<typename T>
 class HybridContinuous;
 
 template<typename T>
-class HybridMixing;
+class HybridConcentration;
 }
 
 namespace result {
@@ -309,7 +309,7 @@ public:
     friend class sim::AbstractDroplet<T>;
     friend class sim::AbstractConcentration<T>;
     friend class sim::HybridContinuous<T>;
-    friend class sim::HybridMixing<T>;
+    friend class sim::HybridConcentration<T>;
     friend class sim::CfdContinuous<T>;
 };
 

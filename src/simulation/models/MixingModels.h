@@ -39,7 +39,7 @@ template<typename T>
 class AbstractMembrane;
 
 template<typename T>
-class HybridMixing;
+class HybridConcentration;
 
 template<typename T>
 class Fluid;
@@ -109,7 +109,7 @@ public:
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    virtual void propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) = 0;
+    virtual void propagateSpecies(arch::Network<T>* network, HybridConcentration<T>* sim) = 0;
 
     /**
      * @brief Returns the current minimal timestep.
@@ -281,14 +281,14 @@ public:
     /**
      * @brief Propagate all the species through a network for a steady-state simulation
      */
-    void propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) override;
+    void propagateSpecies(arch::Network<T>* network, HybridConcentration<T>* sim) override;
 
     /**
      * @brief From the mixtureInjections and CFD simulators, generate temporary mxtures that 
      * flow into the network at correspondingnode entry points.
      * @param[in] sim Pointer to the simulation.
      */
-    void initNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+    void initNodeOutflow(HybridConcentration<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
     /**
      * @brief Propagate the mixtures through the corresponding channel entirely, without considering time steps
@@ -298,9 +298,9 @@ public:
     /**
      * @brief From the node's inflows, generate the node outflow
      */
-    bool updateNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
+    bool updateNodeOutflow(HybridConcentration<T>* sim, std::vector<Mixture<T>>& tmpMixtures);
 
-    void storeConcentrations(HybridMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
+    void storeConcentrations(HybridConcentration<T>* sim, const std::vector<Mixture<T>>& tmpMixtures);
 
     /**
      * @brief Print all mixtures and their positions in the network.
@@ -357,7 +357,7 @@ public:
     /**
      * @brief Generate a new inflow in case a mixture has reached channel end for hybrid simulation. Invoked by propagateSpecies.
     */
-    void generateInflows(arch::Network<T>* network, HybridMixing<T>* sim);
+    void generateInflows(arch::Network<T>* network, HybridConcentration<T>* sim);
 
     void topologyAnalysis(arch::Network<T>* network, size_t nodeId);
 
@@ -366,7 +366,7 @@ public:
      * @param[in] network Pointer to the network.
      * @param[in] sim Pointer to the hybrid mixing simulation.
      */
-    void propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) override;
+    void propagateSpecies(arch::Network<T>* network, HybridConcentration<T>* sim) override;
 
     /**
      * @brief Initialize the node outflow from mixture injections and CFD simulators by updating 
@@ -374,7 +374,7 @@ public:
      * @param[in] sim Pointer to the hybrid mixing simulation.
      * @param[in] network Pointer to the network.
      */
-    void introduceMixtures(HybridMixing<T>* sim, arch::Network<T>* network);
+    void introduceMixtures(HybridConcentration<T>* sim, arch::Network<T>* network);
 
     /**
      * @brief Propagate the mixtures through one entire channel, without considering time steps,
@@ -388,7 +388,7 @@ public:
      * @param[in] network Pointer to the network.
      * @param[in] sim Pointer to the hybrid mixing simulation.
      */
-    void storeConcentrationProfiles(arch::Network<T>* network, HybridMixing<T>* sim);
+    void storeConcentrationProfiles(arch::Network<T>* network, HybridConcentration<T>* sim);
 
     void printTopology();
 

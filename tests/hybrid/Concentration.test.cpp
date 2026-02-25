@@ -61,7 +61,7 @@ TEST_F(HybridConcentration, Case1a_Instantaneous) {
     network->setPressurePump(c2->getId(), pressure);
 
     // define simulation
-    sim::HybridMixing<T> testSimulation(network);
+    sim::HybridConcentration<T> testSimulation(network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
@@ -180,7 +180,7 @@ TEST_F(HybridConcentration, Case1a_Diffusive) {
     network->setPressurePump(c2->getId(), pressure);
 
     // define simulation
-    sim::HybridMixing<T> testSimulation(network);
+    sim::HybridConcentration<T> testSimulation(network);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3);

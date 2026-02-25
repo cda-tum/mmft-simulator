@@ -6,7 +6,7 @@ set(SOURCE_LIST
     AbstractMembrane.hh
     CFDSim.hh
     HybridContinuous.hh
-    HybridMixing.hh
+    HybridConcentration.hh
     CfdContinuous.hh
 )
 
@@ -18,7 +18,7 @@ set(HEADER_LIST
     AbstractMembrane.h
     CFDSim.h
     HybridContinuous.h
-    HybridMixing.h
+    HybridConcentration.h
     CfdContinuous.h
 )
 

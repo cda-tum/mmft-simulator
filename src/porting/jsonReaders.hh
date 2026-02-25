@@ -277,7 +277,7 @@ void readSimulators(json jsonString, sim::HybridContinuous<T>& simulation, arch:
 }
 
 template<typename T>
-void readSimulators(json jsonString, sim::HybridMixing<T>& simulation, arch::Network<T>* network) {
+void readSimulators(json jsonString, sim::HybridConcentration<T>& simulation, arch::Network<T>* network) {
         std::string vtkFolder;
         if (!jsonString["simulation"]["settings"].contains("simulators") || jsonString["simulation"]["settings"]["simulators"].empty()) {
             throw std::invalid_argument("Hybrid simulation type was set, but no CFD simulators were defined.");

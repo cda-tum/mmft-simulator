@@ -23,7 +23,7 @@
 #include "simulation/simulators/AbstractDroplet.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
-#include "simulation/simulators/HybridMixing.hh"
+#include "simulation/simulators/HybridConcentration.hh"
 #include "simulation/simulators/CfdContinuous.hh"
 #include "simulation/simulators/CfdConcentration.hh"
 

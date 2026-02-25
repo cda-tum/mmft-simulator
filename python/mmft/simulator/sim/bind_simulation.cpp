@@ -46,7 +46,7 @@
 #include "simulation/simulators/AbstractConcentration.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
-#include "simulation/simulators/HybridMixing.hh"
+#include "simulation/simulators/HybridConcentration.hh"
 #include "simulation/simulators/CfdContinuous.hh"
 #include "simulation/simulators/CfdConcentration.hh"
 
@@ -240,24 +240,28 @@ void bind_hybridContinuous(py::module_& m) {
 
 }
 
-void bind_hybridMixing(py::module_& m) {
+void bind_hybridConcentration(py::module_& m) {
 
-	py::class_<sim::HybridMixing<T>, sim::HybridContinuous<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "HybridMixing")
+	py::class_<sim::HybridConcentration<T>, sim::HybridContinuous<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "HybridConcentration")
 		.def(py::init<std::shared_ptr<arch::Network<T>>>())
 		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
 				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
-				return std::shared_ptr<sim::HybridMixing<T>>(dynamic_cast<sim::HybridMixing<T>*>(tmpPtr.release()));
+				return std::shared_ptr<sim::HybridConcentration<T>>(dynamic_cast<sim::HybridConcentration<T>*>(tmpPtr.release()));
 			}))
-		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, std::string>(&sim::HybridMixing<T>::addLbmSimulator),
+		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, std::string>(&sim::HybridConcentration<T>::addLbmSimulator),
 			py::arg("module"), py::arg("name")="", "Add a LBM simulator to the hybrid mixing simulation.")
-		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, size_t, std::string>(&sim::HybridMixing<T>::addLbmSimulator),
+		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, size_t, std::string>(&sim::HybridConcentration<T>::addLbmSimulator),
 			py::arg("module"), py::arg("resolution"), py::arg("name")="", "Add a LBM simulator to the hybrid mixing simulation.")
-		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, size_t, T, T, T, T, T, std::string>(&sim::HybridMixing<T>::addLbmSimulator),
+		.def("addLbmSimulator", py::overload_cast<std::shared_ptr<arch::CfdModule<T>> const, size_t, T, T, T, T, T, std::string>(&sim::HybridConcentration<T>::addLbmSimulator),
 			py::arg("module"), py::arg("resolution"), py::arg("epsilon"), py::arg("tau"), py::arg("adTau"), py::arg("charPhysLength"), py::arg("charPhysVelocity"), py::arg("name")="", 
 			"Add a LBM simulator to the hybrid mixing simulation.")
-		.def("getGlobalConcentrationBounds", &sim::HybridMixing<T>::getGlobalConcentrationBounds, "Returns the global concentration bounds in the CFD simulators.")
-		.def("writeConcentrationPpm", &sim::HybridMixing<T>::writeConcentrationPpm, "Write the concentration field in ppm format for all simulators.")
-		.def("simulate", &sim::HybridMixing<T>::simulate, "Conducts the hybrid mixing simulation.");
+		.def("removeSpecie", &sim::HybridConcentration<T>::removeSpecie, "Removes a species from the simulation.")
+		.def("addSpecie", &sim::HybridConcentration<T>::addSpecie, "Adds a species to the simulation.")
+		.def("setInstantaneousMixingModel", &sim::HybridConcentration<T>::setInstantaneousMixingModel, "Sets the instantaneous mixing model.")
+		.def("setDiffusiveMixingModel", &sim::HybridConcentration<T>::setDiffusiveMixingModel, "Sets the diffusive mixing model.")
+		.def("getGlobalConcentrationBounds", &sim::HybridConcentration<T>::getGlobalConcentrationBounds, "Returns the global concentration bounds in the CFD simulators.")
+		.def("writeConcentrationPpm", &sim::HybridConcentration<T>::writeConcentrationPpm, "Write the concentration field in ppm format for all simulators.")
+		.def("simulate", &sim::HybridConcentration<T>::simulate, "Conducts the hybrid mixing simulation.");
 		
 }
 

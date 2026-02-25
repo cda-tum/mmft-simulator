@@ -158,7 +158,7 @@ void readSimulators (json jsonString, sim::HybridContinuous<T>& simulation, arch
  * @param[in] network pointer to the network
 */
 template<typename T>
-void readSimulators (json jsonString, sim::HybridMixing<T>& simulation, arch::Network<T>* network);
+void readSimulators (json jsonString, sim::HybridConcentration<T>& simulation, arch::Network<T>* network);
 
 /**
  * @brief Construct and stores the update scheme that is used for the Abstract-CFD coupling.

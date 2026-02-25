@@ -91,7 +91,7 @@ template<typename T>
 InstantaneousMixingModel<T>::InstantaneousMixingModel() : MixingModel<T>() { }
 
 template<typename T>
-void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) {
+void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridConcentration<T>* sim) {
 
     std::vector<Mixture<T>> tmpMixtures;
 
@@ -131,7 +131,7 @@ void InstantaneousMixingModel<T>::propagateSpecies(arch::Network<T>* network, Hy
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::initNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
+void InstantaneousMixingModel<T>::initNodeOutflow(HybridConcentration<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     // Add mixture injections
     for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
         int tmpMixtureIndex = tmpMixtures.size();
@@ -196,7 +196,7 @@ void InstantaneousMixingModel<T>::channelPropagation(arch::Network<T>* network) 
 }
 
 template<typename T>
-bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
+bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridConcentration<T>* sim, std::vector<Mixture<T>>& tmpMixtures) {
     bool updated = false;
     // Construct the node outflow based on the node inflow, for each node
     for (auto& [nodeId, mixtureInflowList] : mixtureInflowAtNode) {
@@ -275,7 +275,7 @@ bool InstantaneousMixingModel<T>::updateNodeOutflow(HybridMixing<T>* sim, std::v
 }
 
 template<typename T>
-void InstantaneousMixingModel<T>::storeConcentrations(HybridMixing<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
+void InstantaneousMixingModel<T>::storeConcentrations(HybridConcentration<T>* sim, const std::vector<Mixture<T>>& tmpMixtures) {
     for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
         std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations = cfdSimulator->getConcentrations();
         for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
@@ -944,7 +944,7 @@ void DiffusionMixingModel<T>::topologyAnalysis( arch::Network<T>* network, size_
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridMixing<T>* sim) {
+void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, HybridConcentration<T>* sim) {
     
     // Define total inflow volume at nodes
     updatedChannels.clear();
@@ -972,7 +972,7 @@ void DiffusionMixingModel<T>::propagateSpecies(arch::Network<T>* network, Hybrid
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::introduceMixtures(HybridMixing<T>* sim, arch::Network<T>* network) {
+void DiffusionMixingModel<T>::introduceMixtures(HybridConcentration<T>* sim, arch::Network<T>* network) {
     // Add mixture injections
     for (auto& [key, mixtureInjection] : sim->getMixtureInjections()) {
         this->injectMixtureInEdge(mixtureInjection->getId(), mixtureInjection->getInjectionChannel()->getId(), 0.0);
@@ -1043,7 +1043,7 @@ void DiffusionMixingModel<T>::updateNodeInflow(arch::Network<T>* network) {
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::generateInflows(arch::Network<T>* network, HybridMixing<T>* sim) {
+void DiffusionMixingModel<T>::generateInflows(arch::Network<T>* network, HybridConcentration<T>* sim) {
     auto mixtures = sim->getMixtures();
     // Due to the nature of the diffusive mixing model, per definition a new mixture is created.
     // It is unlikely that this exact mixture, with same species and functions already exists
@@ -1116,7 +1116,7 @@ void DiffusionMixingModel<T>::generateInflows(arch::Network<T>* network, HybridM
 }
 
 template<typename T>
-void DiffusionMixingModel<T>::storeConcentrationProfiles(arch::Network<T>* network, HybridMixing<T>* sim) {
+void DiffusionMixingModel<T>::storeConcentrationProfiles(arch::Network<T>* network, HybridConcentration<T>* sim) {
     for (auto& [key, cfdSimulator] : sim->readCFDSimulators()) {
         std::unordered_map<size_t, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>>> concentrationProfiles;
         for (auto& [nodeId, opening] : cfdSimulator->getModule()->getOpenings()) {
