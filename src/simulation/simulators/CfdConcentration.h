@@ -48,11 +48,12 @@ class Specie;
  * @brief Class that conducts a CFD continuous simulation
  */
 template<typename T>
-class CfdMixing : public CfdContinuous<T>, public ConcentrationSemantics<T> {
+class CfdConcentration : public CfdContinuous<T>, public ConcentrationSemantics<T> {
 private:
 
     T adRelaxationTime = 0.932;                 ///< Relaxation time (tau) for the advection-diffusion LBM solver.
     std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrationBCs;     ///< Map of concentration BCs at dangling nodes. <nodeId, <specieId, concentration>>
+    std::unordered_map<size_t, T> setInitialConcentrations;
     std::shared_ptr<lbmMixingSimulator<T>> mixingSimulator = nullptr;           ///< The set of CFD simulator, that conducts the CFD simulations on <arch::Network>.
 
 protected:
@@ -72,7 +73,7 @@ public:
      * @param[in] radialResolution The resolution of radial objects in the STL definition of the network
      * @note This constructor constructs the simulation STL shape from a given network
      */
-    CfdMixing(std::shared_ptr<arch::Network<T>> network, int radialResolution=25);
+    CfdConcentration(std::shared_ptr<arch::Network<T>> network, int radialResolution=25);
 
     /**
      * @brief Constructor of the CFD mixing simulator object using an stlFile and openings as basis for the STL definition.
@@ -81,10 +82,27 @@ public:
      * @param[in] stlFile The STL file that defines the CFD domain shape
      * @param[in] openings The map of openings that define the idle nodes
      */
-    CfdMixing(std::vector<T> position,
+    CfdConcentration(std::vector<T> position,
                 std::vector<T> size,
                 std::string stlFile,
                 std::unordered_map<size_t, arch::Opening<T>> openings);
+
+    /**
+     * @brief Create and add a specie to the simulation.
+     * @param[in] diffusivity Diffusion coefficient of the specie in the carrier medium in m^2/s.
+     * @param[in] satConc Saturation concentration of the specie in the carrier medium in g/m^3.
+     * @param[in] initialConcentration Initial concentration of the specie in the carrier medium in g/m^3.
+     * @return Pointer to created specie.
+     */
+    [[maybe_unused]] std::shared_ptr<Specie<T>> addSpecie(T diffusivity, T satConc, T initialConcentration);
+
+    /**
+     * @brief Remove specie from the simulator. If a mixture contains the specie, it is removed from the mixture as well.
+     * A mixture consisting of a single specie is removed from the simulation.
+     * @param[in] specie The specie to be removed.
+     * @throws std::logic_error if the specie is not present in the simulation.
+     */
+    void removeSpecie(const std::shared_ptr<Specie<T>>& specie) override;
 
     /**
      * @note Adding a BC is only possible for domains that have been constructed using a network.

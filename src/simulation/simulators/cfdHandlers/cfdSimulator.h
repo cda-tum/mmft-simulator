@@ -55,6 +55,9 @@ class DiffusionMixingModel;
 template<typename T>
 class HybridMixing;
 
+template<typename T>
+class Specie;
+
 /**
  * @brief Class to specify a module, which is a functional component in a network.
 */
@@ -272,6 +275,16 @@ protected:
      * @brief Set the update scheme for Abstract-CFD coupling for this simulator.
      */
     inline void setUpdateScheme(mmft::Scheme<T>* updateScheme) { this->updateScheme = updateScheme; }
+
+    virtual bool addSpecie(size_t specieId, const Specie<T>* specie, T initialConcentration) 
+    {
+        throw std::runtime_error("The function addSpecie is undefined for this CFD simulator.");
+    }
+
+    virtual bool removeSpecie(size_t specieId) 
+    {
+        throw std::runtime_error("The function removeSpecie is undefined for this CFD simulator.");
+    }
 
 public:
     

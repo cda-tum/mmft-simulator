@@ -38,6 +38,8 @@ class lbmMixingSimulator;
 template<typename T>
 class HybridMixing : public HybridContinuous<T>, public ConcentrationSemantics<T> {
 private:
+    std::unordered_map<size_t, T> setInitialConcentrations;
+    
     void assertInitialized() const override;
 
     /** TODO: HybridMixing */
@@ -86,7 +88,24 @@ public:
      * @note No simulation parameters are defaulted in this function overload.
     */
     [[maybe_unused]] std::shared_ptr<lbmSimulator<T>> addLbmSimulator(std::shared_ptr<arch::CfdModule<T>> const module, 
-        size_t resolution, T epsilon, T tau, T adTau, T charPhysLength, T charPhysVelocity, std::string name="");                        
+        size_t resolution, T epsilon, T tau, T adTau, T charPhysLength, T charPhysVelocity, std::string name="");    
+        
+    /**
+     * @brief Create and add a specie to the simulation.
+     * @param[in] diffusivity Diffusion coefficient of the specie in the carrier medium in m^2/s.
+     * @param[in] satConc Saturation concentration of the specie in the carrier medium in g/m^3.
+     * @param[in] initialConcentration Initial concentration of the specie in the carrier medium in g/m^3.
+     * @return Pointer to created specie.
+     */
+    [[maybe_unused]] std::shared_ptr<Specie<T>> addSpecie(T diffusivity, T satConc, T initialConcentration);
+
+    /**
+     * @brief Remove specie from the simulator. If a mixture contains the specie, it is removed from the mixture as well.
+     * A mixture consisting of a single specie is removed from the simulation.
+     * @param[in] specie The specie to be removed.
+     * @throws std::logic_error if the specie is not present in the simulation.
+     */
+    void removeSpecie(const std::shared_ptr<Specie<T>>& specie) override;
         
     /**
      * @brief Sets an instantaneous mixing model for the simulation.

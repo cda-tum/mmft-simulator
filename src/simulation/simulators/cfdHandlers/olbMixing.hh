@@ -91,6 +91,30 @@ void lbmMixingSimulator<T>::setBoundaryValues (int iT) {
 }
 
 template<typename T>
+bool lbmMixingSimulator<T>::addSpecie(size_t id, const Specie<T>* specie, T bulkConcentration) {
+    auto result = species.try_emplace(id, specie);
+    if (result.second) {
+        bulkConcentrations.try_emplace(id, bulkConcentration);
+    }
+    return result.second;
+}
+
+template<typename T>
+bool lbmMixingSimulator<T>::removeSpecie(size_t id) {
+    bulkConcentrations.erase(id);
+    return species.erase(id) > 0;
+}
+
+template<typename T>
+bool lbmMixingSimulator<T>::setBulkConcentration(size_t specieId, T bulkConcentration) {
+    if (species.find(specieId) == species.end()) {
+        return false;
+    }
+    bulkConcentrations.try_emplace(specieId, bulkConcentration);
+    return true;
+}
+
+template<typename T>
 void lbmMixingSimulator<T>::setConcBoundaryValues (int iT) {
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         if (!diffusiveBC) {
@@ -260,11 +284,6 @@ void lbmMixingSimulator<T>::writeVTK (int iT) {
     if (iT %1000 == 0) {
         #ifdef VERBOSE
             std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
-            for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
-                for (auto& [speciesId, adLattice] : adLattices) {
-                    meanConcentrations.at(key).at(speciesId)->print();
-                }
-            }
         #endif
     }
 
@@ -349,6 +368,7 @@ void lbmMixingSimulator<T>::solveCFD(size_t maxIter) {
         for (auto& [speciesId, adLattice] : adLattices) {
             // this->getLattice().executeCoupling();
             adLattice->collideAndStream();
+            adConverges.at(speciesId)->takeValue(adLattice->getStatistics().getAverageRho(),true);
         }
         this->getStep() += 1;
     }
@@ -417,7 +437,7 @@ void lbmMixingSimulator<T>::initAdConverters (T density) {
             this->getCharPhysLength(),
             this->getCharPhysVelocity(),
             specie->getDiffusivity(),
-            density
+            this->getConverter().getPhysDensity()
         );
         #ifdef VERBOSE
             tempAD->print();
@@ -444,8 +464,9 @@ void lbmMixingSimulator<T>::prepareAdLattice (const T adOmega, size_t speciesId)
 
     // Initial conditions
     std::vector<T> zeroVelocity(T(0), T(0));
-    olb::AnalyticalConst2D<T,T> rhoF(1);
-    olb::AnalyticalConst2D<T,T> rhoZero(0);
+    olb::AnalyticalConst2D<T,T> rhoZero(0.0);
+    olb::AnalyticalConst2D<T,T> rhoF(1.0);
+    olb::AnalyticalConst2D<T,T> rhoBulk(bulkConcentrations.at(speciesId));
     olb::AnalyticalConst2D<T,T> uZero(zeroVelocity);
 
     // Set AD lattice dynamics
@@ -456,10 +477,10 @@ void lbmMixingSimulator<T>::prepareAdLattice (const T adOmega, size_t speciesId)
     // Set initial conditions
     adLattice->defineRhoU(this->getGeometry(), 0, rhoZero, uZero);
     adLattice->iniEquilibrium(this->getGeometry(), 0, rhoZero, uZero);
-    adLattice->defineRhoU(this->getGeometry(), 1, rhoF, uZero);
-    adLattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uZero);
-    adLattice->defineRhoU(this->getGeometry(), 2, rhoF, uZero);
-    adLattice->iniEquilibrium(this->getGeometry(), 2, rhoF, uZero);
+    adLattice->defineRhoU(this->getGeometry(), 1, rhoBulk, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 1, rhoBulk, uZero);
+    adLattice->defineRhoU(this->getGeometry(), 2, rhoBulk, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 2, rhoBulk, uZero);
     
     adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 0, uZero);
     adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 1, uZero);
@@ -467,7 +488,7 @@ void lbmMixingSimulator<T>::prepareAdLattice (const T adOmega, size_t speciesId)
 
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), key+3);
-        adLattice->iniEquilibrium(this->getGeometry(), key+3, rhoF, uZero);
+        adLattice->iniEquilibrium(this->getGeometry(), key+3, rhoBulk, uZero);
         adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), key+3, uZero);
     }
 
@@ -482,7 +503,7 @@ template<typename T>
 void lbmMixingSimulator<T>::initAdLattice(size_t adKey) {
     const T adOmega = getAdConverter(adKey).getLatticeRelaxationFrequency();
     getAdLattice(adKey).template setParameter<olb::descriptors::OMEGA>(adOmega);
-    getAdLattice(adKey).template setParameter<olb::collision::TRT::MAGIC>(1./12.);
+    // getAdLattice(adKey).template setParameter<olb::collision::TRT::MAGIC>(1./12.);   // For a TRT ADDynamics
     getAdLattice(adKey).initialize();
 }
 
@@ -509,7 +530,6 @@ void lbmMixingSimulator<T>::initConcentrationIntegralPlane(size_t adKey) {
 
 template<typename T>
 void lbmMixingSimulator<T>::prepareCoupling() {
-    
     std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLatticesVec;
     std::vector<T> velFactors;
     for (auto& [speciesId, adLattice] : adLattices) {
@@ -535,44 +555,37 @@ void lbmMixingSimulator<T>::initialize(const ResistanceModel<T>* resistanceModel
 
 template<typename T>
 void lbmMixingSimulator<T>::setConcentration2D (int key) {
-    size_t setBC = 0;
     // Set the boundary concentrations for inflows and outflows
     // If the boundary is an inflow
     if (this->getFlowDirection(key) > 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, this->getGeometry(), key+3);
-            olb::AnalyticalConst2D<T,T> one( 1. );
             olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
-            adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
-            setBC++;
+            adLattice->defineRho(this->getGeometry(), key+3, inConc);
         }
     }
     // If the boundary is an outflow or there is no flow
     else if (this->getFlowDirection(key) <= 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
-            setBC++;
         }
     }
 }
 
 template<typename T>
 void lbmMixingSimulator<T>::setConcentrationProfiles2D (int key) {
-    size_t setBC = 0;
     // Set the boundary concentrations for inflows and outflows
     // If the boundary is an inflow
     if (this->getFlowDirection(key) > 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, this->getGeometry(), key+3);
             constructBCProfiles(speciesId, adLattice, key);
-            setBC++;
         }
     }
     // If the boundary is an outflow or there is no flow
     else if (this->getFlowDirection(key) <= 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
-            setBC++;
         }
     }
 }
@@ -610,7 +623,7 @@ void lbmMixingSimulator<T>::constructBCProfiles(size_t speciesId, std::shared_pt
     for (size_t i=0; i<size; i++) {
         T x = i*dx - 0.5*dx;
         T value = std::get<0>(concentrationProfiles.at(key).at(speciesId))(x);
-        adLattice->getBlock(cellCoordinates.at(i).second).get(cellCoordinates.at(i).first[0],cellCoordinates.at(i).first[1]).defineRho(1.0 + value);
+        adLattice->getBlock(cellCoordinates.at(i).second).get(cellCoordinates.at(i).first[0],cellCoordinates.at(i).first[1]).defineRho(value);
     }
 }
 

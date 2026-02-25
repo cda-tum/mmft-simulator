@@ -9,7 +9,7 @@ using T = double;
 
 class HybridConcentration : public test::definitions::GlobalTest<T> {};
 
-/*
+
 TEST_F(HybridConcentration, Case1a_Instantaneous) {
     // define network
     auto network = arch::Network<T>::createNetwork();
@@ -75,7 +75,7 @@ TEST_F(HybridConcentration, Case1a_Instantaneous) {
     testSimulation.setInstantaneousMixingModel();
 
     // mixture
-    auto s1 = testSimulation.addSpecie(1e-9, 1e-1);
+    auto s1 = testSimulation.addSpecie(1e-9, 2.0, 0.0);
     s1->setName("Specie_1");
     auto mixture1 = testSimulation.addMixture(s1, 1e-2);
     testSimulation.addMixtureInjection(mixture1->getId(), c0->getId(), 0.0, 1.0);
@@ -128,7 +128,6 @@ TEST_F(HybridConcentration, Case1a_Instantaneous) {
     testSimulation.getResults()->printMixtures();
 
 }
-*/
 
 TEST_F(HybridConcentration, Case1a_Diffusive) {
     // define network
@@ -195,10 +194,10 @@ TEST_F(HybridConcentration, Case1a_Diffusive) {
     testSimulation.setDiffusiveMixingModel();
 
     // mixture
-    auto s1 = testSimulation.addSpecie(1e-9, 1e-1);
-    s1->setName("Specie_1");
-    auto mixture1 = testSimulation.addMixture(s1, 1.0);
-    auto mixture2 = testSimulation.addMixture(s1, 0.0);
+    auto s1 = testSimulation.addSpecie(1e-9, 2.0, 1.0);
+
+    auto mixture1 = testSimulation.addMixture(s1, 2.0);
+    auto mixture2 = testSimulation.addMixture(s1, 1.0);
     testSimulation.addMixtureInjection(mixture1->getId(), c0->getId(), 0.0, 1.0);
     testSimulation.addMixtureInjection(mixture2->getId(), c1->getId(), 0.0, 1.0);
     testSimulation.addMixtureInjection(mixture2->getId(), c2->getId(), 0.0, 1.0);

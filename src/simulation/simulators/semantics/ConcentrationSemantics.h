@@ -229,7 +229,7 @@ public:
      * @param[in] specie The specie to be removed.
      * @throws std::logic_error if the specie is not present in the simulation.
      */
-    void removeSpecie(const std::shared_ptr<Specie<T>>& specie);
+    virtual void removeSpecie(const std::shared_ptr<Specie<T>>& specie);
 
     /**
      * @brief Create and add a mixture to the simulation, respective to the mixing model. The mixture is composed of a single specie.

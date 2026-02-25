@@ -48,7 +48,7 @@
 #include "simulation/simulators/HybridContinuous.hh"
 #include "simulation/simulators/HybridMixing.hh"
 #include "simulation/simulators/CfdContinuous.hh"
-#include "simulation/simulators/CfdMixing.hh"
+#include "simulation/simulators/CfdConcentration.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"
@@ -333,21 +333,23 @@ void bind_cfdContinuous(py::module_& m) {
 
 }
 
-void bind_cfdMixing(py::module_& m) {
+void bind_cfdConcentration(py::module_& m) {
 
-	py::class_<sim::CfdMixing<T>, sim::CfdContinuous<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "CfdMixing")
+	py::class_<sim::CfdConcentration<T>, sim::CfdContinuous<T>, sim::ConcentrationSemantics<T>, py::smart_holder>(m, "CfdConcentration")
 		.def(py::init<std::shared_ptr<arch::Network<T>>, int>(), py::arg("network"), py::arg("radialResolution")=25)
 		.def(py::init<std::vector<T>, std::vector<T>, std::string, std::unordered_map<size_t, arch::Opening<T>>>())
 		.def(py::init([](std::string file, std::shared_ptr<arch::Network<T>> network){
 				std::unique_ptr<sim::Simulation<T>> tmpPtr = porting::simulationFromJSON<T>(file, network);
 				return std::shared_ptr<sim::CfdContinuous<T>>(dynamic_cast<sim::CfdContinuous<T>*>(tmpPtr.release()));
 			}))
-		.def("addConcentrationBC", &sim::CfdMixing<T>::addConcentrationBC, "Adds a concentration boundary condition to the simulator.")
-		.def("setConcentrationBC", &sim::CfdMixing<T>::setConcentrationBC, "Sets the concentration boundary condition for the given node.")
-		.def("removeConcentrationBC", &sim::CfdMixing<T>::removeConcentrationBC, "Removes the concentration boundary condition from the given node.")
-		.def("getGlobalConcentrationBounds", &sim::CfdMixing<T>::getGlobalConcentrationBounds, "Returns the global concentration bounds in the CFD simulator.")
-		.def("writeConcentrationPpm", &sim::CfdMixing<T>::writeConcentrationPpm, "Write the concentration field in ppm format.")
-		.def("simulate", &sim::CfdMixing<T>::simulate, "Conducts the simulation.");
+		.def("addSpecie", &sim::CfdConcentration<T>::addSpecie, "Adds a single species to the simulator.")
+		.def("removeSpecie", &sim::CfdConcentration<T>::removeSpecie, "Removes a species from the simulator.")
+		.def("addConcentrationBC", &sim::CfdConcentration<T>::addConcentrationBC, "Adds a concentration boundary condition to the simulator.")
+		.def("setConcentrationBC", &sim::CfdConcentration<T>::setConcentrationBC, "Sets the concentration boundary condition for the given node.")
+		.def("removeConcentrationBC", &sim::CfdConcentration<T>::removeConcentrationBC, "Removes the concentration boundary condition from the given node.")
+		.def("getGlobalConcentrationBounds", &sim::CfdConcentration<T>::getGlobalConcentrationBounds, "Returns the global concentration bounds in the CFD simulator.")
+		.def("writeConcentrationPpm", &sim::CfdConcentration<T>::writeConcentrationPpm, "Write the concentration field in ppm format.")
+		.def("simulate", &sim::CfdConcentration<T>::simulate, "Conducts the simulation.");
 
 }
 

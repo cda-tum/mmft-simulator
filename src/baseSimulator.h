@@ -31,7 +31,7 @@
 #include "simulation/simulators/HybridContinuous.h"
 #include "simulation/simulators/HybridMixing.h"
 #include "simulation/simulators/CfdContinuous.h"
-#include "simulation/simulators/CfdMixing.h"
+#include "simulation/simulators/CfdConcentration.h"
 
 #include "simulation/simulators/CFDSim.h"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.h"

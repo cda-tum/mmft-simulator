@@ -41,6 +41,12 @@ std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_pt
         auto id = CFDSimulator<T>::getSimulatorCounter();
         auto addCfdSimulator = std::shared_ptr<lbmMixingSimulator<T>>(new lbmMixingSimulator<T>(id, std::move(name), module, this->readSpecies(), resolution, charPhysLength, charPhysVelocity, epsilon, tau, adTau));
 
+        for (auto& [key, specie] : this->readSpecies()) {
+            if (!addCfdSimulator->setBulkConcentration(key, setInitialConcentrations[key])) {
+                throw std::logic_error("Specie with id " + std::to_string(key) + " could not set bul concentration.");
+            }
+        }
+
         // add Simulator
         const auto& [it, inserted] = this->getCFDSimulators().try_emplace(id, addCfdSimulator);
         if (inserted) {
@@ -54,6 +60,34 @@ std::shared_ptr<lbmSimulator<T>> HybridMixing<T>::addLbmSimulator(std::shared_pt
         throw std::invalid_argument("Attempt to add CFD Simulator without valid resistanceModel.");
     }
 }
+
+template<typename T>
+std::shared_ptr<Specie<T>> HybridMixing<T>::addSpecie(T diffusivity, T satConc, T initialConcentration) {
+    auto addedSpecie = ConcentrationSemantics<T>::addSpecie(diffusivity, satConc);
+    // Additionally specie must be added to all simulators
+    for (auto& [key, simulator] : this->getCFDSimulators()) {
+         if (!simulator->addSpecie(addedSpecie->getId(), addedSpecie.get(), initialConcentration)) {
+            throw std::logic_error("Specie with id " + std::to_string(addedSpecie->getId()) + " could not be added to simulator with id " + std::to_string(key) + ".");
+        }
+    }
+    setInitialConcentrations.try_emplace(addedSpecie->getId(), initialConcentration);
+
+    return addedSpecie;
+}
+
+template<typename T>
+void HybridMixing<T>::removeSpecie(const std::shared_ptr<Specie<T>>& specie) {
+    // Specie must additionally be removed from all simulators
+    for (auto& [key, simulator] : this->getCFDSimulators()) {
+         if (!simulator->removeSpecie(specie->getId())) {
+            throw std::logic_error("Specie with id " + std::to_string(specie->getId()) + " is not present in simulator with id " + std::to_string(key) + ".");
+        } else {
+            setInitialConcentrations.erase(specie->getId());
+        }
+    }
+    ConcentrationSemantics<T>::removeSpecie(specie->getId());
+}
+
 
 template<typename T>
 void HybridMixing<T>::setInstantaneousMixingModel() {
@@ -142,15 +176,9 @@ void HybridMixing<T>::simulate() {
 
     // Obtain overal steady-state concentration results
     bool concentrationConverged = false;
-    int iterationCounter = 0;
     while (!concentrationConverged) {
         this->getMixingModel()->propagateSpecies(this->getNetwork().get(), this);
         concentrationConverged = conductADSimulation(this->getCFDSimulators());
-        concentrationConverged = false;
-        if (iterationCounter > 10) {
-            concentrationConverged = true;
-        }
-        iterationCounter++;
     }
 
     this->saveState();

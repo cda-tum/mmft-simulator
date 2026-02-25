@@ -1,15 +1,12 @@
-#include "../src/baseSimulator.h"
-#ifdef USE_ESSLBM
-    #include <mpi.h>
-#endif
-#include "gtest/gtest.h"
-#include "../test_definitions.h"
+#include <iostream>
+
+#include <baseSimulator.h>
+#include <baseSimulator.hh>
 
 using T = double;
 
-class CfdConcentration : public test::definitions::GlobalTest<T> {};
+int main(int argc, char const* argv []) {
 
-TEST_F(CfdConcentration, Case1a) {
     // define network
     auto network = arch::Network<T>::createNetwork();
     
@@ -36,6 +33,7 @@ TEST_F(CfdConcentration, Case1a) {
 
     // define simulation
     sim::CfdConcentration<T> testSimulation(network);
+    testSimulation.setResolution(40);
 
     // fluids
     auto fluid0 = testSimulation.addFluid(1e-3, 1e3);
@@ -47,18 +45,18 @@ TEST_F(CfdConcentration, Case1a) {
     auto s1 = testSimulation.addSpecie(1e-6, 1.0, initialCondition);
 
     // Boundary conditions
-    testSimulation.addPressureBC(node1, 1e2);
-    testSimulation.addPressureBC(node2, 1e2);
-    testSimulation.addPressureBC(node3, 1e2);
+    testSimulation.addPressureBC(node1, 1.0);
+    testSimulation.addPressureBC(node2, 1.0);
+    testSimulation.addPressureBC(node3, 1.0);
     testSimulation.addPressureBC(node7, 0.0);
 
     T conc = 1.2;
     testSimulation.addConcentrationBC(node1, s1,  conc);
     testSimulation.addConcentrationBC(node2, s1,  conc);
     testSimulation.addConcentrationBC(node3, s1,  initialCondition);
-
-    testSimulation.setMaxIter(1000);
     
     // Simulate
     testSimulation.simulate();
+
+    return 0;
 }

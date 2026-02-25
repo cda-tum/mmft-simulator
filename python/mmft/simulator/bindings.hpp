@@ -34,6 +34,6 @@ void bind_abstractConcentration(py::module_& m);
 void bind_hybridContinuous(py::module_& m);
 void bind_hybridMixing(py::module_& m);
 void bind_cfdContinuous(py::module_& m);
-void bind_cfdMixing(py::module_& m);
+void bind_cfdConcentration(py::module_& m);
 void bind_porter(py::module_& m);
 void bind_results(py::module_& m);
