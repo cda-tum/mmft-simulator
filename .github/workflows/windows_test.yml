@@ -1,6 +1,6 @@
 # name: Windows-test
 
-# on: []
+# on:
 #   pull_request:
 #     types: [opened, reopened, edited]
 #     branches: [main, develop]
