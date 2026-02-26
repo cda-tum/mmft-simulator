@@ -31,6 +31,7 @@ void bind_concentrationSemantics(py::module_& m);
 void bind_abstractContinuous(py::module_& m);
 void bind_abstractDroplet(py::module_& m);
 void bind_abstractConcentration(py::module_& m);
+void bind_abstractMembrane(py::module_& m);
 void bind_hybridContinuous(py::module_& m);
 void bind_hybridConcentration(py::module_& m);
 void bind_cfdContinuous(py::module_& m);

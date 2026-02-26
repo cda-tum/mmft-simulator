@@ -728,9 +728,9 @@ void DiffusionMixingModel<T>::generateInflows(T timeStep, arch::Network<T>* netw
                     DiffusiveMixture<T>* newMixture = dynamic_cast<DiffusiveMixture<T>*>(sim->addDiffusiveMixture(newDistributions));
                     newMixture->setNonConstant();
                     this->injectMixtureInEdge(newMixture->getId(), channelId);
-                } else {
-                    throw std::logic_error("Channel " + std::to_string(channel->getId()) + " is not rectangular. Cannot use DiffusionMixingModel." );
-                }
+                } 
+            } else {
+                throw std::logic_error("Channel " + std::to_string(genericChannel->getId()) + " is not rectangular. Cannot use DiffusionMixingModel." );
             }
         }
     }

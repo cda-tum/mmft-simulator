@@ -297,7 +297,7 @@ void readSimulators(json jsonString, sim::HybridConcentration<T>& simulation, ar
             T adTau = simulator["adTau"];
             int moduleId = simulator["moduleId"];
 
-            if (simulator["Type"] == "Mixing")
+            if (simulator["Type"] == "Concentration")
             {
                 assert(network->getCfdModule(moduleId)->getModuleType() == arch::ModuleType::LBM);
                 auto simulator = simulation.addLbmSimulator(network->getCfdModule(moduleId), resolution,
