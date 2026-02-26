@@ -38,7 +38,7 @@ def hybridContinuous():
     # Module
     position = [1.75e-3, 0.75e-3]
     size = [5e-4, 5e-4]
-    stlFile = "../STL/cross.stl"
+    stlFile = "../../STL/cross.stl"
     openings = {n5.getId(): Opening1, 
                 n7.getId(): Opening2, 
                 n8.getId(): Opening3, 

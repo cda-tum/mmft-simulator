@@ -38,7 +38,7 @@ def hybridConcentration():
     # Module
     position = [1.75e-3, 0.75e-3]
     size = [5e-4, 5e-4]
-    stlFile = "../examples/STL/cross.stl"
+    stlFile = "../../STL/cross.stl"
     openings = {n5.getId(): Opening1, 
                 n7.getId(): Opening2, 
                 n8.getId(): Opening3, 
@@ -46,9 +46,9 @@ def hybridConcentration():
     m0 = network.addCfdModule(position, size, stlFile, openings)
 
     # Pressure Pumps
-    network.addPressurePump(n0, n1, 1e3)
-    network.addPressurePump(n0, n2, 1e3)
-    network.addPressurePump(n0, n3, 1e3)
+    network.setPressurePump(c0.getId(), 1e3)
+    network.setPressurePump(c1.getId(), 1e3)
+    network.setPressurePump(c2.getId(), 1e3)
 
     # Simulation
     simulation = HybridConcentration(network)

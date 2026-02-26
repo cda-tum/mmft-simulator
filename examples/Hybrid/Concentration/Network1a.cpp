@@ -41,7 +41,7 @@ int main(int argc, char const* argv []) {
     // module
     std::vector<T> position = { 1.75e-3, 0.75e-3 };
     std::vector<T> size = { 5e-4, 5e-4 };
-    std::string stlFile = "../examples/STL/cross.stl";
+    std::string stlFile = "../../STL/cross.stl";
     std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(5, arch::Opening<T>(network->getNode(5), std::vector<T>({1.0, 0.0}), 1e-4));
     Openings.try_emplace(7, arch::Opening<T>(network->getNode(7), std::vector<T>({0.0, -1.0}), 1e-4));

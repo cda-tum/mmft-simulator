@@ -60,7 +60,7 @@ int main(int argc, char const* argv []) {
     testSimulation.setPoiseuilleResistanceModel();
 
     // CFD module
-    std::string stlFile = "../examples/STL/cross.stl";
+    std::string stlFile = "../../examples/STL/cross.stl";
     std::unordered_map<size_t, arch::Opening<T>> Openings;
     Openings.try_emplace(5, arch::Opening<T>(network->getNode(5), std::vector<T>({1.0, 0.0}), 1e-4));
     Openings.try_emplace(7, arch::Opening<T>(network->getNode(7), std::vector<T>({0.0, -1.0}), 1e-4));
