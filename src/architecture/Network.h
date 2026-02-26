@@ -435,6 +435,20 @@ public:
     [[nodiscard]] inline bool isGround(std::shared_ptr<Node<T>> node) const { return isGround(node->getId()); }
 
     /**
+     * @brief Checks and returns if a node is an interface node at the module.
+     * @param[in] nodeId Id of the node that should be checked.
+     * @return true if the node with the specified id is a module node.
+     */
+    [[nodiscard]] inline bool isModuleNode(size_t nodeId) const { return modularReach.count(nodeId) > 0; }
+
+        /**
+     * @brief Checks and returns if a node is an interface node at the module.
+     * @param[in] nodeId Id of the node that should be checked.
+     * @return true if the node with the specified id is a module node.
+     */
+    [[nodiscard]] inline bool isModuleNode(std::shared_ptr<Node<T>> node) const { return isModuleNode(node->getId()); }
+
+    /**
      * @brief Calculate the distance between the two given nodes
      */
     [[nodiscard]] T calculateNodeDistance(size_t nodeAId, size_t nodeBId) const;

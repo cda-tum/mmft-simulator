@@ -55,8 +55,8 @@ enum class Type {
 
 enum class Platform {
     Continuous,     ///< A simulation with a single continuous fluid.
-    BigDroplet,     ///< A simulation with droplets filling a channel cross-section
-    Mixing,         ///< A simulation with multiple miscible fluids.
+    Droplet,        ///< A simulation with droplets filling a channel cross-section
+    Concentration,  ///< A simulation with multiple miscible fluids or species.
     Ooc,            ///< A simulation with organic tissue
     Membrane,       ///< A simulation with membranes
 };
@@ -294,7 +294,7 @@ public:
 
     /** TODO: AbstractDroplet
      * If a new continuous phase is set, the droplets should be adapted to not be the new continuous phase.
-     ** TODO: AbstractMixing 
+     ** TODO: AbstractConcentration 
      * If a new continuous phase is set, the continuous phase of the Mixtures should be adapted to the new continuous phase.
      */
 

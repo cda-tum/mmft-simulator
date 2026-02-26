@@ -87,15 +87,42 @@ void lbmMixingSimulator<T>::prepareLattice () {
 
 template<typename T>
 void lbmMixingSimulator<T>::setBoundaryValues (int iT) {
+    lbmSimulator<T>::setBoundaryValues(iT);
+}
 
+template<typename T>
+bool lbmMixingSimulator<T>::addSpecie(size_t id, const Specie<T>* specie, T bulkConcentration) {
+    auto result = species.try_emplace(id, specie);
+    if (result.second) {
+        bulkConcentrations.try_emplace(id, bulkConcentration);
+    }
+    return result.second;
+}
+
+template<typename T>
+bool lbmMixingSimulator<T>::removeSpecie(size_t id) {
+    bulkConcentrations.erase(id);
+    return species.erase(id) > 0;
+}
+
+template<typename T>
+bool lbmMixingSimulator<T>::setBulkConcentration(size_t specieId, T bulkConcentration) {
+    if (species.find(specieId) == species.end()) {
+        return false;
+    }
+    bulkConcentrations.try_emplace(specieId, bulkConcentration);
+    return true;
+}
+
+template<typename T>
+void lbmMixingSimulator<T>::setConcBoundaryValues (int iT) {
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
-        if (this->groundNodes.at(key)) {
-            this->setFlowProfile2D(key, Opening.width);
+        if (!diffusiveBC) {
+            setConcentration2D(key);
         } else {
-            this->setPressure2D(key);
+            setConcentrationProfiles2D(key);
         }
-        setConcentration2D(key);
-    }    
+    }
 }
 
 template<typename T>
@@ -103,6 +130,16 @@ void lbmMixingSimulator<T>::storeCfdResults (int iT) {
     // Store the pressure and flow rate values at the module nodes
     lbmSimulator<T>::storeCfdResults(iT);
 
+    if (!diffusiveBC) {
+        storeConstantConcentrationCfdResults(iT);
+    } else {
+        storeConcentrationProfileCfdResults(iT);
+    }
+
+}
+
+template<typename T>
+void lbmMixingSimulator<T>::storeConstantConcentrationCfdResults (int iT) {
     // Store the concentration values at the module nodes
     int input[1] = { };
     T output[10];
@@ -119,7 +156,82 @@ void lbmMixingSimulator<T>::storeCfdResults (int iT) {
             }
         }
     }
-    
+}
+
+template<typename T>
+void lbmMixingSimulator<T>::storeConcentrationProfileCfdResults (int iT) {
+    for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
+        // If the node is an outflow, write the concentration value
+        if (this->getFlowDirection(key) < 0.0) {
+            for (auto& [speciesId, adLattice] : adLattices) {
+
+                // 1. Obtain all concentration values and their locations
+                std::vector<std::pair<std::array<int, 2>, T>> concentrations;
+                // Loop over the entire domain
+                for (int iC = 0; iC < adLattice->getLoadBalancer().size(); iC++) {
+                    int ny = adLattice->getBlock(iC).getNy();
+                    int nx = adLattice->getBlock(iC).getNx();
+                    for (int iY = 0; iY < ny; ++iY) {
+                        for (int iX = 0; iX < nx; ++iX) {
+                            if(this->getGeometry().getBlockGeometry(iC).getMaterial(iX,iY) == int(key+3)) {
+                                T concentration = adLattice->getBlock(iC).get(iX,iY).computeRho();
+                                concentrations.emplace_back(std::make_pair(std::array<int, 2>{iX, iY}, concentration));
+                            }
+                        }
+                    }
+                }
+
+                // 2. Sort the stored values according to coordinates, by projecting them onto the tangent
+                std::sort(concentrations.begin(), concentrations.end(), [&Opening](const auto& a, const auto& b) {
+                    // Project onto the opening's tangent
+                    T s1 = a.first[0] * Opening.tangent[0] + a.first[1] * Opening.tangent[1];
+                    T s2 = b.first[0] * Opening.tangent[0] + b.first[1] * Opening.tangent[1];
+                    return s1 > s2;
+                });
+
+                // 3. Store in concentration profile, in std::tuple<std::function<T(T)>, std::vector<T>, T> format
+                concentrationProfiles.at(key).at(speciesId) = constructProfile(concentrations);
+            }
+        }
+    }
+}
+
+template<typename T>
+std::tuple<std::function<T(T)>, std::vector<T>, T> lbmMixingSimulator<T>::constructProfile(std::vector<std::pair<std::array<int, 2>, T>>& concentrations, size_t spectralResolution) {
+    T a_0 = 0.0;
+    std::vector<T> a_n(spectralResolution-1, 0.0);
+    size_t spatialResolution = concentrations.size();
+    T dx = 1.0 / spatialResolution;
+
+    // a_0
+    for (const auto& [coords, concentration] : concentrations) {
+        a_0 += (concentration*dx);
+    }
+
+    // a_n
+    for (size_t n=1; n<spectralResolution; n++) {
+        std::vector<T> temp;
+        for (size_t i=0; i<spatialResolution; i++) {
+            T x = i * dx + 0.5 * dx;
+            temp.push_back(concentrations.at(i).second * std::cos(n * M_PI * x));
+        }
+        a_n[n-1] = 2.0 * (std::accumulate(temp.begin(), temp.end(), 0.0)*dx);
+    }
+
+    // Construct the profile function
+    auto profileFunction = [a_0, a_n](T x) {
+        T result = a_0;
+        for (size_t n=1; n<a_n.size(); n++) {
+            result += a_n[n-1] * std::cos(n * M_PI * x);
+        }
+        return result;
+    };
+
+    return std::make_tuple(
+        profileFunction,
+        a_n,
+        a_0
+    );
 }
 
 template<typename T>
@@ -140,7 +252,7 @@ void lbmMixingSimulator<T>::writeVTK (int iT) {
     }
 
     if (iT % 1000 == 0) {
-        
+
         olb::SuperLatticePhysVelocity2D<T,DESCRIPTOR> velocity(this->getLattice(), this->getConverter());
         olb::SuperLatticePhysPressure2D<T,DESCRIPTOR> pressure(this->getLattice(), this->getConverter());
         olb::SuperLatticeDensity2D<T,DESCRIPTOR> latDensity(this->getLattice());
@@ -149,7 +261,7 @@ void lbmMixingSimulator<T>::writeVTK (int iT) {
         vtmWriter.addFunctor(latDensity);
 
         vtmWriter.write(iT);
-        
+
         // write all concentrations
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::SuperLatticeDensity2D<T,ADDESCRIPTOR> concentration( getAdLattice(speciesId) );
@@ -172,9 +284,6 @@ void lbmMixingSimulator<T>::writeVTK (int iT) {
     if (iT %1000 == 0) {
         #ifdef VERBOSE
             std::cout << "[writeVTK] " << this->name << " currently at timestep " << iT << std::endl;
-            for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
-                meanConcentrations.at(key).at(0)->print();
-            } 
         #endif
     }
 
@@ -230,6 +339,44 @@ void lbmMixingSimulator<T>::solve() {
 }
 
 template<typename T>
+void lbmMixingSimulator<T>::solveCFD(size_t maxIter) {
+    std::cout << "Solving the NS" << std::endl;
+
+    // Check if initialized and set boundary conditions
+    this->checkInitialized();
+    this->setBoundaryValues(this->getStep());
+
+    // Main simulation loop
+    for (int iT = 0; iT < int(maxIter); ++iT){    
+        writeVTK(this->getStep());       
+        this->getLattice().collideAndStream();
+        this->getStep() += 1;
+        // Check convergence
+        if (this->getIsConverged()) { break; }
+    }
+
+    std::cout << "Storing the NS results" << std::endl;
+    lbmSimulator<T>::storeCfdResults(this->getStep());
+
+    std::cout << "Solving the AD" << std::endl;
+    // Advection Diffusion Solver
+    std::cout << "Setting concentration BC" << std::endl;
+    this->setConcBoundaryValues(this->getStep());
+    std::cout << "Starting AD solve loop" << std::endl;
+    for (int iT = 0; iT < int(maxIter); ++iT) {
+        writeVTK(this->getStep());
+        for (auto& [speciesId, adLattice] : adLattices) {
+            // this->getLattice().executeCoupling();
+            adLattice->collideAndStream();
+            adConverges.at(speciesId)->takeValue(adLattice->getStatistics().getAverageRho(),true);
+        }
+        this->getStep() += 1;
+    }
+    std::cout << "Finished AD solve loop" << std::endl;
+    storeCfdResults(this->getStep());
+}
+
+template<typename T>
 void lbmMixingSimulator<T>::executeCoupling() {
     this->getLattice().executeCoupling();
     std::cout << "[lbmSimulator] Execute NS-AD coupling " << this->name << "... OK" << std::endl;
@@ -250,10 +397,10 @@ void lbmMixingSimulator<T>::nsSolve() {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::adSolve() {
+void lbmMixingSimulator<T>::adSolve(size_t maxIter) {
     // theta = 10
-    this->setBoundaryValues(this->getStep());
-    for (int iT = 0; iT < 10000; ++iT){
+    this->setConcBoundaryValues(this->getStep());
+    for (int iT = 0; iT < int(maxIter); ++iT){
         writeVTK(this->getStep());
         for (auto& [speciesId, adLattice] : adLattices) {
             adLattice->collideAndStream();
@@ -268,13 +415,16 @@ void lbmMixingSimulator<T>::initValueContainers () {
     // Initialize pressure and flowRate value-containers
     lbmSimulator<T>::initValueContainers();
 
-    // Initialize concentration value-containers
+    // Initialize concentration value-containers with zero values
     for (auto& [key, node] : this->cfdModule->getOpenings()) {
         std::unordered_map<size_t, T> tmpConcentrations;
+        std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>> tmpProfiles;
         for (auto& [speciesId, speciesPtr] : species) {
             tmpConcentrations.try_emplace(speciesId, 0.0);
+            tmpProfiles.try_emplace(speciesId, std::make_tuple([](T){ return T(0); }, std::vector<T>({0}), T(0)));
         }
         this->concentrations.try_emplace(key, tmpConcentrations);
+        this->concentrationProfiles.try_emplace(key, tmpProfiles);
     }
 }
 
@@ -287,7 +437,7 @@ void lbmMixingSimulator<T>::initAdConverters (T density) {
             this->getCharPhysLength(),
             this->getCharPhysVelocity(),
             specie->getDiffusivity(),
-            density
+            this->getConverter().getPhysDensity()
         );
         #ifdef VERBOSE
             tempAD->print();
@@ -314,8 +464,9 @@ void lbmMixingSimulator<T>::prepareAdLattice (const T adOmega, size_t speciesId)
 
     // Initial conditions
     std::vector<T> zeroVelocity(T(0), T(0));
-    olb::AnalyticalConst2D<T,T> rhoF(1);
-    olb::AnalyticalConst2D<T,T> rhoZero(0);
+    olb::AnalyticalConst2D<T,T> rhoZero(0.0);
+    olb::AnalyticalConst2D<T,T> rhoF(1.0);
+    olb::AnalyticalConst2D<T,T> rhoBulk(bulkConcentrations.at(speciesId));
     olb::AnalyticalConst2D<T,T> uZero(zeroVelocity);
 
     // Set AD lattice dynamics
@@ -326,10 +477,10 @@ void lbmMixingSimulator<T>::prepareAdLattice (const T adOmega, size_t speciesId)
     // Set initial conditions
     adLattice->defineRhoU(this->getGeometry(), 0, rhoZero, uZero);
     adLattice->iniEquilibrium(this->getGeometry(), 0, rhoZero, uZero);
-    adLattice->defineRhoU(this->getGeometry(), 1, rhoF, uZero);
-    adLattice->iniEquilibrium(this->getGeometry(), 1, rhoF, uZero);
-    adLattice->defineRhoU(this->getGeometry(), 2, rhoF, uZero);
-    adLattice->iniEquilibrium(this->getGeometry(), 2, rhoF, uZero);
+    adLattice->defineRhoU(this->getGeometry(), 1, rhoBulk, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 1, rhoBulk, uZero);
+    adLattice->defineRhoU(this->getGeometry(), 2, rhoBulk, uZero);
+    adLattice->iniEquilibrium(this->getGeometry(), 2, rhoBulk, uZero);
     
     adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 0, uZero);
     adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), 1, uZero);
@@ -337,7 +488,7 @@ void lbmMixingSimulator<T>::prepareAdLattice (const T adOmega, size_t speciesId)
 
     for (auto& [key, Opening] : this->cfdModule->getOpenings()) {
         adLattice->template defineDynamics<ADDynamics>(this->getGeometry(), key+3);
-        adLattice->iniEquilibrium(this->getGeometry(), key+3, rhoF, uZero);
+        adLattice->iniEquilibrium(this->getGeometry(), key+3, rhoBulk, uZero);
         adLattice->template defineField<olb::descriptors::VELOCITY>(this->getGeometry(), key+3, uZero);
     }
 
@@ -352,7 +503,7 @@ template<typename T>
 void lbmMixingSimulator<T>::initAdLattice(size_t adKey) {
     const T adOmega = getAdConverter(adKey).getLatticeRelaxationFrequency();
     getAdLattice(adKey).template setParameter<olb::descriptors::OMEGA>(adOmega);
-    getAdLattice(adKey).template setParameter<olb::collision::TRT::MAGIC>(1./12.);
+    // getAdLattice(adKey).template setParameter<olb::collision::TRT::MAGIC>(1./12.);   // For a TRT ADDynamics
     getAdLattice(adKey).initialize();
 }
 
@@ -379,7 +530,6 @@ void lbmMixingSimulator<T>::initConcentrationIntegralPlane(size_t adKey) {
 
 template<typename T>
 void lbmMixingSimulator<T>::prepareCoupling() {
-    
     std::vector<olb::SuperLattice<T,ADDESCRIPTOR>*> adLatticesVec;
     std::vector<T> velFactors;
     for (auto& [speciesId, adLattice] : adLattices) {
@@ -392,15 +542,26 @@ void lbmMixingSimulator<T>::prepareCoupling() {
 }
 
 template<typename T>
+void lbmMixingSimulator<T>::initialize(const ResistanceModel<T>* resistanceModel, const MixingModel<T>* mixingModel) {
+    CFDSimulator<T>::initialize(resistanceModel);
+    if (mixingModel->isInstantaneous()) {
+        diffusiveBC = false;
+    } else if (mixingModel->isDiffusive()) {
+        diffusiveBC = true;
+    } else {
+        throw std::logic_error("Unknown mixing model");
+    }
+}
+
+template<typename T>
 void lbmMixingSimulator<T>::setConcentration2D (int key) {
     // Set the boundary concentrations for inflows and outflows
     // If the boundary is an inflow
     if (this->getFlowDirection(key) > 0.0) {
         for (auto& [speciesId, adLattice] : adLattices) {
             olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, this->getGeometry(), key+3);
-            olb::AnalyticalConst2D<T,T> one( 1. );
             olb::AnalyticalConst2D<T,T> inConc(concentrations.at(key).at(speciesId));
-            adLattice->defineRho(this->getGeometry(), key+3, one + inConc);
+            adLattice->defineRho(this->getGeometry(), key+3, inConc);
         }
     }
     // If the boundary is an outflow or there is no flow
@@ -412,13 +573,98 @@ void lbmMixingSimulator<T>::setConcentration2D (int key) {
 }
 
 template<typename T>
-void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations_) {
-    this->concentrations = concentrations_;
+void lbmMixingSimulator<T>::setConcentrationProfiles2D (int key) {
+    // Set the boundary concentrations for inflows and outflows
+    // If the boundary is an inflow
+    if (this->getFlowDirection(key) > 0.0) {
+        for (auto& [speciesId, adLattice] : adLattices) {
+            olb::setAdvectionDiffusionTemperatureBoundary<T,ADDESCRIPTOR>(*adLattice, this->getGeometry(), key+3);
+            constructBCProfiles(speciesId, adLattice, key);
+        }
+    }
+    // If the boundary is an outflow or there is no flow
+    else if (this->getFlowDirection(key) <= 0.0) {
+        for (auto& [speciesId, adLattice] : adLattices) {
+            olb::setRegularizedHeatFluxBoundary<T,ADDESCRIPTOR>(*adLattice, getAdConverter(speciesId).getLatticeRelaxationFrequency(), this->getGeometry(), key+3, &zeroFlux);
+        }
+    }
 }
 
 template<typename T>
-std::unordered_map<size_t, std::unordered_map<size_t, T>> lbmMixingSimulator<T>::getConcentrations() const {
+void lbmMixingSimulator<T>::constructBCProfiles(size_t speciesId, std::shared_ptr<olb::SuperLattice<T, ADDESCRIPTOR>> adLattice, int key) {
+    arch::Opening<T> Opening = this->cfdModule->getOpenings().at(key);
+
+    // 1. Obtain all cells with the corresponding material value
+    std::vector<std::pair<std::array<int, 2>, int>> cellCoordinates;
+    // Loop over the entire domain
+    for (int iC = 0; iC < adLattice->getLoadBalancer().size(); iC++) {
+        int ny = adLattice->getBlock(iC).getNy();
+        int nx = adLattice->getBlock(iC).getNx();
+        for (int iY = 0; iY < ny; ++iY) {
+            for (int iX = 0; iX < nx; ++iX) {
+                if(this->getGeometry().getBlockGeometry(iC).getMaterial(iX,iY) == (key+3)) {
+                    cellCoordinates.emplace_back(std::make_pair(std::array<int, 2>{iX, iY}, iC));
+                }
+            }
+        }
+    }
+
+    // 2. Sort the stored cells according to coordinates, by projecting them onto the tangent
+    std::sort(cellCoordinates.begin(), cellCoordinates.end(), [&Opening](const auto& a, const auto& b) {
+        // Project onto the opening's tangent
+        T s1 = a.first[0] * Opening.tangent[0] + a.first[1] * Opening.tangent[1];
+        T s2 = b.first[0] * Opening.tangent[0] + b.first[1] * Opening.tangent[1];
+        return s1 > s2;
+    });
+
+    // 3. Set the concentration values for the corresponding cells
+    size_t size = cellCoordinates.size();
+    T dx = 1.0 / static_cast<T>(size);
+    for (size_t i=0; i<size; i++) {
+        T x = i*dx - 0.5*dx;
+        T value = std::get<0>(concentrationProfiles.at(key).at(speciesId))(x);
+        adLattice->getBlock(cellCoordinates.at(i).second).get(cellCoordinates.at(i).first[0],cellCoordinates.at(i).first[1]).defineRho(value);
+    }
+}
+
+template<typename T>
+void lbmMixingSimulator<T>::storeConcentrations(std::unordered_map<size_t, std::unordered_map<size_t, T>> concentrations_) {
+    assert(concentrations_.size() <= this->concentrations.size());
+    for (auto& [key, value] : concentrations_) {
+        auto it = this->concentrations.find(key);
+        if (it == this->concentrations.end()) {
+            throw std::logic_error("Cannot store concentration for node" + std::to_string(key) + ". Not a BC.");
+        }
+        it->second = value;
+    }
+}
+
+template<typename T>
+void lbmMixingSimulator<T>::storeConcentrationProfiles(std::unordered_map<size_t, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>>> concentrationProfiles) {
+    assert(concentrationProfiles.size() <= this->concentrationProfiles.size());
+    if (!diffusiveBC) {
+        throw std::logic_error("Cannot store concentration profiles. Not a diffusive BC.");
+    }
+    for (auto& [key, profile] : concentrationProfiles) {
+        auto it = this->concentrationProfiles.find(key);
+        if (it == this->concentrationProfiles.end()) {
+            throw std::logic_error("Cannot store concentration profile for node" + std::to_string(key) + ". Not a BC.");
+        }
+        it->second = profile;
+    }
+}
+
+template<typename T>
+const std::unordered_map<size_t, std::unordered_map<size_t, T>>& lbmMixingSimulator<T>::getConcentrations() const {
     return this->concentrations;
+}
+
+template<typename T>
+const std::unordered_map<size_t, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>>>& lbmMixingSimulator<T>::getConcentrationProfiles() const {
+    if (!diffusiveBC) {
+        throw std::logic_error("Cannot get concentration profiles. Not a diffusive BC.");
+    }
+    return this->concentrationProfiles;
 }
 
 template<typename T>

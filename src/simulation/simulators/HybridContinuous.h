@@ -56,6 +56,9 @@ class essLbmSimulator;
 template<typename T>
 class InstantaneousMixingModel;
 
+template<typename T>
+class DiffusionMixingModel;
+
 /**
  * @brief Class that conducts a abstract continuous simulation
  */
@@ -260,6 +263,7 @@ public:
     void simulate() override;
 
     friend class InstantaneousMixingModel<T>;
+    friend class DiffusionMixingModel<T>;
 };
 
 }   // namespace sim
@@ -271,7 +275,7 @@ public:
 //  * @brief Class that conducts a abstract continuous simulation
 //  */
 // template<typename T>
-// class HybridOoc final : public HybridMixing<T> {
+// class HybridOoc final : public HybridConcentration<T> {
 // private:
 //     /**
 //      * @brief Constructor of the hybrid mixing simulator object

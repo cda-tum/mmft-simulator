@@ -32,7 +32,7 @@ namespace sim {
 
 // Forward declared dependencies
 template<typename T>
-class AbstractMixing;
+class AbstractConcentration;
 
 template<typename T>
 class ConcentrationSemantics;
@@ -86,7 +86,7 @@ private:
     T density;                                                      ///< Density of this mixture, defaults to bulk (continuous phase) density.
     T largestMolecularSize;                                         ///< Largest molecular size in the mixture in [m^3].
     bool isMutable = false;                                         ///< Is this Mixture object mutable through the plublic API? E.g., a mixture created
-                                                                    ///< by the user through AbstractMixing::addMixture() is mutable, a mixture created by a MixingModel is not.
+                                                                    ///< by the user through AbstractConcentration::addMixture() is mutable, a mixture created by a MixingModel is not.
 
     /**
      * @brief A static member function that resets the mixture object counter to zero.
@@ -97,7 +97,7 @@ private:
 
     /**
      * @brief A static member function that returns the amount of mixture objects that have been created.
-     * Is used in (friend) AbstractMixing<T>::addMixture() to create a mixture object and add it to the simulation.
+     * Is used in (friend) AbstractConcentration<T>::addMixture() to create a mixture object and add it to the simulation.
      * @returns The number of created mixture objects: mixtureCounter.
      */
     static size_t getMixtureCounter() noexcept { return mixtureCounter; }
@@ -114,7 +114,7 @@ private:
 
     /**
      * @brief Set a Mixture object to be mutable.
-     * @note Friend classes (AbstractMixing) can set the mutability property of an object.
+     * @note Friend classes (AbstractConcentration) can set the mutability property of an object.
      * @note By default, a Mixture object is non-mutable. Once set mutable it cannot be reversed.
      */
     inline void setMutable() { this->isMutable = true; }
@@ -293,10 +293,16 @@ public:
      */
     [[nodiscard]] inline T getLargestMolecularSize() const {return largestMolecularSize;}
 
+    /**
+     * @brief Check if this mixture is diffusive.
+     * @return True if the mixture is diffusive, false otherwise.
+     */
+    virtual bool isDiffusive() const { return false; }
+
     virtual ~Mixture() = default;
 
     // Friend class definition
-    friend class AbstractMixing<T>;
+    friend class AbstractConcentration<T>;
     friend class ConcentrationSemantics<T>;
     friend class InstantaneousMixingModel<T>;
     friend class test::definitions::GlobalTest<T>;
@@ -397,6 +403,12 @@ public:
      * @return The spectral resolution of the distribution function.
      */
     [[nodiscard]] inline int getResolution() { return this->resolution; }
+
+    /**
+     * @brief Check if this mixture is diffusive.
+     * @return True if the mixture is diffusive, false otherwise.
+     */
+    bool isDiffusive() const override { return true; }
 
     // Friend class definitions
     friend class ConcentrationSemantics<T>;

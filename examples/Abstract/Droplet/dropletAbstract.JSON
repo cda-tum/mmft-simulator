@@ -1,7 +1,7 @@
 {
     "fixture": 0,
     "type": "Abstract",
-    "platform": "BigDroplet",
+    "platform": "Droplet",
     "fluids": [
         {
             "id": 0,

@@ -24,7 +24,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 | :-----------  | :-----------: | :-----------: | :-----------: |
 | Continuous    | &#x2705;      | &#x2705;      | &#x2705;      |
 | Concentration | &#x2705;      | &#x2705;      | &#x2705;      |
-| BigDroplet    | &#x2705;      |               |               |
+| Droplet       | &#x2705;      |               |               |
 | Membrane      | &#x2705;      |               |               |
 
 </div>
@@ -40,7 +40,7 @@ The MMFT Simulator supports simulations for different platforms of microfluidic 
 * Instantaneous mixing model: Fluids are assumed to be fully mixed as soon as they meet.
 * Diffusive mixing model: Concentration distributions of solvents are tracked and propagated according to the network topology, following an abstracted advection-diffusion equation&mdash;as described in the respective publication. <sup>[[4]](https://doi.org/10.1109/TCAD.2025.3549703)</sup> <br>
 
-**BigDroplet**: In this platform, big droplets are considered in addition to the continuous platform. Big droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel (hence the terminology "big droplet"), generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[5]](https://doi.org/10.1145/3313867)</sup> <sup>[[6]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
+**Droplet**: In this platform, droplets are considered in addition to the continuous platform. Droplets are here described as an immiscible fluid immersed in the carrier fluid that acts as the continuous phase and are assumed to fill the entire cross-section of each channel, generally generated in the squeezing regime. For more details, please see the respective publications. <sup>[[5]](https://doi.org/10.1145/3313867)</sup> <sup>[[6]](https://doi.org/10.1016/j.simpa.2022.100440)</sup> <br>
 **Membrane**: Same as the Mixing platform, but supports tanks (e.g. for organs-on-chips designs) and membranes (connect tank to channel to allow diffusive mixture exchange between the two) and requires the instantaneous mixing model. <sup>[[7]](https://doi.org/10.1038/s41598-024-77741-8)</sup>
 
 
@@ -216,7 +216,7 @@ The network and simulation objects can also be defined using a JSON file and loa
 The JSON file formats provide an accessible way for loading and storing simulation cases and results. To simulate a case, the JSON definitions for the `Network` and `Simulation` are necessary. Once a simulation is finished, the `Result` can be stored in a JSON file (see code-snippets above). 
 
 **Network Definition**<br>
-The geometry of a simulation case must be described as a network, which is here defined as a set of `Nodes` and `Channels`. A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device. If the node is a ground node (i.e. the reference pressure p<sub>0</sub> acts on the node), `ground` must be set `true`. For the BigDroplet simulation platform, the sinks of the domain must additionally be set at the nodes where a droplet can exit the domain. 
+The geometry of a simulation case must be described as a network, which is here defined as a set of `Nodes` and `Channels`. A `Node` contains the x and y position on a Cartesian coordinate system, where the origin is the bottom-left corner of the microfluidic device. If the node is a ground node (i.e. the reference pressure p<sub>0</sub> acts on the node), `ground` must be set `true`. For the Droplet simulation platform, the sinks of the domain must additionally be set at the nodes where a droplet can exit the domain. 
 ```JSON
 {
     "x": 2e-3,
@@ -246,7 +246,7 @@ Please, see the `examples` folder for examples of JSON definitions of networks f
 
 **Simulation Definition**
 
-To define a simulation, the simulation platform, simulation type and the resistance model must be set. The supported platforms are `Continuous` and `BigDroplet`, and the supported simulation types are `Abstract` and `Hybrid`. The `resistanceModel` should be set to `1D` for the `abstract` simulation type, and to `Poiseuille` for the `Hybrid` simulation type.
+To define a simulation, the simulation platform, simulation type and the resistance model must be set. The supported platforms are `Continuous`, `Concentration`, `Droplet`, and `Membrane`, and the supported simulation types are `Abstract`, `Hybrid`, and `CFD`. The `resistanceModel` should be set to `1D` for the `abstract` simulation type, and to `Poiseuille` for the `Hybrid` simulation type.
 ```JSON
 {
     "platform": "Continuous",

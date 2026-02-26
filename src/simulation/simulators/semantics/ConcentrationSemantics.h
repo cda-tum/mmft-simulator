@@ -117,7 +117,7 @@ protected:
      * @param[in] specieConcentrations
      * @return Pointer to created mixture.
      */
-    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
+    Mixture<T>* addDiffusiveMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions);
 
     /**
      * @brief Create and add a mixture to the simulation.
@@ -185,7 +185,7 @@ public:
     /**
      * @brief Sets an instantaneous mixing model for the simulation.
      */
-    void setInstantaneousMixingModel();
+    virtual void setInstantaneousMixingModel();
 
     /**
      * @brief Check if the mixing model is an instantaneous mixing model.
@@ -195,7 +195,7 @@ public:
     /**
      * @brief Sets a diffusive mixing model for the simulation.
      */
-    void setDiffusiveMixingModel();
+    virtual void setDiffusiveMixingModel();
 
     /**
      * @brief Check if the mixing model is a diffusive mixing model.
@@ -229,7 +229,7 @@ public:
      * @param[in] specie The specie to be removed.
      * @throws std::logic_error if the specie is not present in the simulation.
      */
-    void removeSpecie(const std::shared_ptr<Specie<T>>& specie);
+    virtual void removeSpecie(const std::shared_ptr<Specie<T>>& specie);
 
     /**
      * @brief Create and add a mixture to the simulation, respective to the mixing model. The mixture is composed of a single specie.
@@ -249,6 +249,18 @@ public:
      * @throws std::logic_error if the species vector is empty.
      */
     [[maybe_unused]] std::shared_ptr<Mixture<T>> addMixture(const std::vector<std::shared_ptr<Specie<T>>>& species, const std::vector<T>& concentrations);
+
+    /**
+     * @brief Create and add a diffusive mixture to the simulation.
+     * @param[in] species vector of pointers to the species that composes the mixture.
+     * @param[in] concentrations vector of concentrations of the species in the mixture in g/m^3.
+     * @return Pointer to created mixture.
+     * @note The concentrations should be in the same order as the species and have the same length.
+     * @throws std::logic_error if the species and concentrations vectors are not of the same length.
+     * @throws std::logic_error if the species vector is empty.
+     */
+    [[maybe_unused]] std::shared_ptr<Mixture<T>> addDiffusiveMixture(const std::vector<std::shared_ptr<Specie<T>>>& species, const std::vector<T>& concentrations);
+
 
     /**
      * @brief Get mixture.

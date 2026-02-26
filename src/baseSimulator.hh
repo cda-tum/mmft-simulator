@@ -19,13 +19,13 @@
 
 #include "simulation/simulators/Simulation.hh"
 #include "simulation/simulators/AbstractContinuous.hh"
+#include "simulation/simulators/AbstractConcentration.hh"
 #include "simulation/simulators/AbstractDroplet.hh"
-#include "simulation/simulators/AbstractMixing.hh"
 #include "simulation/simulators/AbstractMembrane.hh"
 #include "simulation/simulators/HybridContinuous.hh"
-#include "simulation/simulators/HybridMixing.hh"
+#include "simulation/simulators/HybridConcentration.hh"
 #include "simulation/simulators/CfdContinuous.hh"
-#include "simulation/simulators/CfdMixing.hh"
+#include "simulation/simulators/CfdConcentration.hh"
 
 #include "simulation/simulators/CFDSim.hh"
 #include "simulation/simulators/cfdHandlers/cfdSimulator.hh"

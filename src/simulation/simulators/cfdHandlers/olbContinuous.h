@@ -214,13 +214,13 @@ protected:
      * @brief Store the abstract pressures at the nodes on the module boundary in the simulator.
      * @param[in] pressure Map of pressures and node ids.
      */
-    inline void storePressures(std::unordered_map<size_t, T> pressure) { this->pressures = pressure; }
+    void storePressures(const std::unordered_map<size_t, T>& pressure) override;
 
     /**
      * @brief Store the abstract flow rates at the nodes on the module boundary in the simulator.
      * @param[in] flowRate Map of flow rates and node ids.
      */
-    inline void storeFlowRates(std::unordered_map<size_t, T> flowRate) { this->flowRates = flowRate; }
+    void storeFlowRates(const std::unordered_map<size_t, T>& flowRate) override;
 
     auto& readGeometry() const {
         return *geometry;

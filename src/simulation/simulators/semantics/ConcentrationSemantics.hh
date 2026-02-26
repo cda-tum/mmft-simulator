@@ -31,7 +31,11 @@ template<typename T>
 std::shared_ptr<Specie<T>> ConcentrationSemantics<T>::addSpecie(T diffusivity, T satConc) {
     size_t id = Specie<T>::getSpecieCounter();
     
-    auto result = species.insert_or_assign(id, std::shared_ptr<Specie<T>>(new Specie<T>(simHash, id, diffusivity, satConc)));
+    auto result = species.try_emplace(id, std::shared_ptr<Specie<T>>(new Specie<T>(simHash, id, diffusivity, satConc)));
+
+    if (!result.second) {
+        throw std::logic_error("Specie with id " + std::to_string(id) + " could not be added.");
+    }
 
     return result.first->second;
 }
@@ -80,6 +84,9 @@ std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::addMixture(const std::sha
 
 template<typename T>
 std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::addMixture(const std::vector<std::shared_ptr<Specie<T>>>& speciesVec, const std::vector<T>& concentrations) {
+    if (mixingModel->isDiffusive()) {
+        return addDiffusiveMixture(std::move(speciesVec), std::move(concentrations));
+    }
     size_t id = Mixture<T>::getMixtureCounter();
 
     Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
@@ -287,6 +294,10 @@ void ConcentrationSemantics<T>::removeMixtureInjection(const std::shared_ptr<Mix
 
 template<typename T>
 Mixture<T>* ConcentrationSemantics<T>::addMixture(std::unordered_map<size_t, T> specieConcentrations) {
+    if (mixingModel->isDiffusive()) {
+        return addDiffusiveMixture(std::move(specieConcentrations));
+    }
+
     size_t id = Mixture<T>::getMixtureCounter();
 
     std::unordered_map<size_t, Specie<T>*> species;
@@ -305,6 +316,10 @@ Mixture<T>* ConcentrationSemantics<T>::addMixture(std::unordered_map<size_t, T> 
 
 template<typename T>
 Mixture<T>* ConcentrationSemantics<T>::addMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, T> specieConcentrations) {
+    if (mixingModel->isDiffusive()) {
+        return addDiffusiveMixture(std::move(species), std::move(specieConcentrations));
+    }
+
     size_t id = Mixture<T>::getMixtureCounter();
 
     Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
@@ -335,6 +350,41 @@ Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<si
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
 
     return result.first->second.get();
+}
+
+template<typename T>
+std::shared_ptr<Mixture<T>> ConcentrationSemantics<T>::addDiffusiveMixture(const std::vector<std::shared_ptr<Specie<T>>>& speciesVec, const std::vector<T>& specieConcentrationsVec) {
+    size_t id = Mixture<T>::getMixtureCounter();
+
+    if (speciesVec.size() != specieConcentrationsVec.size()) {
+        throw std::logic_error("Species and concentrations vectors must have the same size.");
+    }
+    if (speciesVec.empty()) {
+        throw std::invalid_argument("At least one species must be present in a mixture.");
+    }
+
+    // Transform the vector of species and concentrations into an unordered_map
+    std::unordered_map<size_t, std::shared_ptr<Specie<T>>> speciesMap;
+    std::unordered_map<size_t, T> specieConcentrationsMap;
+    for (size_t i = 0; i < speciesVec.size(); ++i) {
+        speciesMap.try_emplace(speciesVec[i]->getId(), speciesVec[i]);
+        specieConcentrationsMap.try_emplace(speciesVec[i]->getId(), specieConcentrationsVec[i]);
+    }
+
+    std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>,T>> specieDistributions;
+
+    for (auto& [specieId, concentration] : specieConcentrationsMap) {
+        std::function<T(T)> zeroFunc = [](T) -> T { return 0.0; };
+        std::vector<T> zeroVec = {T(0.0)};
+        specieDistributions.try_emplace(specieId, std::tuple<std::function<T(T)>, std::vector<T>, T>{zeroFunc, zeroVec, T(0.0)});
+    }
+
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
+
+    auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(simHash, id, std::move(speciesMap), std::move(specieConcentrationsMap), std::move(specieDistributions), carrierFluid)));
+    result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable
+
+    return result.first->second;
 }
 
 template<typename T>
@@ -378,7 +428,7 @@ Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<si
 }
 
 template<typename T>
-Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<size_t, Specie<T>*> species, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions) {
+Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<size_t, std::shared_ptr<Specie<T>>> species, std::unordered_map<size_t, std::tuple<std::function<T(T)>, std::vector<T>, T>> specieDistributions) {
     size_t id = Mixture<T>::getMixtureCounter();
 
     std::unordered_map<size_t, T> specieConcentrations;
@@ -387,7 +437,7 @@ Mixture<T>* ConcentrationSemantics<T>::addDiffusiveMixture(std::unordered_map<si
         specieConcentrations.try_emplace(specieId, T(0));
     }
 
-    Fluid<T>* carrierFluid = simRef->getContinuousPhase();
+    Fluid<T>* carrierFluid = simRef->getContinuousPhase().get();
 
     auto result = mixtures.try_emplace(id, std::shared_ptr<DiffusiveMixture<T>>(new DiffusiveMixture<T>(simHash, id, std::move(species), specieConcentrations, std::move(specieDistributions), carrierFluid)));
     result.first->second->setMutable();     // This mixture is added through the public API -> object is mutable

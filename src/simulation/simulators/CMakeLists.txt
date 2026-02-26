@@ -1,24 +1,24 @@
 set(SOURCE_LIST
     Simulation.hh
     AbstractContinuous.hh
+    AbstractConcentration.hh
     AbstractDroplet.hh
-    AbstractMixing.hh
     AbstractMembrane.hh
     CFDSim.hh
     HybridContinuous.hh
-    HybridMixing.hh
+    HybridConcentration.hh
     CfdContinuous.hh
 )
 
 set(HEADER_LIST
     Simulation.h
     AbstractContinuous.h
+    AbstractConcentration.h
     AbstractDroplet.h
-    AbstractMixing.h
     AbstractMembrane.h
     CFDSim.h
     HybridContinuous.h
-    HybridMixing.h
+    HybridConcentration.h
     CfdContinuous.h
 )
 
