@@ -144,7 +144,7 @@ TEST_F(HybridContinuous, esstest) {
 
 TEST_F(HybridContinuous, Case1aJSON) {
     
-    std::string file = "../examples/Hybrid/Network1a.JSON";
+    std::string file = "../examples/Hybrid/Continuous/Network1a.JSON";
     
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(file);
@@ -177,7 +177,7 @@ TEST_F(HybridContinuous, Case1aJSON) {
 
 TEST_F(HybridContinuous, testCase2a) {
     
-std::string file = "../examples/Hybrid/Network2a.JSON";
+std::string file = "../examples/Hybrid/Continuous/Network2a.JSON";
 
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(file);
@@ -211,7 +211,7 @@ std::string file = "../examples/Hybrid/Network2a.JSON";
 
 TEST_F(HybridContinuous, testCase3a) {
     
-    std::string file = "../examples/Hybrid/Network3a.JSON";
+    std::string file = "../examples/Hybrid/Continuous/Network3a.JSON";
     
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(file);
@@ -255,7 +255,7 @@ TEST_F(HybridContinuous, testCase3a) {
 
 TEST_F(HybridContinuous, testCase4a) {
     
-    std::string file = "../examples/Hybrid/Network4a.JSON";
+    std::string file = "../examples/Hybrid/Continuous/Network4a.JSON";
     
     // Load and set the network from a JSON file
     auto network = porting::networkFromJSON<T>(file);
