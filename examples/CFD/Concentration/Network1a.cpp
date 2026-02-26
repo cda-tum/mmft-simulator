@@ -42,12 +42,12 @@ int main(int argc, char const* argv []) {
 
     // species
     T initialCondition = 1.0;
-    auto s1 = testSimulation.addSpecie(1e-6, 1.0, initialCondition);
+    auto s1 = testSimulation.addSpecie(1e-9, 1.0, initialCondition);
 
     // Boundary conditions
-    testSimulation.addPressureBC(node1, 1.0);
-    testSimulation.addPressureBC(node2, 1.0);
-    testSimulation.addPressureBC(node3, 1.0);
+    testSimulation.addPressureBC(node1, 1e3);
+    testSimulation.addPressureBC(node2, 1e3);
+    testSimulation.addPressureBC(node3, 1e3);
     testSimulation.addPressureBC(node7, 0.0);
 
     T conc = 1.2;

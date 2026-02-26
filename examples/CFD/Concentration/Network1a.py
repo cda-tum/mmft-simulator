@@ -23,7 +23,7 @@ def cfdContinuous():
     network.addRectangularChannel(n5, n7, 1e-4, 1e-4, ChannelType.normal)
 
     # Simulation
-    simulation = CfdContinuous(network)
+    simulation = CfdConcentration(network)
     simulation.setResolution(40)
 
     # Fluid & Resistance Model
@@ -31,12 +31,12 @@ def cfdContinuous():
     simulation.setContinuousPhase(f0)
 
     # species
-    s1 = simulation.addSpecie(1e-6, 1.0, 1.0)
+    s1 = simulation.addSpecie(1e-9, 1.0, 1.0)
 
     # Define Boundary Conditions
-    simulation.addPressureBC(n1, 1e2)
-    simulation.addPressureBC(n2, 1e2)
-    simulation.addPressureBC(n3, 1e2)
+    simulation.addPressureBC(n1, 1e3)
+    simulation.addPressureBC(n2, 1e3)
+    simulation.addPressureBC(n3, 1e3)
     simulation.addPressureBC(n7, 0.0)
 
     simulation.addConcentrationBC(n1, s1, 1.2)
