@@ -39,6 +39,7 @@ PYBIND11_MODULE(pysimulator, m) {
 	bind_abstractContinuous(m);
 	bind_abstractDroplet(m);
 	bind_abstractConcentration(m);
+	bind_abstractMembrane(m);
 	bind_hybridContinuous(m);
 	bind_hybridConcentration(m);
 	bind_cfdContinuous(m);
