@@ -157,7 +157,7 @@ int main(int argc, char const* argv []) {
 ### Python
 
 ```python
-from mmft import simulator
+from mmft.simulator import *
 
 network = createNetwork()
 
