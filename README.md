@@ -2,6 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ubuntu-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_ubuntu.yml)
+[![DOI](https://zenodo.org/badge/647391241.svg)](https://doi.org/10.5281/zenodo.18790946)
 <!-- [![MacOS-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_macos.yml) -->
 <!-- [![Windows-build](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_windows.yml/badge.svg)](https://github.com/cda-tum/mmft-simulator/actions/workflows/cmake_windows.yml) -->
 
