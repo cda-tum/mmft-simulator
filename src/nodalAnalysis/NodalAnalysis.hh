@@ -393,10 +393,10 @@ void NodalAnalysis<T>::writeCfdSimulators(const std::unordered_map<int, std::sha
             // Communicate the flow rate to the module
             else if (contains(groundNodeIds, key)) {
                 T old_flowRate = old_flowrates.at(key) ;
-                T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getModule()->getOpenings().at(key).width;
+                T new_flowRate = x(groundNodeIds.at(key)) / cfdSimulator.second->getModule()->getOpenings().at(key).height;
                 T set_flowRate = 0.0;
                 if (old_flowRate > 0 ) {
-                    set_flowRate = old_flowRate + 5 * cfdSimulator.second->getAlpha(key) *  ( new_flowRate - old_flowRate );
+                    set_flowRate = old_flowRate + cfdSimulator.second->getBeta(key) *  ( new_flowRate - old_flowRate );
                 } else {
                     set_flowRate = new_flowRate;
                 }
