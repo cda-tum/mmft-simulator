@@ -63,7 +63,7 @@ void readModules(json jsonString, arch::Network<T>& network) {
         for (auto& opening : module["Openings"]) {
             size_t nodeId = opening["node"];
             std::vector<T> normal = { opening["normal"]["x"], opening["normal"]["y"] };
-            arch::Opening<T> opening_(network.getNode(nodeId), normal, opening["width"]);
+            arch::Opening<T> opening_(network.getNode(nodeId), normal, opening["width"], opening["height"]);
             Openings.try_emplace(nodeId, opening_);
         }
         network.addCfdModule(position, size, stlFile, std::move(Openings));
